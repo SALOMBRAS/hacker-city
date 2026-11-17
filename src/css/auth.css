@@ -202,7 +202,7 @@
   margin-top: 1.25rem;
 }
 .btn-submit:hover {
-  background: #0ea5e9;
+  background: var(--hc-accent-hover);
   box-shadow: none;
   transform: translateY(-1px);
 }

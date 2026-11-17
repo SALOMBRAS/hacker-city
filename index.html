@@ -311,7 +311,7 @@
         </div>
 
         <div style="font-size: 0.85rem; color: #fff; margin-bottom: 0.4rem;">Histórico de Transações Sincronizado:</div>
-        <div id="bankTxHistory" style="font-family: var(--hc-font-mono); font-size: 0.8rem; color: var(--hc-text-2); max-height: 120px; overflow-y: auto;">
+        <div id="bankTxHistory" style="font-family: var(--hc-font-mono); font-size: 0.82rem; color: var(--hc-text-2);">
           <div>[SINC] Carregando histórico da nuvem...</div>
         </div>
       </div>
@@ -393,7 +393,7 @@
           <button class="btn-submit" style="width: auto; margin-top: 0; padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="loadNetworkTargetsFromCloud()">VARRER REDE</button>
         </div>
 
-        <div id="scannerTargetsList" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 280px; overflow-y: auto;">
+        <div id="scannerTargetsList" style="display: flex; flex-direction: column; gap: 0.75rem;">
           <div style="color: var(--hc-text-2); font-size: 0.85rem; text-align: center; padding: 2rem;">Clique em "Varrer Rede" para consultar os alvos do Supabase.</div>
         </div>
       </div>
@@ -470,8 +470,9 @@
       </div>
       <div class="window-body">
         <div style="display: flex; gap: 1rem; align-items: center; border-bottom: 1px solid var(--hc-border); padding-bottom: 1rem; margin-bottom: 1rem;">
-          <div style="font-size: 3rem; background: var(--hc-inset); border: 1px solid var(--cyan-neon); border-radius: 50%; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
-                      </div>
+          <div id="profAvatarCircle" style="font-size: 1.35rem; font-weight: 700; color: #fff; background: var(--hc-accent); border: 1px solid var(--hc-border-strong); border-radius: 50%; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;">
+            <i data-icon="user" data-icon-class="xl"></i>
+          </div>
           <div>
             <h3 style="color: #fff; font-family: var(--hc-font-sans);" id="profHackerTag">Carregando...</h3>
             <div style="color: var(--cyan-neon); font-size: 0.85rem;" id="profSpecialty">Especialidade: ...</div>

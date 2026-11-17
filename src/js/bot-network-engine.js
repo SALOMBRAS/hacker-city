@@ -805,9 +805,9 @@ function renderC2UI(containerId = 'botnetC2Body') {
           <div>
             <strong>${s.handle}</strong> [${s.ip}] ${tierBadge}
           </div>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="color: var(--green-safe);">+$ ${liveRate} HC/s</span>
-            <button class="btn-submit" style="margin: 0; padding: 0.2rem 0.5rem; font-size: 0.72rem; background: #d0443a;" onclick="releaseC2Slave('${s.ip}')">Liberar</button>
+          <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+            <span style="color: var(--green-safe); white-space: nowrap; font-family: var(--hc-font-mono); font-size: 0.8rem;">+$ ${liveRate} HC/s</span>
+            <button class="btn-submit" style="width: auto; margin: 0; padding: 0.25rem 0.65rem; font-size: 0.72rem; background: #d0443a; border-color: #d0443a;" onclick="releaseC2Slave('${s.ip}')">Liberar</button>
           </div>
         </div>
       `;
@@ -853,9 +853,9 @@ function renderC2UI(containerId = 'botnetC2Body') {
 
       <!-- Tabela de Escravos -->
       <div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <span style="font-size: 0.76rem; color: #aab3c0; font-weight: bold;">MÁQUINAS ZUMBIS INFECTADAS:</span>
-          <button class="btn-submit" style="margin: 0; padding: 0.25rem 0.6rem; font-size: 0.72rem;" onclick="infectNewRandomSlave()">Infectar Nó de Amostra</button>
+          <button class="btn-submit" style="width: auto; margin: 0; padding: 0.3rem 0.8rem; font-size: 0.75rem;" onclick="infectNewRandomSlave()">Infectar nó de amostra</button>
         </div>
         <div class="c2-slave-list">
           ${slavesRows}
