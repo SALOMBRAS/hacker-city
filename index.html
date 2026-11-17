@@ -1187,12 +1187,39 @@
     }
 
     function executeCli(cmdLine) {
-      const parts = cmdLine.split(' ');
+      const parts = cmdLine.trim().split(/\s+/);
       const cmd = parts[0].toLowerCase();
-      appendCli(`${currentProfile ? currentProfile.hacker_tag.toLowerCase() : 'user'}@hackercity:~$ ${cmdLine}`, '#38bdf8');
+      const hackerTag = currentProfile ? currentProfile.hacker_tag.toLowerCase() : 'user';
+
+      // 1. Se estiver dentro de um aplicativo interativo (/use):
+      if (window.terminalTools && window.terminalTools.isAppPanelActive()) {
+        appendCli(`[APP: ${window.terminalTools.activeCliAppId}] ALVO >> ${cmdLine}`, '#f59e0b');
+        if (cmd === 'sair' || cmd === 'exit' || cmd === 'quit' || cmd === 'fechar' || cmd === 'voltar') {
+          window.terminalTools.exitAppPanel(appendCli, hackerTag);
+          return;
+        } else if (cmd === '/use' || cmd === 'use') {
+          window.terminalTools.executeUseApp(parts[1], parts[2], appendCli, currentProfile, currentWallet);
+          return;
+        } else {
+          window.terminalTools.runInteractiveTargetTest(cmdLine, appendCli, currentProfile);
+          return;
+        }
+      }
+
+      appendCli(`${hackerTag}@hackercity:~$ ${cmdLine}`, '#38bdf8');
+
+      // 2. Comando /use ou use (Scanner de IP & Quebra de VPN)
+      if (cmd === '/use' || cmd === 'use') {
+        if (window.terminalTools) {
+          window.terminalTools.executeUseApp(parts[1], parts[2], appendCli, currentProfile, currentWallet);
+        }
+        return;
+      }
 
       if (cmd === 'help') {
         appendCli('Comandos disponíveis:');
+        appendCli('  /use [app]           - Painel interativo de invasão (/use ip_scanner, /use vpn_breaker, etc.)', '#f59e0b');
+        appendCli('  host <site>          - Rastreia a VPS e infraestrutura de um site (ex: host hc://bank)', '#06b6d4');
         appendCli('  scan                 - Varre alvos vulneráveis no PostgreSQL');
         appendCli('  nmap <ip>            - Varredura profunda de portas e serviços do alvo');
         appendCli('  hack [ip]            - Abre scanner de alvos ou explora nó vulnerável');
@@ -1211,6 +1238,22 @@
         appendCli('  panic                - Dispara o Protocolo 404 (batida policial)');
       } else if (cmd === 'clear') {
         document.getElementById('cliOutput').innerHTML = '';
+      } else if (cmd === 'host' || cmd === 'nslookup' || cmd === 'ping') {
+        const targetSite = parts[1] || 'hc://market';
+        if (window.terminalTools) {
+          const meta = window.terminalTools.resolveSiteOrIp(targetSite);
+          if (meta) {
+            appendCli(`[DNS RESOLVER // RASTREAMENTO DE HOSPEDAGEM]`, '#06b6d4');
+            appendCli(`  Link Consultado:   ${meta.site_url}`, '#e2e8f0');
+            appendCli(`  Servidor VPS Host: ${meta.host}`, '#f59e0b');
+            appendCli(`  IP Hospedado:      ${meta.ip} (Proxy Reverso: ${meta.proxy_ip})`, '#22c55e');
+            appendCli(`  Portas Abertas:    ${meta.ports}`, '#38bdf8');
+            appendCli(`  Proteção Ativa:    ${meta.vpn_shield} (Segurança Nível ${meta.security_tier})`, '#f59e0b');
+            appendCli(`  → Dica: Use '/use ip_scanner' para sondar a rede ou '/use vpn_breaker' para quebrar o túnel de ${meta.ip}!`, '#94a3b8');
+          } else {
+            appendCli(`[DNS HC] Não foi possível resolver '${targetSite}'. Ex: host hc://market`, '#ef4444');
+          }
+        }
       } else if (cmd === 'whoami') {
         appendCli(`Operador: ${currentProfile.hacker_tag} | Especialidade: ${currentProfile.specialty.toUpperCase()} | Conta: ${currentWallet.account_number}`);
       } else if (cmd === 'reputation') {
