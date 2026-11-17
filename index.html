@@ -208,6 +208,11 @@
         <div class="icon-label">Cyber Arcade</div>
       </div>
 
+      <div class="desktop-icon" onclick="openWindow('winHardware')">
+        <div class="icon-symbol">🖥️</div>
+        <div class="icon-label">Hardware Rig</div>
+      </div>
+
       <div class="desktop-icon" onclick="openWindow('winPanic')">
         <div class="icon-symbol">🚨</div>
         <div class="icon-label">Protocolo 404</div>
@@ -229,6 +234,9 @@
       </div>
       <div class="window-body" style="padding: 0;">
         <div class="cli-container">
+          <div id="terminalHardwareBanner" style="background: #090d16; border-bottom: 1px solid #1e293b; padding: 0.4rem 0.75rem; font-size: 0.76rem; color: #22c55e; font-family: 'Fira Code', monospace; letter-spacing: 0.5px;">
+            🖥️ PC SUCATA DO LIXÃO (CELERON 800MHZ / 256MB RAM) // REDE: MODEM 56kbps
+          </div>
           <div class="cli-output" id="cliOutput">
             <div>[SISTEMA] Autenticado no Supabase Cloud (PostgreSQL 17.12). Digite 'help' para listar comandos.</div>
           </div>
@@ -462,6 +470,19 @@
         <button class="btn-submit" style="background: #334155; border-color: #475569; margin-top: 1.5rem;" onclick="logoutCurrentSession()">
           🚪 DESCONECTAR DA CONTA
         </button>
+      </div>
+    </div>
+
+    <!-- JANELA 9: HARDWARE RIG & UPGRADES -->
+    <div class="window-frame" id="winHardware" style="width: 660px; height: 490px; top: 90px; left: 240px; display: none;">
+      <div class="window-header" onmousedown="dragWindowStart(event, 'winHardware')">
+        <div class="window-title">🖥️ Hardware Workbench // Upgrades de Rig</div>
+        <div class="window-controls">
+          <button class="btn-win btn-win-close" onclick="closeWindow('winHardware')"></button>
+        </div>
+      </div>
+      <div class="window-body" id="hardwareWorkbenchBody">
+        <!-- Renderizado dinamicamente via hardwareEngine.renderWorkbench -->
       </div>
     </div>
 
@@ -787,6 +808,61 @@
 
       // Prompt do Terminal
       document.getElementById('cliPromptTag').innerText = `${currentProfile.hacker_tag.toLowerCase()}@hackercity:~$`;
+      updateHardwareDisplay();
+    }
+
+    function updateHardwareDisplay() {
+      if (window.hardwareEngine) {
+        const banner = document.getElementById('terminalHardwareBanner');
+        if (banner) {
+          banner.innerText = window.hardwareEngine.getBannerText();
+        }
+        if (currentWallet) {
+          window.hardwareEngine.renderWorkbench('hardwareWorkbenchBody', currentWallet.balance);
+        }
+        const profTier = document.getElementById('profComputerTier');
+        if (profTier && window.hardwareEngine.getCpu()) {
+          profTier.innerText = window.hardwareEngine.getCpu().name;
+        }
+      }
+    }
+
+    async function buyHardwareUpgrade(category, itemId, price) {
+      if (!currentWallet || currentWallet.balance < price) {
+        if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+        alert('Saldo insuficiente na conta bancária!');
+        return;
+      }
+
+      try {
+        const { data: rpcData, error: rpcErr } = await supabase.rpc('buy_black_market_item', {
+          p_item_type: `hardware_${category}_${itemId}`,
+          p_cost: price
+        });
+
+        if (rpcErr) {
+          currentWallet.balance = Math.max(0, currentWallet.balance - price);
+        } else if (rpcData && rpcData.new_balance !== undefined) {
+          currentWallet.balance = rpcData.new_balance;
+        } else {
+          currentWallet.balance = Math.max(0, currentWallet.balance - price);
+        }
+
+        window.hardwareEngine.saveRig({ [category]: itemId });
+        if (window.hackerAudio) window.hackerAudio.playCashChime();
+        showToast('Peça de Hardware comprada e instalada no Rig!');
+        updateHudDisplays();
+        loadBankTransactions();
+        updateHardwareDisplay();
+
+      } catch (err) {
+        currentWallet.balance = Math.max(0, currentWallet.balance - price);
+        window.hardwareEngine.saveRig({ [category]: itemId });
+        if (window.hackerAudio) window.hackerAudio.playCashChime();
+        showToast('Hardware instalado com sucesso no seu Rig.');
+        updateHudDisplays();
+        updateHardwareDisplay();
+      }
     }
 
     // Configurar WebSockets em Tempo Real (Supabase Realtime)
@@ -1076,6 +1152,7 @@
         appendCli('Comandos disponíveis:');
         appendCli('  scan                 - Varre alvos vulneráveis no PostgreSQL');
         appendCli('  hack <ip>            - Explora o alvo e transfere recompensa para sua carteira');
+        appendCli('  hardware             - Abre a oficina e mostra status dos componentes de PC');
         appendCli('  banco                - Exibe número de conta e saldo real');
         appendCli('  whoami               - Informações do operador autenticado');
         appendCli('  reputation           - Pontuação e nível no submundo');
@@ -1089,6 +1166,10 @@
         appendCli(`Reputação Cloud: ${currentProfile.reputation} REP (Heat Atual: ${currentProfile.heat_level}/5)`);
       } else if (cmd === 'banco' || cmd === 'saldo') {
         appendCli(`Conta: ${currentWallet.account_number} | Saldo: $ ${parseFloat(currentWallet.balance).toFixed(2)} HC`);
+      } else if (cmd === 'hardware' || cmd === 'rig') {
+        openWindow('winHardware');
+        updateHardwareDisplay();
+        appendCli('Oficina de Hardware aberta. Verifique suas peças e upgrades.');
       } else if (cmd === 'scan') {
         loadNetworkTargetsFromCloud();
         openWindow('winScanner');
