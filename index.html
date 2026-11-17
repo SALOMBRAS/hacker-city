@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hacker City — Web Edition (Supabase Online & Multiplayer)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Supabase Official JavaScript Client v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --bg-desktop: #0a0e17;
+      --panel-bg: rgba(13, 17, 26, 0.95);
+      --panel-border: #1e293b;
+      --cyan-neon: #06b6d4;
+      --cyan-glow: rgba(6, 182, 212, 0.4);
+      --green-safe: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.35);
+      --red-alert: #ef4444;
+      --red-glow: rgba(239, 68, 68, 0.4);
+      --amber-warn: #f59e0b;
+      --blue-accent: #3b82f6;
+      --purple-accent: #a855f7;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 600;
+      min-height: 100vh;
+      overflow: hidden;
+      user-select: none;
+      position: relative;
+    }
+
+    /* ========================================================
+       PORTAL DE AUTENTICAÇÃO SUPABASE (CADASTRO / LOGIN)
+       ======================================================== */
+    #authOverlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle at 50% 30%, #0f172a 0%, #05070a 100%);
+      z-index: 9000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background-image: 
+        radial-gradient(circle at 50% 10%, rgba(6, 182, 212, 0.15) 0%, transparent 60%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 30px 30px, 30px 30px;
+    }
+
+    .auth-card {
+      background: rgba(13, 17, 26, 0.95);
+      border: 2px solid var(--cyan-neon);
+      border-radius: 12px;
+      box-shadow: 0 0 40px rgba(6, 182, 212, 0.25), inset 0 0 20px rgba(6, 182, 212, 0.05);
+      max-width: 580px;
+      width: 100%;
+      padding: 2.2rem;
+      backdrop-filter: blur(12px);
+      position: relative;
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .auth-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.85rem;
+      letter-spacing: 2px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      text-transform: uppercase;
+    }
+    .auth-title span { color: var(--cyan-neon); }
+    .auth-subtitle {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 0.35rem;
+    }
+    .cloud-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid var(--green-safe);
+      color: var(--green-safe);
+      font-size: 0.72rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      margin-top: 0.5rem;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .auth-tabs {
+      display: flex;
+      gap: 0.5rem;
+      background: #090d16;
+      border: 1px solid #1e293b;
+      padding: 0.35rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+    }
+    .auth-tab {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .auth-tab.active {
+      background: #1e293b;
+      color: var(--cyan-neon);
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+    }
+
+    .auth-form { display: none; }
+    .auth-form.active { display: block; animation: fadeIn 0.3s ease-out; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-group {
+      margin-bottom: 1.15rem;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.35rem;
+    }
+    .form-input {
+      width: 100%;
+      background: #090d16;
+      border: 1px solid #334155;
+      color: #fff;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.92rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .form-input:focus {
+      border-color: var(--cyan-neon);
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+
+    /* Seletor de Especialidade / Classes */
+    .specialty-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-top: 0.4rem;
+    }
+    .specialty-card {
+      background: #090d16;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .specialty-card:hover {
+      border-color: #3b82f6;
+      background: #0f172a;
+    }
+    .specialty-card.selected {
+      border-color: var(--cyan-neon);
+      background: rgba(6, 182, 212, 0.1);
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+    }
+    .spec-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .spec-desc {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+      line-height: 1.3;
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
+      border: 1px solid var(--cyan-neon);
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      padding: 0.85rem;
+      border-radius: 6px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+      transition: all 0.2s;
+      margin-top: 1.25rem;
+    }
+    .btn-submit:hover {
+      background: #0ea5e9;
+      box-shadow: 0 0 25px rgba(6, 182, 212, 0.6);
+      transform: translateY(-1px);
+    }
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Lista de Contas Rápidas */
+    .saved-accounts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      max-height: 220px;
+      overflow-y: auto;
+      margin-top: 0.5rem;
+    }
+    .account-item {
+      background: #090d16;
+      border: 1px solid #1e293b;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .account-item:hover {
+      border-color: var(--green-safe);
+      background: #0f172a;
+    }
+    .acc-tag { font-size: 0.95rem; font-weight: bold; color: #fff; }
+    .acc-info { font-size: 0.78rem; color: var(--text-muted); font-family: 'Fira Code', monospace; }
+
+    /* ========================================================
+       DESKTOP DO JOGO (HACKEROS WEB DESKTOP)
+       ======================================================== */
+    #desktopEnvironment {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      background: #07090e radial-gradient(circle at 50% 50%, #0d131f 0%, #05070a 100%);
+      overflow: hidden;
+    }
+
+    /* Barra Superior Global */
+    .topbar {
+      height: 42px;
+      background: rgba(10, 15, 24, 0.92);
+      border-bottom: 1px solid #1e293b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 1.25rem;
+      z-index: 5000;
+      backdrop-filter: blur(10px);
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+    .os-logo {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: #fff;
+    }
+    .player-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+    }
+    .tag-badge {
+      background: rgba(6, 182, 212, 0.15);
+      border: 1px solid var(--cyan-neon);
+      color: var(--cyan-neon);
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .topbar-stats {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .stat-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.82rem;
+    }
+    .stat-pill .val {
+      font-family: 'Orbitron', monospace;
+      font-weight: bold;
+    }
+
+    .btn-logout {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      padding: 0.25rem 0.65rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+    .btn-logout:hover {
+      background: #ef4444;
+      color: #fff;
+      border-color: #ef4444;
+    }
+
+    /* Área dos Ícones na Mesa */
+    .desktop-surface {
+      position: absolute;
+      top: 42px; left: 0; right: 0; bottom: 44px;
+      padding: 1.5rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      grid-auto-rows: 105px;
+      gap: 1rem;
+      align-content: start;
+    }
+
+    .desktop-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+      width: 95px;
+      height: 95px;
+      text-align: center;
+    }
+    .desktop-icon:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(6, 182, 212, 0.4);
+      transform: translateY(-2px);
+    }
+    .icon-symbol {
+      font-size: 2.2rem;
+      line-height: 1;
+      filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.3));
+    }
+    .icon-label {
+      font-size: 0.78rem;
+      color: #e2e8f0;
+      font-weight: 600;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+      line-height: 1.2;
+    }
+
+    /* ========================================================
+       SISTEMA DE JANELAS FLUTUANTES (WINDOW MANAGER)
+       ======================================================== */
+    .window-frame {
+      position: absolute;
+      background: rgba(13, 17, 26, 0.98);
+      border: 1px solid #334155;
+      border-radius: 8px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.7), 0 0 20px rgba(6, 182, 212, 0.1);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 480px;
+      min-height: 340px;
+      backdrop-filter: blur(14px);
+    }
+    .window-frame.focused {
+      border-color: var(--cyan-neon);
+      box-shadow: 0 20px 45px rgba(0,0,0,0.8), 0 0 25px rgba(6, 182, 212, 0.25);
+    }
+
+    .window-header {
+      height: 36px;
+      background: #090d16;
+      border-bottom: 1px solid #1e293b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 0.85rem;
+      cursor: move;
+    }
+    .window-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .window-controls {
+      display: flex;
+      gap: 0.4rem;
+    }
+    .btn-win {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-win-close { background: #ef4444; }
+
+    .window-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.25rem;
+      position: relative;
+    }
+
+    /* Barra de Tarefas Inferior */
+    .taskbar {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 44px;
+      background: rgba(10, 15, 24, 0.95);
+      border-top: 1px solid #1e293b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 1rem;
+      z-index: 5000;
+    }
+    .taskbar-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-start {
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      border: 1px solid var(--cyan-neon);
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 0.4rem 0.8rem;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .taskbar-tasks {
+      display: flex;
+      gap: 0.35rem;
+      margin-left: 0.5rem;
+    }
+    .task-item {
+      background: #111827;
+      border: 1px solid #1f2937;
+      color: #cbd5e1;
+      padding: 0.35rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .task-item.active {
+      border-color: var(--cyan-neon);
+      background: rgba(6, 182, 212, 0.15);
+      color: #fff;
+    }
+
+    .taskbar-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    /* Terminal CLI */
+    .cli-container {
+      background: #000;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      height: 100%;
+      min-height: 280px;
+      padding: 0.85rem;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      color: #22c55e;
+      display: flex;
+      flex-direction: column;
+    }
+    .cli-output {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .cli-input-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-top: 1px solid #14532d;
+      padding-top: 0.5rem;
+    }
+    .cli-prompt { color: var(--cyan-neon); font-weight: bold; }
+    .cli-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    /* Banco Hacker */
+    .bank-balance-card {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%);
+      border: 1px solid var(--cyan-neon);
+      border-radius: 8px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .bank-acc-num {
+      font-family: 'Fira Code', monospace;
+      font-size: 1.15rem;
+      color: #fff;
+      font-weight: bold;
+    }
+    .bank-acc-bal {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.8rem;
+      color: var(--green-safe);
+      font-weight: 800;
+    }
+
+    /* Toast Popup */
+    .toast-popup {
+      position: fixed;
+      bottom: 55px; right: 20px;
+      background: rgba(13, 17, 26, 0.95);
+      border: 1px solid var(--cyan-neon);
+      border-radius: 6px;
+      padding: 0.85rem 1.25rem;
+      color: #fff;
+      font-size: 0.85rem;
+      z-index: 9999;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+      display: none;
+    }
+
+    .links-footer-note {
+      position: absolute;
+      bottom: 55px; left: 20px;
+      background: rgba(10, 15, 24, 0.9);
+      border: 1px solid #1e3a8a;
+      border-radius: 6px;
+      padding: 0.6rem 1rem;
+      font-size: 0.75rem;
+      z-index: 4000;
+      color: #94a3b8;
+    }
+    .links-footer-note a {
+      color: var(--cyan-neon);
+      text-decoration: underline;
+      margin-left: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================================================
+       PORTAL DE AUTENTICAÇÃO SUPABASE
+       ======================================================== -->
+  <div id="authOverlay">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-title">Hacker City <span>//</span> Web</div>
+        <div class="auth-subtitle">Mainframe Clandestino Conectado ao Supabase Cloud</div>
+        <div class="cloud-badge">
+          <span>●</span> <span>PostgreSQL & Auth Online (yguxmkgkwumcskucdlfc)</span>
+        </div>
+      </div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabRegister" onclick="switchAuthTab('register')">CRIAR CONTA</button>
+        <button class="auth-tab" id="tabLogin" onclick="switchAuthTab('login')">ENTRAR / LOGIN</button>
+        <button class="auth-tab" id="tabSaved" onclick="switchAuthTab('saved')">OPERADORES SALVOS</button>
+      </div>
+
+      <!-- Formulário de Registro / Criação de Conta Real -->
+      <form class="auth-form active" id="formRegister" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label>Codinome / Hacker Tag (Nome no Jogo)</label>
+          <input type="text" id="regTag" class="form-input" placeholder="Ex: ShadowViper, ZeroCool, Neo404" required autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label>E-mail Real ou Darknet</label>
+          <input type="email" id="regEmail" class="form-input" placeholder="seu-email@exemplo.com" required autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label>Senha Criptográfica (Mínimo 6 caracteres)</label>
+          <input type="password" id="regPass" class="form-input" placeholder="••••••••••••" minlength="6" required autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label>Especialidade Hacker / Classe Inicial</label>
+          <div class="specialty-grid">
+            <div class="specialty-card selected" id="specExploiter" onclick="selectSpecialty('exploiter')">
+              <div class="spec-title">⚡ Infiltrador</div>
+              <div class="spec-desc">+25% velocidade em quebra de senhas & exploits</div>
+            </div>
+            <div class="specialty-card" id="specSentinel" onclick="selectSpecialty('sentinel')">
+              <div class="spec-title">🛡️ Cyber Sentinel</div>
+              <div class="spec-desc">+50% chance de evitar rastreamento de Heat policial</div>
+            </div>
+            <div class="specialty-card" id="specBotmaster" onclick="selectSpecialty('botmaster')">
+              <div class="spec-title">🤖 Botmaster</div>
+              <div class="spec-desc">+30% de rendimento de rede de bots zumbi</div>
+            </div>
+            <div class="specialty-card" id="specCarder" onclick="selectSpecialty('carder')">
+              <div class="spec-title">💳 Cripto-Carder</div>
+              <div class="spec-desc">Bônus inicial de $750 HC e +25% de lucro em hacks</div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" id="btnRegisterSubmit" class="btn-submit">⚡ CRIAR CONTA NO SUPABASE & ENTRAR</button>
+      </form>
+
+      <!-- Formulário de Login -->
+      <form class="auth-form" id="formLogin" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Hacker Tag ou E-mail</label>
+          <input type="text" id="loginTag" class="form-input" placeholder="Digite seu codinome ou email" required autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" id="loginPass" class="form-input" placeholder="••••••••••••" required autocomplete="off">
+        </div>
+
+        <button type="submit" id="btnLoginSubmit" class="btn-submit">🔓 ACESSAR MAINFRAME</button>
+      </form>
+
+      <!-- Lista de Contas Rápidas no Dispositivo -->
+      <div class="auth-form" id="formSaved">
+        <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+          Selecione um operador recente para autenticar instantaneamente:
+        </div>
+        <div class="saved-accounts-list" id="savedAccountsContainer">
+          <!-- Injetado dinamicamente -->
+        </div>
+      </div>
+
+      <!-- Formulário de Verificação Obrigatória de E-mail (OTP / Link) -->
+      <form class="auth-form" id="formVerify" onsubmit="handleVerifyOtp(event)">
+        <div style="background: rgba(6, 182, 212, 0.08); border: 1px solid var(--cyan-neon); border-radius: 8px; padding: 1.1rem; margin-bottom: 1.25rem; text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 0.25rem;">📧</div>
+          <h4 style="color: #fff; font-family: 'Orbitron'; font-size: 1rem;">VERIFICAÇÃO OBRIGATÓRIA DE E-MAIL</h4>
+          <p style="font-size: 0.8rem; color: #cbd5e1; margin-top: 0.35rem; line-height: 1.4;">
+            Para segurança da rede contra bots e ataques, enviamos um link e código de confirmação para:<br>
+            <strong id="verifyEmailDisplay" style="color: var(--cyan-neon); font-family: 'Fira Code';">seu-email@exemplo.com</strong>
+          </p>
+          <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.5rem;">
+            Abra seu e-mail e clique no link de ativação OU cole o código de verificação recebido abaixo:
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Código Token de Confirmação (OTP)</label>
+          <input type="text" id="verifyOtpCode" class="form-input" placeholder="Ex: 123456 ou 12345678" maxlength="8" autocomplete="off">
+        </div>
+
+        <button type="submit" id="btnVerifySubmit" class="btn-submit">✅ ATIVAR CONTA & ENTRAR</button>
+        <button type="button" class="btn-submit" style="background: transparent; border: 1px solid #334155; margin-top: 0.5rem; font-size: 0.8rem;" onclick="resendVerifyEmail()">REENVIAR E-MAIL</button>
+        <button type="button" style="background: none; border: none; color: #94a3b8; font-size: 0.75rem; margin-top: 0.75rem; width: 100%; cursor: pointer;" onclick="switchAuthTab('login')">Voltar para o Login</button>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ========================================================
+       DESKTOP DO JOGO (HACKEROS WEB EDITION)
+       ======================================================== -->
+  <div id="desktopEnvironment">
+
+    <!-- Topbar com Status do Jogador Logado -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="os-logo">HackerOS <span style="color: var(--cyan-neon);">Web</span></div>
+        <div class="player-badge">
+          <span>OPERADOR:</span>
+          <span class="tag-badge" id="hudPlayerTag">Carregando...</span>
+          <span style="color: #94a3b8; font-size: 0.75rem;" id="hudSpecialtyBadge">[CLASSE]</span>
+        </div>
+      </div>
+
+      <div class="topbar-stats">
+        <div class="stat-pill">
+          <span style="color: #94a3b8;">CARTEIRA:</span>
+          <span class="val" id="hudWalletMoney" style="color: var(--green-safe);">$ 0.00 HC</span>
+        </div>
+        <div class="stat-pill">
+          <span style="color: #94a3b8;">REPUTAÇÃO:</span>
+          <span class="val" id="hudReputation" style="color: var(--cyan-neon);">100 REP</span>
+        </div>
+        <div class="stat-pill">
+          <span style="color: #94a3b8;">PROCURADO:</span>
+          <span class="val" id="hudHeatLevel" style="color: var(--green-safe);">NÍVEL 1</span>
+        </div>
+        <button class="btn-logout" onclick="logoutCurrentSession()">DESCONECTAR</button>
+      </div>
+    </header>
+
+    <!-- Superfície do Desktop com Ícones de Atalho -->
+    <main class="desktop-surface" id="desktopSurface">
+      <div class="desktop-icon" onclick="openWindow('winTerminal')">
+        <div class="icon-symbol">📟</div>
+        <div class="icon-label">Terminal CLI</div>
+      </div>
+
+      <div class="desktop-icon" onclick="openWindow('winBank')">
+        <div class="icon-symbol">🏦</div>
+        <div class="icon-label">Hacker Bank</div>
+      </div>
+
+      <div class="desktop-icon" onclick="openWindow('winIrc')">
+        <div class="icon-symbol">💬</div>
+        <div class="icon-label">IRC Chat (#lounge)</div>
+      </div>
+
+      <div class="desktop-icon" onclick="openWindow('winBrowser')">
+        <div class="icon-symbol">🌐</div>
+        <div class="icon-label">Dark Browser</div>
+      </div>
+
+      <div class="desktop-icon" onclick="openWindow('winScanner')">
+        <div class="icon-symbol">🎯</div>
+        <div class="icon-label">Scanner de IPs</div>
+      </div>
+
+      <div class="desktop-icon" onclick="openWindow('winArcade')">
+        <div class="icon-symbol">🕹️</div>
+        <div class="icon-label">Cyber Arcade</div>
+      </div>
+
+      <div class="desktop-icon" onclick="openWindow('winPanic')">
+        <div class="icon-symbol">🚨</div>
+        <div class="icon-label">Protocolo 404</div>
+      </div>
+
+      <div class="desktop-icon" onclick="openWindow('winProfile')">
+        <div class="icon-symbol">👤</div>
+        <div class="icon-label">Minha Conta</div>
+      </div>
+    </main>
+
+    <!-- JANELA 1: TERMINAL CLI -->
+    <div class="window-frame" id="winTerminal" style="width: 620px; height: 420px; top: 80px; left: 80px;">
+      <div class="window-header" onmousedown="dragWindowStart(event, 'winTerminal')">
+        <div class="window-title">📟 Terminal CLI // Bash Shell</div>
+        <div class="window-controls">
+          <button class="btn-win btn-win-close" onclick="closeWindow('winTerminal')"></button>
+        </div>
+      </div>
+      <div class="window-body" style="padding: 0;">
+        <div class="cli-container">
+          <div class="cli-output" id="cliOutput">
+            <div>[SISTEMA] Autenticado no Supabase Cloud (PostgreSQL 17.12). Digite 'help' para listar comandos.</div>
+          </div>
+          <div class="cli-input-row">
+            <span class="cli-prompt" id="cliPromptTag">user@hackercity:~$</span>
+            <input type="text" id="cliInputField" class="cli-input" autocomplete="off" onkeydown="handleCliInput(event)">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JANELA 2: HACKER BANK (P2P COM SUPABASE) -->
+    <div class="window-frame" id="winBank" style="width: 600px; height: 430px; top: 110px; left: 160px;">
+      <div class="window-header" onmousedown="dragWindowStart(event, 'winBank')">
+        <div class="window-title">🏦 Hacker Bank // Carteira Digital Cloud</div>
+        <div class="window-controls">
+          <button class="btn-win btn-win-close" onclick="closeWindow('winBank')"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="bank-balance-card">
+          <div>
+            <div style="font-size: 0.78rem; color: #94a3b8;">CONTA BANCÁRIA OFICIAL</div>
+            <div class="bank-acc-num" id="bankDisplayAcc">HC-0000-00</div>
+            <div style="font-size: 0.75rem; color: var(--cyan-neon); margin-top: 0.2rem;" id="bankDisplayHolder">TITULAR: Operador</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 0.78rem; color: #94a3b8;">SALDO DISPONÍVEL (POSTGRESQL)</div>
+            <div class="bank-acc-bal" id="bankDisplayBalance">$ 0.00 HC</div>
+          </div>
+        </div>
+
+        <div style="background: #090d16; border: 1px solid #1e293b; border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
+          <h4 style="color: #fff; font-size: 0.88rem; margin-bottom: 0.5rem;">Transferência P2P em Tempo Real (Entre Jogadores)</h4>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" id="transferTargetAcc" class="form-input" style="flex: 1;" placeholder="Conta destino (ex: HC-1739-34)">
+            <input type="number" id="transferAmount" class="form-input" style="width: 120px;" placeholder="Valor ($)">
+            <button class="btn-submit" id="btnTransferSubmit" style="width: auto; margin-top: 0; padding: 0.5rem 1rem;" onclick="executeBankTransfer()">ENVIAR</button>
+          </div>
+        </div>
+
+        <div style="font-size: 0.85rem; color: #fff; margin-bottom: 0.4rem;">Histórico de Transações Sincronizado:</div>
+        <div id="bankTxHistory" style="font-family: 'Fira Code', monospace; font-size: 0.8rem; color: #94a3b8; max-height: 120px; overflow-y: auto;">
+          <div>[SINC] Carregando histórico da nuvem...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JANELA 3: IRC CHAT CLANDESTINO (SUPABASE REALTIME) -->
+    <div class="window-frame" id="winIrc" style="width: 600px; height: 420px; top: 100px; left: 320px;">
+      <div class="window-header" onmousedown="dragWindowStart(event, 'winIrc')">
+        <div class="window-title">💬 IRC Darknet // #hackercity-lounge (Realtime)</div>
+        <div class="window-controls">
+          <button class="btn-win btn-win-close" onclick="closeWindow('winIrc')"></button>
+        </div>
+      </div>
+      <div class="window-body" style="display: flex; flex-direction: column; gap: 0.6rem; padding: 0.85rem;">
+        <div id="ircMessagesList" style="flex: 1; background: #000; border: 1px solid #1e293b; border-radius: 6px; padding: 0.75rem; overflow-y: auto; font-family: 'Fira Code', monospace; font-size: 0.82rem; display: flex; flex-direction: column; gap: 0.35rem;">
+          <div style="color: #64748b;">[CANAL CONECTADO] Bem-vindo ao #hackercity-lounge. Transmissão criptografada via Supabase Realtime.</div>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" id="ircInputMsg" class="form-input" style="flex: 1;" placeholder="Digite uma mensagem para todos os hackers..." onkeydown="if(event.key==='Enter') sendIrcMessage()">
+          <button class="btn-submit" style="width: auto; margin-top: 0; padding: 0.5rem 1rem;" onclick="sendIrcMessage()">ENVIAR</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- JANELA 4: DARK BROWSER -->
+    <div class="window-frame" id="winBrowser" style="width: 660px; height: 440px; top: 130px; left: 240px;">
+      <div class="window-header" onmousedown="dragWindowStart(event, 'winBrowser')">
+        <div class="window-title">🌐 Cyber Dark Browser // Tor Network v4.2</div>
+        <div class="window-controls">
+          <button class="btn-win btn-win-close" onclick="closeWindow('winBrowser')"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; align-items: center;">
+          <span style="color: var(--green-safe); font-size: 0.85rem;">🔒 ONION</span>
+          <input type="text" class="form-input" style="flex: 1; padding: 0.4rem 0.8rem;" value="darknet://blackmarket.onion" readonly>
+          <button class="btn-submit" style="width: auto; margin-top: 0; padding: 0.35rem 0.8rem; font-size: 0.8rem;" onclick="showToast('Loja recarregada.')">IR</button>
+        </div>
+
+        <div style="background: #090d16; border: 1px solid #1e293b; border-radius: 6px; padding: 1.25rem;">
+          <h3 style="color: var(--cyan-neon); font-family: 'Orbitron'; font-size: 1.1rem; margin-bottom: 0.5rem;">BLACKMARKET ONION // Loja Clandestina</h3>
+          <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1rem;">Compre ferramentas de invasão e upgrades sincronizados no PostgreSQL:</p>
+
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="background: #0f172a; border: 1px solid #334155; padding: 0.75rem; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="color: #fff; font-size: 0.9rem;">Kit de Zero-Day Exploits v2</strong>
+                <div style="font-size: 0.75rem; color: #94a3b8;">Aumenta seu respeito no submundo em +50 REP imediatamente</div>
+              </div>
+              <button class="btn-submit" style="width: auto; margin-top: 0; padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="buyItemFromMarket('exploit_v2', 300)">COMPRAR ($300 HC)</button>
+            </div>
+
+            <div style="background: #0f172a; border: 1px solid #334155; padding: 0.75rem; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="color: #fff; font-size: 0.9rem;">Limpador de Registros Policiais (Bribe Pass)</strong>
+                <div style="font-size: 0.75rem; color: #94a3b8;">Reduz o Heat policial em 2 níveis imediatamente no banco</div>
+              </div>
+              <button class="btn-submit" style="width: auto; margin-top: 0; padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="buyItemFromMarket('cleaner', 450)">COMPRAR ($450 HC)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JANELA 5: SCANNER & INFILTRAÇÃO (ALVOS DO POSTGRESQL) -->
+    <div class="window-frame" id="winScanner" style="width: 640px; height: 430px; top: 140px; left: 200px;">
+      <div class="window-header" onmousedown="dragWindowStart(event, 'winScanner')">
+        <div class="window-title">🎯 Scanner de Rede // Alvos Públicos da Cidade</div>
+        <div class="window-controls">
+          <button class="btn-win btn-win-close" onclick="closeWindow('winScanner')"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <div>
+            <h3 style="color: #fff; font-size: 1rem;">Varredura de Alvos no Servidor Central</h3>
+            <p style="font-size: 0.8rem; color: #94a3b8;">Os dados são validados diretamente no PostgreSQL via RPC Anti-Cheat</p>
+          </div>
+          <button class="btn-submit" style="width: auto; margin-top: 0; padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="loadNetworkTargetsFromCloud()">🔍 VARRER REDE</button>
+        </div>
+
+        <div id="scannerTargetsList" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 280px; overflow-y: auto;">
+          <div style="color: #94a3b8; font-size: 0.85rem; text-align: center; padding: 2rem;">Clique em "Varrer Rede" para consultar os alvos do Supabase.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JANELA 6: CYBER ARCADE -->
+    <div class="window-frame" id="winArcade" style="width: 580px; height: 490px; top: 90px; left: 300px;">
+      <div class="window-header" onmousedown="dragWindowStart(event, 'winArcade')">
+        <div class="window-title">🕹️ Cyber Arcade // Minigames</div>
+        <div class="window-controls">
+          <button class="btn-win btn-win-close" onclick="closeWindow('winArcade')"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+          <button class="btn-submit active" id="tabArcadeCheckers" style="margin-top:0; padding: 0.5rem; flex: 1;" onclick="switchArcadeGame('checkers')">DAMAS BRASILEIRAS (IA 2S)</button>
+          <button class="btn-submit" id="tabArcadeSnake" style="margin-top:0; padding: 0.5rem; flex: 1; background: #334155; border-color: #475569;" onclick="switchArcadeGame('snake')">COBRINHA (100 PTS META)</button>
+        </div>
+
+        <div id="gameCheckersView">
+          <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.5rem;">
+            <span>Vez: <strong style="color: var(--cyan-neon);">SUA VEZ (AZUL)</strong></span>
+            <span>IA: <strong style="color: #fca5a5;">Aguardando jogada</strong></span>
+          </div>
+          <div id="checkersBoard" style="width: 320px; height: 320px; display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); border: 3px solid #334155; margin: 0 auto;"></div>
+        </div>
+
+        <div id="gameSnakeView" style="display: none; text-align: center;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.5rem;">
+            <span>Pontos: <strong id="snakeScore" style="color: #22c55e;">0</strong> / 100</span>
+            <span>Controles: <strong>Setas ou WASD</strong></span>
+          </div>
+          <canvas id="snakeCanvas" width="300" height="300" style="background:#000; border:2px solid #22c55e; border-radius:6px; margin: 0 auto; display:block;"></canvas>
+          <button class="btn-submit" style="width: auto; margin-top: 0.75rem; padding: 0.4rem 1.25rem;" onclick="startSnakeGame()">INICIAR COBRINHA</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- JANELA 7: PROTOCOLO 404 (BATIDA POLICIAL) -->
+    <div class="window-frame" id="winPanic" style="width: 580px; height: 420px; top: 120px; left: 220px;">
+      <div class="window-header" onmousedown="dragWindowStart(event, 'winPanic')">
+        <div class="window-title">🚨 Protocolo 404 // Pânico & Defesa</div>
+        <div class="window-controls">
+          <button class="btn-win btn-win-close" onclick="closeWindow('winPanic')"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <h3 style="color: #f87171; font-family: 'Orbitron'; font-size: 1.1rem; margin-bottom: 0.5rem;">SISTEMA DE PÂNICO CONTRA MANDADO POLICIAL</h3>
+        <p style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 1rem;">
+          Se a polícia invadir ou seu nível de procurado chegar a 5, destrua as provas no HD a tempo ou seja preso.
+        </p>
+
+        <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid #ef4444; border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
+          <strong style="color: #fca5a5; display: block; margin-bottom: 0.35rem;">REGRA OFICIAL DO PROTOCOLO:</strong>
+          <ul style="font-size: 0.8rem; color: #cbd5e1; padding-left: 1.2rem; line-height: 1.4;">
+            <li><strong>Sucesso na Destruição:</strong> Evidências destruídas. Você é liberado sem provas e recupera seu dinheiro com sua anotação no papel real!</li>
+            <li><strong>Falha / Preso:</strong> A polícia confisca todo seu saldo e máquinas. Você cumpre 6 meses e recomeça do zero apenas com sua <strong>Reputação</strong> e o <strong>Computador Inicial</strong>!</li>
+          </ul>
+        </div>
+
+        <button class="btn-submit" style="background: #dc2626; border-color: #ef4444;" onclick="window.open('/panic/index.html', '_blank')">
+          🚨 ABRIR SIMULADOR DE BATIDA POLICIAL
+        </button>
+      </div>
+    </div>
+
+    <!-- JANELA 8: MINHA CONTA / PERFIL SUPABASE -->
+    <div class="window-frame" id="winProfile" style="width: 520px; height: 410px; top: 150px; left: 280px;">
+      <div class="window-header" onmousedown="dragWindowStart(event, 'winProfile')">
+        <div class="window-title">👤 Perfil do Operador // Supabase Auth</div>
+        <div class="window-controls">
+          <button class="btn-win btn-win-close" onclick="closeWindow('winProfile')"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div style="display: flex; gap: 1rem; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 1rem; margin-bottom: 1rem;">
+          <div style="font-size: 3rem; background: #090d16; border: 1px solid var(--cyan-neon); border-radius: 50%; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
+            👾
+          </div>
+          <div>
+            <h3 style="color: #fff; font-family: 'Orbitron';" id="profHackerTag">Carregando...</h3>
+            <div style="color: var(--cyan-neon); font-size: 0.85rem;" id="profSpecialty">Especialidade: ...</div>
+            <div style="color: #94a3b8; font-size: 0.75rem;" id="profEmail">E-mail: ...</div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.85rem;">
+          <div style="background: #090d16; padding: 0.75rem; border-radius: 6px; border: 1px solid #1e293b;">
+            <span style="color: #94a3b8; display: block; font-size: 0.75rem;">CONTA BANCÁRIA:</span>
+            <strong id="profBankAcc" style="color: #fff; font-family: 'Fira Code';">HC-0000-00</strong>
+          </div>
+          <div style="background: #090d16; padding: 0.75rem; border-radius: 6px; border: 1px solid #1e293b;">
+            <span style="color: #94a3b8; display: block; font-size: 0.75rem;">REPUTAÇÃO TOTAL:</span>
+            <strong id="profReputation" style="color: var(--cyan-neon); font-family: 'Orbitron';">100 REP</strong>
+          </div>
+          <div style="background: #090d16; padding: 0.75rem; border-radius: 6px; border: 1px solid #1e293b;">
+            <span style="color: #94a3b8; display: block; font-size: 0.75rem;">SETUP DE HARDWARE:</span>
+            <strong id="profComputerTier" style="color: #38bdf8; font-family: 'Fira Code';">Pentium Standard</strong>
+          </div>
+          <div style="background: #090d16; padding: 0.75rem; border-radius: 6px; border: 1px solid #1e293b;">
+            <span style="color: #94a3b8; display: block; font-size: 0.75rem;">NÍVEL DE PROCURADO:</span>
+            <strong id="profHeat" style="color: var(--green-safe); font-family: 'Orbitron';">NÍVEL 1</strong>
+          </div>
+        </div>
+
+        <button class="btn-submit" style="background: #334155; border-color: #475569; margin-top: 1.5rem;" onclick="logoutCurrentSession()">
+          🚪 DESCONECTAR DA CONTA
+        </button>
+      </div>
+    </div>
+
+    <!-- Barra de Tarefas Inferior -->
+    <footer class="taskbar">
+      <div class="taskbar-left">
+        <button class="btn-start" onclick="showToast('Mainframe v2.0 conectado ao Supabase Cloud.')">⚡ INICIAR</button>
+        <div class="taskbar-tasks" id="taskbarTasks"></div>
+      </div>
+
+      <div class="taskbar-right">
+        <span style="color: var(--green-safe);">🟢 SUPABASE: ONLINE</span>
+        <span id="taskbarClock">00:00:00</span>
+      </div>
+    </footer>
+
+    <!-- Links de Acesso Obrigatório -->
+    <div class="links-footer-note">
+      <span>Links Web:</span>
+      <a href="http://localhost:8080/hacker-city-web/index.html" target="_blank">http://localhost:8080/hacker-city-web/index.html</a>
+      <a href="file:///home/littlecoffee/Documentos/DEV/hacker-city-web/index.html">file:///home/littlecoffee/.../hacker-city-web/index.html</a>
+    </div>
+
+  </div>
+
+  <div class="toast-popup" id="globalToast">Notificação do sistema</div>
+
+  <!-- ========================================================
+       SCRIPTS & INTEGRAÇÃO SUPABASE CLOUD
+       ======================================================== -->
+  <script>
+    // 1. INICIALIZAÇÃO DO CLIENTE SUPABASE OFICIAL
+    const SUPABASE_URL = "https://yguxmkgkwumcskucdlfc.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlndXhta2drd3VtY3NrdWNkbGZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ4NzE2MjcsImV4cCI6MjExMDQ0NzYyN30.mEpVBsEpC4DyOF4U1JB85aS0yNgdCJ5vDBF8D7sCjQY";
+
+    const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    let currentProfile = null;
+    let currentWallet = null;
+    let selectedSpecialty = 'exploiter';
+    let highestZ = 100;
+
+    // Alternar abas do portal
+    function switchAuthTab(tab) {
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+
+      let pendingVerifyEmail = '';
+
+      if (tab === 'register') {
+        document.getElementById('tabRegister').classList.add('active');
+        document.getElementById('formRegister').classList.add('active');
+      } else if (tab === 'login') {
+        document.getElementById('tabLogin').classList.add('active');
+        document.getElementById('formLogin').classList.add('active');
+      } else if (tab === 'saved') {
+        document.getElementById('tabSaved').classList.add('active');
+        document.getElementById('formSaved').classList.add('active');
+        loadSavedProfilesList();
+      } else if (tab === 'verify') {
+        document.getElementById('formVerify').classList.add('active');
+      }
+    }
+
+    function showVerifyEmailTab(email) {
+      pendingVerifyEmail = email;
+      document.getElementById('verifyEmailDisplay').innerText = email;
+      switchAuthTab('verify');
+    }
+
+    async function handleVerifyOtp(e) {
+      e.preventDefault();
+      const code = document.getElementById('verifyOtpCode').value.trim();
+      const btn = document.getElementById('btnVerifySubmit');
+
+      if (!code) {
+        alert('Digite o código numérico recebido no seu e-mail!');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'VALIDANDO TOKEN...';
+
+      try {
+        const { data, error } = await supabase.auth.verifyOtp({
+          email: pendingVerifyEmail,
+          token: code,
+          type: 'signup'
+        });
+
+        if (error) throw error;
+
+        showToast('E-mail confirmado com sucesso!');
+        await loadUserSession(data.user.id);
+        saveRecentLogin({ email: pendingVerifyEmail, tag: currentProfile ? currentProfile.hacker_tag : pendingVerifyEmail });
+
+      } catch (err) {
+        alert('Código inválido ou expirado: ' + (err.message || err));
+        btn.disabled = false;
+        btn.innerText = '✅ ATIVAR CONTA & ENTRAR';
+      }
+    }
+
+    async function resendVerifyEmail() {
+      if (!pendingVerifyEmail) return;
+      try {
+        const { error } = await supabase.auth.resend({
+          type: 'signup',
+          email: pendingVerifyEmail
+        });
+        if (error) throw error;
+        showToast('Novo e-mail de confirmação enviado!');
+      } catch (e) {
+        alert('Erro ao reenviar e-mail: ' + e.message);
+      }
+    }
+
+    function selectSpecialty(spec) {
+      selectedSpecialty = spec;
+      document.querySelectorAll('.specialty-card').forEach(c => c.classList.remove('selected'));
+      const card = document.getElementById('spec' + spec.charAt(0).toUpperCase() + spec.slice(1));
+      if (card) card.classList.add('selected');
+    }
+
+    // Cadastro Real no Supabase Auth com Validação Rigorosa
+    async function handleRegister(e) {
+      e.preventDefault();
+      const tag = document.getElementById('regTag').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const pass = document.getElementById('regPass').value;
+      const btn = document.getElementById('btnRegisterSubmit');
+
+      if (!tag || !email || !pass) {
+        alert('Preencha todos os campos!');
+        return;
+      }
+
+      // Hardening no cliente contra injeção e nomes inválidos
+      if (!/^[a-zA-Z0-9_]{3,20}$/.test(tag)) {
+        alert('Codinome inválido! Use de 3 a 20 caracteres (somente letras, números e underline, sem espaços).');
+        return;
+      }
+
+      if (pass.length < 6) {
+        alert('A senha precisa ter no mínimo 6 caracteres para criptografia segura!');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'CONECTANDO AO SUPABASE...';
+
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email: email,
+          password: pass,
+          options: {
+            data: {
+              hacker_tag: tag,
+              specialty: selectedSpecialty
+            }
+          }
+        });
+
+        if (error) throw error;
+
+        // Se o Supabase exigir confirmação por email (sem sessão imediata)
+        if (data.user && (!data.session || (data.user.identities && data.user.identities.length > 0 && !data.user.email_confirmed_at))) {
+          showVerifyEmailTab(email);
+          showToast('✉️ E-mail de confirmação disparado!');
+          btn.disabled = false;
+          btn.innerText = '⚡ CRIAR CONTA NO SUPABASE & ENTRAR';
+          return;
+        }
+
+        showToast(`Conta autenticada com sucesso! Inicializando mainframe...`);
+        setTimeout(async () => {
+          await loadUserSession(data.user.id);
+          saveRecentLogin({ email: email, tag: tag });
+        }, 1200);
+
+      } catch (err) {
+        alert('Erro ao registrar no Supabase: ' + (err.message || err));
+        btn.disabled = false;
+        btn.innerText = '⚡ CRIAR CONTA NO SUPABASE & ENTRAR';
+      }
+    }
+
+    // Login Real no Supabase Auth (por Email ou por Hacker Tag)
+    async function handleLogin(e) {
+      e.preventDefault();
+      const tagOrEmail = document.getElementById('loginTag').value.trim();
+      const pass = document.getElementById('loginPass').value;
+      const btn = document.getElementById('btnLoginSubmit');
+
+      btn.disabled = true;
+      btn.innerText = 'AUTENTICANDO...';
+
+      try {
+        let targetEmail = tagOrEmail;
+
+        // Se o usuário digitou a Tag em vez de email, busca o email correspondente na tabela profiles
+        if (!targetEmail.includes('@')) {
+          const { data: prof, error: pErr } = await supabase
+            .from('profiles')
+            .select('email')
+            .ilike('hacker_tag', targetEmail)
+            .maybeSingle();
+
+          if (prof && prof.email) {
+            targetEmail = prof.email;
+          } else {
+            throw new Error(`Operador "${tagOrEmail}" não localizado.`);
+          }
+        }
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: targetEmail,
+          password: pass
+        });
+
+        if (error) throw error;
+
+        showToast('Credenciais autenticadas no Supabase!');
+        await loadUserSession(data.user.id);
+        saveRecentLogin({ email: targetEmail, tag: currentProfile ? currentProfile.hacker_tag : targetEmail });
+
+      } catch (err) {
+        alert('Falha na autenticação: ' + (err.message || err));
+        btn.disabled = false;
+        btn.innerText = '🔓 ACESSAR MAINFRAME';
+      }
+    }
+
+    // Carregar Sessão do Usuário
+    async function loadUserSession(userId) {
+      try {
+        // Carrega Perfil
+        const { data: prof, error: pErr } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (pErr) throw pErr;
+        currentProfile = prof;
+
+        // Carrega Carteira
+        const { data: wal, error: wErr } = await supabase
+          .from('wallets')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+
+        if (wErr) throw wErr;
+        currentWallet = wal;
+
+        // Oculta tela de login e abre Desktop
+        document.getElementById('authOverlay').style.display = 'none';
+        document.getElementById('desktopEnvironment').style.display = 'block';
+
+        updateHudDisplays();
+        loadBankTransactions();
+        loadNetworkTargetsFromCloud();
+        initCheckersBoard();
+        setupRealtimeSubscriptions();
+
+        openWindow('winTerminal');
+        openWindow('winIrc');
+        showToast(`Bem-vindo, ${currentProfile.hacker_tag}! Mainframe ativo.`);
+
+      } catch (e) {
+        console.error('Erro ao carregar sessão:', e);
+        showToast('Erro ao sincronizar com o banco de dados.');
+      }
+    }
+
+    function updateHudDisplays() {
+      if (!currentProfile || !currentWallet) return;
+
+      document.getElementById('hudPlayerTag').innerText = currentProfile.hacker_tag;
+      document.getElementById('hudSpecialtyBadge').innerText = `[${currentProfile.specialty.toUpperCase()}]`;
+      document.getElementById('hudWalletMoney').innerText = `$ ${parseFloat(currentWallet.balance).toFixed(2)} HC`;
+      document.getElementById('hudReputation').innerText = `${currentProfile.reputation} REP`;
+      document.getElementById('hudHeatLevel').innerText = `NÍVEL ${currentProfile.heat_level}`;
+
+      // Hacker Bank
+      document.getElementById('bankDisplayAcc').innerText = currentWallet.account_number;
+      document.getElementById('bankDisplayHolder').innerText = `TITULAR: ${currentProfile.hacker_tag} [${currentProfile.specialty}]`;
+      document.getElementById('bankDisplayBalance').innerText = `$ ${parseFloat(currentWallet.balance).toFixed(2)} HC`;
+
+      // Perfil
+      document.getElementById('profHackerTag').innerText = currentProfile.hacker_tag;
+      document.getElementById('profSpecialty').innerText = `Especialidade: ${currentProfile.specialty.toUpperCase()}`;
+      document.getElementById('profEmail').innerText = `E-mail: ${currentProfile.email || 'N/A'}`;
+      document.getElementById('profBankAcc').innerText = currentWallet.account_number;
+      document.getElementById('profReputation').innerText = `${currentProfile.reputation} REP`;
+      document.getElementById('profComputerTier').innerText = currentProfile.computer_tier.replace('_', ' ').toUpperCase();
+      document.getElementById('profHeat').innerText = `NÍVEL ${currentProfile.heat_level}`;
+
+      // Prompt do Terminal
+      document.getElementById('cliPromptTag').innerText = `${currentProfile.hacker_tag.toLowerCase()}@hackercity:~$`;
+    }
+
+    // Configurar WebSockets em Tempo Real (Supabase Realtime)
+    function setupRealtimeSubscriptions() {
+      // 1. Ouvir atualizações da carteira (quando outro jogador manda dinheiro para você)
+      supabase.channel('my-wallet-channel')
+        .on('postgres_changes', { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'wallets', 
+          filter: `id=eq.${currentWallet.id}` 
+        }, (payload) => {
+          currentWallet.balance = payload.new.balance;
+          updateHudDisplays();
+          showToast(`⚡ Saldo atualizado via Realtime: $ ${parseFloat(payload.new.balance).toFixed(2)} HC`);
+          loadBankTransactions();
+        })
+        .subscribe();
+
+      // 2. Ouvir novas mensagens no chat IRC
+      supabase.channel('irc-global-channel')
+        .on('postgres_changes', { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'chat_messages' 
+        }, (payload) => {
+          appendIrcMessage(payload.new.hacker_tag, payload.new.message, payload.new.created_at);
+        })
+        .subscribe();
+
+      // Carrega mensagens recentes do chat
+      loadRecentChatMessages();
+    }
+
+    // Chat IRC: Enviar Mensagem para Todos
+    async function sendIrcMessage() {
+      const input = document.getElementById('ircInputMsg');
+      const text = input.value.trim();
+      if (!text || !currentProfile) return;
+
+      input.value = '';
+      try {
+        const { error } = await supabase
+          .from('chat_messages')
+          .insert({
+            user_id: currentProfile.id,
+            hacker_tag: currentProfile.hacker_tag,
+            message: text,
+            channel: 'global'
+          });
+        if (error) throw error;
+      } catch (e) {
+        showToast('Erro ao transmitir mensagem IRC: ' + e.message);
+      }
+    }
+
+    function appendIrcMessage(tag, msg, timeStr) {
+      const list = document.getElementById('ircMessagesList');
+      const div = document.createElement('div');
+      const isMe = currentProfile && currentProfile.hacker_tag === tag;
+      const t = timeStr ? new Date(timeStr).toLocaleTimeString() : new Date().toLocaleTimeString();
+
+      div.innerHTML = `
+        <span style="color: #64748b;">[${t}]</span> 
+        <strong style="color: ${isMe ? 'var(--cyan-neon)' : '#f59e0b'};">&lt;${tag}&gt;</strong> 
+        <span style="color: #fff;">${escapeHtml(msg)}</span>
+      `;
+      list.appendChild(div);
+      list.scrollTop = list.scrollHeight;
+    }
+
+    async function loadRecentChatMessages() {
+      const { data } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (data) {
+        data.reverse().forEach(m => {
+          appendIrcMessage(m.hacker_tag, m.message, m.created_at);
+        });
+      }
+    }
+
+    // Transferência Bancária P2P Anti-Cheat via Stored Procedure
+    async function executeBankTransfer() {
+      const target = document.getElementById('transferTargetAcc').value.trim();
+      const amount = parseFloat(document.getElementById('transferAmount').value);
+      const btn = document.getElementById('btnTransferSubmit');
+
+      if (!target || isNaN(amount) || amount <= 0) {
+        alert('Informe a conta de destino e um valor válido!');
+        return;
+      }
+
+      if (amount > currentWallet.balance) {
+        alert('Saldo insuficiente!');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'TRANSFERINDO...';
+
+      try {
+        const { data, error } = await supabase.rpc('p2p_transfer', {
+          p_target_account: target,
+          p_amount: amount
+        });
+
+        if (error) throw error;
+
+        if (data.success) {
+          showToast(data.message);
+          currentWallet.balance = data.new_balance;
+          updateHudDisplays();
+          loadBankTransactions();
+          document.getElementById('transferAmount').value = '';
+        } else {
+          alert(data.message);
+        }
+
+      } catch (e) {
+        alert('Erro na transferência: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'ENVIAR';
+      }
+    }
+
+    // Histórico de Transações do Banco
+    async function loadBankTransactions() {
+      if (!currentWallet) return;
+      const hist = document.getElementById('bankTxHistory');
+      
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .or(`from_account.eq.${currentWallet.account_number},to_account.eq.${currentWallet.account_number}`)
+        .order('created_at', { ascending: false })
+        .limit(15);
+
+      if (!data || data.length === 0) {
+        hist.innerHTML = '<div style="color: #64748b;">Nenhuma transação registrada ainda.</div>';
+        return;
+      }
+
+      hist.innerHTML = '';
+      data.forEach(tx => {
+        const div = document.createElement('div');
+        const isIncome = tx.to_account === currentWallet.account_number;
+        const color = isIncome ? 'var(--green-safe)' : '#ef4444';
+        const sign = isIncome ? '+' : '-';
+        const time = new Date(tx.created_at).toLocaleTimeString();
+
+        div.innerHTML = `[${time}] ${escapeHtml(tx.description)}: <strong style="color:${color}">${sign}$ ${parseFloat(tx.amount).toFixed(2)} HC</strong> (${tx.from_account} ➔ ${tx.to_account})`;
+        hist.appendChild(div);
+      });
+    }
+
+    // Carregar Alvos da Rede Central
+    async function loadNetworkTargetsFromCloud() {
+      const list = document.getElementById('scannerTargetsList');
+      list.innerHTML = '<div style="color: var(--cyan-neon); text-align: center; padding: 1rem;">Varrendo nós da cidade no PostgreSQL...</div>';
+
+      const { data, error } = await supabase
+        .from('network_targets')
+        .select('*')
+        .order('bounty', { ascending: true });
+
+      if (!data || data.length === 0) {
+        list.innerHTML = '<div style="color: #64748b; text-align: center;">Nenhum nó vulnerável encontrado.</div>';
+        return;
+      }
+
+      list.innerHTML = '';
+      data.forEach(t => {
+        const item = document.createElement('div');
+        item.style = 'background: #090d16; border: 1px solid #1e293b; padding: 0.75rem; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;';
+        item.innerHTML = `
+          <div>
+            <strong style="color: #38bdf8;">${t.ip_address}</strong> - <span style="color: #fff;">${escapeHtml(t.hostname)}</span>
+            <div style="font-size: 0.75rem; color: #f59e0b;">Porta: ${t.service_port} | Falha: ${t.vulnerability} | Recompensa: +$ ${parseFloat(t.bounty).toFixed(2)} HC</div>
+          </div>
+          <button class="btn-submit" style="width: auto; margin: 0; padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="hackNetworkTarget('${t.ip_address}')">INVADIR</button>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    // Invasão Anti-Cheat de Alvo de Rede
+    async function hackNetworkTarget(ip) {
+      showToast(`Executando exploit em ${ip}...`);
+
+      try {
+        const { data, error } = await supabase.rpc('hack_network_target', {
+          p_ip_address: ip
+        });
+
+        if (error) throw error;
+
+        if (data.success) {
+          showToast(`[SUCESSO] ${data.message} (+ $ ${parseFloat(data.reward).toFixed(2)} HC)`);
+          currentWallet.balance = data.new_balance;
+          currentProfile.reputation += data.rep_gain;
+          currentProfile.heat_level = data.heat_level;
+          updateHudDisplays();
+          loadBankTransactions();
+
+          if (currentProfile.heat_level >= 5) {
+            alert('🚨 ALERTA VERMELHO! SEU HEAT POLICIAL ATINGIU NÍVEL 5! MANDADO DE BUSCA EXPEDIDO!');
+            openWindow('winPanic');
+          }
+        } else {
+          alert('Falha na invasão: ' + data.message);
+        }
+
+      } catch (e) {
+        alert('Erro ao invadir: ' + e.message);
+      }
+    }
+
+    // Compra no Mercado Negro via Stored Procedure
+    async function buyItemFromMarket(itemType, cost) {
+      if (currentWallet.balance < cost) {
+        alert('Saldo insuficiente no Hacker Bank!');
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.rpc('buy_black_market_item', {
+          p_item_type: itemType,
+          p_cost: cost
+        });
+
+        if (error) throw error;
+
+        if (data.success) {
+          showToast(data.message);
+          currentWallet.balance = data.new_balance;
+          if (itemType === 'cleaner') currentProfile.heat_level = data.new_heat;
+          if (itemType === 'exploit_v2') currentProfile.reputation = data.new_rep;
+          updateHudDisplays();
+          loadBankTransactions();
+        } else {
+          alert(data.message);
+        }
+
+      } catch (e) {
+        alert('Erro na compra: ' + e.message);
+      }
+    }
+
+    // Terminal CLI Interativo
+    function handleCliInput(e) {
+      if (e.key === 'Enter') {
+        const input = document.getElementById('cliInputField');
+        const cmd = input.value.trim();
+        input.value = '';
+        if (cmd) executeCli(cmd);
+      }
+    }
+
+    function appendCli(text, color = '#22c55e') {
+      const out = document.getElementById('cliOutput');
+      const div = document.createElement('div');
+      div.style.color = color;
+      div.innerText = text;
+      out.appendChild(div);
+      out.scrollTop = out.scrollHeight;
+    }
+
+    function executeCli(cmdLine) {
+      const parts = cmdLine.split(' ');
+      const cmd = parts[0].toLowerCase();
+      appendCli(`${currentProfile ? currentProfile.hacker_tag.toLowerCase() : 'user'}@hackercity:~$ ${cmdLine}`, '#38bdf8');
+
+      if (cmd === 'help') {
+        appendCli('Comandos disponíveis:');
+        appendCli('  scan                 - Varre alvos vulneráveis no PostgreSQL');
+        appendCli('  hack <ip>            - Explora o alvo e transfere recompensa para sua carteira');
+        appendCli('  banco                - Exibe número de conta e saldo real');
+        appendCli('  whoami               - Informações do operador autenticado');
+        appendCli('  reputation           - Pontuação e nível no submundo');
+        appendCli('  clear                - Limpa a tela');
+        appendCli('  panic                - Dispara o Protocolo 404 (batida policial)');
+      } else if (cmd === 'clear') {
+        document.getElementById('cliOutput').innerHTML = '';
+      } else if (cmd === 'whoami') {
+        appendCli(`Operador: ${currentProfile.hacker_tag} | Especialidade: ${currentProfile.specialty.toUpperCase()} | Conta: ${currentWallet.account_number}`);
+      } else if (cmd === 'reputation') {
+        appendCli(`Reputação Cloud: ${currentProfile.reputation} REP (Heat Atual: ${currentProfile.heat_level}/5)`);
+      } else if (cmd === 'banco' || cmd === 'saldo') {
+        appendCli(`Conta: ${currentWallet.account_number} | Saldo: $ ${parseFloat(currentWallet.balance).toFixed(2)} HC`);
+      } else if (cmd === 'scan') {
+        loadNetworkTargetsFromCloud();
+        openWindow('winScanner');
+        appendCli('Janela do Scanner de Rede aberta com os alvos em tempo real.');
+      } else if (cmd === 'hack') {
+        const ip = parts[1];
+        if (!ip) {
+          appendCli('Uso correto: hack <ip>', '#ef4444');
+          return;
+        }
+        hackNetworkTarget(ip);
+      } else if (cmd === 'panic') {
+        openWindow('winPanic');
+      } else {
+        appendCli(`Comando '${cmd}' não reconhecido. Digite 'help'.`, '#ef4444');
+      }
+    }
+
+    // Minigame de Damas
+    function initCheckersBoard() {
+      const board = document.getElementById('checkersBoard');
+      board.innerHTML = '';
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const cell = document.createElement('div');
+          const isDark = (r + c) % 2 === 1;
+          cell.style = `display:flex;align-items:center;justify-content:center;background:${isDark ? '#1e293b' : '#e2e8f0'};`;
+          if (isDark && r < 3) {
+            cell.innerHTML = '<div style="width:26px;height:26px;border-radius:50%;background:#ef4444;border:2px solid #fca5a5;"></div>';
+          } else if (isDark && r > 4) {
+            cell.innerHTML = '<div style="width:26px;height:26px;border-radius:50%;background:#06b6d4;border:2px solid #a5f3fc;"></div>';
+          }
+          board.appendChild(cell);
+        }
+      }
+    }
+
+    function switchArcadeGame(game) {
+      if (game === 'checkers') {
+        document.getElementById('gameCheckersView').style.display = 'block';
+        document.getElementById('gameSnakeView').style.display = 'none';
+        document.getElementById('tabArcadeCheckers').style.background = 'linear-gradient(180deg, #0284c7 0%, #0369a1 100%)';
+        document.getElementById('tabArcadeSnake').style.background = '#334155';
+      } else {
+        document.getElementById('gameCheckersView').style.display = 'none';
+        document.getElementById('gameSnakeView').style.display = 'block';
+        document.getElementById('tabArcadeSnake').style.background = 'linear-gradient(180deg, #0284c7 0%, #0369a1 100%)';
+        document.getElementById('tabArcadeCheckers').style.background = '#334155';
+      }
+    }
+
+    // Minigame da Cobrinha
+    let snakeInterval = null;
+    function startSnakeGame() {
+      const canvas = document.getElementById('snakeCanvas');
+      const ctx = canvas.getContext('2d');
+      const grid = 15;
+      let snake = [{x: 10, y: 10}];
+      let food = {x: 5, y: 5};
+      let dx = 1, dy = 0;
+      let score = 0;
+
+      function spawnFood() {
+        food.x = Math.floor(Math.random() * 20);
+        food.y = Math.floor(Math.random() * 20);
+      }
+
+      window.onkeydown = (e) => {
+        if (e.key === 'ArrowUp' || e.key === 'w') { if (dy === 0) { dx = 0; dy = -1; } }
+        else if (e.key === 'ArrowDown' || e.key === 's') { if (dy === 0) { dx = 0; dy = 1; } }
+        else if (e.key === 'ArrowLeft' || e.key === 'a') { if (dx === 0) { dx = -1; dy = 0; } }
+        else if (e.key === 'ArrowRight' || e.key === 'd') { if (dx === 0) { dx = 1; dy = 0; } }
+      };
+
+      clearInterval(snakeInterval);
+      snakeInterval = setInterval(() => {
+        const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+
+        if (head.x < 0 || head.x >= 20 || head.y < 0 || head.y >= 20 || snake.some(s => s.x === head.x && s.y === head.y)) {
+          clearInterval(snakeInterval);
+          alert(`Game Over! Pontos: ${score}`);
+          return;
+        }
+
+        snake.unshift(head);
+        if (head.x === food.x && head.y === food.y) {
+          score++;
+          document.getElementById('snakeScore').innerText = score;
+          spawnFood();
+          if (score >= 100) {
+            clearInterval(snakeInterval);
+            alert('PARABÉNS! Meta de 100 pontos atingida!');
+          }
+        } else {
+          snake.pop();
+        }
+
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, 300, 300);
+
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(food.x * grid, food.y * grid, grid - 2, grid - 2);
+
+        ctx.fillStyle = '#22c55e';
+        snake.forEach(s => ctx.fillRect(s.x * grid, s.y * grid, grid - 2, grid - 2));
+      }, 100);
+    }
+
+    // Janelas Flutuantes (Window Manager)
+    function openWindow(winId) {
+      const win = document.getElementById(winId);
+      if (!win) return;
+      win.style.display = 'flex';
+      focusWindow(winId);
+      updateTaskbar();
+    }
+
+    function closeWindow(winId) {
+      const win = document.getElementById(winId);
+      if (win) win.style.display = 'none';
+      updateTaskbar();
+    }
+
+    function focusWindow(winId) {
+      highestZ += 2;
+      document.querySelectorAll('.window-frame').forEach(w => w.classList.remove('focused'));
+      const win = document.getElementById(winId);
+      if (win) {
+        win.style.zIndex = highestZ;
+        win.classList.add('focused');
+      }
+    }
+
+    function updateTaskbar() {
+      const container = document.getElementById('taskbarTasks');
+      container.innerHTML = '';
+      const list = [
+        { id: 'winTerminal', label: '📟 Terminal' },
+        { id: 'winBank', label: '🏦 Banco' },
+        { id: 'winIrc', label: '💬 IRC Chat' },
+        { id: 'winBrowser', label: '🌐 Browser' },
+        { id: 'winScanner', label: '🎯 Scanner' },
+        { id: 'winArcade', label: '🕹️ Arcade' },
+        { id: 'winPanic', label: '🚨 Pânico' },
+        { id: 'winProfile', label: '👤 Perfil' }
+      ];
+
+      list.forEach(item => {
+        const el = document.getElementById(item.id);
+        if (el && el.style.display !== 'none') {
+          const btn = document.createElement('div');
+          btn.className = 'task-item' + (el.classList.contains('focused') ? ' active' : '');
+          btn.innerText = item.label;
+          btn.onclick = () => focusWindow(item.id);
+          container.appendChild(btn);
+        }
+      });
+    }
+
+    let isDragging = false, dragTarget = null, dragX = 0, dragY = 0;
+    function dragWindowStart(e, id) {
+      isDragging = true;
+      dragTarget = document.getElementById(id);
+      focusWindow(id);
+      const rect = dragTarget.getBoundingClientRect();
+      dragX = e.clientX - rect.left;
+      dragY = e.clientY - rect.top;
+    }
+
+    window.addEventListener('mousemove', (e) => {
+      if (isDragging && dragTarget) {
+        dragTarget.style.left = (e.clientX - dragX) + 'px';
+        dragTarget.style.top = (e.clientY - dragY) + 'px';
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      isDragging = false;
+      dragTarget = null;
+    });
+
+    // Relógio
+    setInterval(() => {
+      const d = new Date();
+      document.getElementById('taskbarClock').innerText = d.toLocaleTimeString();
+    }, 1000);
+
+    function showToast(msg) {
+      const t = document.getElementById('globalToast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => t.style.display = 'none', 3500);
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // Persistência local de logins recentes para troca rápida
+    function saveRecentLogin(user) {
+      let list = JSON.parse(localStorage.getItem('HC_RECENT_OPERATORS') || '[]');
+      if (!list.some(x => x.email === user.email)) {
+        list.push(user);
+        localStorage.setItem('HC_RECENT_OPERATORS', JSON.stringify(list));
+      }
+    }
+
+    function loadSavedProfilesList() {
+      const container = document.getElementById('savedAccountsContainer');
+      const list = JSON.parse(localStorage.getItem('HC_RECENT_OPERATORS') || '[]');
+      container.innerHTML = '';
+
+      if (list.length === 0) {
+        container.innerHTML = '<div style="color:#64748b;font-size:0.85rem;padding:1rem;text-align:center;">Nenhum operador logado recentemente neste navegador.</div>';
+        return;
+      }
+
+      list.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'account-item';
+        div.innerHTML = `
+          <div>
+            <div class="acc-tag">${escapeHtml(item.tag)}</div>
+            <div class="acc-info">${escapeHtml(item.email)}</div>
+          </div>
+          <button class="btn-submit" style="width:auto;margin:0;padding:0.35rem 0.8rem;font-size:0.75rem;" onclick="prefillLogin('${item.email}')">PREENCHER</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function prefillLogin(email) {
+      document.getElementById('loginTag').value = email;
+      switchAuthTab('login');
+      document.getElementById('loginPass').focus();
+    }
+
+    async function logoutCurrentSession() {
+      await supabase.auth.signOut();
+      currentProfile = null;
+      currentWallet = null;
+      document.getElementById('desktopEnvironment').style.display = 'none';
+      document.getElementById('authOverlay').style.display = 'flex';
+      switchAuthTab('login');
+      showToast('Sessão encerrada com segurança.');
+    }
+
+    // Checar sessão ao carregar a página
+    window.addEventListener('DOMContentLoaded', async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await loadUserSession(session.user.id);
+      } else {
+        switchAuthTab('register');
+      }
+    });
+  </script>
+</body>
+</html>
