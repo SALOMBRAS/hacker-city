@@ -1,6 +1,6 @@
 # Referência HE2 (Helix e HEBorn)
 
-Análise de dois repositórios do Hacker Experience 2, ambos **arquivados** e sob **AGPL-3.0**:
+Análise de dois repositórios do Hacker Experience 2, ambos **arquivados** e sob **AGPL-3.0** (ver autorização abaixo):
 
 | Repositório | O que é | Licença |
 |---|---|---|
@@ -9,13 +9,17 @@ Análise de dois repositórios do Hacker Experience 2, ambos **arquivados** e so
 
 ## Regra deste projeto
 
-A AGPL permite estudar o código. Copiá-lo obrigaria **todo o nosso projeto, inclusive o servidor, a ser AGPL** (cláusula de uso em rede). Por isso:
+A licença pública é **AGPL-3.0**, que obriga o código derivado (inclusive o servidor, pela cláusula de rede) a ser AGPL.
+Além da licença pública, o responsável pelo projeto informa que o **autor autorizou por e-mail** copiar e adaptar este material.
+O registro está em [`PERMISSIONS.md`](../../PERMISSIONS.md).
 
-1. **Só entram ideias, regras de jogo e números** (fatos), reescritos com palavras e código nossos.
-2. **Nada de código, CSS, imagens, ícones ou textos** desses repositórios no nosso código.
-3. **Nomes e jargão deles não são reaproveitados** (DLaydOS, B0TN3T etc.).
-4. Repositórios de design da organização (`GameDesign`, `specs`, `notes`) **não têm licença**: ficam fora, a menos que o autor autorize por escrito.
-5. Microcopy e fórmulas de balanceamento são escritas por nós.
+Na prática:
+
+1. **A autorização vale para este material**, não para código de terceiros que ele contenha.
+2. **Reescrever continua sendo o padrão.** Elixir e Elm não rodam no nosso stack (Postgres e JS), então o valor está nas regras, fórmulas e telas, não no código.
+3. **Se algum trecho for copiado literalmente**, ele fica identificado em [`THIRD_PARTY_NOTICES.md`](../../THIRD_PARTY_NOTICES.md) com origem e licença.
+4. **Nome e marca "Hacker Experience" não entram** no nome do nosso jogo.
+5. **Pendência:** o e-mail ainda precisa ser registrado em `PERMISSIONS.md` (data, remetente, trecho e alcance).
 
 ## Documentos
 
