@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hacker City // Ativação de Operador</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #07090e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #c9d1d9; -webkit-font-smoothing: antialiased;">
+  
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #07090e; padding: 40px 15px;">
+    <tr>
+      <td align="center">
+        
+        <!-- CONTAINER PRINCIPAL -->
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 580px; background-color: #0d1219; border: 1px solid #212836; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.6);">
+          
+          <!-- TOPO NEON -->
+          <tr>
+            <td style="background: linear-gradient(90deg, #06b6d4, #10b981, #a855f7); height: 4px;"></td>
+          </tr>
+
+          <!-- CABEÇALHO -->
+          <tr>
+            <td style="padding: 32px 32px 20px 32px; text-align: center; border-bottom: 1px solid #1a2234;">
+              <table role="presentation" border="0" cellspacing="0" cellpadding="0" align="center" style="margin-bottom: 12px;">
+                <tr>
+                  <td style="background: rgba(6, 182, 212, 0.12); border: 1px solid #06b6d4; border-radius: 20px; padding: 4px 14px; font-family: 'Courier New', Courier, monospace; font-size: 11px; font-weight: bold; color: #38bdf8; text-transform: uppercase; letter-spacing: 1px;">
+                    ● MAINFRAME CLANDESTINO ONLINE
+                  </td>
+                </tr>
+              </table>
+              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 800; letter-spacing: 1px; font-family: 'Courier New', Courier, monospace;">
+                HACKER CITY // WEB
+              </h1>
+              <p style="margin: 6px 0 0 0; color: #8b949e; font-size: 13px;">
+                Autenticação de Terminal e Verificação Obrigatória de Segurança
+              </p>
+            </td>
+          </tr>
+
+          <!-- CORPO DA MENSAGEM -->
+          <tr>
+            <td style="padding: 30px 32px;">
+              <p style="margin: 0 0 16px 0; color: #e6edf3; font-size: 15px; line-height: 1.5;">
+                Saudações, Operador!
+              </p>
+              <p style="margin: 0 0 24px 0; color: #8b949e; font-size: 14px; line-height: 1.6;">
+                Uma nova conexão foi inicializada para o endereço <strong style="color: #38bdf8;">{{ .Email }}</strong>. Para proteger a rede contra infiltrações e bots da polícia, ative seu acesso utilizando qualquer um dos dois métodos abaixo:
+              </p>
+
+              <!-- MÉTODO 1 (PRIORIDADE): CÓDIGO TOKEN OTP -->
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background: #04070d; border: 2px solid #06b6d4; border-radius: 8px; margin-bottom: 24px; text-align: center;">
+                <tr>
+                  <td style="padding: 24px 20px;">
+                    <div style="font-family: 'Courier New', Courier, monospace; font-size: 12px; font-weight: bold; color: #38bdf8; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px;">
+                      ⚡ MÉTODO 1 (PRIORIDADE): CÓDIGO TOKEN OTP
+                    </div>
+                    <div style="font-family: 'Courier New', Courier, monospace; font-size: 38px; font-weight: 900; color: #10b981; letter-spacing: 8px; line-height: 1.2; text-shadow: 0 0 15px rgba(16, 185, 129, 0.4); margin: 6px 0;">
+                      {{ .Token }}
+                    </div>
+                    <p style="margin: 10px 0 0 0; color: #94a3b8; font-size: 13px; line-height: 1.4;">
+                      Copie e cole este código diretamente na tela de verificação do jogo para entrar sem sair da página.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- SEPARADOR -->
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin: 20px 0;">
+                <tr>
+                  <td style="border-bottom: 1px solid #1e293b; width: 35%;"></td>
+                  <td style="text-align: center; color: #64748b; font-size: 12px; font-family: 'Courier New', Courier, monospace; padding: 0 10px; text-transform: uppercase;">
+                    OU ATIVE VIA LINK
+                  </td>
+                  <td style="border-bottom: 1px solid #1e293b; width: 35%;"></td>
+                </tr>
+              </table>
+
+              <!-- MÉTODO 2: LINK DIRETO EM NOVA GUIA -->
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background: rgba(15, 23, 42, 0.5); border: 1px solid #1e293b; border-radius: 8px; text-align: center; margin-bottom: 20px;">
+                <tr>
+                  <td style="padding: 20px;">
+                    <div style="font-family: 'Courier New', Courier, monospace; font-size: 12px; font-weight: bold; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;">
+                      🔗 MÉTODO 2: LINK DE ATIVAÇÃO DIRETA
+                    </div>
+                    <p style="margin: 0 0 16px 0; color: #8b949e; font-size: 13px;">
+                      Se preferir confirmar em uma nova guia do navegador com 1 clique:
+                    </p>
+                    <a href="{{ .ConfirmationURL }}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #06b6d4 0%, #0284c7 100%); color: #ffffff; text-decoration: none; padding: 13px 28px; border-radius: 6px; font-size: 14px; font-weight: bold; letter-spacing: 0.5px; border: 1px solid #38bdf8; box-shadow: 0 4px 15px rgba(6, 182, 212, 0.35);">
+                      ⚡ CONFIRMAR E-MAIL & ENTRAR NO JOGO
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- AVISO DE EXPIRAÇÃO -->
+              <p style="margin: 20px 0 0 0; color: #64748b; font-size: 12px; line-height: 1.5; text-align: center;">
+                🔒 Este código e link expiram em 24 horas. Se você não solicitou esta conta na rede clandestina do Hacker City, desconsidere esta mensagem.
+              </p>
+            </td>
+          </tr>
+
+          <!-- RODAPÉ -->
+          <tr>
+            <td style="background-color: #06090e; padding: 20px 32px; border-top: 1px solid #1a2234; text-align: center;">
+              <p style="margin: 0; color: #64748b; font-size: 12px; font-family: 'Courier New', Courier, monospace;">
+                HACKER CITY // TERMINAL EDITION • PROTOCOLO SEGURO TLS 1.3
+              </p>
+              <p style="margin: 6px 0 0 0; font-size: 11px;">
+                <a href="https://hacker-city-web.vercel.app" style="color: #06b6d4; text-decoration: none; margin: 0 8px;">Acessar Jogo</a> •
+                <a href="https://github.com/SALOMBRAS/hacker-city" style="color: #8b949e; text-decoration: none; margin: 0 8px;">GitHub</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+        
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
