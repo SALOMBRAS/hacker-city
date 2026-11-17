@@ -1,0 +1,20 @@
+{
+  "name": "hacker-city",
+  "version": "1.0.0",
+  "description": "Hacker City — MMORPG Clandestino Web com Supabase Cloud & Anti-Cheat PostgreSQL",
+  "author": "SALOMBRAS",
+  "license": "MIT",
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "cyberpunk",
+    "hacker-game",
+    "mmo",
+    "supabase",
+    "postgres",
+    "realtime",
+    "p2p-banking"
+  ]
+}
