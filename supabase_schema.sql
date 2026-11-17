@@ -221,7 +221,8 @@ BEGIN
     v_reward := v_reward * 1.25;
   END IF;
 
-  IF v_user_profile.specialty = 'sentinel' AND (floor(random() * 2) = 0) THEN
+  -- Cyber Sentinel: exatamente 30% de chance de evitar rastreamento policial (Heat)
+  IF v_user_profile.specialty = 'sentinel' AND (random() < 0.30) THEN
     v_heat_increase := 0;
   END IF;
 
