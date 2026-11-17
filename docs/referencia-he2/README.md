@@ -28,3 +28,4 @@ Na prática:
 3. [HEBorn: UX e fluxo de invasão](./03-heborn-ux.md)
 
 Cada relatório termina com **PRONTO PARA PORTAR** e **ARMADILHAS**.
+4. [Game design e specs (GameDesign + specs)](./04-game-design-specs.md)
