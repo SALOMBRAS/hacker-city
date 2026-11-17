@@ -1,94 +1,58 @@
 /**
- * Hacker City // Floating Window Manager
- * Gerencia ciclo de vida, arrasto e foco das janelas do desktop
+ * Hacker City // Gerenciador de páginas
+ * Mantém a API antiga (open/close/focus) para não quebrar o resto do jogo,
+ * mas cada "janela" agora é uma página única na área principal do shell.
  */
 class WindowManager {
   constructor() {
-    this.highestZ = 100;
-    this.isDragging = false;
-    this.dragTarget = null;
-    this.dragOffsetX = 0;
-    this.dragOffsetY = 0;
+    this.current = null;
+    this.home = 'winHome';
+  }
 
-    this.initGlobalDragListeners();
+  frames() {
+    return document.querySelectorAll('.window-frame');
   }
 
   open(winId) {
     const el = document.getElementById(winId);
     if (!el) return;
+    this.frames().forEach(w => {
+      if (w !== el) w.style.display = 'none';
+      w.classList.remove('focused');
+    });
     el.style.display = 'flex';
-    this.focus(winId);
-    this.updateTaskbar();
+    el.classList.add('focused');
+    this.current = winId;
+    this.syncNav();
   }
 
   close(winId) {
+    // Páginas não fecham: voltam para a Home.
+    if (winId === this.home) return;
     const el = document.getElementById(winId);
     if (el) el.style.display = 'none';
-    this.updateTaskbar();
+    this.open(this.home);
   }
 
-  focus(winId) {
-    this.highestZ += 2;
-    document.querySelectorAll('.window-frame').forEach(w => w.classList.remove('focused'));
-    const el = document.getElementById(winId);
-    if (el) {
-      el.style.zIndex = this.highestZ;
-      el.classList.add('focused');
-    }
-  }
+  focus(winId) { this.open(winId); }
 
-  startDrag(e, winId) {
-    this.isDragging = true;
-    this.dragTarget = document.getElementById(winId);
-    this.focus(winId);
-    const rect = this.dragTarget.getBoundingClientRect();
-    this.dragOffsetX = e.clientX - rect.left;
-    this.dragOffsetY = e.clientY - rect.top;
-  }
+  // Compatibilidade: páginas não são arrastáveis.
+  startDrag() {}
 
-  initGlobalDragListeners() {
-    window.addEventListener('mousemove', (e) => {
-      if (this.isDragging && this.dragTarget) {
-        this.dragTarget.style.left = (e.clientX - this.dragOffsetX) + 'px';
-        this.dragTarget.style.top = (e.clientY - this.dragOffsetY) + 'px';
-      }
-    });
+  // Compatibilidade com chamadas antigas.
+  updateTaskbar() { this.syncNav(); }
 
-    window.addEventListener('mouseup', () => {
-      this.isDragging = false;
-      this.dragTarget = null;
-    });
-  }
-
-  updateTaskbar() {
-    const container = document.getElementById('taskbarTasks');
-    if (!container) return;
-    container.innerHTML = '';
-
-    const list = [
-      { id: 'winTerminal', label: '📟 Terminal' },
-      { id: 'winBank', label: '🏦 Banco' },
-      { id: 'winQuitinete', label: '🏠 Quitinete' },
-      { id: 'winIrc', label: '💬 IRC Chat' },
-      { id: 'winBrowser', label: '🌐 Browser' },
-      { id: 'winScanner', label: '🎯 Scanner' },
-      { id: 'winHardware', label: '🖥️ Hardware' },
-      { id: 'winSkillTree', label: '🌳 Habilidades' },
-      { id: 'winCracker', label: '⚡ Cracker' },
-      { id: 'winBotnetC2', label: '🕸️ Botnet C2' },
-      { id: 'winArcade', label: '🕹️ Arcade' },
-      { id: 'winPanic', label: '🚨 Pânico' },
-      { id: 'winProfile', label: '👤 Perfil' }
-    ];
-
-    list.forEach(item => {
-      const el = document.getElementById(item.id);
-      if (el && el.style.display !== 'none') {
-        const btn = document.createElement('div');
-        btn.className = 'task-item' + (el.classList.contains('focused') ? ' active' : '');
-        btn.innerText = item.label;
-        btn.onclick = () => this.focus(item.id);
-        container.appendChild(btn);
+  syncNav() {
+    document.querySelectorAll('.nav-item[data-win]').forEach(btn => {
+      const active = btn.getAttribute('data-win') === this.current;
+      btn.classList.toggle('active', active);
+      if (active) {
+        btn.setAttribute('aria-current', 'page');
+        const title = document.getElementById('pageTitle');
+        const label = btn.querySelector('span');
+        if (title && label) title.textContent = label.textContent;
+      } else {
+        btn.removeAttribute('aria-current');
       }
     });
   }
