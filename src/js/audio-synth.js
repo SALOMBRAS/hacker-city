@@ -130,6 +130,30 @@ class HackerAudioEngine {
     osc.stop(now + durationSeconds + 0.1);
   }
 
+  // Som de erro / comando inválido (Buzzer)
+  playErrorBuzz() {
+    if (this.isMuted) return;
+    this.initAudioContext();
+    this.resume();
+    if (!this.ctx) return;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+    osc.frequency.setValueAtTime(110, this.ctx.currentTime + 0.1);
+
+    gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.2);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.21);
+  }
+
   // Handshake de Modem 56k (Discada clássica ao logar)
   playDialupConnect() {
     if (this.isMuted) return;

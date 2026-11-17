@@ -473,6 +473,7 @@
       </div>
 
       <div class="taskbar-right">
+        <button id="audioToggleBtn" onclick="toggleAudio()" style="background:rgba(6,182,212,0.1);border:1px solid var(--cyan-neon);color:var(--cyan-neon);border-radius:4px;padding:3px 10px;font-family:'Fira Code',monospace;font-size:0.75rem;cursor:pointer;">🔊 ÁUDIO: ON</button>
         <span style="color: var(--green-safe);">🟢 SUPABASE: ONLINE</span>
         <span id="taskbarClock">00:00:00</span>
       </div>
@@ -740,6 +741,11 @@
         document.getElementById('authOverlay').style.display = 'none';
         document.getElementById('desktopEnvironment').style.display = 'block';
 
+        if (window.hackerAudio) {
+          window.hackerAudio.resume();
+          window.hackerAudio.playDialupConnect();
+        }
+
         updateHudDisplays();
         loadBankTransactions();
         loadNetworkTargetsFromCloud();
@@ -894,16 +900,19 @@
         if (error) throw error;
 
         if (data.success) {
+          if (window.hackerAudio) window.hackerAudio.playCashChime();
           showToast(data.message);
           currentWallet.balance = data.new_balance;
           updateHudDisplays();
           loadBankTransactions();
           document.getElementById('transferAmount').value = '';
         } else {
+          if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
           alert(data.message);
         }
 
       } catch (e) {
+        if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
         alert('Erro na transferência: ' + e.message);
       } finally {
         btn.disabled = false;
@@ -983,6 +992,7 @@
         if (error) throw error;
 
         if (data.success) {
+          if (window.hackerAudio) window.hackerAudio.playCashChime();
           showToast(`[SUCESSO] ${data.message} (+ $ ${parseFloat(data.reward).toFixed(2)} HC)`);
           currentWallet.balance = data.new_balance;
           currentProfile.reputation += data.rep_gain;
@@ -991,14 +1001,17 @@
           loadBankTransactions();
 
           if (currentProfile.heat_level >= 5) {
+            if (window.hackerAudio) window.hackerAudio.playAlertSiren(4);
             alert('🚨 ALERTA VERMELHO! SEU HEAT POLICIAL ATINGIU NÍVEL 5! MANDADO DE BUSCA EXPEDIDO!');
             openWindow('winPanic');
           }
         } else {
+          if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
           alert('Falha na invasão: ' + data.message);
         }
 
       } catch (e) {
+        if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
         alert('Erro ao invadir: ' + e.message);
       }
     }
@@ -1037,6 +1050,7 @@
     // Terminal CLI Interativo
     function handleCliInput(e) {
       if (e.key === 'Enter') {
+        if (window.hackerAudio) window.hackerAudio.playEnterBeep();
         const input = document.getElementById('cliInputField');
         const cmd = input.value.trim();
         input.value = '';
@@ -1082,6 +1096,7 @@
       } else if (cmd === 'hack') {
         const ip = parts[1];
         if (!ip) {
+          if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
           appendCli('Uso correto: hack <ip>', '#ef4444');
           return;
         }
@@ -1089,9 +1104,35 @@
       } else if (cmd === 'panic') {
         openWindow('winPanic');
       } else {
+        if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
         appendCli(`Comando '${cmd}' não reconhecido. Digite 'help'.`, '#ef4444');
       }
     }
+
+    function toggleAudio() {
+      if (!window.hackerAudio) return;
+      window.hackerAudio.isMuted = !window.hackerAudio.isMuted;
+      const btn = document.getElementById('audioToggleBtn');
+      if (btn) {
+        btn.innerHTML = window.hackerAudio.isMuted ? '🔇 ÁUDIO: MUDO' : '🔊 ÁUDIO: ON';
+        btn.style.color = window.hackerAudio.isMuted ? 'var(--red-alert)' : 'var(--cyan-neon)';
+        btn.style.borderColor = window.hackerAudio.isMuted ? 'var(--red-alert)' : 'var(--cyan-neon)';
+      }
+      showToast(window.hackerAudio.isMuted ? 'Áudio desativado.' : 'Áudio sintetizado ativado.');
+    }
+
+    // Efeito Sonoro de Digitação Mecânica Global
+    window.addEventListener('keydown', (e) => {
+      if (!window.hackerAudio) return;
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toUpperCase() : '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA') {
+        if (e.key === 'Enter') {
+          window.hackerAudio.playEnterBeep();
+        } else if (e.key.length === 1 || e.key === 'Backspace') {
+          window.hackerAudio.playKeyClick();
+        }
+      }
+    });
 
     // Minigame de Damas
     function initCheckersBoard() {
