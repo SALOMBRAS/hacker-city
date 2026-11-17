@@ -70,7 +70,7 @@ class HardwareEngine {
     const cpu = this.getCpu();
     const ram = this.getRam();
     const net = this.getNetwork();
-    return `🖥️ ${cpu.name.toUpperCase()} // ${ram.name.toUpperCase()} // ${net.name.toUpperCase()}`;
+    return `${cpu.name.toUpperCase()} // ${ram.name.toUpperCase()} // ${net.name.toUpperCase()}`;
   }
 
   renderWorkbench(containerId, currentBalance) {
@@ -81,15 +81,15 @@ class HardwareEngine {
       <div style="background: rgba(53, 184, 119,0.08); border: 1px solid var(--cyan-neon); border-radius: 8px; padding: 1rem; margin-bottom: 1.25rem;">
         <div style="font-family: var(--hc-font-sans); font-size: 1.1rem; color: #fff; margin-bottom: 0.5rem;">SETUP ATUAL DO OPERADOR</div>
         <div style="font-family: var(--hc-font-mono); font-size: 0.85rem; color: var(--green-safe); display: flex; flex-direction: column; gap: 0.25rem;">
-          <div>⚡ <strong>CPU:</strong> ${this.getCpu().name} (${(this.getCooldownMs() / 1000).toFixed(1)}s cooldown)</div>
-          <div>💾 <strong>RAM:</strong> ${this.getRam().name}</div>
-          <div>🌐 <strong>REDE:</strong> ${this.getNetwork().name}</div>
+          <div><strong>CPU:</strong> ${this.getCpu().name} (${(this.getCooldownMs() / 1000).toFixed(1)}s cooldown)</div>
+          <div><strong>RAM:</strong> ${this.getRam().name}</div>
+          <div><strong>REDE:</strong> ${this.getNetwork().name}</div>
         </div>
       </div>
     `;
 
     ['cpu', 'ram', 'network'].forEach(category => {
-      const titles = { cpu: '⚡ PROCESSADORES (CPU)', ram: '💾 MÓDULOS DE MEMÓRIA (RAM)', network: '🌐 INTERFACES DE REDE' };
+      const titles = { cpu: 'PROCESSADORES (CPU)', ram: 'MÓDULOS DE MEMÓRIA (RAM)', network: 'INTERFACES DE REDE' };
       html += `<div style="font-family: var(--hc-font-sans); font-size: 0.95rem; color: var(--cyan-neon); margin: 1rem 0 0.5rem 0;">${titles[category]}</div>`;
       html += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem;">`;
 

@@ -139,10 +139,10 @@ class QuitineteEngine {
     const pending = this.getPendingCount();
     if (pending > 0) {
       pill.className = 'hud-quitinete-pill';
-      pill.innerHTML = `🏠 QUITINETE: ${pending} ${pending === 1 ? 'CONTA' : 'CONTAS'} EM ATRASO`;
+      pill.innerHTML = `${HC.icon('triangle-alert')}<span>Quitinete: ${pending} ${pending === 1 ? 'conta em atraso' : 'contas em atraso'}</span>`;
     } else {
       pill.className = 'hud-quitinete-pill all-paid';
-      pill.innerHTML = `🏠 QUITINETE: 🟢 CONTAS EM DIA`;
+      pill.innerHTML = `${HC.icon('circle-check')}<span>Quitinete em dia</span>`;
     }
   }
 
@@ -154,10 +154,10 @@ class QuitineteEngine {
       <div style="background: rgba(53, 184, 119,0.06); border: 1px solid var(--cyan-neon); border-radius: 8px; padding: 1.1rem; margin-bottom: 1.5rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
           <div style="font-family: var(--hc-font-sans); font-size: 1.15rem; color: #fff;">
-            🏠 QUITINETE DO SUBMUNDO // GERENCIAMENTO DE DESPESAS
+            QUITINETE DO SUBMUNDO // GERENCIAMENTO DE DESPESAS
           </div>
           <div style="font-family: var(--hc-font-mono); font-size: 0.82rem; color: ${this.getPendingCount() > 0 ? '#d0443a' : 'var(--green-safe)'}; font-weight: bold;">
-            ${this.getPendingCount() > 0 ? `🚨 ${this.getPendingCount()} PENDÊNCIA(S)` : '🟢 TODAS AS CONTAS QUITADAS'}
+            ${this.getPendingCount() > 0 ? `${this.getPendingCount()} PENDÊNCIA(S)` : 'TODAS AS CONTAS QUITADAS'}
           </div>
         </div>
         <p style="font-size: 0.82rem; color: #aab3c0; line-height: 1.4; margin: 0;">
