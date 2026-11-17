@@ -1151,7 +1151,10 @@
       if (cmd === 'help') {
         appendCli('Comandos disponíveis:');
         appendCli('  scan                 - Varre alvos vulneráveis no PostgreSQL');
+        appendCli('  nmap <ip>            - Varredura profunda de portas e serviços do alvo');
         appendCli('  hack <ip>            - Explora o alvo e transfere recompensa para sua carteira');
+        appendCli('  hashcrack <hash>     - Quebra senhas criptografadas via força bruta');
+        appendCli('  botnet               - Painel de comando C2 e nodos zumbi infectados');
         appendCli('  hardware             - Abre a oficina e mostra status dos componentes de PC');
         appendCli('  banco                - Exibe número de conta e saldo real');
         appendCli('  whoami               - Informações do operador autenticado');
@@ -1171,6 +1174,58 @@
         updateHardwareDisplay();
         appendCli('Oficina de Hardware aberta. Verifique suas peças e upgrades.');
       } else if (cmd === 'scan') {
+        loadNetworkTargetsFromCloud();
+        openWindow('winScanner');
+        appendCli('Janela do Scanner de Rede aberta com os alvos em tempo real.');
+      } else if (cmd === 'nmap') {
+        const targetIp = parts[1] || '192.168.0.14';
+        appendCli(`Iniciando Nmap 7.94 ( https://nmap.org ) em ${targetIp}...`, '#38bdf8');
+        appendCli('Scanning portas e identificando serviços de rede...');
+        if (window.terminalTools) {
+          window.terminalTools.scanPorts(targetIp, (ports) => {
+            appendCli(`Relatório de varredura para ${targetIp}:`);
+            appendCli('PORTA       ESTADO  SERVIÇO       BANNER / VULNERABILIDADE', '#94a3b8');
+            ports.forEach(p => {
+              appendCli(`${p.port.padEnd(11)} ${p.state.padEnd(7)} ${p.service.padEnd(13)} ${p.banner}`);
+            });
+            appendCli(`Dica: Use 'hack ${targetIp}' para explorar as vulnerabilidades encontradas.`, '#f59e0b');
+          });
+        }
+      } else if (cmd === 'hashcrack') {
+        const hash = parts[1];
+        if (!hash) {
+          if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+          appendCli('Uso: hashcrack <hash_md5> (ex: hashcrack 0192023a7bbd73250516f069df18b500)', '#ef4444');
+          return;
+        }
+        appendCli(`[HASHCAT-v6.2] Iniciando ataque de força bruta & wordlist em ${hash}...`, '#f59e0b');
+        if (window.terminalTools) {
+          window.terminalTools.crackHash(hash, 
+            (pct, speed) => {
+              if (window.hackerAudio) window.hackerAudio.playKeyClick();
+              appendCli(`  > Progresso: [${'#'.repeat(Math.floor(pct/10))}${'.'.repeat(10 - Math.floor(pct/10))}] ${pct}% @ ${speed} kH/s`);
+            },
+            (plain) => {
+              if (window.hackerAudio) window.hackerAudio.playCashChime();
+              appendCli(`[CRACKED] Senha decodificada com sucesso: >> ${plain} <<`, '#22c55e');
+            }
+          );
+        }
+      } else if (cmd === 'botnet') {
+        if (window.terminalTools) {
+          const spec = currentProfile ? currentProfile.specialty : '';
+          const m = window.terminalTools.getBotnetMetrics(spec);
+          appendCli('=== C2 BOTNET CONTROL CENTER ===', '#a855f7');
+          appendCli(`Nós Zumbis Ativos : ${m.nodes} dispositivos infectados`);
+          appendCli(`Poder de Hash     : ${m.hashRate}`);
+          appendCli(`Rendimento Passivo: ${m.hourlyIncome}`);
+          if (m.isBotmaster) {
+            appendCli('Bônus Especialista : +30% de rendimento de Botmaster ATIVO!', '#22c55e');
+          } else {
+            appendCli('Dica: Operadores com classe Botmaster recebem +30% de rendimento passivo.', '#94a3b8');
+          }
+        }
+      } else if (cmd === 'hack') {
         loadNetworkTargetsFromCloud();
         openWindow('winScanner');
         appendCli('Janela do Scanner de Rede aberta com os alvos em tempo real.');
