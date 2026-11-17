@@ -25,4 +25,105 @@ const HARDWARE_CATALOG = {
   ]
 };
 
+class HardwareEngine {
+  constructor() {
+    this.catalog = HARDWARE_CATALOG;
+    this.current = this.loadRig();
+  }
+
+  loadRig() {
+    try {
+      const saved = localStorage.getItem('HC_HARDWARE_RIG');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return {
+      cpu: 'celeron_800',
+      ram: 'ram_256mb',
+      network: 'net_56k'
+    };
+  }
+
+  saveRig(rig) {
+    this.current = { ...this.current, ...rig };
+    try {
+      localStorage.setItem('HC_HARDWARE_RIG', JSON.stringify(this.current));
+    } catch (e) {}
+  }
+
+  getCpu() {
+    return this.catalog.cpu.find(c => c.id === this.current.cpu) || this.catalog.cpu[0];
+  }
+
+  getRam() {
+    return this.catalog.ram.find(r => r.id === this.current.ram) || this.catalog.ram[0];
+  }
+
+  getNetwork() {
+    return this.catalog.network.find(n => n.id === this.current.network) || this.catalog.network[0];
+  }
+
+  getCooldownMs() {
+    return this.getCpu().cooldown_ms || 4000;
+  }
+
+  getBannerText() {
+    const cpu = this.getCpu();
+    const ram = this.getRam();
+    const net = this.getNetwork();
+    return `🖥️ ${cpu.name.toUpperCase()} // ${ram.name.toUpperCase()} // ${net.name.toUpperCase()}`;
+  }
+
+  renderWorkbench(containerId, currentBalance) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+
+    let html = `
+      <div style="background: rgba(6,182,212,0.08); border: 1px solid var(--cyan-neon); border-radius: 8px; padding: 1rem; margin-bottom: 1.25rem;">
+        <div style="font-family: 'Orbitron', sans-serif; font-size: 1.1rem; color: #fff; margin-bottom: 0.5rem;">SETUP ATUAL DO OPERADOR</div>
+        <div style="font-family: 'Fira Code', monospace; font-size: 0.85rem; color: var(--green-safe); display: flex; flex-direction: column; gap: 0.25rem;">
+          <div>⚡ <strong>CPU:</strong> ${this.getCpu().name} (${(this.getCooldownMs() / 1000).toFixed(1)}s cooldown)</div>
+          <div>💾 <strong>RAM:</strong> ${this.getRam().name}</div>
+          <div>🌐 <strong>REDE:</strong> ${this.getNetwork().name}</div>
+        </div>
+      </div>
+    `;
+
+    ['cpu', 'ram', 'network'].forEach(category => {
+      const titles = { cpu: '⚡ PROCESSADORES (CPU)', ram: '💾 MÓDULOS DE MEMÓRIA (RAM)', network: '🌐 INTERFACES DE REDE' };
+      html += `<div style="font-family: 'Orbitron', sans-serif; font-size: 0.95rem; color: var(--cyan-neon); margin: 1rem 0 0.5rem 0;">${titles[category]}</div>`;
+      html += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem;">`;
+
+      this.catalog[category].forEach(item => {
+        const isCurrent = this.current[category] === item.id;
+        const canBuy = !isCurrent && currentBalance >= item.price;
+        html += `
+          <div style="background: #090d16; border: 1px solid ${isCurrent ? 'var(--green-safe)' : '#1e293b'}; border-radius: 6px; padding: 0.85rem; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <span style="font-weight: bold; color: ${isCurrent ? 'var(--green-safe)' : '#fff'}; font-size: 0.9rem;">${item.name}</span>
+                <span style="font-family: 'Fira Code', monospace; font-size: 0.82rem; color: ${item.price === 0 ? '#94a3b8' : 'var(--amber-warn)'};">
+                  ${item.price === 0 ? 'PADRÃO' : '$ ' + item.price + ' HC'}
+                </span>
+              </div>
+              <div style="font-size: 0.78rem; color: #94a3b8; line-height: 1.3; margin-bottom: 0.75rem;">${item.desc}</div>
+            </div>
+            <div>
+              ${isCurrent ? 
+                `<button disabled style="width: 100%; background: rgba(16,185,129,0.2); border: 1px solid var(--green-safe); color: var(--green-safe); padding: 0.4rem; border-radius: 4px; font-weight: bold; font-size: 0.78rem;">INSTALADO NO RIG</button>` :
+                `<button ${!canBuy ? 'disabled' : ''} onclick="buyHardwareUpgrade('${category}', '${item.id}', ${item.price})" class="btn-submit" style="width: 100%; margin: 0; padding: 0.4rem; font-size: 0.78rem; ${!canBuy ? 'opacity: 0.4; cursor: not-allowed;' : ''}">
+                  ${currentBalance >= item.price ? 'COMPRAR & INSTALAR' : 'SALDO INSUFICIENTE'}
+                </button>`
+              }
+            </div>
+          </div>
+        `;
+      });
+      html += `</div>`;
+    });
+
+    el.innerHTML = html;
+  }
+}
+
 window.HARDWARE_CATALOG = HARDWARE_CATALOG;
+window.hardwareEngine = new HardwareEngine();
