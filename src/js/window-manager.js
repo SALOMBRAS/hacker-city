@@ -73,6 +73,7 @@ class WindowManager {
       { id: 'winBrowser', label: '🌐 Browser' },
       { id: 'winScanner', label: '🎯 Scanner' },
       { id: 'winHardware', label: '🖥️ Hardware' },
+      { id: 'winSkillTree', label: '🌳 Habilidades' },
       { id: 'winCracker', label: '⚡ Cracker' },
       { id: 'winBotnetC2', label: '🕸️ Botnet C2' },
       { id: 'winArcade', label: '🕹️ Arcade' },

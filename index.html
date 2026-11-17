@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="src/css/windows.css">
   <link rel="stylesheet" href="src/css/botnet-traceback.css">
   <link rel="stylesheet" href="src/css/quitinete.css">
+  <link rel="stylesheet" href="src/css/skill-tree.css">
 
   <!-- Modular Core Scripts -->
   <script src="src/js/audio-synth.js"></script>
@@ -26,6 +27,7 @@
   <script src="src/js/terminal-tools.js"></script>
   <script src="src/js/bot-network-engine.js"></script>
   <script src="src/js/quitinete-engine.js"></script>
+  <script src="src/js/skill-tree-engine.js"></script>
 </head>
 <body>
 
@@ -228,6 +230,11 @@
       <div class="desktop-icon" onclick="openWindow('winHardware')">
         <div class="icon-symbol">🖥️</div>
         <div class="icon-label">Hardware Rig</div>
+      </div>
+
+      <div class="desktop-icon" onclick="openSkillTreeWindow()">
+        <div class="icon-symbol">🌳</div>
+        <div class="icon-label">Habilidades</div>
       </div>
 
       <div class="desktop-icon" onclick="openWindow('winCracker')">
@@ -552,6 +559,19 @@
       </div>
     </div>
 
+    <!-- JANELA 13: ÁRVORE DE HABILIDADES & SUBCLASSES -->
+    <div class="window-frame" id="winSkillTree" style="width: 840px; height: 570px; top: 65px; left: 150px; display: none;">
+      <div class="window-header" onmousedown="dragWindowStart(event, 'winSkillTree')">
+        <div class="window-title">🌳 Árvore de Habilidades & Subclasses // Especialização</div>
+        <div class="window-controls">
+          <button class="btn-win btn-win-close" onclick="closeWindow('winSkillTree')"></button>
+        </div>
+      </div>
+      <div class="window-body" id="skillTreeAppBody" style="padding: 1.25rem; overflow-y: auto;">
+        <!-- Renderizado dinamicamente via skillTreeEngine.renderUI -->
+      </div>
+    </div>
+
     <!-- Barra de Tarefas Inferior -->
     <footer class="taskbar">
       <div class="taskbar-left">
@@ -855,7 +875,11 @@
       if (!currentProfile || !currentWallet) return;
 
       document.getElementById('hudPlayerTag').innerText = currentProfile.hacker_tag;
-      document.getElementById('hudSpecialtyBadge').innerText = `[${currentProfile.specialty.toUpperCase()}]`;
+      if (window.skillTreeEngine) {
+        document.getElementById('hudSpecialtyBadge').innerText = window.skillTreeEngine.getFullBadge(currentProfile.specialty, currentProfile.reputation);
+      } else {
+        document.getElementById('hudSpecialtyBadge').innerText = `[${currentProfile.specialty.toUpperCase()}]`;
+      }
       document.getElementById('hudWalletMoney').innerText = `$ ${parseFloat(currentWallet.balance).toFixed(2)} HC`;
       document.getElementById('hudReputation').innerText = `${currentProfile.reputation} REP`;
       document.getElementById('hudHeatLevel').innerText = `NÍVEL ${currentProfile.heat_level}`;
@@ -880,6 +904,62 @@
       if (window.quitineteEngine) {
         window.quitineteEngine.updatePill();
       }
+      updateSkillTreeDisplay();
+    }
+
+    function openSkillTreeWindow() {
+      openWindow('winSkillTree');
+      updateSkillTreeDisplay();
+    }
+
+    function updateSkillTreeDisplay() {
+      if (window.skillTreeEngine && currentProfile) {
+        window.skillTreeEngine.renderUI('skillTreeAppBody', currentProfile, currentWallet);
+      }
+    }
+
+    function buySkillUpgrade(skillId) {
+      if (!window.skillTreeEngine || !currentProfile) return;
+      const res = window.skillTreeEngine.upgradePassive(skillId, currentProfile.reputation);
+      if (!res.success) {
+        if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+        alert(res.message);
+        return;
+      }
+      if (window.hackerAudio) window.hackerAudio.playCashChime();
+      showToast(res.message);
+      updateSkillTreeDisplay();
+    }
+
+    function chooseSubclass(subId) {
+      if (!window.skillTreeEngine || !currentProfile) return;
+      const res = window.skillTreeEngine.selectSubclass(subId, currentProfile.reputation, currentProfile.specialty);
+      if (!res.success) {
+        if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+        alert(res.message);
+        return;
+      }
+      if (window.hackerAudio) window.hackerAudio.playEnterBeep();
+      showToast(res.message);
+      updateHudDisplays();
+      updateSkillTreeDisplay();
+    }
+
+    function executeSubclassMission(subId) {
+      if (!window.skillTreeEngine || !currentProfile || !currentWallet) return;
+      const res = window.skillTreeEngine.completeMission(subId);
+      if (!res.success) {
+        if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+        alert(res.message);
+        return;
+      }
+      currentProfile.reputation += res.repReward;
+      currentWallet.balance += res.cashReward;
+      if (window.hackerAudio) window.hackerAudio.playCashChime();
+      showToast(res.message);
+      updateHudDisplays();
+      loadBankTransactions();
+      updateSkillTreeDisplay();
     }
 
     function openQuitineteWindow() {
@@ -1286,6 +1366,8 @@
         appendCli('Comandos disponíveis:');
         appendCli('  /use [app]           - Painel interativo de invasão (/use ip_scanner, /use vpn_breaker, etc.)', '#f59e0b');
         appendCli('  host <site>          - Rastreia a VPS e infraestrutura de um site (ex: host hc://bank)', '#06b6d4');
+        appendCli('  skills               - Árvore de habilidades, pontos SP e títulos de evolução', '#a855f7');
+        appendCli('  subclasse <id>       - Seleciona uma das 11 subclasses de especialização', '#a855f7');
         appendCli('  contas               - Painel de despesas e sobrevivência da Quitinete', '#f43f5e');
         appendCli('  pagar <conta>        - Quita aluguel, luz ou água diretamente pelo banco (ex: pagar aluguel)', '#f43f5e');
         appendCli('  scan                 - Varre alvos vulneráveis no PostgreSQL');
@@ -1332,6 +1414,26 @@
         openWindow('winHardware');
         updateHardwareDisplay();
         appendCli('Oficina de Hardware aberta. Verifique suas peças e upgrades.');
+      } else if (cmd === 'skills' || cmd === 'arvore' || cmd === 'subclasses') {
+        openSkillTreeWindow();
+        if (window.skillTreeEngine && currentProfile) {
+          const rep = currentProfile.reputation;
+          const sp = window.skillTreeEngine.getAvailableSP(rep);
+          const title = window.skillTreeEngine.getPlayerTitle(currentProfile.specialty, rep);
+          appendCli('=== ÁRVORE DE HABILIDADES & SUBCLASSES // RPG SYSTEM ===', '#a855f7');
+          appendCli(`Título de Operador : ${title} | ${window.skillTreeEngine.getFullBadge(currentProfile.specialty, rep)}`);
+          appendCli(`Pontos Disponíveis : ${sp} SP (1 SP a cada 50 REP)`);
+          appendCli(`Subclasses Totais   : ${Object.keys(window.skillTreeEngine.subclasses).length} especializações disponíveis`);
+          appendCli("Dica: Use 'subclasse <id>' para escolher ou abra o painel gráfico clicando no ícone 'Habilidades'.", '#94a3b8');
+        }
+      } else if (cmd === 'subclasse') {
+        const subId = parts[1];
+        if (!subId) {
+          if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+          appendCli("Uso: subclasse <id> (ex: subclasse sub_scada, sub_quantum, sub_ghost)", '#ef4444');
+        } else {
+          chooseSubclass(subId);
+        }
       } else if (cmd === 'contas' || cmd === 'quitinete') {
         openQuitineteWindow();
         appendCli('=== DESPESAS DA QUITINETE // STATUS DE SOBREVIVÊNCIA ===', '#06b6d4');
