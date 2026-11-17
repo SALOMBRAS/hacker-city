@@ -180,6 +180,116 @@ class HackerAudioEngine {
     osc.start(now);
     osc.stop(now + 0.36);
   }
+
+  // Alerta de Invasão / Retaliação de Bot Defensor (someone_invaded.mp3 sintetizado)
+  playInvasionAlert() {
+    if (this.isMuted) return;
+    this.initAudioContext();
+    this.resume();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    for (let i = 0; i < 3; i++) {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const t = now + (i * 0.18);
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(880, t);
+      osc.frequency.exponentialRampToValueAtTime(440, t + 0.15);
+
+      gain.gain.setValueAtTime(0.15, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(t);
+      osc.stop(t + 0.17);
+    }
+  }
+
+  // Alerta de Ataque DDoS Swarm em Massa (ddos_comming.mp3 sintetizado)
+  playDDoSAlert() {
+    if (this.isMuted) return;
+    this.initAudioContext();
+    this.resume();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(220, now);
+    osc.frequency.linearRampToValueAtTime(75, now + 0.4);
+    osc.frequency.linearRampToValueAtTime(180, now + 0.8);
+
+    gain.gain.setValueAtTime(0.16, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.86);
+  }
+
+  // Injeção de Malware / Trojan Minerador (+malware_installed.mp3 sintetizado)
+  playMalwareInstalled() {
+    if (this.isMuted) return;
+    this.initAudioContext();
+    this.resume();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const freqs = [330, 440, 554, 880];
+    freqs.forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const t = now + (idx * 0.07);
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(freq, t);
+
+      gain.gain.setValueAtTime(0.1, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.065);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(t);
+      osc.stop(t + 0.07);
+    });
+  }
+
+  // Resgate Financeiro de Mineração da Botnet (money_collecting.mp3 sintetizado)
+  playMoneyCollect() {
+    if (this.isMuted) return;
+    this.initAudioContext();
+    this.resume();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const notes = [523.25, 659.25, 783.99, 1046.50];
+    notes.forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const t = now + (idx * 0.06);
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+
+      gain.gain.setValueAtTime(0.12, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(t);
+      osc.stop(t + 0.19);
+    });
+  }
 }
 
 // Instância global de áudio

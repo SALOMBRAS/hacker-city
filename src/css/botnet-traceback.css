@@ -1,0 +1,181 @@
+/**
+ * Hacker City // Botnet C2 & Traceback Engine Styles
+ */
+
+/* Banner Global de DDoS */
+.ddos-global-banner {
+  display: none;
+  position: fixed;
+  top: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #450a0a;
+  border: 2px solid #ef4444;
+  color: #fee2e2;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.85rem;
+  font-weight: bold;
+  z-index: 99999;
+  box-shadow: 0 0 25px rgba(239, 68, 68, 0.8);
+  animation: pulseRedAlert 1s infinite alternate;
+}
+
+@keyframes pulseRedAlert {
+  0% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+  100% { box-shadow: 0 0 30px rgba(239, 68, 68, 1); }
+}
+
+/* Painel de Traceback HUD no Cracker */
+.trace-hud-container {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  transition: all 0.3s;
+}
+
+.trace-hud-container.danger-alert {
+  border-color: #ef4444;
+  background: #1e1115;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+}
+
+.trace-hud-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.trace-meter-bg {
+  height: 14px;
+  background: #090d16;
+  border: 1px solid #1e293b;
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.trace-meter-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 9999px;
+  background: var(--cyan-neon);
+  transition: width 0.1s linear, background-color 0.3s ease;
+}
+
+/* Cadeia de Nós de Salto (Bouncing Proxies) */
+.proxy-nodes-strip {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+
+.proxy-node-pill {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.proxy-node-pill.active {
+  background: rgba(6, 182, 212, 0.15);
+  border-color: var(--cyan-neon);
+  color: #fff;
+}
+
+.proxy-node-pill.compromised {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #fca5a5;
+  text-decoration: line-through;
+}
+
+/* Botão Bypass de Pacote */
+.btn-bypass-challenge {
+  background: #854d0e !important;
+  border-color: #eab308 !important;
+  color: #fef08a !important;
+  font-weight: bold;
+  animation: pulseGold 1.5s infinite;
+}
+
+@keyframes pulseGold {
+  0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(234, 179, 8, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); }
+}
+
+/* Perfis da Central C2 */
+.c2-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 1.25rem;
+}
+
+.c2-profile-card {
+  background: #0f172a;
+  border: 2px solid #1e293b;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.c2-profile-card:hover {
+  border-color: #38bdf8;
+  background: #131d33;
+}
+
+.c2-profile-card.active-ghost {
+  border-color: var(--cyan-neon);
+  background: rgba(6, 182, 212, 0.1);
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.25);
+}
+
+.c2-profile-card.active-overclock {
+  border-color: var(--amber-warn);
+  background: rgba(245, 158, 11, 0.1);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+}
+
+.c2-profile-card.active-ddos {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.25);
+}
+
+.c2-slave-list {
+  background: #090d16;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.c2-slave-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid #162032;
+  font-size: 0.8rem;
+  font-family: 'Fira Code', monospace;
+}
+
+.c2-slave-item:last-child {
+  border-bottom: none;
+}

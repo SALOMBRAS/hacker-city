@@ -16,14 +16,21 @@
   <link rel="stylesheet" href="src/css/auth.css">
   <link rel="stylesheet" href="src/css/desktop.css">
   <link rel="stylesheet" href="src/css/windows.css">
+  <link rel="stylesheet" href="src/css/botnet-traceback.css">
 
   <!-- Modular Core Scripts -->
   <script src="src/js/audio-synth.js"></script>
   <script src="src/js/window-manager.js"></script>
   <script src="src/js/hardware-catalog.js"></script>
   <script src="src/js/terminal-tools.js"></script>
+  <script src="src/js/bot-network-engine.js"></script>
 </head>
 <body>
+
+  <!-- Alerta Global de Ataque DDoS -->
+  <div id="ddosGlobalBanner" class="ddos-global-banner">
+    ⚠️ ALERTA DE SEGURANÇA: REDE DERRUBADA POR DDOS SWARM! CONEXÕES INSTÁVEIS.
+  </div>
 
   <!-- ========================================================
        PORTAL DE AUTENTICAÇÃO SUPABASE
@@ -211,6 +218,16 @@
       <div class="desktop-icon" onclick="openWindow('winHardware')">
         <div class="icon-symbol">🖥️</div>
         <div class="icon-label">Hardware Rig</div>
+      </div>
+
+      <div class="desktop-icon" onclick="openWindow('winCracker')">
+        <div class="icon-symbol">⚡</div>
+        <div class="icon-label">HC Cracker</div>
+      </div>
+
+      <div class="desktop-icon" onclick="openWindow('winBotnetC2')">
+        <div class="icon-symbol">🕸️</div>
+        <div class="icon-label">Botnet C2</div>
       </div>
 
       <div class="desktop-icon" onclick="openWindow('winPanic')">
@@ -483,6 +500,32 @@
       </div>
       <div class="window-body" id="hardwareWorkbenchBody">
         <!-- Renderizado dinamicamente via hardwareEngine.renderWorkbench -->
+      </div>
+    </div>
+
+    <!-- JANELA 10: HC CRACKER PRO & MOTOR DE TRACEBACK ATIVO -->
+    <div class="window-frame" id="winCracker" style="width: 680px; height: 530px; top: 70px; left: 180px; display: none;">
+      <div class="window-header" onmousedown="dragWindowStart(event, 'winCracker')">
+        <div class="window-title">⚡ HC-Cracker Pro v4.2 // Invasão com Traceback Ativo</div>
+        <div class="window-controls">
+          <button class="btn-win btn-win-close" onclick="closeWindow('winCracker')"></button>
+        </div>
+      </div>
+      <div class="window-body" id="crackerAppBody" style="padding: 1.25rem; overflow-y: auto;">
+        <!-- Renderizado dinamicamente via renderCrackerUI() -->
+      </div>
+    </div>
+
+    <!-- JANELA 11: CENTRAL C2 DE BOTNET & MINERAÇÃO PASSIVA -->
+    <div class="window-frame" id="winBotnetC2" style="width: 700px; height: 540px; top: 100px; left: 220px; display: none;">
+      <div class="window-header" onmousedown="dragWindowStart(event, 'winBotnetC2')">
+        <div class="window-title">🕸️ Central C2 // Botnet Swarm Matrix</div>
+        <div class="window-controls">
+          <button class="btn-win btn-win-close" onclick="closeWindow('winBotnetC2')"></button>
+        </div>
+      </div>
+      <div class="window-body" id="botnetC2Body" style="padding: 1.25rem; overflow-y: auto;">
+        <!-- Renderizado dinamicamente via renderC2UI() -->
       </div>
     </div>
 
@@ -1179,7 +1222,12 @@
         appendCli('  host <site>          - Rastreia a VPS e infraestrutura de um site (ex: host hc://bank)', '#06b6d4');
         appendCli('  scan                 - Varre alvos vulneráveis no PostgreSQL');
         appendCli('  nmap <ip>            - Varredura profunda de portas e serviços do alvo');
-        appendCli('  hack <ip>            - Explora o alvo e transfere recompensa para sua carteira');
+        appendCli('  hack [ip]            - Abre scanner de alvos ou explora nó vulnerável');
+        appendCli('  bots [tier]          - Lista os 30 bots ativos hoje no agendador semanal');
+        appendCli('  crack [ip]           - Inicia invasão interativa com Traceback Ativo & Bouncing');
+        appendCli('  rmlog <ip>           - Purga seus rastros em /var/log/syslog para cancelar retaliação');
+        appendCli('  c2                   - Abre a matriz da Central Botnet Swarm & Mineração');
+        appendCli('  zombies              - Lista dispositivos escravos sob controle da Botnet');
         appendCli('  hashcrack <hash>     - Quebra senhas criptografadas via força bruta');
         appendCli('  botnet               - Painel de comando C2 e nodos zumbi infectados');
         appendCli('  hardware             - Abre a oficina e mostra status dos componentes de PC');
@@ -1273,9 +1321,65 @@
         if (!ip) {
           loadNetworkTargetsFromCloud();
           openWindow('winScanner');
-          appendCli('Janela do Scanner de Rede aberta. Para invadir direto: hack <ip>');
+          appendCli('Janela do Scanner de Rede aberta com os alvos em tempo real.');
         } else {
           hackNetworkTarget(ip);
+        }
+      } else if (cmd === 'bots') {
+        const tierFilter = parts[1] ? parseInt(parts[1]) : 0;
+        if (window.botScheduler) {
+          const dayBots = window.botScheduler.getCurrentDayBots();
+          appendCli('=== REDE DETERMINÍSTICA DE BOTS (ROTAÇÃO DIÁRIA: 30 BOTS) ===', '#38bdf8');
+          appendCli('HANDLE              TIER         IP REMOTO        HARDWARE / SO          STATUS', '#94a3b8');
+          dayBots.forEach(b => {
+            if (tierFilter && b.tier !== tierFilter) return;
+            const isOnline = window.botScheduler.isBotOnline(b.ip);
+            const statusTxt = isOnline ? '[ONLINE]' : '[OFFLINE]';
+            const statusColor = isOnline ? '#22c55e' : '#64748b';
+            appendCli(`${b.handle.padEnd(19)} ${b.tierName.padEnd(12)} ${b.ip.padEnd(16)} ${(b.hardware.cpu_cores + 'c @ ' + b.hardware.cpu_ghz + 'GHz').padEnd(22)} ${statusTxt}`, statusColor);
+          });
+          appendCli("Dica: Para invadir com traceback ativo, use 'crack <ip>' ou abra o HC Cracker.", '#f59e0b');
+        }
+      } else if (cmd === 'crack') {
+        const ip = parts[1];
+        openWindow('winCracker');
+        if (typeof window.renderCrackerUI === 'function') {
+          window.renderCrackerUI('crackerAppBody', ip);
+        }
+        appendCli(`HC-Cracker Pro aberto. Alvo configurado: ${ip || 'primeiro bot ativo'}. Alerta de Traceback armado!`, '#f59e0b');
+      } else if (cmd === 'rmlog') {
+        const ip = parts[1];
+        if (!ip) {
+          if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+          appendCli('Uso: rmlog <ip> (ex: rmlog 10.110.1.11)', '#ef4444');
+          return;
+        }
+        if (window.botAI) {
+          const wasPending = window.botAI.wipeLogs(ip);
+          if (window.hackerAudio) window.hackerAudio.playKeyClick();
+          appendCli(`[SYSLOG PURGED] Registros em ${ip}:/var/log/syslog deletados com sucesso.`, '#22c55e');
+          if (wasPending) {
+            appendCli(`[ALERTA NEUTRALIZADO] Retaliação ou contra-ataque agendado foi abortado pelo alvo!`, '#38bdf8');
+          } else {
+            appendCli(`Nenhum rastro ativo restava na máquina alvo.`, '#94a3b8');
+          }
+        }
+      } else if (cmd === 'c2') {
+        openWindow('winBotnetC2');
+        if (typeof window.renderC2UI === 'function') {
+          window.renderC2UI('botnetC2Body');
+        }
+        appendCli('Central C2 Botnet Swarm Matrix aberta na área de trabalho.', '#a855f7');
+      } else if (cmd === 'zombies') {
+        if (window.botnetC2) {
+          appendCli('=== ESCRAVOS ZUMBIS INFECTADOS (CENTRAL C2) ===', '#a855f7');
+          appendCli(`Total de Máquinas: ${window.botnetC2.slaves.length} | Perfil Global: ${window.botnetC2.activeProfile.toUpperCase()}`);
+          appendCli(`Rendimento Acumulado Pendente: $ ${window.botnetC2.accumulatedProfits.toFixed(2)} HC`);
+          appendCli('IP               HANDLE              TIER         TAXA BASE', '#94a3b8');
+          window.botnetC2.slaves.forEach(s => {
+            appendCli(`${s.ip.padEnd(16)} ${s.handle.padEnd(19)} Tier ${s.tier}       $ ${s.baseRate.toFixed(2)}/s`);
+          });
+          appendCli("Use 'c2' para abrir o painel gráfico e coletar rendimentos.", '#38bdf8');
         }
       } else if (cmd === 'panic') {
         openWindow('winPanic');
@@ -1401,7 +1505,15 @@
     }
 
     // Janelas Flutuantes (Window Manager Delegado para src/js/window-manager.js)
-    function openWindow(winId) { window.winManager ? window.winManager.open(winId) : null; }
+    function openWindow(winId) { 
+      if (window.winManager) window.winManager.open(winId); 
+      if (winId === 'winCracker' && typeof window.renderCrackerUI === 'function') {
+        window.renderCrackerUI('crackerAppBody');
+      }
+      if (winId === 'winBotnetC2' && typeof window.renderC2UI === 'function') {
+        window.renderC2UI('botnetC2Body');
+      }
+    }
     function closeWindow(winId) { window.winManager ? window.winManager.close(winId) : null; }
     function focusWindow(winId) { window.winManager ? window.winManager.focus(winId) : null; }
     function updateTaskbar() { window.winManager ? window.winManager.updateTaskbar() : null; }
