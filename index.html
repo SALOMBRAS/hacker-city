@@ -184,18 +184,38 @@
       background: #090d16;
       border: 1px solid #1e293b;
       border-radius: 6px;
-      padding: 0.75rem;
+      padding: 0.85rem 0.75rem;
       cursor: pointer;
       transition: all 0.2s;
+      position: relative;
     }
     .specialty-card:hover {
-      border-color: #3b82f6;
+      border-color: #38bdf8;
       background: #0f172a;
     }
     .specialty-card.selected {
+      border-color: var(--cyan-neon) !important;
+      background: rgba(6, 182, 212, 0.15) !important;
+      box-shadow: 0 0 16px rgba(6, 182, 212, 0.35) !important;
+    }
+    .spec-radio {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid #64748b;
+      pointer-events: none;
+      transition: all 0.2s;
+    }
+    .specialty-card.selected .spec-radio {
       border-color: var(--cyan-neon);
-      background: rgba(6, 182, 212, 0.1);
-      box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+      background: var(--cyan-neon);
+      box-shadow: 0 0 8px var(--cyan-neon);
+    }
+    .spec-title, .spec-desc {
+      pointer-events: none;
     }
     .spec-title {
       font-size: 0.9rem;
@@ -657,20 +677,25 @@
 
         <div class="form-group">
           <label>Especialidade Hacker / Classe Inicial</label>
-          <div class="specialty-grid">
-            <div class="specialty-card selected" id="specExploiter" onclick="selectSpecialty('exploiter')">
+          <input type="hidden" id="selectedSpecialtyInput" name="specialty" value="exploiter">
+          <div class="specialty-grid" id="specialtyGridContainer">
+            <div class="specialty-card selected" id="specExploiter" data-spec="exploiter" onclick="selectSpecialty('exploiter')">
+              <span class="spec-radio"></span>
               <div class="spec-title">⚡ Infiltrador</div>
               <div class="spec-desc">+25% velocidade em quebra de senhas & exploits</div>
             </div>
-            <div class="specialty-card" id="specSentinel" onclick="selectSpecialty('sentinel')">
+            <div class="specialty-card" id="specSentinel" data-spec="sentinel" onclick="selectSpecialty('sentinel')">
+              <span class="spec-radio"></span>
               <div class="spec-title">🛡️ Cyber Sentinel</div>
-              <div class="spec-desc">+50% chance de evitar rastreamento de Heat policial</div>
+              <div class="spec-desc">+30% chance de evitar rastreamento de Heat policial</div>
             </div>
-            <div class="specialty-card" id="specBotmaster" onclick="selectSpecialty('botmaster')">
+            <div class="specialty-card" id="specBotmaster" data-spec="botmaster" onclick="selectSpecialty('botmaster')">
+              <span class="spec-radio"></span>
               <div class="spec-title">🤖 Botmaster</div>
               <div class="spec-desc">+30% de rendimento de rede de bots zumbi</div>
             </div>
-            <div class="specialty-card" id="specCarder" onclick="selectSpecialty('carder')">
+            <div class="specialty-card" id="specCarder" data-spec="carder" onclick="selectSpecialty('carder')">
+              <span class="spec-radio"></span>
               <div class="spec-title">💳 Cripto-Carder</div>
               <div class="spec-desc">Bônus inicial de $750 HC e +25% de lucro em hacks</div>
             </div>
@@ -1170,10 +1195,28 @@
 
     function selectSpecialty(spec) {
       selectedSpecialty = spec;
-      document.querySelectorAll('.specialty-card').forEach(c => c.classList.remove('selected'));
-      const card = document.getElementById('spec' + spec.charAt(0).toUpperCase() + spec.slice(1));
-      if (card) card.classList.add('selected');
+      const hiddenInput = document.getElementById('selectedSpecialtyInput');
+      if (hiddenInput) hiddenInput.value = spec;
+
+      document.querySelectorAll('.specialty-card').forEach(c => {
+        c.classList.remove('selected');
+        if (c.getAttribute('data-spec') === spec) {
+          c.classList.add('selected');
+        }
+      });
     }
+
+    // Vincula listeners diretos aos cards de especialidade
+    window.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.specialty-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const spec = card.getAttribute('data-spec');
+          if (spec) selectSpecialty(spec);
+        });
+      });
+    });
 
     // Cadastro Real no Supabase Auth com Validação Rigorosa
     async function handleRegister(e) {
