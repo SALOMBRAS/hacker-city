@@ -1,0 +1,122 @@
+/* ========================================================
+   SISTEMA DE JANELAS FLUTUANTES (WINDOW MANAGER & APPS)
+   ======================================================== */
+.window-frame {
+  position: absolute;
+  background: rgba(13, 17, 26, 0.98);
+  border: 1px solid #334155;
+  border-radius: 8px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.7), 0 0 20px rgba(6, 182, 212, 0.1);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 480px;
+  min-height: 340px;
+  backdrop-filter: blur(14px);
+}
+.window-frame.focused {
+  border-color: var(--cyan-neon);
+  box-shadow: 0 20px 45px rgba(0,0,0,0.8), 0 0 25px rgba(6, 182, 212, 0.25);
+}
+
+.window-header {
+  height: 36px;
+  background: #090d16;
+  border-bottom: 1px solid #1e293b;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 0.85rem;
+  cursor: move;
+}
+.window-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.85rem;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.window-controls {
+  display: flex;
+  gap: 0.4rem;
+}
+.btn-win {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+}
+.btn-win-close { background: #ef4444; }
+
+.window-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+  position: relative;
+}
+
+/* Terminal CLI */
+.cli-container {
+  background: #000;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  height: 100%;
+  min-height: 280px;
+  padding: 0.85rem;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.85rem;
+  color: #22c55e;
+  display: flex;
+  flex-direction: column;
+}
+.cli-output {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.cli-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-top: 1px solid #14532d;
+  padding-top: 0.5rem;
+}
+.cli-prompt { color: var(--cyan-neon); font-weight: bold; }
+.cli-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.85rem;
+  outline: none;
+}
+
+/* Hacker Bank Card */
+.bank-balance-card {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%);
+  border: 1px solid var(--cyan-neon);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.bank-acc-num {
+  font-family: 'Fira Code', monospace;
+  font-size: 1.15rem;
+  color: #fff;
+  font-weight: bold;
+}
+.bank-acc-bal {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.8rem;
+  color: var(--green-safe);
+  font-weight: 800;
+}
