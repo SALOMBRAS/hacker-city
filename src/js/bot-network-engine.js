@@ -362,7 +362,7 @@ class BotAIService {
         window.currentWallet.balance = Math.max(0, window.currentWallet.balance - stolen);
         if (typeof updateHudDisplays === 'function') updateHudDisplays();
       }
-      alert(`🚨 [ALERTA DE INVASÃO]\nO bot defensor ${handle} [${botIp}] rastreou seus logs em /var/log/syslog e debitou $ ${stolen}.00 HC da sua conta!`);
+      alert(`[ALERTA DE INVASÃO]\nO bot defensor ${handle} [${botIp}] rastreou seus logs em /var/log/syslog e debitou $ ${stolen}.00 HC da sua conta!`);
     } else if (type === "bank_drain_and_vminer") {
       const stolen = 250;
       if (window.currentWallet) {
@@ -370,12 +370,12 @@ class BotAIService {
         if (typeof updateHudDisplays === 'function') updateHudDisplays();
       }
       if (window.hackerAudio) window.hackerAudio.playMalwareInstalled();
-      alert(`🚨 [INVASÃO CRÍTICA]\n${handle} [${botIp}] invadiu seu sistema, drenou $ ${stolen}.00 HC e instalou o trojan 'vminer' na sua CPU!`);
+      alert(`[INVASÃO CRÍTICA]\n${handle} [${botIp}] invadiu seu sistema, drenou $ ${stolen}.00 HC e instalou o trojan 'vminer' na sua CPU!`);
     } else {
       // DDoS Swarm
       this.startDDoS(12);
       if (window.hackerAudio) window.hackerAudio.playDDoSAlert();
-      alert(`☠️ [ATAQUE DEVASTADOR DDOS]\n${handle} [${botIp}] disparou um ataque maciço DDoS! Sua conexão de rede cairá por 12 segundos.`);
+      alert(`[ATAQUE DEVASTADOR DDOS]\n${handle} [${botIp}] disparou um ataque maciço DDoS! Sua conexão de rede cairá por 12 segundos.`);
     }
   }
 
@@ -501,13 +501,13 @@ function renderCrackerUI(containerId = 'crackerAppBody', initialTargetIp = null)
       <!-- Seletor de Alvo e Rota de Saltos -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
         <div>
-          <label style="font-size: 0.76rem; color: #aab3c0; font-weight: bold; display: block; margin-bottom: 4px;">🎯 BOT HACKER ALVO (210 DETERMINÍSTICOS):</label>
+          <label style="font-size: 0.76rem; color: #aab3c0; font-weight: bold; display: block; margin-bottom: 4px;">BOT HACKER ALVO (210 DETERMINÍSTICOS):</label>
           <select id="crackerTargetSelect" class="form-input" style="padding: 0.4rem; font-size: 0.8rem;" onchange="onCrackerTargetChanged(this.value)">
             ${optionsHtml}
           </select>
         </div>
         <div>
-          <label style="font-size: 0.76rem; color: #aab3c0; font-weight: bold; display: block; margin-bottom: 4px;">🛡️ NÓS DE SALTO (BOUNCING PROXIES +12s CADA):</label>
+          <label style="font-size: 0.76rem; color: #aab3c0; font-weight: bold; display: block; margin-bottom: 4px;">NÓS DE SALTO (BOUNCING PROXIES +12s CADA):</label>
           <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
             <label style="font-size: 0.75rem; color: #eceff3; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">
               <input type="checkbox" id="chkProxy1" checked onchange="updateCrackerProxies()"> Salto 1 (+12s)
@@ -528,7 +528,7 @@ function renderCrackerUI(containerId = 'crackerAppBody', initialTargetIp = null)
       <!-- Traceback HUD Bar -->
       <div id="crackerTraceHud" class="trace-hud-container">
         <div class="trace-hud-header">
-          <span id="crackerTraceTitle" style="color: var(--cyan-neon); font-weight: bold;">📡 CONTRA-RASTREAMENTO DEFENSIVO: <span id="crackerTracePct">0.0%</span></span>
+          <span id="crackerTraceTitle" style="color: var(--cyan-neon); font-weight: bold;">CONTRA-RASTREAMENTO DEFENSIVO: <span id="crackerTracePct">0.0%</span></span>
           <span id="crackerTimeLeft" style="color: var(--cyan-neon); font-family: monospace;">TEMPO: ${window.traceEngine.totalDuration.toFixed(1)}s</span>
         </div>
         <div class="trace-meter-bg">
@@ -558,7 +558,7 @@ function renderCrackerUI(containerId = 'crackerAppBody', initialTargetIp = null)
           ▶ INICIAR ATAQUE COM TRACEBACK
         </button>
         <button id="btnCrackerBypass" class="btn-submit btn-bypass-challenge" style="flex: 1; margin: 0; padding: 0.5rem 1rem; font-size: 0.85rem; opacity: 0.4; cursor: not-allowed;" disabled onclick="executeCrackerBypass()">
-          ⚡ BYPASS DE PACOTE (-50%)
+          BYPASS DE PACOTE (-50%)
         </button>
         <button class="btn-submit" style="width: auto; background: #353c47; border-color: #353c47; margin: 0; padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="abortCrackerAttack()">
           ⏹ PARAR
@@ -581,21 +581,21 @@ function renderCrackerProxyStrip() {
 
   const originPill = document.createElement('div');
   originPill.className = 'proxy-node-pill active';
-  originPill.innerHTML = `<span>🏠 Você [192.168.1.104]</span>`;
+  originPill.innerHTML = `<span>Você [192.168.1.104]</span>`;
   container.appendChild(originPill);
 
   window.traceEngine.activeProxies.forEach((ip, idx) => {
     const pill = document.createElement('div');
     pill.id = `proxy_pill_${idx}`;
     pill.className = 'proxy-node-pill active';
-    pill.innerHTML = `<span>🛡️ Salto ${idx + 1}: ${ip}</span>`;
+    pill.innerHTML = `<span>Salto ${idx + 1}: ${ip}</span>`;
     container.appendChild(pill);
   });
 
   const target = window.traceEngine.targetBot;
   const targetPill = document.createElement('div');
   targetPill.className = 'proxy-node-pill';
-  targetPill.innerHTML = `<span>🎯 ${target ? target.handle : 'Alvo'} [${target ? target.ip : '0.0.0.0'}]</span>`;
+  targetPill.innerHTML = `<span>${target ? target.handle : 'Alvo'} [${target ? target.ip : '0.0.0.0'}]</span>`;
   container.appendChild(targetPill);
 }
 
@@ -671,10 +671,10 @@ function startCrackerAttack() {
         if (pill) {
           if (data.compromisedProxies.includes(ip)) {
             pill.className = 'proxy-node-pill compromised';
-            pill.innerHTML = `<span>💥 Salto ${idx + 1}: ${ip}</span>`;
+            pill.innerHTML = `<span>Salto ${idx + 1}: ${ip}</span>`;
           } else {
             pill.className = 'proxy-node-pill active';
-            pill.innerHTML = `<span>🛡️ Salto ${idx + 1}: ${ip}</span>`;
+            pill.innerHTML = `<span>Salto ${idx + 1}: ${ip}</span>`;
           }
         }
       });
@@ -698,13 +698,13 @@ function startCrackerAttack() {
         resultBox.style.border = '1px solid #35b877';
         resultBox.style.color = '#d1fae5';
         resultBox.innerHTML = `
-          <div style="font-weight: bold; font-size: 0.95rem; margin-bottom: 0.35rem;">✅ SUCESSO: FIREWALL E HASHES DECIFRADOS!</div>
+          <div style="font-weight: bold; font-size: 0.95rem; margin-bottom: 0.35rem;">SUCESSO: FIREWALL E HASHES DECIFRADOS!</div>
           <div>Acesso root obtido na máquina de <strong>${bot.handle}</strong> [${bot.ip}].</div>
-          <div style="color: #f5bd6b; font-size: 0.75rem; margin: 0.5rem 0;">⚠️ ATENÇÃO: Seu IP foi registrado em /var/log/syslog! Use 'rmlog ${bot.ip}' ou limpe os logs no Browser antes que a IA do bot retalie!</div>
+          <div style="color: #f5bd6b; font-size: 0.75rem; margin: 0.5rem 0;">ATENÇÃO: Seu IP foi registrado em /var/log/syslog! Use 'rmlog ${bot.ip}' ou limpe os logs no Browser antes que a IA do bot retalie!</div>
           <div style="display: flex; gap: 8px; margin-top: 0.5rem;">
-            <button class="btn-submit" style="margin: 0; padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="enslaveBotToC2('${bot.ip}')">🕸️ Escravizar na Botnet C2</button>
-            <button class="btn-submit" style="margin: 0; padding: 0.35rem 0.75rem; font-size: 0.75rem; background: #12814f;" onclick="drainBotBank('${bot.ip}')">💳 Drenar Saldo ($ ${bot.bankAccount.balance} HC)</button>
-            <button class="btn-submit" style="margin: 0; padding: 0.35rem 0.75rem; font-size: 0.75rem; background: #d0443a;" onclick="wipeBotLogsViaBtn('${bot.ip}')">🧹 Apagar Logs Agora</button>
+            <button class="btn-submit" style="margin: 0; padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="enslaveBotToC2('${bot.ip}')">Escravizar na Botnet C2</button>
+            <button class="btn-submit" style="margin: 0; padding: 0.35rem 0.75rem; font-size: 0.75rem; background: #12814f;" onclick="drainBotBank('${bot.ip}')">Drenar Saldo ($ ${bot.bankAccount.balance} HC)</button>
+            <button class="btn-submit" style="margin: 0; padding: 0.35rem 0.75rem; font-size: 0.75rem; background: #d0443a;" onclick="wipeBotLogsViaBtn('${bot.ip}')">Apagar Logs Agora</button>
           </div>
         `;
       }
@@ -726,7 +726,7 @@ function startCrackerAttack() {
         resultBox.style.border = '1px solid #d0443a';
         resultBox.style.color = '#f79a91';
         resultBox.innerHTML = `
-          <div style="font-weight: bold; font-size: 0.95rem; margin-bottom: 0.35rem;">🚨 ALERTA: CONTRA-RASTREAMENTO ATINGIU 100%!</div>
+          <div style="font-weight: bold; font-size: 0.95rem; margin-bottom: 0.35rem;">ALERTA: CONTRA-RASTREAMENTO ATINGIU 100%!</div>
           <div>O bot defensor <strong>${bot.handle}</strong> rastreou seu IP e iniciou protocolo de contra-ataque cibernético. A sessão foi abortada por segurança.</div>
         `;
       }
@@ -837,15 +837,15 @@ function renderC2UI(containerId = 'botnetC2Body') {
         <label style="font-size: 0.76rem; color: #aab3c0; font-weight: bold; display: block; margin-bottom: 6px;">PERFIL DE OPERAÇÃO GLOBAL DO ENXAME:</label>
         <div class="c2-profile-grid">
           <div class="c2-profile-card ${prof === 'ghost' ? 'active-ghost' : ''}" onclick="selectC2Profile('ghost')">
-            <div style="font-weight: bold; color: var(--cyan-neon); font-size: 0.85rem; margin-bottom: 2px;">👻 Modo Fantasma</div>
+            <div style="font-weight: bold; color: var(--cyan-neon); font-size: 0.85rem; margin-bottom: 2px;">Modo Fantasma</div>
             <div style="font-size: 0.72rem; color: #aab3c0;">15% CPU. Mineração contínua e oculta (1.0x). Risco quase zero.</div>
           </div>
           <div class="c2-profile-card ${prof === 'overclock' ? 'active-overclock' : ''}" onclick="selectC2Profile('overclock')">
-            <div style="font-weight: bold; color: var(--amber-warn); font-size: 0.85rem; margin-bottom: 2px;">⚡ Modo Overclock</div>
+            <div style="font-weight: bold; color: var(--amber-warn); font-size: 0.85rem; margin-bottom: 2px;">Modo Overclock</div>
             <div style="font-size: 0.72rem; color: #aab3c0;">85% CPU. Renda máxima (3.5x). Risco elevado de alarme no alvo.</div>
           </div>
           <div class="c2-profile-card ${prof === 'ddos' ? 'active-ddos' : ''}" onclick="selectC2Profile('ddos')">
-            <div style="font-weight: bold; color: #d0443a; font-size: 0.85rem; margin-bottom: 2px;">🌊 Modo DDoS Swarm</div>
+            <div style="font-weight: bold; color: #d0443a; font-size: 0.85rem; margin-bottom: 2px;">Modo DDoS Swarm</div>
             <div style="font-size: 0.72rem; color: #aab3c0;">100% da banda. Mineração pausada p/ concentrar bombardeio.</div>
           </div>
         </div>
@@ -855,7 +855,7 @@ function renderC2UI(containerId = 'botnetC2Body') {
       <div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
           <span style="font-size: 0.76rem; color: #aab3c0; font-weight: bold;">MÁQUINAS ZUMBIS INFECTADAS:</span>
-          <button class="btn-submit" style="margin: 0; padding: 0.25rem 0.6rem; font-size: 0.72rem;" onclick="infectNewRandomSlave()">➕ Infectar Nó de Amostra</button>
+          <button class="btn-submit" style="margin: 0; padding: 0.25rem 0.6rem; font-size: 0.72rem;" onclick="infectNewRandomSlave()">Infectar Nó de Amostra</button>
         </div>
         <div class="c2-slave-list">
           ${slavesRows}
@@ -864,7 +864,7 @@ function renderC2UI(containerId = 'botnetC2Body') {
 
       <!-- Botão de Coleta -->
       <button class="btn-submit" style="margin: 0; padding: 0.6rem; font-size: 0.9rem; background: #059669; border-color: #35b877;" onclick="collectC2Profits()">
-        💰 COLETAR RENDIMENTOS DA MINERAÇÃO
+        COLETAR RENDIMENTOS DA MINERAÇÃO
       </button>
     </div>
   `;
@@ -890,7 +890,7 @@ function infectNewRandomSlave() {
 function collectC2Profits() {
   const amount = window.botnetC2.collectProfits();
   if (amount > 0) {
-    alert(`💰 Coleta realizada! Creditado $ ${amount.toFixed(2)} HC na sua carteira.`);
+    alert(`Coleta realizada! Creditado $ ${amount.toFixed(2)} HC na sua carteira.`);
     renderC2UI();
   } else {
     alert('Nenhum rendimento pendente para resgatar no momento.');

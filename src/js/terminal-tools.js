@@ -363,7 +363,7 @@ class TerminalToolsEngine {
       const ramName = window.hardwareEngine ? window.hardwareEngine.getRam().name : '256MB RAM';
 
       appendCli('╔══════════════════════════════════════════════════════════════════════════════╗', '#35b877');
-      appendCli('║ 🛠️  CATÁLOGO DE APLICATIVOS DE TERMINAL (/use <nome_do_APP>)                 ║', '#35b877');
+      appendCli('║  CATÁLOGO DE APLICATIVOS DE TERMINAL (/use <nome_do_APP>)                 ║', '#35b877');
       appendCli('╠══════════════════════════════════════════════════════════════════════════════╣', '#35b877');
       appendCli(`  Seu Setup: CPU ${cpuName} [${cpuMult.toFixed(1)}x] | RAM ${ramName}`, '#f0a03a');
       appendCli('');
@@ -404,7 +404,7 @@ class TerminalToolsEngine {
     const cpuMult = this.getCpuMultiplier();
 
     appendCli('╔══════════════════════════════════════════════════════════════════════════════╗', '#35b877');
-    appendCli(`║ ⚡ PAINEL DO APLICATIVO ATIVO: ${appInfo.title.toUpperCase().padEnd(45)} ║`, '#35b877');
+    appendCli(`║ PAINEL DO APLICATIVO ATIVO: ${appInfo.title.toUpperCase().padEnd(45)} ║`, '#35b877');
     appendCli('╠══════════════════════════════════════════════════════════════════════════════╣', '#35b877');
     appendCli(`  • Módulo Operacional: ${catLabel}`, '#eceff3');
     appendCli(`  • Potência do App:    Tier ${appInfo.tier} (${appInfo.potency.toFixed(1)}x — ${appInfo.rate_label})`, '#f0a03a');
@@ -448,7 +448,7 @@ class TerminalToolsEngine {
     appendCli(`  Recursos Alocados: +${appInfo.cpu_pct}% CPU | +${appInfo.ram_gb.toFixed(1)} GB RAM | Potência Total: ${effectivePower.toFixed(1)}x`, '#f0a03a');
 
     if (!canSucceed) {
-      appendCli(`  ⚠ [ALERTA DE HARDWARE] Potência atual (${effectivePower.toFixed(1)}x) abaixo do exigido (${requiredPower.toFixed(1)}x) para alvos Nível ${secTier}!`, '#d0443a');
+      appendCli(`  [ALERTA DE HARDWARE] Potência atual (${effectivePower.toFixed(1)}x) abaixo do exigido (${requiredPower.toFixed(1)}x) para alvos Nível ${secTier}!`, '#d0443a');
     }
 
     this.isAnimationRunning = true;
@@ -457,40 +457,40 @@ class TerminalToolsEngine {
     if (!canSucceed) {
       if (category === 'scan_ip') {
         steps = [
-          { text: `  ✗ [TESTE #01/06] [##--------] Sondando Proxy ${proxyIp} :: Combinação Rota #4810-92 -> NEGATIVO (Bloqueado pelo Firewall)`, color: '#d0443a', isPositive: false },
-          { text: `  ✗ [TESTE #02/06] [####------] Sondando Sub-rede ${ipPrefix}.04 :: Combinação Rota #7391-11 -> NEGATIVO (Pacote Descartado / Timeout)`, color: '#d0443a', isPositive: false },
-          { text: `  ✗ [TESTE #03/06] [#####-----] Sondando Sub-rede ${ipPrefix}.19 :: Combinação Rota #9920-44 -> NEGATIVO (Criptografia ${vpnShield} Rejeitou)`, color: '#d0443a', isPositive: false },
-          { text: `  ✗ [TESTE #04/06] [#######---] Sondando Gateway ${ipPrefix}.88  :: Combinação Rota #1048-77 -> NEGATIVO (Potência ${effectivePower.toFixed(1)}x Insuficiente)`, color: '#d0443a', isPositive: false },
-          { text: `  ✗ [TESTE #05/06] [########--] Sondando Túnel ${ipPrefix}.142  :: Combinação Rota #5532-09 -> NEGATIVO (Rota Ocultada por Anti-DDoS)`, color: '#d0443a', isPositive: false },
-          { text: `  ✗ [TESTE #06/06] [##########] Limite Atingido :: 0/6 rotas abertas -> NEGATIVO [OPERAÇÃO ABORTADA]`, color: '#d0443a', isPositive: false }
+          { text: `  [TESTE #01/06] [##--------] Sondando Proxy ${proxyIp} :: Combinação Rota #4810-92 -> NEGATIVO (Bloqueado pelo Firewall)`, color: '#d0443a', isPositive: false },
+          { text: `  [TESTE #02/06] [####------] Sondando Sub-rede ${ipPrefix}.04 :: Combinação Rota #7391-11 -> NEGATIVO (Pacote Descartado / Timeout)`, color: '#d0443a', isPositive: false },
+          { text: `  [TESTE #03/06] [#####-----] Sondando Sub-rede ${ipPrefix}.19 :: Combinação Rota #9920-44 -> NEGATIVO (Criptografia ${vpnShield} Rejeitou)`, color: '#d0443a', isPositive: false },
+          { text: `  [TESTE #04/06] [#######---] Sondando Gateway ${ipPrefix}.88  :: Combinação Rota #1048-77 -> NEGATIVO (Potência ${effectivePower.toFixed(1)}x Insuficiente)`, color: '#d0443a', isPositive: false },
+          { text: `  [TESTE #05/06] [########--] Sondando Túnel ${ipPrefix}.142  :: Combinação Rota #5532-09 -> NEGATIVO (Rota Ocultada por Anti-DDoS)`, color: '#d0443a', isPositive: false },
+          { text: `  [TESTE #06/06] [##########] Limite Atingido :: 0/6 rotas abertas -> NEGATIVO [OPERAÇÃO ABORTADA]`, color: '#d0443a', isPositive: false }
         ];
       } else {
         steps = [
-          { text: `  ✗ [COMBINAÇÃO #01/06] [##--------] Testando Chave VPN [4819 - 2094 - 8812 - 04] -> NEGATIVO (Recusado pela ${vpnShield})`, color: '#d0443a', isPositive: false },
-          { text: `  ✗ [COMBINAÇÃO #02/06] [####------] Testando Chave VPN [9032 - 1184 - 7740 - 19] -> NEGATIVO (Hash Criptográfico Inválido)`, color: '#d0443a', isPositive: false },
-          { text: `  ✗ [COMBINAÇÃO #03/06] [#####-----] Testando Chave VPN [3310 - 6659 - 1029 - 88] -> NEGATIVO (Potência Insuficiente)`, color: '#d0443a', isPositive: false },
-          { text: `  ✗ [COMBINAÇÃO #04/06] [#######---] Testando Chave VPN [7741 - 0092 - 4418 - 53] -> NEGATIVO (Firewall Nível ${secTier} Bloqueou Força Bruta)`, color: '#d0443a', isPositive: false },
-          { text: `  ✗ [COMBINAÇÃO #05/06] [########--] Testando Chave VPN [6190 - 8832 - 5501 - 27] -> NEGATIVO (Timeout: Setup Básico)`, color: '#d0443a', isPositive: false },
-          { text: `  ✗ [COMBINAÇÃO #06/06] [##########] Testando Chave VPN [1904 - 4421 - 9980 - 00] -> NEGATIVO [FALHA DE QUEBRA DE VPN]`, color: '#d0443a', isPositive: false }
+          { text: `  [COMBINAÇÃO #01/06] [##--------] Testando Chave VPN [4819 - 2094 - 8812 - 04] -> NEGATIVO (Recusado pela ${vpnShield})`, color: '#d0443a', isPositive: false },
+          { text: `  [COMBINAÇÃO #02/06] [####------] Testando Chave VPN [9032 - 1184 - 7740 - 19] -> NEGATIVO (Hash Criptográfico Inválido)`, color: '#d0443a', isPositive: false },
+          { text: `  [COMBINAÇÃO #03/06] [#####-----] Testando Chave VPN [3310 - 6659 - 1029 - 88] -> NEGATIVO (Potência Insuficiente)`, color: '#d0443a', isPositive: false },
+          { text: `  [COMBINAÇÃO #04/06] [#######---] Testando Chave VPN [7741 - 0092 - 4418 - 53] -> NEGATIVO (Firewall Nível ${secTier} Bloqueou Força Bruta)`, color: '#d0443a', isPositive: false },
+          { text: `  [COMBINAÇÃO #05/06] [########--] Testando Chave VPN [6190 - 8832 - 5501 - 27] -> NEGATIVO (Timeout: Setup Básico)`, color: '#d0443a', isPositive: false },
+          { text: `  [COMBINAÇÃO #06/06] [##########] Testando Chave VPN [1904 - 4421 - 9980 - 00] -> NEGATIVO [FALHA DE QUEBRA DE VPN]`, color: '#d0443a', isPositive: false }
         ];
       }
     } else {
       if (category === 'scan_ip') {
         steps = [
-          { text: `  ✗ [TESTE #01/06] [##--------] Sondando Proxy Público ${proxyIp} :: Combinação #4091-A -> NEGATIVO (Proxy Reverso)`, color: '#d0443a', isPositive: false },
-          { text: `  ✗ [TESTE #02/06] [###-------] Sondando Nó ${ipPrefix}.08:8080     :: Combinação #7712-B -> NEGATIVO (Honeypot Descartado)`, color: '#d0443a', isPositive: false },
+          { text: `  [TESTE #01/06] [##--------] Sondando Proxy Público ${proxyIp} :: Combinação #4091-A -> NEGATIVO (Proxy Reverso)`, color: '#d0443a', isPositive: false },
+          { text: `  [TESTE #02/06] [###-------] Sondando Nó ${ipPrefix}.08:8080     :: Combinação #7712-B -> NEGATIVO (Honeypot Descartado)`, color: '#d0443a', isPositive: false },
           { text: `  ✓ [TESTE #03/06] [#####-----] Sub-rede ${ipPrefix}.0/24           :: Combinação #8840-OK -> POSITIVO (Sub-rede Localizada!)`, color: '#35b877', isPositive: true },
-          { text: `  ✗ [TESTE #04/06] [#######---] Sondando Nó ${ipPrefix}.14:22       :: Combinação #3190-C -> NEGATIVO (Porta Filtrada)`, color: '#d0443a', isPositive: false },
+          { text: `  [TESTE #04/06] [#######---] Sondando Nó ${ipPrefix}.14:22       :: Combinação #3190-C -> NEGATIVO (Porta Filtrada)`, color: '#d0443a', isPositive: false },
           { text: `  ✓ [TESTE #05/06] [########--] Host ${realHost} (${ipPrefix}.x) :: Combinação #9921-OK -> POSITIVO (Resposta SSH 9ms!)`, color: '#35b877', isPositive: true },
           { text: `  ✓ [TESTE #06/06] [##########] Octeto Final .${lastOct} Confirmado  :: IP REAL DESCOBERTO: ${realIp} -> POSITIVO!`, color: '#35b877', isPositive: true }
         ];
       } else {
         steps = [
-          { text: `  ✗ [COMBINAÇÃO #01/06] [##--------] Testando Chave Numérica [4829 - 1044 - 9921 - 17] -> NEGATIVO (Handshake Recusado)`, color: '#d0443a', isPositive: false },
+          { text: `  [COMBINAÇÃO #01/06] [##--------] Testando Chave Numérica [4829 - 1044 - 9921 - 17] -> NEGATIVO (Handshake Recusado)`, color: '#d0443a', isPositive: false },
           { text: `  ✓ [COMBINAÇÃO #02/06] [###-------] Bloco #1 Descoberto     [8840 - **** - **** - **] -> POSITIVO (1º Segmento Aceito!)`, color: '#35b877', isPositive: true },
-          { text: `  ✗ [COMBINAÇÃO #03/06] [#####-----] Testando Chave Numérica [8840 - 7391 - 1104 - 62] -> NEGATIVO (Colisão de Nonce)`, color: '#d0443a', isPositive: false },
+          { text: `  [COMBINAÇÃO #03/06] [#####-----] Testando Chave Numérica [8840 - 7391 - 1104 - 62] -> NEGATIVO (Colisão de Nonce)`, color: '#d0443a', isPositive: false },
           { text: `  ✓ [COMBINAÇÃO #04/06] [#######---] Bloco #2 Descoberto     [8840 - 3319 - **** - **] -> POSITIVO (2º Segmento Aceito!)`, color: '#35b877', isPositive: true },
-          { text: `  ✗ [COMBINAÇÃO #05/06] [########--] Testando Chave Numérica [8840 - 3319 - 5502 - 89] -> NEGATIVO (Porta Rejeitada)`, color: '#d0443a', isPositive: false },
+          { text: `  [COMBINAÇÃO #05/06] [########--] Testando Chave Numérica [8840 - 3319 - 5502 - 89] -> NEGATIVO (Porta Rejeitada)`, color: '#d0443a', isPositive: false },
           { text: `  ✓ [COMBINAÇÃO #06/06] [##########] Combinação Mestra       [8840 - 3319 - 9042 - ${lastOct}] -> POSITIVO! (VPN QUEBRADA!)`, color: '#35b877', isPositive: true }
         ];
       }
@@ -516,7 +516,7 @@ class TerminalToolsEngine {
           if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
           const recApp = category === 'scan_ip' ? (secTier === 2 ? '/use deep_scanner' : '/use quantum_scanner') : (secTier === 2 ? '/use vpn_hydra' : '/use vpn_quantum');
           appendCli('╔══════════════════════════════════════════════════════════════════════════════╗', '#d0443a');
-          appendCli(`║ ✗ [RESULTADO NEGATIVO] POTÊNCIA INSUFICIENTE PARA O ALVO (NÍVEL ${secTier})         ║`, '#d0443a');
+          appendCli(`║ [RESULTADO NEGATIVO] POTÊNCIA INSUFICIENTE PARA O ALVO (NÍVEL ${secTier})         ║`, '#d0443a');
           appendCli('╠══════════════════════════════════════════════════════════════════════════════╣', '#d0443a');
           appendCli(`  • Um setup básico com ${appInfo.title} não quebra ${targetStr} em tempo hábil!`, '#f79a91');
           appendCli(`  • Potência Atual: ${effectivePower.toFixed(1)}x  |  Potência Exigida: ${requiredPower.toFixed(1)}x`, '#f0a03a');

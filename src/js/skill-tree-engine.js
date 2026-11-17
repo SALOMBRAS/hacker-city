@@ -11,7 +11,7 @@ class SkillTreeEngine {
       exploiter: {
         id: 'exploiter',
         name: 'Infiltrador',
-        icon: '⚡',
+        icon: 'zap',
         cat: 'Ofensivo // 0-Days',
         catBadge: 'EXPLOITS',
         lore: 'Especialista em invasões de impacto rápido, quebra brutal de senhas e injeção de exploits em firewalls corporativos.',
@@ -34,7 +34,7 @@ class SkillTreeEngine {
       sentinel: {
         id: 'sentinel',
         name: 'Cyber Sentinel',
-        icon: '🛡️',
+        icon: 'shield',
         cat: 'Defensivo // Evasão',
         catBadge: 'DEFESA',
         lore: 'Operador focado em camuflagem digital, neutralização de contra-rastreio e evasão contra a Polícia Federal.',
@@ -57,7 +57,7 @@ class SkillTreeEngine {
       botmaster: {
         id: 'botmaster',
         name: 'Botmaster',
-        icon: '🤖',
+        icon: 'bot',
         cat: 'Swarm // Infecção C2',
         catBadge: 'BOTNET',
         lore: 'Comandante de enxames e redes de máquinas zumbis, operando mineração passiva em massa e ataques DDoS orquestrados.',
@@ -80,7 +80,7 @@ class SkillTreeEngine {
       carder: {
         id: 'carder',
         name: 'Cripto-Carder',
-        icon: '💳',
+        icon: 'wallet',
         cat: 'Financeiro // Dark Web',
         catBadge: 'CARDING',
         lore: 'Mestre da lavagem de dinheiro, interceptação de pagamentos, extração de dumps financeiros e transações P2P blindadas.',
@@ -146,7 +146,7 @@ class SkillTreeEngine {
       sub_exploiter: {
         id: 'sub_exploiter',
         name: 'Sub-Infiltrador',
-        icon: '⚡',
+        icon: 'zap',
         cat: 'Exploits & 0-Days',
         catBadge: 'OFENSIVO',
         detailedBenefits: [
@@ -169,7 +169,7 @@ class SkillTreeEngine {
       sub_sentinel: {
         id: 'sub_sentinel',
         name: 'Sub-Sentinel',
-        icon: '🛡️',
+        icon: 'shield',
         cat: 'Defesa & Evasão',
         catBadge: 'DEFESA',
         detailedBenefits: [
@@ -192,7 +192,7 @@ class SkillTreeEngine {
       sub_botmaster: {
         id: 'sub_botmaster',
         name: 'Sub-Botmaster',
-        icon: '🤖',
+        icon: 'bot',
         cat: 'Swarm & Zumbis',
         catBadge: 'BOTNET',
         detailedBenefits: [
@@ -215,7 +215,7 @@ class SkillTreeEngine {
       sub_carder: {
         id: 'sub_carder',
         name: 'Sub-Carder',
-        icon: '💳',
+        icon: 'wallet',
         cat: 'Engenharia Financeira',
         catBadge: 'FINANCEIRO',
         detailedBenefits: [
@@ -238,7 +238,7 @@ class SkillTreeEngine {
       sub_scada: {
         id: 'sub_scada',
         name: 'Especialista SCADA & IoT',
-        icon: '🏭',
+        icon: 'server',
         cat: 'Infraestrutura Urbana',
         catBadge: 'HARDWARE / IOT',
         detailedBenefits: [
@@ -261,7 +261,7 @@ class SkillTreeEngine {
       sub_quantum: {
         id: 'sub_quantum',
         name: 'Criptógrafo Quântico',
-        icon: '⚛️',
+        icon: 'binary',
         cat: 'Criptoanálise',
         catBadge: 'MATEMÁTICA',
         detailedBenefits: [
@@ -284,7 +284,7 @@ class SkillTreeEngine {
       sub_ghost: {
         id: 'sub_ghost',
         name: 'Fantasma de Rede (Proxy Ghost)',
-        icon: '👻',
+        icon: 'ghost',
         cat: 'Anonimato Absoluto',
         catBadge: 'CAMUFLAGEM',
         detailedBenefits: [
@@ -307,7 +307,7 @@ class SkillTreeEngine {
       sub_social: {
         id: 'sub_social',
         name: 'Engenheiro Social (OSINT)',
-        icon: '🎭',
+        icon: 'users',
         cat: 'Inteligência Humana',
         catBadge: 'OSINT',
         detailedBenefits: [
@@ -330,7 +330,7 @@ class SkillTreeEngine {
       sub_forensic: {
         id: 'sub_forensic',
         name: 'Forense Ofensivo (Reverse Eng.)',
-        icon: '🔬',
+        icon: 'search',
         cat: 'Engenharia Reversa',
         catBadge: 'FORENSE',
         detailedBenefits: [
@@ -353,7 +353,7 @@ class SkillTreeEngine {
       sub_redteam: {
         id: 'sub_redteam',
         name: 'Comandante Red Team',
-        icon: '🎖️',
+        icon: 'swords',
         cat: 'Ataques em Enxame',
         catBadge: 'RED TEAM',
         detailedBenefits: [
@@ -376,7 +376,7 @@ class SkillTreeEngine {
       sub_blackhat_finance: {
         id: 'sub_blackhat_finance',
         name: 'Operador Black Hat Finanças',
-        icon: '💰',
+        icon: 'bitcoin',
         cat: 'Economia Clandestina',
         catBadge: 'BLACK HAT',
         detailedBenefits: [
@@ -599,9 +599,9 @@ class SkillTreeEngine {
         <!-- Header da Árvore de Especialização -->
         <div class="tree-header-card">
           <div class="tree-title-group">
-            <h2>🌳 ÁRVORE DE ESPECIALIZAÇÃO // DUAL-SPEC RPG</h2>
+            <h2>Especialização</h2>
             <div class="tree-title-badge">
-              🎖️ TÍTULO: <strong>${title}</strong> &nbsp;|&nbsp; ${this.getFullBadge(primary, rep)}
+              Título: <strong>${title}</strong> &nbsp;|&nbsp; ${this.getFullBadge(primary, rep)}
             </div>
           </div>
           <div class="sp-counter-box">
@@ -613,16 +613,16 @@ class SkillTreeEngine {
         <!-- Abas de Navegação -->
         <div class="skill-tabs">
           <button class="skill-tab-btn ${this.activeTab === 'subclasses' ? 'active' : ''}" onclick="window.skillTreeEngine.switchTab('subclasses', '${containerId}')">
-            🧬 SUBCLASSES & CARDS DE DESBLOQUEIO (${Object.keys(this.subclasses).length})
+            Subclasses (${Object.keys(this.subclasses).length})
           </button>
           <button class="skill-tab-btn ${this.activeTab === 'primary' ? 'active' : ''}" onclick="window.skillTreeEngine.switchTab('primary', '${containerId}')">
-            👑 CLASSES PRINCIPAIS & MAESTRIA (4)
+            Classes principais (4)
           </button>
           <button class="skill-tab-btn ${this.activeTab === 'passives' ? 'active' : ''}" onclick="window.skillTreeEngine.switchTab('passives', '${containerId}')">
-            ⚡ ÁRVORE DE PASSIVAS (SP)
+            Passivas
           </button>
           <button class="skill-tab-btn ${this.activeTab === 'missions' ? 'active' : ''}" onclick="window.skillTreeEngine.switchTab('missions', '${containerId}')">
-            🎯 HISTÓRICO DE MISSÕES
+            Missões concluídas
           </button>
         </div>
     `;
@@ -644,19 +644,19 @@ class SkillTreeEngine {
 
         if (isPrimaryMatch) {
           cardState = 'primary-base';
-          statusBadge = `<span class="unlock-status-badge status-badge-primary-base">👑 SUA CLASSE BASE</span>`;
+          statusBadge = `<span class="unlock-status-badge status-badge-primary-base">SUA CLASSE BASE</span>`;
         } else if (isEquipped) {
           cardState = 'equipped';
-          statusBadge = `<span class="unlock-status-badge status-badge-equipped">🟢 EQUIPADA NO OPERADOR</span>`;
+          statusBadge = `<span class="unlock-status-badge status-badge-equipped">EQUIPADA NO OPERADOR</span>`;
         } else if (isUnlocked) {
           cardState = 'unlocked';
-          statusBadge = `<span class="unlock-status-badge status-badge-unlocked">🔓 DESBLOQUEADA</span>`;
+          statusBadge = `<span class="unlock-status-badge status-badge-unlocked">DESBLOQUEADA</span>`;
         } else if (meetsRep) {
           cardState = 'ready-mission';
-          statusBadge = `<span class="unlock-status-badge status-badge-ready">⚡ MISSÃO DISPONÍVEL</span>`;
+          statusBadge = `<span class="unlock-status-badge status-badge-ready">MISSÃO DISPONÍVEL</span>`;
         } else {
           cardState = 'locked-req';
-          statusBadge = `<span class="unlock-status-badge status-badge-locked">🔒 EXIGE ${sub.minRep} REP</span>`;
+          statusBadge = `<span class="unlock-status-badge status-badge-locked">EXIGE ${sub.minRep} REP</span>`;
         }
 
         html += `
@@ -664,7 +664,7 @@ class SkillTreeEngine {
             <div>
               <div class="card-top-bar">
                 <div class="card-title-group">
-                  <span class="card-spec-icon">${sub.icon}</span>
+                  <span class="card-spec-icon">${HC.icon(sub.icon, "xl")}</span>
                   <div>
                     <div class="card-spec-name">${sub.name}</div>
                     <span class="card-category-pill">${sub.cat}</span>
@@ -676,7 +676,7 @@ class SkillTreeEngine {
               <!-- Seção de Benefícios da Subclasse -->
               <div class="benefits-section">
                 <div class="benefits-title">
-                  <span>✦ BÔNUS & BENEFÍCIOS OPERACIONAIS</span>
+                  <span>BÔNUS & BENEFÍCIOS OPERACIONAIS</span>
                 </div>
                 <ul class="benefits-list">
                   ${sub.detailedBenefits.map(b => `
@@ -692,7 +692,7 @@ class SkillTreeEngine {
               <div class="mission-contract-card ${isCompleted ? 'completed' : ''}">
                 <div class="mission-contract-header">
                   <span class="mission-contract-title">
-                    🎯 ${sub.mission.title}
+                    ${sub.mission.title}
                   </span>
                   <span class="mission-difficulty-pill ${sub.mission.difficultyClass}">
                     ${sub.mission.difficulty}
@@ -705,7 +705,7 @@ class SkillTreeEngine {
                   ${sub.mission.briefing}
                 </div>
                 <div class="mission-contract-rewards">
-                  <span>RECOMPENSA: +$ ${sub.mission.rewards.cash} HC &nbsp;|&nbsp; +${sub.mission.rewards.rep} REP &nbsp;|&nbsp; 🏅 ${sub.mission.rewards.badge}</span>
+                  <span>RECOMPENSA: +$ ${sub.mission.rewards.cash} HC &nbsp;|&nbsp; +${sub.mission.rewards.rep} REP &nbsp;|&nbsp; ${sub.mission.rewards.badge}</span>
                 </div>
               </div>
             </div>
@@ -722,15 +722,15 @@ class SkillTreeEngine {
                 </button>
               ` : (isUnlocked ? `
                 <button onclick="window.skillTreeEngine.handleEquipSubclass('${sub.id}')" class="btn-card-action btn-equip-subclass">
-                  ⚡ EQUIPAR SUBCLASSE
+                  EQUIPAR SUBCLASSE
                 </button>
               ` : (!meetsRep ? `
                 <button disabled class="btn-card-action btn-disabled-locked">
-                  🔒 REPUTAÇÃO INSUFICIENTE (EXIGE ${sub.minRep} REP)
+                  REPUTAÇÃO INSUFICIENTE (EXIGE ${sub.minRep} REP)
                 </button>
               ` : `
                 <button onclick="window.skillTreeEngine.handleStartMission('${sub.id}')" class="btn-card-action btn-start-mission">
-                  🚀 INICIAR MISSÃO DE DESBLOQUEIO
+                  INICIAR MISSÃO DE DESBLOQUEIO
                 </button>
               `)))}
             </div>
@@ -739,7 +739,7 @@ class SkillTreeEngine {
       });
       html += `</div>`;
 
-    // 2. ABA DE CLASSES PRINCIPAIS & MAESTRIA
+    // 2. ABA DE Classes principais
     } else if (this.activeTab === 'primary') {
       html += `<div class="primary-classes-grid">`;
       Object.values(this.primaryClasses).forEach(pc => {
@@ -750,7 +750,7 @@ class SkillTreeEngine {
             <div>
               <div class="primary-card-header">
                 <div class="primary-title-wrap">
-                  <span class="primary-icon">${pc.icon}</span>
+                  <span class="primary-icon">${HC.icon(pc.icon, "xl")}</span>
                   <div>
                     <div class="primary-class-name">${pc.name}</div>
                     <span class="primary-cat-badge">${pc.cat}</span>
@@ -758,7 +758,7 @@ class SkillTreeEngine {
                 </div>
                 <div>
                   <span class="primary-status-pill ${isCurrent ? 'equipped' : 'inactive'}">
-                    ${isCurrent ? '🟢 SUA CLASSE PRINCIPAL' : '⚪ NÃO SELECIONADA'}
+                    ${isCurrent ? 'SUA CLASSE PRINCIPAL' : 'NÃO SELECIONADA'}
                   </span>
                 </div>
               </div>
@@ -768,7 +768,7 @@ class SkillTreeEngine {
               <!-- Benefícios da Classe Principal -->
               <div class="benefits-section">
                 <div class="benefits-title">
-                  <span>✦ BÔNUS PASSIVOS DESTA CLASSE</span>
+                  <span>BÔNUS PASSIVOS DESTA CLASSE</span>
                 </div>
                 <ul class="benefits-list">
                   ${pc.benefits.map(b => `
@@ -787,7 +787,7 @@ class SkillTreeEngine {
               <div class="mission-contract-card">
                 <div class="mission-contract-header">
                   <span class="mission-contract-title">
-                    🎯 PROVA DE MAESTRIA: ${pc.masteryMission.title}
+                    PROVA DE MAESTRIA: ${pc.masteryMission.title}
                   </span>
                   <span class="mission-difficulty-pill ${pc.masteryMission.difficultyClass}">
                     ${pc.masteryMission.difficulty}
@@ -849,7 +849,7 @@ class SkillTreeEngine {
       });
       html += `</div>`;
 
-    // 4. ABA DE HISTÓRICO DE MISSÕES
+    // 4. ABA DE Missões concluídas
     } else if (this.activeTab === 'missions') {
       html += `<div style="display:flex;flex-direction:column;gap:1rem;">`;
       const completedList = Object.keys(this.completedMissions);
@@ -857,10 +857,10 @@ class SkillTreeEngine {
       if (completedList.length === 0) {
         html += `
           <div style="text-align:center;padding:3rem;background:#111418;border:1px dashed #353c47;border-radius:8px;">
-            <div style="font-size:2.5rem;margin-bottom:0.75rem;">📂</div>
+            <div style="font-size:2.5rem;margin-bottom:0.75rem;"></div>
             <div style="font-family:var(--hc-font-sans);color:#fff;font-size:1.1rem;margin-bottom:0.5rem;">NENHUMA MISSÃO DE DESBLOQUEIO CONCLUÍDA</div>
             <div style="color:#aab3c0;font-size:0.85rem;max-width:500px;margin:0 auto;">
-              Navegue até a aba <strong>"SUBCLASSES & CARDS DE DESBLOQUEIO"</strong>, atinja a reputação mínima requerida e inicie os testes para habilitar novas classes!
+              Navegue até a aba <strong>"Subclasses"</strong>, atinja a reputação mínima requerida e inicie os testes para habilitar novas classes!
             </div>
           </div>
         `;
@@ -898,7 +898,7 @@ class SkillTreeEngine {
           <div class="mission-runner-terminal">
             <div class="runner-terminal-header">
               <div class="runner-terminal-title">
-                <span>🎯 TESTE DE HABILITAÇÃO: ${m.title}</span>
+                <span>TESTE DE HABILITAÇÃO: ${m.title}</span>
                 <span class="mission-difficulty-pill ${m.difficultyClass}">${m.difficulty}</span>
               </div>
               <button class="btn-runner-close" onclick="window.skillTreeEngine.handleCloseMissionRunner()">&times;</button>
@@ -926,7 +926,7 @@ class SkillTreeEngine {
                 <div class="runner-challenge-input-row">
                   <input type="text" id="missionPayloadInput" class="runner-input" value="${m.expectedPayload}" readonly>
                   <button onclick="window.skillTreeEngine.handleExecuteActiveMission('${activeSub.id}')" class="btn-runner-execute">
-                    ⚡ EXECUTAR & DESBLOQUEAR
+                    EXECUTAR & DESBLOQUEAR
                   </button>
                 </div>
               </div>
