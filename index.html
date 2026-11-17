@@ -585,7 +585,9 @@
     const SUPABASE_URL = "https://yguxmkgkwumcskucdlfc.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlndXhta2drd3VtY3NrdWNkbGZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ4NzE2MjcsImV4cCI6MjExMDQ0NzYyN30.mEpVBsEpC4DyOF4U1JB85aS0yNgdCJ5vDBF8D7sCjQY";
 
-    const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+    var supabase = (typeof window.supabase !== 'undefined' && window.supabase.createClient) 
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) 
+      : null;
 
     let currentProfile = null;
     let currentWallet = null;
