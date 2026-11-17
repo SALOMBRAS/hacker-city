@@ -75,6 +75,13 @@ class QuitineteEngine {
   }
 
   applyEffects() {
+    if (typeof document === 'undefined' || !document.body) {
+      if (typeof window !== 'undefined') {
+        window.addEventListener('DOMContentLoaded', () => this.applyEffects());
+      }
+      return;
+    }
+
     // Efeito de queda de luz caso a conta de energia não esteja paga
     if (this.hasPowerOutage()) {
       document.body.classList.add('power-outage-active');
