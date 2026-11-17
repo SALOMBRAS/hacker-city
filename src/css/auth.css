@@ -241,3 +241,137 @@
 }
 .acc-tag { font-size: 0.95rem; font-weight: bold; color: #fff; }
 .acc-info { font-size: 0.78rem; color: var(--text-muted); font-family: 'Fira Code', monospace; }
+
+/* ========================================================
+   SEÇÃO DE DUPLA ATIVAÇÃO (OTP & LINK DIRETO)
+   ======================================================== */
+.verify-dual-header {
+  background: rgba(6, 182, 212, 0.08);
+  border: 1px solid var(--cyan-neon);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.2rem;
+  text-align: center;
+}
+
+.verify-dual-title {
+  color: #fff;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.verify-email-pill {
+  display: inline-block;
+  color: var(--cyan-neon);
+  font-family: 'Fira Code', monospace;
+  font-size: 0.88rem;
+  font-weight: bold;
+  background: rgba(6, 182, 212, 0.12);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  margin-top: 0.35rem;
+}
+
+.verify-method-box {
+  background: #090d16;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.verify-method-box.priority {
+  border-color: rgba(6, 182, 212, 0.5);
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.1);
+}
+
+.verify-method-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.verify-method-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.verify-badge-priority {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: var(--cyan-neon);
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid var(--cyan-neon);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.verify-badge-alt {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.7rem;
+  color: #94a3b8;
+  background: #1e293b;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.verify-method-desc {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  line-height: 1.45;
+  margin-bottom: 0.75rem;
+}
+
+.verify-token-input {
+  font-family: 'Fira Code', monospace;
+  font-size: 1.35rem;
+  letter-spacing: 6px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--green-safe);
+  background: #04070d;
+  border: 2px solid var(--cyan-neon);
+  border-radius: 6px;
+  padding: 0.65rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.verify-token-input:focus {
+  outline: none;
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+}
+
+.verify-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1rem 0;
+  color: #64748b;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.75rem;
+}
+
+.verify-divider::before,
+.verify-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #1e293b;
+}
+
+.verify-divider span {
+  padding: 0 0.75rem;
+}
