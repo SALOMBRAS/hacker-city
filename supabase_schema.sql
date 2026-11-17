@@ -201,8 +201,15 @@ BEGIN
     RETURN jsonb_build_object('success', false, 'message', 'Perfil não autenticado.');
   END IF;
 
-  IF v_user_profile.last_hack_at IS NOT NULL AND (now() - v_user_profile.last_hack_at) < INTERVAL '4 seconds' THEN
-    RETURN jsonb_build_object('success', false, 'message', 'COOLDOWN DE CPU: Buffer saturado! Aguarde 4s entre invasões.');
+  -- Cooldown diferenciado de CPU: Infiltrador tem 25% menos tempo de espera (3s vs 4s)
+  IF v_user_profile.specialty = 'exploiter' THEN
+    IF v_user_profile.last_hack_at IS NOT NULL AND (now() - v_user_profile.last_hack_at) < INTERVAL '3 seconds' THEN
+      RETURN jsonb_build_object('success', false, 'message', 'COOLDOWN DE CPU: Buffer Infiltrador saturado! Aguarde 3s entre invasões.');
+    END IF;
+  ELSE
+    IF v_user_profile.last_hack_at IS NOT NULL AND (now() - v_user_profile.last_hack_at) < INTERVAL '4 seconds' THEN
+      RETURN jsonb_build_object('success', false, 'message', 'COOLDOWN DE CPU: Buffer saturado! Aguarde 4s entre invasões.');
+    END IF;
   END IF;
 
   SELECT * INTO v_target FROM public.network_targets WHERE ip_address = p_ip_address;
