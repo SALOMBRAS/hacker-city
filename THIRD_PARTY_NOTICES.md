@@ -36,13 +36,13 @@ Os arquivos `.woff2` em `src/fonts/` são distribuídos sem modificação (via `
 
 - [Lucide](https://lucide.dev) — © Lucide Icons and Contributors — [`licenses/lucide.ISC.txt`](./licenses/lucide.ISC.txt)
 
-## Hacker Experience 2 (Helix e HEBorn) — AGPL-3.0, apenas estudo
+## Hacker Experience 2 (Helix, HEBorn, GameDesign, specs)
 
-- [Helix](https://github.com/HackerExperience/Helix) (backend) e [HEBorn](https://github.com/HackerExperience/HEBorn) (cliente) estão sob **AGPL-3.0**.
-- Foram **apenas estudados**. Nenhum código, CSS, imagem, ícone ou texto deles foi copiado ou adaptado.
-- Ideias, regras de jogo e números (fatos) foram reescritos com código e palavras próprias, sob a licença deste projeto.
-- Os repositórios de design da organização (`GameDesign`, `specs`, `notes`) não têm licença e **não foram usados**.
-- Detalhes e regra de trabalho em [`docs/referencia-he2/README.md`](./docs/referencia-he2/README.md).
+- [Helix](https://github.com/HackerExperience/Helix) e [HEBorn](https://github.com/HackerExperience/HEBorn) estão sob **AGPL-3.0**. [GameDesign](https://github.com/HackerExperience/GameDesign) e [specs](https://github.com/HackerExperience/specs) não declaram licença.
+- O responsável pelo projeto informa que o autor **autorizou por e-mail** o uso e a adaptação desse material. Registro e pendências em [`PERMISSIONS.md`](./PERMISSIONS.md).
+- Até hoje **nenhum código, CSS, imagem ou texto desses repositórios foi copiado** para o código do jogo: as regras foram reescritas.
+- Se algum trecho passar a ser copiado, ele será listado aqui com arquivo de origem e licença.
+- Regra de trabalho em [`docs/referencia-he2/README.md`](./docs/referencia-he2/README.md).
 
 ## Referência visual
 
