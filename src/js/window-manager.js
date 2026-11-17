@@ -71,6 +71,7 @@ class WindowManager {
       { id: 'winIrc', label: '💬 IRC Chat' },
       { id: 'winBrowser', label: '🌐 Browser' },
       { id: 'winScanner', label: '🎯 Scanner' },
+      { id: 'winHardware', label: '🖥️ Hardware' },
       { id: 'winArcade', label: '🕹️ Arcade' },
       { id: 'winPanic', label: '🚨 Pânico' },
       { id: 'winProfile', label: '👤 Perfil' }
