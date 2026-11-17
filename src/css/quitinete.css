@@ -11,8 +11,8 @@
 }
 
 .quitinete-card {
-  background: rgba(13, 17, 26, 0.95);
-  border: 1px solid #334155;
+  background: rgba(21, 25, 31, 0.95);
+  border: 1px solid var(--hc-border-strong);
   border-radius: 8px;
   padding: 1.25rem;
   display: flex;
@@ -25,12 +25,12 @@
 
 .quitinete-card.unpaid {
   border-color: rgba(244, 63, 94, 0.6);
-  box-shadow: 0 0 15px rgba(244, 63, 94, 0.15);
+  box-shadow: none;
 }
 
 .quitinete-card.paid {
-  border-color: rgba(16, 185, 129, 0.6);
-  box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
+  border-color: rgba(53, 184, 119, 0.6);
+  box-shadow: none;
 }
 
 .quitinete-header {
@@ -41,11 +41,11 @@
 }
 
 .quitinete-title {
-  font-family: 'Rajdhani', sans-serif;
+  font-family: var(--hc-font-sans);
   font-weight: 700;
   font-size: 0.85rem;
   letter-spacing: 1px;
-  color: #94a3b8;
+  color: var(--hc-text-2);
   text-transform: uppercase;
 }
 
@@ -53,7 +53,7 @@
   display: inline-block;
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
-  font-family: 'Orbitron', monospace;
+  font-family: var(--hc-font-sans);
   font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.5px;
@@ -62,18 +62,18 @@
 
 .quitinete-badge.danger {
   background: rgba(225, 29, 72, 0.2);
-  border: 1px solid #f43f5e;
-  color: #fda4af;
+  border: 1px solid var(--hc-danger);
+  color: var(--hc-danger-text);
 }
 
 .quitinete-badge.success {
-  background: rgba(16, 185, 129, 0.2);
-  border: 1px solid #10b981;
-  color: #6ee7b7;
+  background: rgba(53, 184, 119, 0.2);
+  border: 1px solid var(--hc-success);
+  color: var(--hc-success-text);
 }
 
 .quitinete-price {
-  font-family: 'Orbitron', monospace;
+  font-family: var(--hc-font-sans);
   font-size: 1.85rem;
   font-weight: 800;
   color: #fff;
@@ -85,12 +85,12 @@
 
 .quitinete-price span {
   font-size: 1rem;
-  color: #f43f5e;
+  color: var(--hc-danger);
 }
 
 .quitinete-desc {
   font-size: 0.82rem;
-  color: #94a3b8;
+  color: var(--hc-text-2);
   line-height: 1.4;
   margin-bottom: 1.25rem;
   min-height: 40px;
@@ -98,10 +98,10 @@
 
 .btn-bill-pay {
   width: 100%;
-  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-  border: 1px solid #334155;
+  background: linear-gradient(180deg, var(--hc-border) 0%, var(--hc-surface-2) 100%);
+  border: 1px solid var(--hc-border-strong);
   color: #fff;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--hc-font-sans);
   font-size: 0.8rem;
   font-weight: 700;
   padding: 0.65rem;
@@ -114,23 +114,23 @@
 
 .btn-bill-pay:hover:not(:disabled) {
   border-color: var(--cyan-neon);
-  box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+  box-shadow: none;
   color: var(--cyan-neon);
 }
 
 .btn-bill-pay:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  border-color: #1e293b;
-  color: #64748b;
+  border-color: var(--hc-border);
+  color: var(--hc-text-3);
 }
 
 .btn-bill-paid {
   width: 100%;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid #10b981;
-  color: #10b981;
-  font-family: 'Orbitron', sans-serif;
+  background: rgba(53, 184, 119, 0.15);
+  border: 1px solid var(--hc-success);
+  color: var(--hc-success);
+  font-family: var(--hc-font-sans);
   font-size: 0.8rem;
   font-weight: 800;
   padding: 0.65rem;
@@ -145,11 +145,11 @@
   align-items: center;
   gap: 0.4rem;
   background: rgba(244, 63, 94, 0.15);
-  border: 1px solid #f43f5e;
-  color: #fda4af;
+  border: 1px solid var(--hc-danger);
+  color: var(--hc-danger-text);
   padding: 0.3rem 0.75rem;
   border-radius: 20px;
-  font-family: 'Fira Code', monospace;
+  font-family: var(--hc-font-mono);
   font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
@@ -158,9 +158,9 @@
 }
 
 .hud-quitinete-pill.all-paid {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: #10b981;
-  color: #6ee7b7;
+  background: rgba(53, 184, 119, 0.15);
+  border-color: var(--hc-success);
+  color: var(--hc-success-text);
   animation: none;
 }
 

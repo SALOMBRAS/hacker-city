@@ -838,7 +838,7 @@ class SkillTreeEngine {
             </div>
             <div>
               ${isMax ? 
-                `<button disabled class="btn-skill-upgrade" style="background:#1e293b;border-color:#334155;color:#10b981;">✓ NÍVEL MÁXIMO ATINGIDO</button>` :
+                `<button disabled class="btn-skill-upgrade" style="background:#262c35;border-color:#353c47;color:#35b877;">✓ NÍVEL MÁXIMO ATINGIDO</button>` :
                 `<button ${!canBuy ? 'disabled' : ''} onclick="buySkillUpgrade('${s.id}')" class="btn-skill-upgrade">
                   ${canBuy ? `APRIMORAR (-${s.cost} SP)` : (sp < s.cost ? 'SP INSUFICIENTE' : 'BLOQUEADO')}
                 </button>`
@@ -856,10 +856,10 @@ class SkillTreeEngine {
 
       if (completedList.length === 0) {
         html += `
-          <div style="text-align:center;padding:3rem;background:#090d16;border:1px dashed #334155;border-radius:8px;">
+          <div style="text-align:center;padding:3rem;background:#111418;border:1px dashed #353c47;border-radius:8px;">
             <div style="font-size:2.5rem;margin-bottom:0.75rem;">📂</div>
-            <div style="font-family:'Orbitron';color:#fff;font-size:1.1rem;margin-bottom:0.5rem;">NENHUMA MISSÃO DE DESBLOQUEIO CONCLUÍDA</div>
-            <div style="color:#94a3b8;font-size:0.85rem;max-width:500px;margin:0 auto;">
+            <div style="font-family:var(--hc-font-sans);color:#fff;font-size:1.1rem;margin-bottom:0.5rem;">NENHUMA MISSÃO DE DESBLOQUEIO CONCLUÍDA</div>
+            <div style="color:#aab3c0;font-size:0.85rem;max-width:500px;margin:0 auto;">
               Navegue até a aba <strong>"SUBCLASSES & CARDS DE DESBLOQUEIO"</strong>, atinja a reputação mínima requerida e inicie os testes para habilitar novas classes!
             </div>
           </div>
@@ -869,17 +869,17 @@ class SkillTreeEngine {
           const sub = this.subclasses[subId];
           if (!sub) return;
           html += `
-            <div style="background:#090d16;border:1px solid var(--green-safe);border-radius:8px;padding:1rem;display:flex;justify-content:space-between;align-items:center;">
+            <div style="background:#111418;border:1px solid var(--green-safe);border-radius:8px;padding:1rem;display:flex;justify-content:space-between;align-items:center;">
               <div>
-                <div style="font-family:'Orbitron';font-size:0.95rem;color:#fff;margin-bottom:0.25rem;">
-                  ✓ ${sub.mission.title} <span style="font-size:0.75rem;color:#10b981;">[${sub.mission.difficulty}]</span>
+                <div style="font-family:var(--hc-font-sans);font-size:0.95rem;color:#fff;margin-bottom:0.25rem;">
+                  ✓ ${sub.mission.title} <span style="font-size:0.75rem;color:#35b877;">[${sub.mission.difficulty}]</span>
                 </div>
-                <div style="font-size:0.8rem;color:#94a3b8;margin-bottom:0.3rem;">${sub.mission.briefing}</div>
-                <div style="font-size:0.75rem;color:#38bdf8;">Subclasse Desbloqueada: <strong>${sub.name}</strong> (${sub.cat})</div>
+                <div style="font-size:0.8rem;color:#aab3c0;margin-bottom:0.3rem;">${sub.mission.briefing}</div>
+                <div style="font-size:0.75rem;color:#5fd39a;">Subclasse Desbloqueada: <strong>${sub.name}</strong> (${sub.cat})</div>
               </div>
               <div style="text-align:right;">
-                <span style="color:var(--green-safe);font-family:'Orbitron';font-size:0.85rem;font-weight:bold;">CONSAGRADA</span>
-                <div style="font-size:0.72rem;color:#94a3b8;margin-top:0.2rem;">+$ ${sub.mission.rewards.cash} HC &nbsp;|&nbsp; +${sub.mission.rewards.rep} REP</div>
+                <span style="color:var(--green-safe);font-family:var(--hc-font-sans);font-size:0.85rem;font-weight:bold;">CONSAGRADA</span>
+                <div style="font-size:0.72rem;color:#aab3c0;margin-top:0.2rem;">+$ ${sub.mission.rewards.cash} HC &nbsp;|&nbsp; +${sub.mission.rewards.rep} REP</div>
               </div>
             </div>
           `;
@@ -908,7 +908,7 @@ class SkillTreeEngine {
               <div class="runner-briefing-box">
                 <div><strong>ALVO DESIGNADO:</strong> <span style="color:var(--cyan-neon);">${m.targetHost}</span> [${m.targetIp}]</div>
                 <div style="margin-top:0.4rem;"><strong>BRIEFING OPERACIONAL:</strong> ${m.briefing}</div>
-                <div style="margin-top:0.4rem;color:#10b981;"><strong>RECOMPENSA DE DESBLOQUEIO:</strong> +$ ${m.rewards.cash} HC &nbsp;|&nbsp; +${m.rewards.rep} REP &nbsp;|&nbsp; Desbloqueio Permanente da Subclasse ${activeSub.name}</div>
+                <div style="margin-top:0.4rem;color:#35b877;"><strong>RECOMPENSA DE DESBLOQUEIO:</strong> +$ ${m.rewards.cash} HC &nbsp;|&nbsp; +${m.rewards.rep} REP &nbsp;|&nbsp; Desbloqueio Permanente da Subclasse ${activeSub.name}</div>
               </div>
 
               <div class="runner-log-console" id="missionLogConsole">

@@ -501,24 +501,24 @@ function renderCrackerUI(containerId = 'crackerAppBody', initialTargetIp = null)
       <!-- Seletor de Alvo e Rota de Saltos -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
         <div>
-          <label style="font-size: 0.76rem; color: #94a3b8; font-weight: bold; display: block; margin-bottom: 4px;">🎯 BOT HACKER ALVO (210 DETERMINÍSTICOS):</label>
+          <label style="font-size: 0.76rem; color: #aab3c0; font-weight: bold; display: block; margin-bottom: 4px;">🎯 BOT HACKER ALVO (210 DETERMINÍSTICOS):</label>
           <select id="crackerTargetSelect" class="form-input" style="padding: 0.4rem; font-size: 0.8rem;" onchange="onCrackerTargetChanged(this.value)">
             ${optionsHtml}
           </select>
         </div>
         <div>
-          <label style="font-size: 0.76rem; color: #94a3b8; font-weight: bold; display: block; margin-bottom: 4px;">🛡️ NÓS DE SALTO (BOUNCING PROXIES +12s CADA):</label>
+          <label style="font-size: 0.76rem; color: #aab3c0; font-weight: bold; display: block; margin-bottom: 4px;">🛡️ NÓS DE SALTO (BOUNCING PROXIES +12s CADA):</label>
           <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
-            <label style="font-size: 0.75rem; color: #cbd5e1; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">
+            <label style="font-size: 0.75rem; color: #eceff3; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">
               <input type="checkbox" id="chkProxy1" checked onchange="updateCrackerProxies()"> Salto 1 (+12s)
             </label>
-            <label style="font-size: 0.75rem; color: #cbd5e1; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">
+            <label style="font-size: 0.75rem; color: #eceff3; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">
               <input type="checkbox" id="chkProxy2" checked onchange="updateCrackerProxies()"> Salto 2 (+12s)
             </label>
-            <label style="font-size: 0.75rem; color: #cbd5e1; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">
+            <label style="font-size: 0.75rem; color: #eceff3; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">
               <input type="checkbox" id="chkProxy3" onchange="updateCrackerProxies()"> Salto 3 (+12s)
             </label>
-            <label style="font-size: 0.75rem; color: #cbd5e1; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">
+            <label style="font-size: 0.75rem; color: #eceff3; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;">
               <input type="checkbox" id="chkProxy4" onchange="updateCrackerProxies()"> Salto 4 (+12s)
             </label>
           </div>
@@ -542,13 +542,13 @@ function renderCrackerUI(containerId = 'crackerAppBody', initialTargetIp = null)
       </div>
 
       <!-- Cracker Progress Bar -->
-      <div style="background: #111827; border: 1px solid #1e293b; border-radius: 8px; padding: 1rem;">
-        <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 0.4rem; font-family: 'Fira Code', monospace;">
+      <div style="background: #1b2027; border: 1px solid #262c35; border-radius: 8px; padding: 1rem;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 0.4rem; font-family: var(--hc-font-mono);">
           <span style="color: #fff; font-weight: bold;">DESCRIPTOGRAFIA DO ALVO:</span>
           <span id="crackerProgressPct" style="color: var(--green-safe); font-weight: bold;">0%</span>
         </div>
-        <div style="height: 12px; background: #090d16; border-radius: 9999px; overflow: hidden; border: 1px solid #1f2937;">
-          <div id="crackerProgressFill" style="height: 100%; width: 0%; background: linear-gradient(90deg, #10b981, #34d399); transition: width 0.1s linear;"></div>
+        <div style="height: 12px; background: #111418; border-radius: 9999px; overflow: hidden; border: 1px solid #262c35;">
+          <div id="crackerProgressFill" style="height: 100%; width: 0%; background: linear-gradient(90deg, #35b877, #34d399); transition: width 0.1s linear;"></div>
         </div>
       </div>
 
@@ -560,7 +560,7 @@ function renderCrackerUI(containerId = 'crackerAppBody', initialTargetIp = null)
         <button id="btnCrackerBypass" class="btn-submit btn-bypass-challenge" style="flex: 1; margin: 0; padding: 0.5rem 1rem; font-size: 0.85rem; opacity: 0.4; cursor: not-allowed;" disabled onclick="executeCrackerBypass()">
           ⚡ BYPASS DE PACOTE (-50%)
         </button>
-        <button class="btn-submit" style="width: auto; background: #334155; border-color: #475569; margin: 0; padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="abortCrackerAttack()">
+        <button class="btn-submit" style="width: auto; background: #353c47; border-color: #353c47; margin: 0; padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="abortCrackerAttack()">
           ⏹ PARAR
         </button>
       </div>
@@ -655,11 +655,11 @@ function startCrackerAttack() {
       // Alerta de cor no Traceback HUD
       if (data.tracePercent >= 75) {
         traceHud.className = 'trace-hud-container danger-alert';
-        traceMeter.style.backgroundColor = '#ef4444';
+        traceMeter.style.backgroundColor = '#d0443a';
         if (window.hackerAudio && Math.random() < 0.25) window.hackerAudio.playInvasionAlert();
       } else if (data.tracePercent >= 50) {
         traceHud.className = 'trace-hud-container';
-        traceMeter.style.backgroundColor = '#f59e0b';
+        traceMeter.style.backgroundColor = '#f0a03a';
       } else {
         traceHud.className = 'trace-hud-container';
         traceMeter.style.backgroundColor = '#22d3ee';
@@ -695,16 +695,16 @@ function startCrackerAttack() {
       if (resultBox) {
         resultBox.style.display = 'block';
         resultBox.style.background = '#064e3b';
-        resultBox.style.border = '1px solid #10b981';
+        resultBox.style.border = '1px solid #35b877';
         resultBox.style.color = '#d1fae5';
         resultBox.innerHTML = `
           <div style="font-weight: bold; font-size: 0.95rem; margin-bottom: 0.35rem;">✅ SUCESSO: FIREWALL E HASHES DECIFRADOS!</div>
           <div>Acesso root obtido na máquina de <strong>${bot.handle}</strong> [${bot.ip}].</div>
-          <div style="color: #fef08a; font-size: 0.75rem; margin: 0.5rem 0;">⚠️ ATENÇÃO: Seu IP foi registrado em /var/log/syslog! Use 'rmlog ${bot.ip}' ou limpe os logs no Browser antes que a IA do bot retalie!</div>
+          <div style="color: #f5bd6b; font-size: 0.75rem; margin: 0.5rem 0;">⚠️ ATENÇÃO: Seu IP foi registrado em /var/log/syslog! Use 'rmlog ${bot.ip}' ou limpe os logs no Browser antes que a IA do bot retalie!</div>
           <div style="display: flex; gap: 8px; margin-top: 0.5rem;">
             <button class="btn-submit" style="margin: 0; padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="enslaveBotToC2('${bot.ip}')">🕸️ Escravizar na Botnet C2</button>
-            <button class="btn-submit" style="margin: 0; padding: 0.35rem 0.75rem; font-size: 0.75rem; background: #0284c7;" onclick="drainBotBank('${bot.ip}')">💳 Drenar Saldo ($ ${bot.bankAccount.balance} HC)</button>
-            <button class="btn-submit" style="margin: 0; padding: 0.35rem 0.75rem; font-size: 0.75rem; background: #dc2626;" onclick="wipeBotLogsViaBtn('${bot.ip}')">🧹 Apagar Logs Agora</button>
+            <button class="btn-submit" style="margin: 0; padding: 0.35rem 0.75rem; font-size: 0.75rem; background: #12814f;" onclick="drainBotBank('${bot.ip}')">💳 Drenar Saldo ($ ${bot.bankAccount.balance} HC)</button>
+            <button class="btn-submit" style="margin: 0; padding: 0.35rem 0.75rem; font-size: 0.75rem; background: #d0443a;" onclick="wipeBotLogsViaBtn('${bot.ip}')">🧹 Apagar Logs Agora</button>
           </div>
         `;
       }
@@ -723,8 +723,8 @@ function startCrackerAttack() {
       if (resultBox) {
         resultBox.style.display = 'block';
         resultBox.style.background = '#450a0a';
-        resultBox.style.border = '1px solid #ef4444';
-        resultBox.style.color = '#fee2e2';
+        resultBox.style.border = '1px solid #d0443a';
+        resultBox.style.color = '#f79a91';
         resultBox.innerHTML = `
           <div style="font-weight: bold; font-size: 0.95rem; margin-bottom: 0.35rem;">🚨 ALERTA: CONTRA-RASTREAMENTO ATINGIU 100%!</div>
           <div>O bot defensor <strong>${bot.handle}</strong> rastreou seu IP e iniciou protocolo de contra-ataque cibernético. A sessão foi abortada por segurança.</div>
@@ -789,14 +789,14 @@ function renderC2UI(containerId = 'botnetC2Body') {
 
   let slavesRows = '';
   if (c2.slaves.length === 0) {
-    slavesRows = `<div style="padding: 1rem; color: #64748b; font-size: 0.8rem; text-align: center;">Nenhum nó escravizado. Use o Cracker para infectar alvos.</div>`;
+    slavesRows = `<div style="padding: 1rem; color: #838d9b; font-size: 0.8rem; text-align: center;">Nenhum nó escravizado. Use o Cracker para infectar alvos.</div>`;
   } else {
     c2.slaves.forEach((s, idx) => {
       const tierBadge = s.tier === 1 
         ? '<span style="background: rgba(34, 211, 238, 0.15); color: #22d3ee; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">Tier I</span>'
         : (s.tier === 2 
-          ? '<span style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">Tier II</span>'
-          : '<span style="background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">Tier III</span>');
+          ? '<span style="background: rgba(240, 160, 58, 0.15); color: #f0a03a; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">Tier II</span>'
+          : '<span style="background: rgba(208, 68, 58, 0.15); color: #d0443a; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">Tier III</span>');
 
       const liveRate = (s.baseRate * c2.multiplier).toFixed(2);
 
@@ -807,7 +807,7 @@ function renderC2UI(containerId = 'botnetC2Body') {
           </div>
           <div style="display: flex; align-items: center; gap: 10px;">
             <span style="color: var(--green-safe);">+$ ${liveRate} HC/s</span>
-            <button class="btn-submit" style="margin: 0; padding: 0.2rem 0.5rem; font-size: 0.72rem; background: #dc2626;" onclick="releaseC2Slave('${s.ip}')">Liberar</button>
+            <button class="btn-submit" style="margin: 0; padding: 0.2rem 0.5rem; font-size: 0.72rem; background: #d0443a;" onclick="releaseC2Slave('${s.ip}')">Liberar</button>
           </div>
         </div>
       `;
@@ -818,35 +818,35 @@ function renderC2UI(containerId = 'botnetC2Body') {
     <div style="display: flex; flex-direction: column; gap: 14px;">
       <!-- Stats Cards Topo -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px;">
-        <div style="background: #111827; border: 1px solid #1e293b; border-radius: 6px; padding: 0.75rem;">
-          <div style="font-size: 0.72rem; color: #94a3b8;">ZUMBIS ATIVOS</div>
+        <div style="background: #1b2027; border: 1px solid #262c35; border-radius: 6px; padding: 0.75rem;">
+          <div style="font-size: 0.72rem; color: #aab3c0;">ZUMBIS ATIVOS</div>
           <div style="font-size: 1.25rem; font-weight: bold; color: var(--cyan-neon);">${c2.slaves.length} Nós</div>
         </div>
-        <div style="background: #111827; border: 1px solid #1e293b; border-radius: 6px; padding: 0.75rem;">
-          <div style="font-size: 0.72rem; color: #94a3b8;">TAXA DE MINERAÇÃO</div>
+        <div style="background: #1b2027; border: 1px solid #262c35; border-radius: 6px; padding: 0.75rem;">
+          <div style="font-size: 0.72rem; color: #aab3c0;">TAXA DE MINERAÇÃO</div>
           <div style="font-size: 1.25rem; font-weight: bold; color: var(--green-safe);">$ ${rate.toFixed(2)} HC/s</div>
         </div>
-        <div style="background: #111827; border: 1px solid #1e293b; border-radius: 6px; padding: 0.75rem;">
-          <div style="font-size: 0.72rem; color: #94a3b8;">LUCRO ACUMULADO</div>
+        <div style="background: #1b2027; border: 1px solid #262c35; border-radius: 6px; padding: 0.75rem;">
+          <div style="font-size: 0.72rem; color: #aab3c0;">LUCRO ACUMULADO</div>
           <div id="c2EarnedLive" style="font-size: 1.25rem; font-weight: bold; color: var(--amber-warn);">$ ${c2.accumulatedProfits.toFixed(2)} HC</div>
         </div>
       </div>
 
       <!-- Perfis de Operação Global -->
       <div>
-        <label style="font-size: 0.76rem; color: #94a3b8; font-weight: bold; display: block; margin-bottom: 6px;">PERFIL DE OPERAÇÃO GLOBAL DO ENXAME:</label>
+        <label style="font-size: 0.76rem; color: #aab3c0; font-weight: bold; display: block; margin-bottom: 6px;">PERFIL DE OPERAÇÃO GLOBAL DO ENXAME:</label>
         <div class="c2-profile-grid">
           <div class="c2-profile-card ${prof === 'ghost' ? 'active-ghost' : ''}" onclick="selectC2Profile('ghost')">
             <div style="font-weight: bold; color: var(--cyan-neon); font-size: 0.85rem; margin-bottom: 2px;">👻 Modo Fantasma</div>
-            <div style="font-size: 0.72rem; color: #94a3b8;">15% CPU. Mineração contínua e oculta (1.0x). Risco quase zero.</div>
+            <div style="font-size: 0.72rem; color: #aab3c0;">15% CPU. Mineração contínua e oculta (1.0x). Risco quase zero.</div>
           </div>
           <div class="c2-profile-card ${prof === 'overclock' ? 'active-overclock' : ''}" onclick="selectC2Profile('overclock')">
             <div style="font-weight: bold; color: var(--amber-warn); font-size: 0.85rem; margin-bottom: 2px;">⚡ Modo Overclock</div>
-            <div style="font-size: 0.72rem; color: #94a3b8;">85% CPU. Renda máxima (3.5x). Risco elevado de alarme no alvo.</div>
+            <div style="font-size: 0.72rem; color: #aab3c0;">85% CPU. Renda máxima (3.5x). Risco elevado de alarme no alvo.</div>
           </div>
           <div class="c2-profile-card ${prof === 'ddos' ? 'active-ddos' : ''}" onclick="selectC2Profile('ddos')">
-            <div style="font-weight: bold; color: #ef4444; font-size: 0.85rem; margin-bottom: 2px;">🌊 Modo DDoS Swarm</div>
-            <div style="font-size: 0.72rem; color: #94a3b8;">100% da banda. Mineração pausada p/ concentrar bombardeio.</div>
+            <div style="font-weight: bold; color: #d0443a; font-size: 0.85rem; margin-bottom: 2px;">🌊 Modo DDoS Swarm</div>
+            <div style="font-size: 0.72rem; color: #aab3c0;">100% da banda. Mineração pausada p/ concentrar bombardeio.</div>
           </div>
         </div>
       </div>
@@ -854,7 +854,7 @@ function renderC2UI(containerId = 'botnetC2Body') {
       <!-- Tabela de Escravos -->
       <div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-          <span style="font-size: 0.76rem; color: #94a3b8; font-weight: bold;">MÁQUINAS ZUMBIS INFECTADAS:</span>
+          <span style="font-size: 0.76rem; color: #aab3c0; font-weight: bold;">MÁQUINAS ZUMBIS INFECTADAS:</span>
           <button class="btn-submit" style="margin: 0; padding: 0.25rem 0.6rem; font-size: 0.72rem;" onclick="infectNewRandomSlave()">➕ Infectar Nó de Amostra</button>
         </div>
         <div class="c2-slave-list">
@@ -863,7 +863,7 @@ function renderC2UI(containerId = 'botnetC2Body') {
       </div>
 
       <!-- Botão de Coleta -->
-      <button class="btn-submit" style="margin: 0; padding: 0.6rem; font-size: 0.9rem; background: #059669; border-color: #10b981;" onclick="collectC2Profits()">
+      <button class="btn-submit" style="margin: 0; padding: 0.6rem; font-size: 0.9rem; background: #059669; border-color: #35b877;" onclick="collectC2Profits()">
         💰 COLETAR RENDIMENTOS DA MINERAÇÃO
       </button>
     </div>

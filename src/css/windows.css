@@ -3,26 +3,26 @@
    ======================================================== */
 .window-frame {
   position: absolute;
-  background: rgba(13, 17, 26, 0.98);
-  border: 1px solid #334155;
-  border-radius: 8px;
-  box-shadow: 0 15px 35px rgba(0,0,0,0.7), 0 0 20px rgba(6, 182, 212, 0.1);
+  background: var(--hc-surface);
+  border: 1px solid var(--hc-border-strong);
+  border-radius: var(--hc-radius-md);
+  box-shadow: var(--hc-shadow-3);
   display: none;
   flex-direction: column;
   overflow: hidden;
   min-width: 480px;
   min-height: 340px;
-  backdrop-filter: blur(14px);
+  
 }
 .window-frame.focused {
   border-color: var(--cyan-neon);
-  box-shadow: 0 20px 45px rgba(0,0,0,0.8), 0 0 25px rgba(6, 182, 212, 0.25);
+  box-shadow: 0 20px 45px rgba(0,0,0,0.8);
 }
 
 .window-header {
   height: 36px;
-  background: #090d16;
-  border-bottom: 1px solid #1e293b;
+  background: var(--hc-inset);
+  border-bottom: 1px solid var(--hc-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -30,7 +30,7 @@
   cursor: move;
 }
 .window-title {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--hc-font-sans);
   font-size: 0.85rem;
   color: #fff;
   display: flex;
@@ -48,7 +48,7 @@
   border: none;
   cursor: pointer;
 }
-.btn-win-close { background: #ef4444; }
+.btn-win-close { background: var(--hc-danger); }
 
 .window-body {
   flex: 1;
@@ -60,14 +60,14 @@
 /* Terminal CLI */
 .cli-container {
   background: #000;
-  border: 1px solid #1e293b;
+  border: 1px solid var(--hc-border);
   border-radius: 6px;
   height: 100%;
   min-height: 280px;
   padding: 0.85rem;
-  font-family: 'Fira Code', monospace;
+  font-family: var(--hc-font-mono);
   font-size: 0.85rem;
-  color: #22c55e;
+  color: var(--hc-success);
   display: flex;
   flex-direction: column;
 }
@@ -92,14 +92,14 @@
   background: transparent;
   border: none;
   color: #fff;
-  font-family: 'Fira Code', monospace;
+  font-family: var(--hc-font-mono);
   font-size: 0.85rem;
   outline: none;
 }
 
 /* Hacker Bank Card */
 .bank-balance-card {
-  background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%);
+  background: linear-gradient(135deg, rgba(53, 184, 119, 0.15) 0%, rgba(27, 32, 39, 0.8) 100%);
   border: 1px solid var(--cyan-neon);
   border-radius: 8px;
   padding: 1.25rem;
@@ -109,13 +109,13 @@
   align-items: center;
 }
 .bank-acc-num {
-  font-family: 'Fira Code', monospace;
+  font-family: var(--hc-font-mono);
   font-size: 1.15rem;
   color: #fff;
   font-weight: bold;
 }
 .bank-acc-bal {
-  font-family: 'Orbitron', monospace;
+  font-family: var(--hc-font-sans);
   font-size: 1.8rem;
   color: var(--green-safe);
   font-weight: 800;

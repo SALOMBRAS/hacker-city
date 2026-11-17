@@ -151,16 +151,16 @@ class QuitineteEngine {
     if (!el) return;
 
     let html = `
-      <div style="background: rgba(6,182,212,0.06); border: 1px solid var(--cyan-neon); border-radius: 8px; padding: 1.1rem; margin-bottom: 1.5rem;">
+      <div style="background: rgba(53, 184, 119,0.06); border: 1px solid var(--cyan-neon); border-radius: 8px; padding: 1.1rem; margin-bottom: 1.5rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-          <div style="font-family: 'Orbitron', sans-serif; font-size: 1.15rem; color: #fff;">
+          <div style="font-family: var(--hc-font-sans); font-size: 1.15rem; color: #fff;">
             🏠 QUITINETE DO SUBMUNDO // GERENCIAMENTO DE DESPESAS
           </div>
-          <div style="font-family: 'Fira Code', monospace; font-size: 0.82rem; color: ${this.getPendingCount() > 0 ? '#f43f5e' : 'var(--green-safe)'}; font-weight: bold;">
+          <div style="font-family: var(--hc-font-mono); font-size: 0.82rem; color: ${this.getPendingCount() > 0 ? '#d0443a' : 'var(--green-safe)'}; font-weight: bold;">
             ${this.getPendingCount() > 0 ? `🚨 ${this.getPendingCount()} PENDÊNCIA(S)` : '🟢 TODAS AS CONTAS QUITADAS'}
           </div>
         </div>
-        <p style="font-size: 0.82rem; color: #94a3b8; line-height: 1.4; margin: 0;">
+        <p style="font-size: 0.82rem; color: #aab3c0; line-height: 1.4; margin: 0;">
           Mantenha sua base de operações clandestina em dia para evitar despejo judicial pela Imobiliária ou corte definitivo de energia no poste. Fundos são debitados diretamente da sua conta no <strong>Hacker Bank</strong>.
         </p>
       </div>
@@ -208,22 +208,22 @@ class QuitineteEngine {
 
     // Painel de Status Geral da Moradia
     html += `
-      <div style="background: #090d16; border: 1px solid #1e293b; border-radius: 6px; padding: 1rem; display: flex; justify-content: space-around; text-align: center;">
+      <div style="background: #111418; border: 1px solid #262c35; border-radius: 6px; padding: 1rem; display: flex; justify-content: space-around; text-align: center;">
         <div>
-          <span style="font-size: 0.72rem; color: #94a3b8; display: block; text-transform: uppercase;">Ameaça de Despejo</span>
-          <strong style="font-family: 'Orbitron'; font-size: 0.95rem; color: ${this.bills.rent.paid ? 'var(--green-safe)' : '#f43f5e'};">
+          <span style="font-size: 0.72rem; color: #aab3c0; display: block; text-transform: uppercase;">Ameaça de Despejo</span>
+          <strong style="font-family: var(--hc-font-sans); font-size: 0.95rem; color: ${this.bills.rent.paid ? 'var(--green-safe)' : '#d0443a'};">
             ${this.bills.rent.paid ? 'NENHUMA (PROTEGIDO)' : 'ALTA (ORDEM EXPEDIDA)'}
           </strong>
         </div>
-        <div style="border-left: 1px solid #1e293b; border-right: 1px solid #1e293b; padding: 0 1.5rem;">
-          <span style="font-size: 0.72rem; color: #94a3b8; display: block; text-transform: uppercase;">Rede Elétrica</span>
-          <strong style="font-family: 'Orbitron'; font-size: 0.95rem; color: ${this.bills.power.paid ? 'var(--green-safe)' : '#f59e0b'};">
+        <div style="border-left: 1px solid #262c35; border-right: 1px solid #262c35; padding: 0 1.5rem;">
+          <span style="font-size: 0.72rem; color: #aab3c0; display: block; text-transform: uppercase;">Rede Elétrica</span>
+          <strong style="font-family: var(--hc-font-sans); font-size: 0.95rem; color: ${this.bills.power.paid ? 'var(--green-safe)' : '#f0a03a'};">
             ${this.bills.power.paid ? 'FORNECIMENTO NORMAL' : 'CORTE ATIVO NO POSTE'}
           </strong>
         </div>
         <div>
-          <span style="font-size: 0.72rem; color: #94a3b8; display: block; text-transform: uppercase;">Abastecimento Água</span>
-          <strong style="font-family: 'Orbitron'; font-size: 0.95rem; color: ${this.bills.water.paid ? 'var(--green-safe)' : '#f43f5e'};">
+          <span style="font-size: 0.72rem; color: #aab3c0; display: block; text-transform: uppercase;">Abastecimento Água</span>
+          <strong style="font-family: var(--hc-font-sans); font-size: 0.95rem; color: ${this.bills.water.paid ? 'var(--green-safe)' : '#d0443a'};">
             ${this.bills.water.paid ? 'REGULARIZADO' : 'HIDRÔMETRO LACRADO'}
           </strong>
         </div>

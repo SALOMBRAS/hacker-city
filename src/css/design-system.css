@@ -1,0 +1,206 @@
+/* ========================================================
+   HACKER CITY // DESIGN SYSTEM
+   Neutro escuro + um único acento verde. Sem glow, sem gradiente decorativo.
+   Fontes: Inter (UI) e JetBrains Mono (terminal, IPs, logs, números).
+   Referência visual: Zero Traced (com autorização). Implementação própria.
+   ======================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* Superfícies */
+  --hc-canvas: #0e1115;
+  --hc-surface: #15191f;
+  --hc-surface-2: #1b2027;
+  --hc-surface-3: #242a33;
+  --hc-inset: #111418;            /* terminal, campos, blocos aninhados */
+
+  /* Bordas */
+  --hc-border: #262c35;
+  --hc-border-strong: #353c47;
+  --hc-border-subtle: #1e232a;
+
+  /* Texto */
+  --hc-text: #eceff3;
+  --hc-text-2: #aab3c0;
+  --hc-text-3: #838d9b;
+
+  /* Acento (verde) */
+  --hc-accent: #12814f;
+  --hc-accent-hover: #0f7446;
+  --hc-accent-soft: #11261c;
+  --hc-accent-text: #5fd39a;
+
+  /* Estados */
+  --hc-success: #35b877;
+  --hc-success-bg: #11261c;
+  --hc-success-text: #6bd6a0;
+  --hc-warning: #f0a03a;
+  --hc-warning-bg: #2a2011;
+  --hc-warning-text: #f5bd6b;
+  --hc-danger: #d0443a;
+  --hc-danger-bg: #2d1917;
+  --hc-danger-text: #f79a91;
+  --hc-info: #4b8fe0;
+  --hc-info-bg: #122238;
+  --hc-info-text: #8dbef6;
+  --hc-violet: #8f83e8;
+  --hc-violet-bg: #1d1a33;
+  --hc-violet-text: #b3a9f5;
+  --hc-neutral-bg: #1f242c;
+  --hc-neutral-text: #c3cad4;
+
+  /* Tipografia */
+  --hc-font-sans: "Inter", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --hc-font-mono: "JetBrains Mono", "SF Mono", Consolas, monospace;
+
+  /* Forma */
+  --hc-radius-sm: 6px;
+  --hc-radius-md: 10px;
+  --hc-radius-lg: 14px;
+  --hc-radius-full: 9999px;
+  --hc-shadow-1: 0 1px 2px #00000052;
+  --hc-shadow-2: 0 4px 10px -2px #00000073, 0 2px 4px -2px #0000004d;
+  --hc-shadow-3: 0 16px 32px -8px #0009, 0 0 0 1px #ffffff0a;
+  --hc-focus: 0 0 0 2px var(--hc-canvas), 0 0 0 4px var(--hc-success);
+
+  /* Layout do app */
+  --hc-sidebar-w: 248px;
+  --hc-topbar-h: 56px;
+
+  /* ---- Aliases dos nomes antigos: o CSS legado herda a paleta nova ---- */
+  --bg-dark: var(--hc-canvas);
+  --bg-desktop: var(--hc-canvas);
+  --panel-bg: var(--hc-surface);
+  --panel-border: var(--hc-border);
+  --cyan-neon: var(--hc-success);
+  --cyan-glow: transparent;
+  --green-safe: var(--hc-success);
+  --green-glow: transparent;
+  --red-alert: var(--hc-danger);
+  --red-glow: transparent;
+  --amber-warn: var(--hc-warning);
+  --blue-accent: var(--hc-info);
+  --purple-accent: var(--hc-violet);
+  --text-main: var(--hc-text);
+  --text-muted: var(--hc-text-3);
+
+  accent-color: var(--hc-success);
+  scrollbar-color: var(--hc-border-strong) transparent;
+  scrollbar-width: thin;
+}
+
+/* ---- Base ---- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  background: var(--hc-canvas);
+  color: var(--hc-text);
+  font-family: var(--hc-font-sans);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body { user-select: text; }
+button, input, select, textarea { font: inherit; color: inherit; }
+::selection { background: #1c4a35; color: #eafff3; }
+::placeholder { color: var(--hc-text-3); opacity: 1; }
+a { color: var(--hc-accent-text); }
+
+:focus-visible { outline: none; box-shadow: var(--hc-focus); border-radius: var(--hc-radius-sm); }
+
+h1, h2, h3, h4 { font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; }
+
+.mono, code, kbd, .hc-mono { font-family: var(--hc-font-mono); font-variant-numeric: tabular-nums; }
+
+/* ---- Ícones (Lucide, via src/js/icons.js) ---- */
+.hc-icon { width: 16px; height: 16px; flex: none; vertical-align: -3px; }
+.hc-icon.lg { width: 20px; height: 20px; }
+.hc-icon.xl { width: 28px; height: 28px; }
+
+/* ---- Cartão ---- */
+.hc-card {
+  background: var(--hc-surface);
+  border: 1px solid var(--hc-border);
+  border-radius: var(--hc-radius-md);
+  padding: 16px;
+}
+.hc-card.flat { background: transparent; }
+.hc-card-title { font-size: 13px; font-weight: 600; color: var(--hc-text); display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.hc-eyebrow { font-family: var(--hc-font-mono); font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--hc-text-3); }
+
+/* ---- Botão ---- */
+.hc-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 36px; padding: 0 14px;
+  background: var(--hc-surface-2); color: var(--hc-text);
+  border: 1px solid var(--hc-border-strong); border-radius: var(--hc-radius-sm);
+  font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none;
+  transition: background .12s, border-color .12s, transform .06s;
+}
+.hc-btn:hover { background: var(--hc-surface-3); }
+.hc-btn:active { transform: translateY(1px); }
+.hc-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.hc-btn.primary { background: var(--hc-accent); border-color: var(--hc-accent); color: #fff; }
+.hc-btn.primary:hover { background: var(--hc-accent-hover); }
+.hc-btn.danger { background: var(--hc-danger-bg); border-color: #5a2723; color: var(--hc-danger-text); }
+.hc-btn.ghost { background: transparent; border-color: transparent; color: var(--hc-text-2); }
+.hc-btn.ghost:hover { background: var(--hc-surface-2); color: var(--hc-text); }
+.hc-btn.sm { height: 28px; padding: 0 10px; font-size: 12px; }
+.hc-btn.block { width: 100%; }
+
+/* ---- Campo ---- */
+.hc-input, .form-input {
+  width: 100%; height: 38px; padding: 0 12px;
+  background: var(--hc-inset); color: var(--hc-text);
+  border: 1px solid var(--hc-border-strong); border-radius: var(--hc-radius-sm);
+  font-size: 14px; outline: none; transition: border-color .12s, box-shadow .12s;
+}
+.hc-input:focus, .form-input:focus { border-color: var(--hc-success); box-shadow: 0 0 0 3px #35b87722; }
+
+/* ---- Badge / pílula ---- */
+.hc-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 22px; padding: 0 8px; border-radius: var(--hc-radius-full);
+  background: var(--hc-neutral-bg); color: var(--hc-neutral-text);
+  font-size: 11px; font-weight: 600; white-space: nowrap;
+}
+.hc-badge.success { background: var(--hc-success-bg); color: var(--hc-success-text); }
+.hc-badge.warning { background: var(--hc-warning-bg); color: var(--hc-warning-text); }
+.hc-badge.danger  { background: var(--hc-danger-bg);  color: var(--hc-danger-text); }
+.hc-badge.info    { background: var(--hc-info-bg);    color: var(--hc-info-text); }
+.hc-badge.violet  { background: var(--hc-violet-bg);  color: var(--hc-violet-text); }
+.hc-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* ---- Tabela ---- */
+.hc-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.hc-table th { text-align: left; font-family: var(--hc-font-mono); font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--hc-text-3); padding: 10px 12px; border-bottom: 1px solid var(--hc-border); }
+.hc-table td { padding: 12px; border-bottom: 1px solid var(--hc-border-subtle); vertical-align: middle; }
+.hc-table tr:last-child td { border-bottom: 0; }
+
+/* ---- Barra de progresso ---- */
+.hc-progress { height: 6px; background: var(--hc-surface-3); border-radius: var(--hc-radius-full); overflow: hidden; }
+.hc-progress > span { display: block; height: 100%; background: var(--hc-success); border-radius: inherit; transition: width .3s linear; }
+.hc-progress.info > span { background: var(--hc-info); }
+.hc-progress.warning > span { background: var(--hc-warning); }
+.hc-progress.danger > span { background: var(--hc-danger); }
+
+/* ---- Abas ---- */
+.hc-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--hc-border); }
+.hc-tab { padding: 10px 14px; font-size: 13px; font-weight: 500; color: var(--hc-text-3); background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; }
+.hc-tab:hover { color: var(--hc-text); }
+.hc-tab.active { color: var(--hc-text); border-bottom-color: var(--hc-success); }
+
+/* ---- Tecla ---- */
+.hc-kbd { font-family: var(--hc-font-mono); font-size: 11px; padding: 1px 6px; border-radius: 4px; background: var(--hc-surface-3); border: 1px solid var(--hc-border-strong); color: var(--hc-text-2); }
+
+/* ---- Estatística ---- */
+.hc-stat-label { font-family: var(--hc-font-mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--hc-text-3); }
+.hc-stat-value { font-family: var(--hc-font-mono); font-size: 20px; font-weight: 600; color: var(--hc-text); font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
