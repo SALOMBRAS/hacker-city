@@ -4,15 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hacker City — Web Edition (Supabase Online & Multiplayer)</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0e1115">
+  <link rel="preload" href="src/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="src/fonts/jetbrains-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="src/css/fonts.css">
   
   <!-- Supabase Official JavaScript Client v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Modular Cyberpunk Stylesheets -->
   <link rel="stylesheet" href="src/css/theme.css">
+  <link rel="stylesheet" href="src/css/design-system.css">
   <link rel="stylesheet" href="src/css/auth.css">
   <link rel="stylesheet" href="src/css/desktop.css">
   <link rel="stylesheet" href="src/css/windows.css">
@@ -43,16 +46,14 @@
     <div class="auth-card">
       <div class="auth-header">
         <div class="auth-title">Hacker City <span>//</span> Web</div>
-        <div class="auth-subtitle">Mainframe Clandestino Conectado ao Supabase Cloud</div>
-        <div class="cloud-badge">
-          <span>●</span> <span>PostgreSQL & Auth Online (yguxmkgkwumcskucdlfc)</span>
-        </div>
+        <div class="auth-subtitle">Digite um IP. Entre. Suma.</div>
+        <div class="cloud-badge"><span>●</span> <span>Servidor online</span></div>
       </div>
 
       <div class="auth-tabs">
-        <button class="auth-tab active" id="tabRegister" onclick="switchAuthTab('register')">CRIAR CONTA</button>
-        <button class="auth-tab" id="tabLogin" onclick="switchAuthTab('login')">ENTRAR / LOGIN</button>
-        <button class="auth-tab" id="tabSaved" onclick="switchAuthTab('saved')">OPERADORES SALVOS</button>
+        <button class="auth-tab active" id="tabRegister" onclick="switchAuthTab('register')">Criar conta</button>
+        <button class="auth-tab" id="tabLogin" onclick="switchAuthTab('login')">Entrar</button>
+        <button class="auth-tab" id="tabSaved" onclick="switchAuthTab('saved')">Contas salvas</button>
       </div>
 
       <!-- Formulário de Registro / Criação de Conta Real -->
@@ -99,7 +100,7 @@
           </div>
         </div>
 
-        <button type="submit" id="btnRegisterSubmit" class="btn-submit">⚡ CRIAR CONTA NO SUPABASE & ENTRAR</button>
+        <button type="submit" id="btnRegisterSubmit" class="btn-submit">Criar conta</button>
       </form>
 
       <!-- Formulário de Login -->
@@ -114,7 +115,7 @@
           <input type="password" id="loginPass" class="form-input" placeholder="••••••••••••" required autocomplete="off">
         </div>
 
-        <button type="submit" id="btnLoginSubmit" class="btn-submit">🔓 ACESSAR MAINFRAME</button>
+        <button type="submit" id="btnLoginSubmit" class="btn-submit">Entrar</button>
       </form>
 
       <!-- Lista de Contas Rápidas no Dispositivo -->
@@ -133,11 +134,11 @@
         <div class="verify-dual-header">
           <div style="font-size: 1.8rem; margin-bottom: 0.25rem;">🛡️</div>
           <div class="verify-dual-title">VERIFICAÇÃO DE SEGURANÇA DO OPERADOR</div>
-          <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 0.35rem;">
+          <div style="font-size: 0.8rem; color: var(--hc-text-2); margin-top: 0.35rem;">
             Enviamos o código e link de validação para:
           </div>
           <div class="verify-email-pill" id="verifyEmailDisplay">seu-email@exemplo.com</div>
-          <div style="font-size: 0.75rem; color: #cbd5e1; margin-top: 0.5rem;">
+          <div style="font-size: 0.75rem; color: var(--hc-text); margin-top: 0.5rem;">
             💡 Você pode autenticar sua conta de <strong>2 formas diferentes</strong>:
           </div>
         </div>
@@ -155,7 +156,7 @@
             <input type="text" id="verifyOtpCode" class="verify-token-input" placeholder="000000" maxlength="8" autocomplete="off" autofocus>
           </div>
           <button type="submit" id="btnVerifySubmit" class="btn-submit" style="margin-top: 0.5rem;">
-            ⚡ VALIDAR CÓDIGO & ENTRAR NO MAINFRAME
+            Validar código e entrar
           </button>
         </div>
 
@@ -172,18 +173,18 @@
           <div class="verify-method-desc">
             Prefere ativar pelo navegador? Clique no botão <strong>"Confirmar E-mail & Entrar"</strong> dentro do e-mail recebido. O terminal autenticará automaticamente.
           </div>
-          <div style="font-family: 'Fira Code', monospace; font-size: 0.72rem; color: var(--green-safe); background: rgba(16, 185, 129, 0.08); padding: 0.4rem 0.6rem; border-radius: 4px; display: flex; align-items: center; gap: 0.4rem;">
-            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--green-safe); box-shadow:0 0 8px var(--green-safe);"></span>
+          <div style="font-family: var(--hc-font-mono); font-size: 0.72rem; color: var(--green-safe); background: rgba(53, 184, 119, 0.08); padding: 0.4rem 0.6rem; border-radius: 4px; display: flex; align-items: center; gap: 0.4rem;">
+            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--green-safe); box-shadow: none;"></span>
             <span>Aguardando ativação remota... (auto-login ligado)</span>
           </div>
         </div>
 
         <!-- Ações Auxiliares -->
         <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
-          <button type="button" class="btn-submit" style="background: transparent; border: 1px solid #334155; margin-top: 0; font-size: 0.78rem; padding: 0.6rem;" onclick="resendVerifyEmail()">
+          <button type="button" class="btn-submit" style="background: transparent; border: 1px solid var(--hc-border-strong); margin-top: 0; font-size: 0.78rem; padding: 0.6rem;" onclick="resendVerifyEmail()">
             🔄 REENVIAR E-MAIL
           </button>
-          <button type="button" class="btn-submit" style="background: transparent; border: 1px solid #334155; margin-top: 0; font-size: 0.78rem; padding: 0.6rem; color: #94a3b8;" onclick="switchAuthTab('login')">
+          <button type="button" class="btn-submit" style="background: transparent; border: 1px solid var(--hc-border-strong); margin-top: 0; font-size: 0.78rem; padding: 0.6rem; color: var(--hc-text-2);" onclick="switchAuthTab('login')">
             ← VOLTAR AO LOGIN
           </button>
         </div>
@@ -205,7 +206,7 @@
         <div class="player-badge">
           <span>OPERADOR:</span>
           <span class="tag-badge" id="hudPlayerTag">Carregando...</span>
-          <span style="color: #94a3b8; font-size: 0.75rem;" id="hudSpecialtyBadge">[CLASSE]</span>
+          <span style="color: var(--hc-text-2); font-size: 0.75rem;" id="hudSpecialtyBadge">[CLASSE]</span>
         </div>
       </div>
 
@@ -214,15 +215,15 @@
           🏠 QUITINETE: 3 CONTAS EM ATRASO
         </div>
         <div class="stat-pill">
-          <span style="color: #94a3b8;">CARTEIRA:</span>
+          <span style="color: var(--hc-text-2);">CARTEIRA:</span>
           <span class="val" id="hudWalletMoney" style="color: var(--green-safe);">$ 0.00 HC</span>
         </div>
         <div class="stat-pill">
-          <span style="color: #94a3b8;">REPUTAÇÃO:</span>
+          <span style="color: var(--hc-text-2);">REPUTAÇÃO:</span>
           <span class="val" id="hudReputation" style="color: var(--cyan-neon);">100 REP</span>
         </div>
         <div class="stat-pill">
-          <span style="color: #94a3b8;">PROCURADO:</span>
+          <span style="color: var(--hc-text-2);">PROCURADO:</span>
           <span class="val" id="hudHeatLevel" style="color: var(--green-safe);">NÍVEL 1</span>
         </div>
         <button class="btn-logout" onclick="logoutCurrentSession()">DESCONECTAR</button>
@@ -307,7 +308,7 @@
       </div>
       <div class="window-body" style="padding: 0;">
         <div class="cli-container">
-          <div id="terminalHardwareBanner" style="background: #090d16; border-bottom: 1px solid #1e293b; padding: 0.4rem 0.75rem; font-size: 0.76rem; color: #22c55e; font-family: 'Fira Code', monospace; letter-spacing: 0.5px;">
+          <div id="terminalHardwareBanner" style="background: var(--hc-inset); border-bottom: 1px solid var(--hc-border); padding: 0.4rem 0.75rem; font-size: 0.76rem; color: var(--hc-success); font-family: var(--hc-font-mono); letter-spacing: 0.5px;">
             🖥️ PC SUCATA DO LIXÃO (CELERON 800MHZ / 256MB RAM) // REDE: MODEM 56kbps
           </div>
           <div class="cli-output" id="cliOutput">
@@ -332,17 +333,17 @@
       <div class="window-body">
         <div class="bank-balance-card">
           <div>
-            <div style="font-size: 0.78rem; color: #94a3b8;">CONTA BANCÁRIA OFICIAL</div>
+            <div style="font-size: 0.78rem; color: var(--hc-text-2);">CONTA BANCÁRIA OFICIAL</div>
             <div class="bank-acc-num" id="bankDisplayAcc">HC-0000-00</div>
             <div style="font-size: 0.75rem; color: var(--cyan-neon); margin-top: 0.2rem;" id="bankDisplayHolder">TITULAR: Operador</div>
           </div>
           <div style="text-align: right;">
-            <div style="font-size: 0.78rem; color: #94a3b8;">SALDO DISPONÍVEL (POSTGRESQL)</div>
+            <div style="font-size: 0.78rem; color: var(--hc-text-2);">SALDO DISPONÍVEL (POSTGRESQL)</div>
             <div class="bank-acc-bal" id="bankDisplayBalance">$ 0.00 HC</div>
           </div>
         </div>
 
-        <div style="background: #090d16; border: 1px solid #1e293b; border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
+        <div style="background: var(--hc-inset); border: 1px solid var(--hc-border); border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
           <h4 style="color: #fff; font-size: 0.88rem; margin-bottom: 0.5rem;">Transferência P2P em Tempo Real (Entre Jogadores)</h4>
           <div style="display: flex; gap: 0.5rem;">
             <input type="text" id="transferTargetAcc" class="form-input" style="flex: 1;" placeholder="Conta destino (ex: HC-1739-34)">
@@ -352,7 +353,7 @@
         </div>
 
         <div style="font-size: 0.85rem; color: #fff; margin-bottom: 0.4rem;">Histórico de Transações Sincronizado:</div>
-        <div id="bankTxHistory" style="font-family: 'Fira Code', monospace; font-size: 0.8rem; color: #94a3b8; max-height: 120px; overflow-y: auto;">
+        <div id="bankTxHistory" style="font-family: var(--hc-font-mono); font-size: 0.8rem; color: var(--hc-text-2); max-height: 120px; overflow-y: auto;">
           <div>[SINC] Carregando histórico da nuvem...</div>
         </div>
       </div>
@@ -367,8 +368,8 @@
         </div>
       </div>
       <div class="window-body" style="display: flex; flex-direction: column; gap: 0.6rem; padding: 0.85rem;">
-        <div id="ircMessagesList" style="flex: 1; background: #000; border: 1px solid #1e293b; border-radius: 6px; padding: 0.75rem; overflow-y: auto; font-family: 'Fira Code', monospace; font-size: 0.82rem; display: flex; flex-direction: column; gap: 0.35rem;">
-          <div style="color: #64748b;">[CANAL CONECTADO] Bem-vindo ao #hackercity-lounge. Transmissão criptografada via Supabase Realtime.</div>
+        <div id="ircMessagesList" style="flex: 1; background: #000; border: 1px solid var(--hc-border); border-radius: 6px; padding: 0.75rem; overflow-y: auto; font-family: var(--hc-font-mono); font-size: 0.82rem; display: flex; flex-direction: column; gap: 0.35rem;">
+          <div style="color: var(--hc-text-3);">[CANAL CONECTADO] Bem-vindo ao #hackercity-lounge. Transmissão criptografada via Supabase Realtime.</div>
         </div>
         <div style="display: flex; gap: 0.5rem;">
           <input type="text" id="ircInputMsg" class="form-input" style="flex: 1;" placeholder="Digite uma mensagem para todos os hackers..." onkeydown="if(event.key==='Enter') sendIrcMessage()">
@@ -392,23 +393,23 @@
           <button class="btn-submit" style="width: auto; margin-top: 0; padding: 0.35rem 0.8rem; font-size: 0.8rem;" onclick="showToast('Loja recarregada.')">IR</button>
         </div>
 
-        <div style="background: #090d16; border: 1px solid #1e293b; border-radius: 6px; padding: 1.25rem;">
-          <h3 style="color: var(--cyan-neon); font-family: 'Orbitron'; font-size: 1.1rem; margin-bottom: 0.5rem;">BLACKMARKET ONION // Loja Clandestina</h3>
-          <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 1rem;">Compre ferramentas de invasão e upgrades sincronizados no PostgreSQL:</p>
+        <div style="background: var(--hc-inset); border: 1px solid var(--hc-border); border-radius: 6px; padding: 1.25rem;">
+          <h3 style="color: var(--cyan-neon); font-family: var(--hc-font-sans); font-size: 1.1rem; margin-bottom: 0.5rem;">BLACKMARKET ONION // Loja Clandestina</h3>
+          <p style="font-size: 0.85rem; color: var(--hc-text-2); margin-bottom: 1rem;">Compre ferramentas de invasão e upgrades sincronizados no PostgreSQL:</p>
 
           <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-            <div style="background: #0f172a; border: 1px solid #334155; padding: 0.75rem; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="background: var(--hc-surface-2); border: 1px solid var(--hc-border-strong); padding: 0.75rem; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
               <div>
                 <strong style="color: #fff; font-size: 0.9rem;">Kit de Zero-Day Exploits v2</strong>
-                <div style="font-size: 0.75rem; color: #94a3b8;">Aumenta seu respeito no submundo em +50 REP imediatamente</div>
+                <div style="font-size: 0.75rem; color: var(--hc-text-2);">Aumenta seu respeito no submundo em +50 REP imediatamente</div>
               </div>
               <button class="btn-submit" style="width: auto; margin-top: 0; padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="buyItemFromMarket('exploit_v2', 300)">COMPRAR ($300 HC)</button>
             </div>
 
-            <div style="background: #0f172a; border: 1px solid #334155; padding: 0.75rem; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="background: var(--hc-surface-2); border: 1px solid var(--hc-border-strong); padding: 0.75rem; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
               <div>
                 <strong style="color: #fff; font-size: 0.9rem;">Limpador de Registros Policiais (Bribe Pass)</strong>
-                <div style="font-size: 0.75rem; color: #94a3b8;">Reduz o Heat policial em 2 níveis imediatamente no banco</div>
+                <div style="font-size: 0.75rem; color: var(--hc-text-2);">Reduz o Heat policial em 2 níveis imediatamente no banco</div>
               </div>
               <button class="btn-submit" style="width: auto; margin-top: 0; padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="buyItemFromMarket('cleaner', 450)">COMPRAR ($450 HC)</button>
             </div>
@@ -429,13 +430,13 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
           <div>
             <h3 style="color: #fff; font-size: 1rem;">Varredura de Alvos no Servidor Central</h3>
-            <p style="font-size: 0.8rem; color: #94a3b8;">Os dados são validados diretamente no PostgreSQL via RPC Anti-Cheat</p>
+            <p style="font-size: 0.8rem; color: var(--hc-text-2);">Os dados são validados diretamente no PostgreSQL via RPC Anti-Cheat</p>
           </div>
           <button class="btn-submit" style="width: auto; margin-top: 0; padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="loadNetworkTargetsFromCloud()">🔍 VARRER REDE</button>
         </div>
 
         <div id="scannerTargetsList" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 280px; overflow-y: auto;">
-          <div style="color: #94a3b8; font-size: 0.85rem; text-align: center; padding: 2rem;">Clique em "Varrer Rede" para consultar os alvos do Supabase.</div>
+          <div style="color: var(--hc-text-2); font-size: 0.85rem; text-align: center; padding: 2rem;">Clique em "Varrer Rede" para consultar os alvos do Supabase.</div>
         </div>
       </div>
     </div>
@@ -451,23 +452,23 @@
       <div class="window-body">
         <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
           <button class="btn-submit active" id="tabArcadeCheckers" style="margin-top:0; padding: 0.5rem; flex: 1;" onclick="switchArcadeGame('checkers')">DAMAS BRASILEIRAS (IA 2S)</button>
-          <button class="btn-submit" id="tabArcadeSnake" style="margin-top:0; padding: 0.5rem; flex: 1; background: #334155; border-color: #475569;" onclick="switchArcadeGame('snake')">COBRINHA (100 PTS META)</button>
+          <button class="btn-submit" id="tabArcadeSnake" style="margin-top:0; padding: 0.5rem; flex: 1; background: var(--hc-border-strong); border-color: var(--hc-border-strong);" onclick="switchArcadeGame('snake')">COBRINHA (100 PTS META)</button>
         </div>
 
         <div id="gameCheckersView">
-          <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.5rem;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--hc-text); margin-bottom: 0.5rem;">
             <span>Vez: <strong style="color: var(--cyan-neon);">SUA VEZ (AZUL)</strong></span>
-            <span>IA: <strong style="color: #fca5a5;">Aguardando jogada</strong></span>
+            <span>IA: <strong style="color: var(--hc-danger-text);">Aguardando jogada</strong></span>
           </div>
-          <div id="checkersBoard" style="width: 320px; height: 320px; display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); border: 3px solid #334155; margin: 0 auto;"></div>
+          <div id="checkersBoard" style="width: 320px; height: 320px; display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); border: 3px solid var(--hc-border-strong); margin: 0 auto;"></div>
         </div>
 
         <div id="gameSnakeView" style="display: none; text-align: center;">
-          <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.5rem;">
-            <span>Pontos: <strong id="snakeScore" style="color: #22c55e;">0</strong> / 100</span>
+          <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--hc-text); margin-bottom: 0.5rem;">
+            <span>Pontos: <strong id="snakeScore" style="color: var(--hc-success);">0</strong> / 100</span>
             <span>Controles: <strong>Setas ou WASD</strong></span>
           </div>
-          <canvas id="snakeCanvas" width="300" height="300" style="background:#000; border:2px solid #22c55e; border-radius:6px; margin: 0 auto; display:block;"></canvas>
+          <canvas id="snakeCanvas" width="300" height="300" style="background:#000; border:2px solid var(--hc-success); border-radius:6px; margin: 0 auto; display:block;"></canvas>
           <button class="btn-submit" style="width: auto; margin-top: 0.75rem; padding: 0.4rem 1.25rem;" onclick="startSnakeGame()">INICIAR COBRINHA</button>
         </div>
       </div>
@@ -482,20 +483,20 @@
         </div>
       </div>
       <div class="window-body">
-        <h3 style="color: #f87171; font-family: 'Orbitron'; font-size: 1.1rem; margin-bottom: 0.5rem;">SISTEMA DE PÂNICO CONTRA MANDADO POLICIAL</h3>
-        <p style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 1rem;">
+        <h3 style="color: var(--hc-danger-text); font-family: var(--hc-font-sans); font-size: 1.1rem; margin-bottom: 0.5rem;">SISTEMA DE PÂNICO CONTRA MANDADO POLICIAL</h3>
+        <p style="font-size: 0.85rem; color: var(--hc-text); margin-bottom: 1rem;">
           Se a polícia invadir ou seu nível de procurado chegar a 5, destrua as provas no HD a tempo ou seja preso.
         </p>
 
-        <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid #ef4444; border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
-          <strong style="color: #fca5a5; display: block; margin-bottom: 0.35rem;">REGRA OFICIAL DO PROTOCOLO:</strong>
-          <ul style="font-size: 0.8rem; color: #cbd5e1; padding-left: 1.2rem; line-height: 1.4;">
+        <div style="background: rgba(208, 68, 58, 0.08); border: 1px solid var(--hc-danger); border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
+          <strong style="color: var(--hc-danger-text); display: block; margin-bottom: 0.35rem;">REGRA OFICIAL DO PROTOCOLO:</strong>
+          <ul style="font-size: 0.8rem; color: var(--hc-text); padding-left: 1.2rem; line-height: 1.4;">
             <li><strong>Sucesso na Destruição:</strong> Evidências destruídas. Você é liberado sem provas e recupera seu dinheiro com sua anotação no papel real!</li>
             <li><strong>Falha / Preso:</strong> A polícia confisca todo seu saldo e máquinas. Você cumpre 6 meses e recomeça do zero apenas com sua <strong>Reputação</strong> e o <strong>Computador Inicial</strong>!</li>
           </ul>
         </div>
 
-        <button class="btn-submit" style="background: #dc2626; border-color: #ef4444;" onclick="window.open('/panic/index.html', '_blank')">
+        <button class="btn-submit" style="background: var(--hc-danger); border-color: var(--hc-danger);" onclick="window.open('/panic/index.html', '_blank')">
           🚨 ABRIR SIMULADOR DE BATIDA POLICIAL
         </button>
       </div>
@@ -510,37 +511,37 @@
         </div>
       </div>
       <div class="window-body">
-        <div style="display: flex; gap: 1rem; align-items: center; border-bottom: 1px solid #1e293b; padding-bottom: 1rem; margin-bottom: 1rem;">
-          <div style="font-size: 3rem; background: #090d16; border: 1px solid var(--cyan-neon); border-radius: 50%; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
+        <div style="display: flex; gap: 1rem; align-items: center; border-bottom: 1px solid var(--hc-border); padding-bottom: 1rem; margin-bottom: 1rem;">
+          <div style="font-size: 3rem; background: var(--hc-inset); border: 1px solid var(--cyan-neon); border-radius: 50%; width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;">
             👾
           </div>
           <div>
-            <h3 style="color: #fff; font-family: 'Orbitron';" id="profHackerTag">Carregando...</h3>
+            <h3 style="color: #fff; font-family: var(--hc-font-sans);" id="profHackerTag">Carregando...</h3>
             <div style="color: var(--cyan-neon); font-size: 0.85rem;" id="profSpecialty">Especialidade: ...</div>
-            <div style="color: #94a3b8; font-size: 0.75rem;" id="profEmail">E-mail: ...</div>
+            <div style="color: var(--hc-text-2); font-size: 0.75rem;" id="profEmail">E-mail: ...</div>
           </div>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.85rem;">
-          <div style="background: #090d16; padding: 0.75rem; border-radius: 6px; border: 1px solid #1e293b;">
-            <span style="color: #94a3b8; display: block; font-size: 0.75rem;">CONTA BANCÁRIA:</span>
-            <strong id="profBankAcc" style="color: #fff; font-family: 'Fira Code';">HC-0000-00</strong>
+          <div style="background: var(--hc-inset); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--hc-border);">
+            <span style="color: var(--hc-text-2); display: block; font-size: 0.75rem;">CONTA BANCÁRIA:</span>
+            <strong id="profBankAcc" style="color: #fff; font-family: var(--hc-font-mono);">HC-0000-00</strong>
           </div>
-          <div style="background: #090d16; padding: 0.75rem; border-radius: 6px; border: 1px solid #1e293b;">
-            <span style="color: #94a3b8; display: block; font-size: 0.75rem;">REPUTAÇÃO TOTAL:</span>
-            <strong id="profReputation" style="color: var(--cyan-neon); font-family: 'Orbitron';">100 REP</strong>
+          <div style="background: var(--hc-inset); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--hc-border);">
+            <span style="color: var(--hc-text-2); display: block; font-size: 0.75rem;">REPUTAÇÃO TOTAL:</span>
+            <strong id="profReputation" style="color: var(--cyan-neon); font-family: var(--hc-font-sans);">100 REP</strong>
           </div>
-          <div style="background: #090d16; padding: 0.75rem; border-radius: 6px; border: 1px solid #1e293b;">
-            <span style="color: #94a3b8; display: block; font-size: 0.75rem;">SETUP DE HARDWARE:</span>
-            <strong id="profComputerTier" style="color: #38bdf8; font-family: 'Fira Code';">Pentium Standard</strong>
+          <div style="background: var(--hc-inset); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--hc-border);">
+            <span style="color: var(--hc-text-2); display: block; font-size: 0.75rem;">SETUP DE HARDWARE:</span>
+            <strong id="profComputerTier" style="color: var(--hc-accent-text); font-family: var(--hc-font-mono);">Pentium Standard</strong>
           </div>
-          <div style="background: #090d16; padding: 0.75rem; border-radius: 6px; border: 1px solid #1e293b;">
-            <span style="color: #94a3b8; display: block; font-size: 0.75rem;">NÍVEL DE PROCURADO:</span>
-            <strong id="profHeat" style="color: var(--green-safe); font-family: 'Orbitron';">NÍVEL 1</strong>
+          <div style="background: var(--hc-inset); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--hc-border);">
+            <span style="color: var(--hc-text-2); display: block; font-size: 0.75rem;">NÍVEL DE PROCURADO:</span>
+            <strong id="profHeat" style="color: var(--green-safe); font-family: var(--hc-font-sans);">NÍVEL 1</strong>
           </div>
         </div>
 
-        <button class="btn-submit" style="background: #334155; border-color: #475569; margin-top: 1.5rem;" onclick="logoutCurrentSession()">
+        <button class="btn-submit" style="background: var(--hc-border-strong); border-color: var(--hc-border-strong); margin-top: 1.5rem;" onclick="logoutCurrentSession()">
           🚪 DESCONECTAR DA CONTA
         </button>
       </div>
@@ -619,18 +620,11 @@
       </div>
 
       <div class="taskbar-right">
-        <button id="audioToggleBtn" onclick="toggleAudio()" style="background:rgba(6,182,212,0.1);border:1px solid var(--cyan-neon);color:var(--cyan-neon);border-radius:4px;padding:3px 10px;font-family:'Fira Code',monospace;font-size:0.75rem;cursor:pointer;">🔊 ÁUDIO: ON</button>
+        <button id="audioToggleBtn" onclick="toggleAudio()" style="background:rgba(53, 184, 119,0.1);border:1px solid var(--cyan-neon);color:var(--cyan-neon);border-radius:4px;padding:3px 10px;font-family:var(--hc-font-mono);font-size:0.75rem;cursor:pointer;">🔊 ÁUDIO: ON</button>
         <span style="color: var(--green-safe);">🟢 SUPABASE: ONLINE</span>
         <span id="taskbarClock">00:00:00</span>
       </div>
     </footer>
-
-    <!-- Links de Acesso Obrigatório -->
-    <div class="links-footer-note">
-      <span>Links Web:</span>
-      <a href="http://localhost:8080/hacker-city-web/index.html" target="_blank">http://localhost:8080/hacker-city-web/index.html</a>
-      <a href="file:///home/littlecoffee/Documentos/DEV/hacker-city-web/index.html">file:///home/littlecoffee/.../hacker-city-web/index.html</a>
-    </div>
 
   </div>
 
@@ -720,7 +714,7 @@
       } catch (err) {
         alert('Código inválido ou expirado: ' + (err.message || err));
         btn.disabled = false;
-        btn.innerText = '⚡ VALIDAR CÓDIGO & ENTRAR NO MAINFRAME';
+        btn.innerText = 'Validar código e entrar';
       }
     }
 
@@ -809,7 +803,7 @@
           showVerifyEmailTab(email);
           showToast('✉️ E-mail de confirmação disparado!');
           btn.disabled = false;
-          btn.innerText = '⚡ CRIAR CONTA NO SUPABASE & ENTRAR';
+          btn.innerText = 'Criar conta';
           return;
         }
 
@@ -822,7 +816,7 @@
       } catch (err) {
         alert('Erro ao registrar no Supabase: ' + (err.message || err));
         btn.disabled = false;
-        btn.innerText = '⚡ CRIAR CONTA NO SUPABASE & ENTRAR';
+        btn.innerText = 'Criar conta';
       }
     }
 
@@ -868,7 +862,7 @@
       } catch (err) {
         alert('Falha na autenticação: ' + (err.message || err));
         btn.disabled = false;
-        btn.innerText = '🔓 ACESSAR MAINFRAME';
+        btn.innerText = 'Entrar';
       }
     }
 
@@ -1164,8 +1158,8 @@
       const t = timeStr ? new Date(timeStr).toLocaleTimeString() : new Date().toLocaleTimeString();
 
       div.innerHTML = `
-        <span style="color: #64748b;">[${t}]</span> 
-        <strong style="color: ${isMe ? 'var(--cyan-neon)' : '#f59e0b'};">&lt;${tag}&gt;</strong> 
+        <span style="color: var(--hc-text-3);">[${t}]</span> 
+        <strong style="color: ${isMe ? 'var(--cyan-neon)' : 'var(--hc-warning)'};">&lt;${tag}&gt;</strong> 
         <span style="color: #fff;">${escapeHtml(msg)}</span>
       `;
       list.appendChild(div);
@@ -1247,7 +1241,7 @@
         .limit(15);
 
       if (!data || data.length === 0) {
-        hist.innerHTML = '<div style="color: #64748b;">Nenhuma transação registrada ainda.</div>';
+        hist.innerHTML = '<div style="color: var(--hc-text-3);">Nenhuma transação registrada ainda.</div>';
         return;
       }
 
@@ -1255,7 +1249,7 @@
       data.forEach(tx => {
         const div = document.createElement('div');
         const isIncome = tx.to_account === currentWallet.account_number;
-        const color = isIncome ? 'var(--green-safe)' : '#ef4444';
+        const color = isIncome ? 'var(--green-safe)' : 'var(--hc-danger)';
         const sign = isIncome ? '+' : '-';
         const time = new Date(tx.created_at).toLocaleTimeString();
 
@@ -1275,18 +1269,18 @@
         .order('bounty', { ascending: true });
 
       if (!data || data.length === 0) {
-        list.innerHTML = '<div style="color: #64748b; text-align: center;">Nenhum nó vulnerável encontrado.</div>';
+        list.innerHTML = '<div style="color: var(--hc-text-3); text-align: center;">Nenhum nó vulnerável encontrado.</div>';
         return;
       }
 
       list.innerHTML = '';
       data.forEach(t => {
         const item = document.createElement('div');
-        item.style = 'background: #090d16; border: 1px solid #1e293b; padding: 0.75rem; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;';
+        item.style = 'background: var(--hc-inset); border: 1px solid var(--hc-border); padding: 0.75rem; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;';
         item.innerHTML = `
           <div>
-            <strong style="color: #38bdf8;">${t.ip_address}</strong> - <span style="color: #fff;">${escapeHtml(t.hostname)}</span>
-            <div style="font-size: 0.75rem; color: #f59e0b;">Porta: ${t.service_port} | Falha: ${t.vulnerability} | Recompensa: +$ ${parseFloat(t.bounty).toFixed(2)} HC</div>
+            <strong style="color: var(--hc-accent-text);">${t.ip_address}</strong> - <span style="color: #fff;">${escapeHtml(t.hostname)}</span>
+            <div style="font-size: 0.75rem; color: var(--hc-warning);">Porta: ${t.service_port} | Falha: ${t.vulnerability} | Recompensa: +$ ${parseFloat(t.bounty).toFixed(2)} HC</div>
           </div>
           <button class="btn-submit" style="width: auto; margin: 0; padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="hackNetworkTarget('${t.ip_address}')">INVADIR</button>
         `;
@@ -1372,7 +1366,7 @@
       }
     }
 
-    function appendCli(text, color = '#22c55e') {
+    function appendCli(text, color = 'var(--hc-success)') {
       const out = document.getElementById('cliOutput');
       const div = document.createElement('div');
       div.style.color = color;
@@ -1388,7 +1382,7 @@
 
       // 1. Se estiver dentro de um aplicativo interativo (/use):
       if (window.terminalTools && window.terminalTools.isAppPanelActive()) {
-        appendCli(`[APP: ${window.terminalTools.activeCliAppId}] ALVO >> ${cmdLine}`, '#f59e0b');
+        appendCli(`[APP: ${window.terminalTools.activeCliAppId}] ALVO >> ${cmdLine}`, 'var(--hc-warning)');
         if (cmd === 'sair' || cmd === 'exit' || cmd === 'quit' || cmd === 'fechar' || cmd === 'voltar') {
           window.terminalTools.exitAppPanel(appendCli, hackerTag);
           return;
@@ -1401,7 +1395,7 @@
         }
       }
 
-      appendCli(`${hackerTag}@hackercity:~$ ${cmdLine}`, '#38bdf8');
+      appendCli(`${hackerTag}@hackercity:~$ ${cmdLine}`, 'var(--hc-accent-text)');
 
       // 2. Comando /use ou use (Scanner de IP & Quebra de VPN)
       if (cmd === '/use' || cmd === 'use') {
@@ -1413,12 +1407,12 @@
 
       if (cmd === 'help') {
         appendCli('Comandos disponíveis:');
-        appendCli('  /use [app]           - Painel interativo de invasão (/use ip_scanner, /use vpn_breaker, etc.)', '#f59e0b');
-        appendCli('  host <site>          - Rastreia a VPS e infraestrutura de um site (ex: host hc://bank)', '#06b6d4');
-        appendCli('  skills               - Árvore de habilidades, pontos SP e títulos de evolução', '#a855f7');
-        appendCli('  subclasse <id>       - Seleciona uma das 11 subclasses de especialização', '#a855f7');
-        appendCli('  contas               - Painel de despesas e sobrevivência da Quitinete', '#f43f5e');
-        appendCli('  pagar <conta>        - Quita aluguel, luz ou água diretamente pelo banco (ex: pagar aluguel)', '#f43f5e');
+        appendCli('  /use [app]           - Painel interativo de invasão (/use ip_scanner, /use vpn_breaker, etc.)', 'var(--hc-warning)');
+        appendCli('  host <site>          - Rastreia a VPS e infraestrutura de um site (ex: host hc://bank)', 'var(--hc-success)');
+        appendCli('  skills               - Árvore de habilidades, pontos SP e títulos de evolução', 'var(--hc-violet)');
+        appendCli('  subclasse <id>       - Seleciona uma das 11 subclasses de especialização', 'var(--hc-violet)');
+        appendCli('  contas               - Painel de despesas e sobrevivência da Quitinete', 'var(--hc-danger)');
+        appendCli('  pagar <conta>        - Quita aluguel, luz ou água diretamente pelo banco (ex: pagar aluguel)', 'var(--hc-danger)');
         appendCli('  scan                 - Varre alvos vulneráveis no PostgreSQL');
         appendCli('  nmap <ip>            - Varredura profunda de portas e serviços do alvo');
         appendCli('  hack [ip]            - Abre scanner de alvos ou explora nó vulnerável');
@@ -1442,15 +1436,15 @@
         if (window.terminalTools) {
           const meta = window.terminalTools.resolveSiteOrIp(targetSite);
           if (meta) {
-            appendCli(`[DNS RESOLVER // RASTREAMENTO DE HOSPEDAGEM]`, '#06b6d4');
-            appendCli(`  Link Consultado:   ${meta.site_url}`, '#e2e8f0');
-            appendCli(`  Servidor VPS Host: ${meta.host}`, '#f59e0b');
-            appendCli(`  IP Hospedado:      ${meta.ip} (Proxy Reverso: ${meta.proxy_ip})`, '#22c55e');
-            appendCli(`  Portas Abertas:    ${meta.ports}`, '#38bdf8');
-            appendCli(`  Proteção Ativa:    ${meta.vpn_shield} (Segurança Nível ${meta.security_tier})`, '#f59e0b');
-            appendCli(`  → Dica: Use '/use ip_scanner' para sondar a rede ou '/use vpn_breaker' para quebrar o túnel de ${meta.ip}!`, '#94a3b8');
+            appendCli(`[DNS RESOLVER // RASTREAMENTO DE HOSPEDAGEM]`, 'var(--hc-success)');
+            appendCli(`  Link Consultado:   ${meta.site_url}`, 'var(--hc-text)');
+            appendCli(`  Servidor VPS Host: ${meta.host}`, 'var(--hc-warning)');
+            appendCli(`  IP Hospedado:      ${meta.ip} (Proxy Reverso: ${meta.proxy_ip})`, 'var(--hc-success)');
+            appendCli(`  Portas Abertas:    ${meta.ports}`, 'var(--hc-accent-text)');
+            appendCli(`  Proteção Ativa:    ${meta.vpn_shield} (Segurança Nível ${meta.security_tier})`, 'var(--hc-warning)');
+            appendCli(`  → Dica: Use '/use ip_scanner' para sondar a rede ou '/use vpn_breaker' para quebrar o túnel de ${meta.ip}!`, 'var(--hc-text-2)');
           } else {
-            appendCli(`[DNS HC] Não foi possível resolver '${targetSite}'. Ex: host hc://market`, '#ef4444');
+            appendCli(`[DNS HC] Não foi possível resolver '${targetSite}'. Ex: host hc://market`, 'var(--hc-danger)');
           }
         }
       } else if (cmd === 'whoami') {
@@ -1469,30 +1463,30 @@
           const rep = currentProfile.reputation;
           const sp = window.skillTreeEngine.getAvailableSP(rep);
           const title = window.skillTreeEngine.getPlayerTitle(currentProfile.specialty, rep);
-          appendCli('=== ÁRVORE DE HABILIDADES & SUBCLASSES // RPG SYSTEM ===', '#a855f7');
+          appendCli('=== ÁRVORE DE HABILIDADES & SUBCLASSES // RPG SYSTEM ===', 'var(--hc-violet)');
           appendCli(`Título de Operador : ${title} | ${window.skillTreeEngine.getFullBadge(currentProfile.specialty, rep)}`);
           appendCli(`Pontos Disponíveis : ${sp} SP (1 SP a cada 50 REP)`);
           appendCli(`Subclasses Totais   : ${Object.keys(window.skillTreeEngine.subclasses).length} especializações disponíveis`);
-          appendCli("Dica: Use 'subclasse <id>' para escolher ou abra o painel gráfico clicando no ícone 'Habilidades'.", '#94a3b8');
+          appendCli("Dica: Use 'subclasse <id>' para escolher ou abra o painel gráfico clicando no ícone 'Habilidades'.", 'var(--hc-text-2)');
         }
       } else if (cmd === 'subclasse') {
         const subId = parts[1];
         if (!subId) {
           if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
-          appendCli("Uso: subclasse <id> (ex: subclasse sub_scada, sub_quantum, sub_ghost)", '#ef4444');
+          appendCli("Uso: subclasse <id> (ex: subclasse sub_scada, sub_quantum, sub_ghost)", 'var(--hc-danger)');
         } else {
           chooseSubclass(subId);
         }
       } else if (cmd === 'contas' || cmd === 'quitinete') {
         openQuitineteWindow();
-        appendCli('=== DESPESAS DA QUITINETE // STATUS DE SOBREVIVÊNCIA ===', '#06b6d4');
+        appendCli('=== DESPESAS DA QUITINETE // STATUS DE SOBREVIVÊNCIA ===', 'var(--hc-success)');
         if (window.quitineteEngine) {
           Object.values(window.quitineteEngine.bills).forEach(b => {
             const st = b.paid ? '[QUITADO - EM DIA]' : `[EM ABERTO: $ ${b.price} HC - ${b.tagUnpaid}]`;
-            const col = b.paid ? '#22c55e' : '#f43f5e';
+            const col = b.paid ? 'var(--hc-success)' : 'var(--hc-danger)';
             appendCli(`  ${b.name.padEnd(23)}: ${st}`, col);
           });
-          appendCli("Dica: Use 'pagar <aluguel|luz|agua>' para quitar diretamente pelo terminal.", '#94a3b8');
+          appendCli("Dica: Use 'pagar <aluguel|luz|agua>' para quitar diretamente pelo terminal.", 'var(--hc-text-2)');
         }
       } else if (cmd === 'pagar') {
         const targetBill = parts[1] ? parts[1].toLowerCase() : '';
@@ -1500,7 +1494,7 @@
         const billId = map[targetBill];
         if (!billId) {
           if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
-          appendCli("Uso: pagar <aluguel | luz | agua> (ex: pagar aluguel)", '#ef4444');
+          appendCli("Uso: pagar <aluguel | luz | agua> (ex: pagar aluguel)", 'var(--hc-danger)');
         } else {
           payQuitineteBill(billId);
         }
@@ -1510,26 +1504,26 @@
         appendCli('Janela do Scanner de Rede aberta com os alvos em tempo real.');
       } else if (cmd === 'nmap') {
         const targetIp = parts[1] || '192.168.0.14';
-        appendCli(`Iniciando Nmap 7.94 ( https://nmap.org ) em ${targetIp}...`, '#38bdf8');
+        appendCli(`Iniciando Nmap 7.94 ( https://nmap.org ) em ${targetIp}...`, 'var(--hc-accent-text)');
         appendCli('Scanning portas e identificando serviços de rede...');
         if (window.terminalTools) {
           window.terminalTools.scanPorts(targetIp, (ports) => {
             appendCli(`Relatório de varredura para ${targetIp}:`);
-            appendCli('PORTA       ESTADO  SERVIÇO       BANNER / VULNERABILIDADE', '#94a3b8');
+            appendCli('PORTA       ESTADO  SERVIÇO       BANNER / VULNERABILIDADE', 'var(--hc-text-2)');
             ports.forEach(p => {
               appendCli(`${p.port.padEnd(11)} ${p.state.padEnd(7)} ${p.service.padEnd(13)} ${p.banner}`);
             });
-            appendCli(`Dica: Use 'hack ${targetIp}' para explorar as vulnerabilidades encontradas.`, '#f59e0b');
+            appendCli(`Dica: Use 'hack ${targetIp}' para explorar as vulnerabilidades encontradas.`, 'var(--hc-warning)');
           });
         }
       } else if (cmd === 'hashcrack') {
         const hash = parts[1];
         if (!hash) {
           if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
-          appendCli('Uso: hashcrack <hash_md5> (ex: hashcrack 0192023a7bbd73250516f069df18b500)', '#ef4444');
+          appendCli('Uso: hashcrack <hash_md5> (ex: hashcrack 0192023a7bbd73250516f069df18b500)', 'var(--hc-danger)');
           return;
         }
-        appendCli(`[HASHCAT-v6.2] Iniciando ataque de força bruta & wordlist em ${hash}...`, '#f59e0b');
+        appendCli(`[HASHCAT-v6.2] Iniciando ataque de força bruta & wordlist em ${hash}...`, 'var(--hc-warning)');
         if (window.terminalTools) {
           window.terminalTools.crackHash(hash, 
             (pct, speed) => {
@@ -1538,7 +1532,7 @@
             },
             (plain) => {
               if (window.hackerAudio) window.hackerAudio.playCashChime();
-              appendCli(`[CRACKED] Senha decodificada com sucesso: >> ${plain} <<`, '#22c55e');
+              appendCli(`[CRACKED] Senha decodificada com sucesso: >> ${plain} <<`, 'var(--hc-success)');
             }
           );
         }
@@ -1546,14 +1540,14 @@
         if (window.terminalTools) {
           const spec = currentProfile ? currentProfile.specialty : '';
           const m = window.terminalTools.getBotnetMetrics(spec);
-          appendCli('=== C2 BOTNET CONTROL CENTER ===', '#a855f7');
+          appendCli('=== C2 BOTNET CONTROL CENTER ===', 'var(--hc-violet)');
           appendCli(`Nós Zumbis Ativos : ${m.nodes} dispositivos infectados`);
           appendCli(`Poder de Hash     : ${m.hashRate}`);
           appendCli(`Rendimento Passivo: ${m.hourlyIncome}`);
           if (m.isBotmaster) {
-            appendCli('Bônus Especialista : +30% de rendimento de Botmaster ATIVO!', '#22c55e');
+            appendCli('Bônus Especialista : +30% de rendimento de Botmaster ATIVO!', 'var(--hc-success)');
           } else {
-            appendCli('Dica: Operadores com classe Botmaster recebem +30% de rendimento passivo.', '#94a3b8');
+            appendCli('Dica: Operadores com classe Botmaster recebem +30% de rendimento passivo.', 'var(--hc-text-2)');
           }
         }
       } else if (cmd === 'hack') {
@@ -1569,16 +1563,16 @@
         const tierFilter = parts[1] ? parseInt(parts[1]) : 0;
         if (window.botScheduler) {
           const dayBots = window.botScheduler.getCurrentDayBots();
-          appendCli('=== REDE DETERMINÍSTICA DE BOTS (ROTAÇÃO DIÁRIA: 30 BOTS) ===', '#38bdf8');
-          appendCli('HANDLE              TIER         IP REMOTO        HARDWARE / SO          STATUS', '#94a3b8');
+          appendCli('=== REDE DETERMINÍSTICA DE BOTS (ROTAÇÃO DIÁRIA: 30 BOTS) ===', 'var(--hc-accent-text)');
+          appendCli('HANDLE              TIER         IP REMOTO        HARDWARE / SO          STATUS', 'var(--hc-text-2)');
           dayBots.forEach(b => {
             if (tierFilter && b.tier !== tierFilter) return;
             const isOnline = window.botScheduler.isBotOnline(b.ip);
             const statusTxt = isOnline ? '[ONLINE]' : '[OFFLINE]';
-            const statusColor = isOnline ? '#22c55e' : '#64748b';
+            const statusColor = isOnline ? 'var(--hc-success)' : 'var(--hc-text-3)';
             appendCli(`${b.handle.padEnd(19)} ${b.tierName.padEnd(12)} ${b.ip.padEnd(16)} ${(b.hardware.cpu_cores + 'c @ ' + b.hardware.cpu_ghz + 'GHz').padEnd(22)} ${statusTxt}`, statusColor);
           });
-          appendCli("Dica: Para invadir com traceback ativo, use 'crack <ip>' ou abra o HC Cracker.", '#f59e0b');
+          appendCli("Dica: Para invadir com traceback ativo, use 'crack <ip>' ou abra o HC Cracker.", 'var(--hc-warning)');
         }
       } else if (cmd === 'crack') {
         const ip = parts[1];
@@ -1586,22 +1580,22 @@
         if (typeof window.renderCrackerUI === 'function') {
           window.renderCrackerUI('crackerAppBody', ip);
         }
-        appendCli(`HC-Cracker Pro aberto. Alvo configurado: ${ip || 'primeiro bot ativo'}. Alerta de Traceback armado!`, '#f59e0b');
+        appendCli(`HC-Cracker Pro aberto. Alvo configurado: ${ip || 'primeiro bot ativo'}. Alerta de Traceback armado!`, 'var(--hc-warning)');
       } else if (cmd === 'rmlog') {
         const ip = parts[1];
         if (!ip) {
           if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
-          appendCli('Uso: rmlog <ip> (ex: rmlog 10.110.1.11)', '#ef4444');
+          appendCli('Uso: rmlog <ip> (ex: rmlog 10.110.1.11)', 'var(--hc-danger)');
           return;
         }
         if (window.botAI) {
           const wasPending = window.botAI.wipeLogs(ip);
           if (window.hackerAudio) window.hackerAudio.playKeyClick();
-          appendCli(`[SYSLOG PURGED] Registros em ${ip}:/var/log/syslog deletados com sucesso.`, '#22c55e');
+          appendCli(`[SYSLOG PURGED] Registros em ${ip}:/var/log/syslog deletados com sucesso.`, 'var(--hc-success)');
           if (wasPending) {
-            appendCli(`[ALERTA NEUTRALIZADO] Retaliação ou contra-ataque agendado foi abortado pelo alvo!`, '#38bdf8');
+            appendCli(`[ALERTA NEUTRALIZADO] Retaliação ou contra-ataque agendado foi abortado pelo alvo!`, 'var(--hc-accent-text)');
           } else {
-            appendCli(`Nenhum rastro ativo restava na máquina alvo.`, '#94a3b8');
+            appendCli(`Nenhum rastro ativo restava na máquina alvo.`, 'var(--hc-text-2)');
           }
         }
       } else if (cmd === 'c2') {
@@ -1609,23 +1603,23 @@
         if (typeof window.renderC2UI === 'function') {
           window.renderC2UI('botnetC2Body');
         }
-        appendCli('Central C2 Botnet Swarm Matrix aberta na área de trabalho.', '#a855f7');
+        appendCli('Central C2 Botnet Swarm Matrix aberta na área de trabalho.', 'var(--hc-violet)');
       } else if (cmd === 'zombies') {
         if (window.botnetC2) {
-          appendCli('=== ESCRAVOS ZUMBIS INFECTADOS (CENTRAL C2) ===', '#a855f7');
+          appendCli('=== ESCRAVOS ZUMBIS INFECTADOS (CENTRAL C2) ===', 'var(--hc-violet)');
           appendCli(`Total de Máquinas: ${window.botnetC2.slaves.length} | Perfil Global: ${window.botnetC2.activeProfile.toUpperCase()}`);
           appendCli(`Rendimento Acumulado Pendente: $ ${window.botnetC2.accumulatedProfits.toFixed(2)} HC`);
-          appendCli('IP               HANDLE              TIER         TAXA BASE', '#94a3b8');
+          appendCli('IP               HANDLE              TIER         TAXA BASE', 'var(--hc-text-2)');
           window.botnetC2.slaves.forEach(s => {
             appendCli(`${s.ip.padEnd(16)} ${s.handle.padEnd(19)} Tier ${s.tier}       $ ${s.baseRate.toFixed(2)}/s`);
           });
-          appendCli("Use 'c2' para abrir o painel gráfico e coletar rendimentos.", '#38bdf8');
+          appendCli("Use 'c2' para abrir o painel gráfico e coletar rendimentos.", 'var(--hc-accent-text)');
         }
       } else if (cmd === 'panic') {
         openWindow('winPanic');
       } else {
         if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
-        appendCli(`Comando '${cmd}' não reconhecido. Digite 'help'.`, '#ef4444');
+        appendCli(`Comando '${cmd}' não reconhecido. Digite 'help'.`, 'var(--hc-danger)');
       }
     }
 
@@ -1662,11 +1656,11 @@
         for (let c = 0; c < 8; c++) {
           const cell = document.createElement('div');
           const isDark = (r + c) % 2 === 1;
-          cell.style = `display:flex;align-items:center;justify-content:center;background:${isDark ? '#1e293b' : '#e2e8f0'};`;
+          cell.style = `display:flex;align-items:center;justify-content:center;background:${isDark ? 'var(--hc-border)' : 'var(--hc-text)'};`;
           if (isDark && r < 3) {
-            cell.innerHTML = '<div style="width:26px;height:26px;border-radius:50%;background:#ef4444;border:2px solid #fca5a5;"></div>';
+            cell.innerHTML = '<div style="width:26px;height:26px;border-radius:50%;background:var(--hc-danger);border:2px solid var(--hc-danger-text);"></div>';
           } else if (isDark && r > 4) {
-            cell.innerHTML = '<div style="width:26px;height:26px;border-radius:50%;background:#06b6d4;border:2px solid #a5f3fc;"></div>';
+            cell.innerHTML = '<div style="width:26px;height:26px;border-radius:50%;background:var(--hc-success);border:2px solid var(--hc-accent-text);"></div>';
           }
           board.appendChild(cell);
         }
@@ -1677,13 +1671,13 @@
       if (game === 'checkers') {
         document.getElementById('gameCheckersView').style.display = 'block';
         document.getElementById('gameSnakeView').style.display = 'none';
-        document.getElementById('tabArcadeCheckers').style.background = 'linear-gradient(180deg, #0284c7 0%, #0369a1 100%)';
-        document.getElementById('tabArcadeSnake').style.background = '#334155';
+        document.getElementById('tabArcadeCheckers').style.background = 'linear-gradient(180deg, var(--hc-accent) 0%, var(--hc-accent-hover) 100%)';
+        document.getElementById('tabArcadeSnake').style.background = 'var(--hc-border-strong)';
       } else {
         document.getElementById('gameCheckersView').style.display = 'none';
         document.getElementById('gameSnakeView').style.display = 'block';
-        document.getElementById('tabArcadeSnake').style.background = 'linear-gradient(180deg, #0284c7 0%, #0369a1 100%)';
-        document.getElementById('tabArcadeCheckers').style.background = '#334155';
+        document.getElementById('tabArcadeSnake').style.background = 'linear-gradient(180deg, var(--hc-accent) 0%, var(--hc-accent-hover) 100%)';
+        document.getElementById('tabArcadeCheckers').style.background = 'var(--hc-border-strong)';
       }
     }
 
@@ -1736,10 +1730,10 @@
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, 300, 300);
 
-        ctx.fillStyle = '#ef4444';
+        ctx.fillStyle = 'var(--hc-danger)';
         ctx.fillRect(food.x * grid, food.y * grid, grid - 2, grid - 2);
 
-        ctx.fillStyle = '#22c55e';
+        ctx.fillStyle = 'var(--hc-success)';
         snake.forEach(s => ctx.fillRect(s.x * grid, s.y * grid, grid - 2, grid - 2));
       }, 100);
     }
@@ -1791,7 +1785,7 @@
       container.innerHTML = '';
 
       if (list.length === 0) {
-        container.innerHTML = '<div style="color:#64748b;font-size:0.85rem;padding:1rem;text-align:center;">Nenhum operador logado recentemente neste navegador.</div>';
+        container.innerHTML = '<div style="color:var(--hc-text-3);font-size:0.85rem;padding:1rem;text-align:center;">Nenhum operador logado recentemente neste navegador.</div>';
         return;
       }
 

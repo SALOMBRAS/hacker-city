@@ -4,28 +4,28 @@
 #authOverlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: radial-gradient(circle at 50% 30%, #0f172a 0%, #05070a 100%);
+  background: radial-gradient(circle at 50% 30%, var(--hc-surface-2) 0%, var(--hc-canvas) 100%);
   z-index: 9000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
   background-image: 
-    radial-gradient(circle at 50% 10%, rgba(6, 182, 212, 0.15) 0%, transparent 60%),
+    radial-gradient(circle at 50% 10%, rgba(53, 184, 119, 0.15) 0%, transparent 60%),
     linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
   background-size: 100% 100%, 30px 30px, 30px 30px;
 }
 
 .auth-card {
-  background: rgba(13, 17, 26, 0.95);
-  border: 2px solid var(--cyan-neon);
-  border-radius: 12px;
-  box-shadow: 0 0 40px rgba(6, 182, 212, 0.25), inset 0 0 20px rgba(6, 182, 212, 0.05);
+  background: var(--hc-surface);
+  border: 1px solid var(--hc-border-strong);
+  border-radius: var(--hc-radius-lg);
+  box-shadow: var(--hc-shadow-3);
   max-width: 580px;
   width: 100%;
   padding: 2.2rem;
-  backdrop-filter: blur(12px);
+  
   position: relative;
 }
 
@@ -34,17 +34,17 @@
   margin-bottom: 1.5rem;
 }
 .auth-title {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1.85rem;
-  letter-spacing: 2px;
-  color: #fff;
+  font-family: var(--hc-font-sans);
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--hc-text);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
-  text-transform: uppercase;
+  gap: 0.4rem;
 }
-.auth-title span { color: var(--cyan-neon); }
+.auth-title span { color: var(--hc-success); }
 .auth-subtitle {
   color: var(--text-muted);
   font-size: 0.85rem;
@@ -54,21 +54,21 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  background: rgba(16, 185, 129, 0.12);
+  background: rgba(53, 184, 119, 0.12);
   border: 1px solid var(--green-safe);
   color: var(--green-safe);
   font-size: 0.72rem;
   padding: 0.2rem 0.6rem;
   border-radius: 20px;
   margin-top: 0.5rem;
-  font-family: 'Fira Code', monospace;
+  font-family: var(--hc-font-mono);
 }
 
 .auth-tabs {
   display: flex;
   gap: 0.5rem;
-  background: #090d16;
-  border: 1px solid #1e293b;
+  background: var(--hc-inset);
+  border: 1px solid var(--hc-border);
   padding: 0.35rem;
   border-radius: 8px;
   margin-bottom: 1.5rem;
@@ -78,18 +78,18 @@
   background: transparent;
   border: none;
   color: var(--text-muted);
-  font-family: 'Rajdhani', sans-serif;
-  font-weight: 700;
-  font-size: 0.95rem;
+  font-family: var(--hc-font-sans);
+  font-weight: 600;
+  font-size: 0.9rem;
   padding: 0.6rem;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
 }
 .auth-tab.active {
-  background: #1e293b;
+  background: var(--hc-border);
   color: var(--cyan-neon);
-  box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+  box-shadow: none;
 }
 
 .auth-form { display: none; }
@@ -105,27 +105,26 @@
 }
 .form-group label {
   display: block;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--hc-text-2);
+  margin-bottom: 0.4rem;
 }
 .form-input {
   width: 100%;
-  background: #090d16;
-  border: 1px solid #334155;
+  background: var(--hc-inset);
+  border: 1px solid var(--hc-border-strong);
   color: #fff;
   padding: 0.75rem 1rem;
-  border-radius: 6px;
-  font-family: 'Fira Code', monospace;
+  border-radius: var(--hc-radius-sm);
+  font-family: var(--hc-font-sans);
   font-size: 0.92rem;
   outline: none;
   transition: all 0.2s;
 }
 .form-input:focus {
   border-color: var(--cyan-neon);
-  box-shadow: 0 0 12px var(--cyan-glow);
+  box-shadow: none;
 }
 
 /* Seletor de Especialidade / Classes com Destaque e Rádio */
@@ -136,22 +135,22 @@
   margin-top: 0.4rem;
 }
 .specialty-card {
-  background: #090d16;
-  border: 1px solid #1e293b;
+  background: var(--hc-inset);
+  border: 1px solid var(--hc-border);
   border-radius: 6px;
-  padding: 0.85rem 0.75rem;
+  padding: 0.85rem 0.9rem;
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
 }
 .specialty-card:hover {
-  border-color: #38bdf8;
-  background: #0f172a;
+  border-color: var(--hc-accent-text);
+  background: var(--hc-surface-2);
 }
 .specialty-card.selected {
   border-color: var(--cyan-neon) !important;
-  background: rgba(6, 182, 212, 0.15) !important;
-  box-shadow: 0 0 16px rgba(6, 182, 212, 0.35) !important;
+  background: var(--hc-accent-soft) !important;
+  box-shadow: none;
 }
 .spec-radio {
   position: absolute;
@@ -160,14 +159,14 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  border: 2px solid #64748b;
+  border: 2px solid var(--hc-text-3);
   pointer-events: none;
   transition: all 0.2s;
 }
 .specialty-card.selected .spec-radio {
   border-color: var(--cyan-neon);
   background: var(--cyan-neon);
-  box-shadow: 0 0 8px var(--cyan-neon);
+  box-shadow: none;
 }
 .spec-title, .spec-desc {
   pointer-events: none;
@@ -189,24 +188,22 @@
 
 .btn-submit {
   width: 100%;
-  background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
+  background: linear-gradient(180deg, var(--hc-accent) 0%, var(--hc-accent-hover) 100%);
   border: 1px solid var(--cyan-neon);
   color: #fff;
-  font-family: 'Orbitron', sans-serif;
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-family: var(--hc-font-sans);
+  font-size: 0.92rem;
+  font-weight: 600;
   padding: 0.85rem;
   border-radius: 6px;
   cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+  box-shadow: none;
   transition: all 0.2s;
   margin-top: 1.25rem;
 }
 .btn-submit:hover {
   background: #0ea5e9;
-  box-shadow: 0 0 25px rgba(6, 182, 212, 0.6);
+  box-shadow: none;
   transform: translateY(-1px);
 }
 .btn-submit:disabled {
@@ -225,8 +222,8 @@
   margin-top: 0.5rem;
 }
 .account-item {
-  background: #090d16;
-  border: 1px solid #1e293b;
+  background: var(--hc-inset);
+  border: 1px solid var(--hc-border);
   padding: 0.75rem 1rem;
   border-radius: 6px;
   display: flex;
@@ -237,16 +234,16 @@
 }
 .account-item:hover {
   border-color: var(--green-safe);
-  background: #0f172a;
+  background: var(--hc-surface-2);
 }
 .acc-tag { font-size: 0.95rem; font-weight: bold; color: #fff; }
-.acc-info { font-size: 0.78rem; color: var(--text-muted); font-family: 'Fira Code', monospace; }
+.acc-info { font-size: 0.78rem; color: var(--text-muted); font-family: var(--hc-font-mono); }
 
 /* ========================================================
    SEÇÃO DE DUPLA ATIVAÇÃO (OTP & LINK DIRETO)
    ======================================================== */
 .verify-dual-header {
-  background: rgba(6, 182, 212, 0.08);
+  background: rgba(53, 184, 119, 0.08);
   border: 1px solid var(--cyan-neon);
   border-radius: 8px;
   padding: 1rem;
@@ -256,7 +253,7 @@
 
 .verify-dual-title {
   color: #fff;
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--hc-font-sans);
   font-size: 0.95rem;
   font-weight: 700;
   display: flex;
@@ -268,18 +265,18 @@
 .verify-email-pill {
   display: inline-block;
   color: var(--cyan-neon);
-  font-family: 'Fira Code', monospace;
+  font-family: var(--hc-font-mono);
   font-size: 0.88rem;
   font-weight: bold;
-  background: rgba(6, 182, 212, 0.12);
+  background: rgba(53, 184, 119, 0.12);
   padding: 0.2rem 0.6rem;
   border-radius: 4px;
   margin-top: 0.35rem;
 }
 
 .verify-method-box {
-  background: #090d16;
-  border: 1px solid #1e293b;
+  background: var(--hc-inset);
+  border: 1px solid var(--hc-border);
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1rem;
@@ -287,8 +284,8 @@
 }
 
 .verify-method-box.priority {
-  border-color: rgba(6, 182, 212, 0.5);
-  box-shadow: 0 0 15px rgba(6, 182, 212, 0.1);
+  border-color: rgba(53, 184, 119, 0.5);
+  box-shadow: none;
 }
 
 .verify-method-header {
@@ -299,7 +296,7 @@
 }
 
 .verify-method-name {
-  font-family: 'Orbitron', sans-serif;
+  font-family: var(--hc-font-sans);
   font-size: 0.85rem;
   font-weight: 700;
   color: #fff;
@@ -309,40 +306,40 @@
 }
 
 .verify-badge-priority {
-  font-family: 'Fira Code', monospace;
+  font-family: var(--hc-font-mono);
   font-size: 0.7rem;
   font-weight: bold;
   color: var(--cyan-neon);
-  background: rgba(6, 182, 212, 0.15);
+  background: rgba(53, 184, 119, 0.15);
   border: 1px solid var(--cyan-neon);
   padding: 0.15rem 0.45rem;
   border-radius: 4px;
 }
 
 .verify-badge-alt {
-  font-family: 'Fira Code', monospace;
+  font-family: var(--hc-font-mono);
   font-size: 0.7rem;
-  color: #94a3b8;
-  background: #1e293b;
+  color: var(--hc-text-2);
+  background: var(--hc-border);
   padding: 0.15rem 0.45rem;
   border-radius: 4px;
 }
 
 .verify-method-desc {
   font-size: 0.78rem;
-  color: #94a3b8;
+  color: var(--hc-text-2);
   line-height: 1.45;
   margin-bottom: 0.75rem;
 }
 
 .verify-token-input {
-  font-family: 'Fira Code', monospace;
+  font-family: var(--hc-font-mono);
   font-size: 1.35rem;
   letter-spacing: 6px;
   text-align: center;
   font-weight: 700;
   color: var(--green-safe);
-  background: #04070d;
+  background: var(--hc-inset);
   border: 2px solid var(--cyan-neon);
   border-radius: 6px;
   padding: 0.65rem;
@@ -352,7 +349,7 @@
 
 .verify-token-input:focus {
   outline: none;
-  box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+  box-shadow: none;
 }
 
 .verify-divider {
@@ -360,8 +357,8 @@
   align-items: center;
   text-align: center;
   margin: 1rem 0;
-  color: #64748b;
-  font-family: 'Fira Code', monospace;
+  color: var(--hc-text-3);
+  font-family: var(--hc-font-mono);
   font-size: 0.75rem;
 }
 
@@ -369,7 +366,7 @@
 .verify-divider::after {
   content: '';
   flex: 1;
-  border-bottom: 1px solid #1e293b;
+  border-bottom: 1px solid var(--hc-border);
 }
 
 .verify-divider span {
