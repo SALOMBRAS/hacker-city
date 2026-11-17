@@ -8,7 +8,8 @@ Documentos-fonte (análise do código, com `arquivo:linha`):
 HE2, **só ideias** (AGPL, ver [`referencia-he2/README.md`](./referencia-he2/README.md)):
 [`01-helix-processos-software`](./referencia-he2/01-helix-processos-software.md) ·
 [`02-helix-rede-logs-story-seguranca`](./referencia-he2/02-helix-rede-logs-story-seguranca.md) ·
-[`03-heborn-ux`](./referencia-he2/03-heborn-ux.md)
+[`03-heborn-ux`](./referencia-he2/03-heborn-ux.md) ·
+[`04-game-design-specs`](./referencia-he2/04-game-design-specs.md)
 
 Regra: **regras e fórmulas são reescritas, nunca copiadas.** Visual é nosso (design system em `src/css/design-system.css`).
 
@@ -70,6 +71,19 @@ O HE2 corrige os pontos fracos do Legacy, mas é **incompleto** (muitos `TODO`) 
 - Bounce selecionável no cliente mas sem efeito → só mostrar anonimato que existe de verdade.
 - Sem rate limit nem idempotency-key → criar `request_log(request_id)` e limite por ação.
 - Falha de crack sem motivo na UI → sempre mostrar o motivo.
+
+## Princípios de design vindos do GameDesign/specs
+
+Os documentos de design são curtos, mas trazem as regras de **filosofia** mais fortes do HE2. Elas viram princípios do nosso jogo:
+
+1. **Versão baixa nunca bloqueia, só alonga o tempo e a exposição.** Um cracker fraco ataca qualquer alvo, mas demora horas e fica exposto. A decisão do jogador é "vale a pena me expor?".
+2. **Conexão aberta é exposição.** Acaba o "camping de logs" grátis: manter conexão aberta custa Heat e deixa rastro.
+3. **A vítima nunca fica 100% segura.** Defesa só compra tempo; a resposta final é contra-atacar (achar o atacante nos logs e matar o processo).
+4. **Log nunca é prova.** Pilha de revisões e recuperação iterativa cada vez mais lenta: o jogador nunca tem certeza de estar vendo o log original.
+5. **Bounty dividido por saltos descobertos** (caçada ao procurado): impede que alguém descubra n-1 saltos e outro roube o último.
+6. **Processos em 3 escalonamentos × 3 alocações** (transient / persistent / iterative × static / dynamic / variadic) e tempo medido em *work units* contra o clock do hardware.
+
+Ideias maiores que ficam **fora do escopo imediato** (o próprio HE2 nunca as entregou): mapa-mundo com grade e influência, ISP/backbone, LAN, cidadãos virtuais, modos PvP (Hostage, Bomb, CTF), conquista de território por clãs.
 
 ## Ordem de execução (cada item = 1 PR atômica ou mais)
 
