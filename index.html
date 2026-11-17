@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="src/css/desktop.css">
   <link rel="stylesheet" href="src/css/windows.css">
   <link rel="stylesheet" href="src/css/botnet-traceback.css">
+  <link rel="stylesheet" href="src/css/quitinete.css">
 
   <!-- Modular Core Scripts -->
   <script src="src/js/audio-synth.js"></script>
@@ -24,6 +25,7 @@
   <script src="src/js/hardware-catalog.js"></script>
   <script src="src/js/terminal-tools.js"></script>
   <script src="src/js/bot-network-engine.js"></script>
+  <script src="src/js/quitinete-engine.js"></script>
 </head>
 <body>
 
@@ -167,6 +169,9 @@
       </div>
 
       <div class="topbar-stats">
+        <div id="hudQuitinetePill" class="hud-quitinete-pill" onclick="openQuitineteWindow()">
+          🏠 QUITINETE: 3 CONTAS EM ATRASO
+        </div>
         <div class="stat-pill">
           <span style="color: #94a3b8;">CARTEIRA:</span>
           <span class="val" id="hudWalletMoney" style="color: var(--green-safe);">$ 0.00 HC</span>
@@ -193,6 +198,11 @@
       <div class="desktop-icon" onclick="openWindow('winBank')">
         <div class="icon-symbol">🏦</div>
         <div class="icon-label">Hacker Bank</div>
+      </div>
+
+      <div class="desktop-icon" onclick="openQuitineteWindow()">
+        <div class="icon-symbol">🏠</div>
+        <div class="icon-label">Quitinete</div>
       </div>
 
       <div class="desktop-icon" onclick="openWindow('winIrc')">
@@ -529,6 +539,19 @@
       </div>
     </div>
 
+    <!-- JANELA 12: QUITINETE & DESPESAS DE SOBREVIVÊNCIA -->
+    <div class="window-frame" id="winQuitinete" style="width: 760px; height: 520px; top: 80px; left: 180px; display: none;">
+      <div class="window-header" onmousedown="dragWindowStart(event, 'winQuitinete')">
+        <div class="window-title">🏠 Quitinete // Despesas de Sobrevivência & Contas</div>
+        <div class="window-controls">
+          <button class="btn-win btn-win-close" onclick="closeWindow('winQuitinete')"></button>
+        </div>
+      </div>
+      <div class="window-body" id="quitineteAppBody" style="padding: 1.25rem; overflow-y: auto;">
+        <!-- Renderizado dinamicamente via quitineteEngine.renderUI -->
+      </div>
+    </div>
+
     <!-- Barra de Tarefas Inferior -->
     <footer class="taskbar">
       <div class="taskbar-left">
@@ -852,6 +875,47 @@
       // Prompt do Terminal
       document.getElementById('cliPromptTag').innerText = `${currentProfile.hacker_tag.toLowerCase()}@hackercity:~$`;
       updateHardwareDisplay();
+      if (window.quitineteEngine) {
+        window.quitineteEngine.updatePill();
+      }
+    }
+
+    function openQuitineteWindow() {
+      openWindow('winQuitinete');
+      if (window.quitineteEngine && currentWallet) {
+        window.quitineteEngine.renderUI('quitineteAppBody', currentWallet.balance);
+      }
+    }
+
+    async function payQuitineteBill(billId) {
+      if (!currentWallet) return;
+      if (!window.quitineteEngine) return;
+
+      const res = window.quitineteEngine.payBill(billId, currentWallet.balance);
+      if (!res.success) {
+        if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+        alert(res.message);
+        return;
+      }
+
+      currentWallet.balance -= res.price;
+      if (currentProfile) currentProfile.reputation += res.repGain;
+
+      if (window.hackerAudio) window.hackerAudio.playCashChime();
+      showToast(res.message);
+
+      updateHudDisplays();
+      loadBankTransactions();
+      window.quitineteEngine.renderUI('quitineteAppBody', currentWallet.balance);
+
+      try {
+        await supabase.rpc('buy_black_market_item', {
+          p_item_type: `quitinete_bill_${billId}`,
+          p_cost: res.price
+        });
+      } catch (e) {
+        console.warn('Registro de conta salvo localmente:', e);
+      }
     }
 
     function updateHardwareDisplay() {
@@ -1220,6 +1284,8 @@
         appendCli('Comandos disponíveis:');
         appendCli('  /use [app]           - Painel interativo de invasão (/use ip_scanner, /use vpn_breaker, etc.)', '#f59e0b');
         appendCli('  host <site>          - Rastreia a VPS e infraestrutura de um site (ex: host hc://bank)', '#06b6d4');
+        appendCli('  contas               - Painel de despesas e sobrevivência da Quitinete', '#f43f5e');
+        appendCli('  pagar <conta>        - Quita aluguel, luz ou água diretamente pelo banco (ex: pagar aluguel)', '#f43f5e');
         appendCli('  scan                 - Varre alvos vulneráveis no PostgreSQL');
         appendCli('  nmap <ip>            - Varredura profunda de portas e serviços do alvo');
         appendCli('  hack [ip]            - Abre scanner de alvos ou explora nó vulnerável');
@@ -1264,6 +1330,27 @@
         openWindow('winHardware');
         updateHardwareDisplay();
         appendCli('Oficina de Hardware aberta. Verifique suas peças e upgrades.');
+      } else if (cmd === 'contas' || cmd === 'quitinete') {
+        openQuitineteWindow();
+        appendCli('=== DESPESAS DA QUITINETE // STATUS DE SOBREVIVÊNCIA ===', '#06b6d4');
+        if (window.quitineteEngine) {
+          Object.values(window.quitineteEngine.bills).forEach(b => {
+            const st = b.paid ? '[QUITADO - EM DIA]' : `[EM ABERTO: $ ${b.price} HC - ${b.tagUnpaid}]`;
+            const col = b.paid ? '#22c55e' : '#f43f5e';
+            appendCli(`  ${b.name.padEnd(23)}: ${st}`, col);
+          });
+          appendCli("Dica: Use 'pagar <aluguel|luz|agua>' para quitar diretamente pelo terminal.", '#94a3b8');
+        }
+      } else if (cmd === 'pagar') {
+        const targetBill = parts[1] ? parts[1].toLowerCase() : '';
+        const map = { aluguel: 'rent', imobiliaria: 'rent', luz: 'power', energia: 'power', agua: 'water' };
+        const billId = map[targetBill];
+        if (!billId) {
+          if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+          appendCli("Uso: pagar <aluguel | luz | agua> (ex: pagar aluguel)", '#ef4444');
+        } else {
+          payQuitineteBill(billId);
+        }
       } else if (cmd === 'scan') {
         loadNetworkTargetsFromCloud();
         openWindow('winScanner');

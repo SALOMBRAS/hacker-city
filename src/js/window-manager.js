@@ -68,6 +68,7 @@ class WindowManager {
     const list = [
       { id: 'winTerminal', label: '📟 Terminal' },
       { id: 'winBank', label: '🏦 Banco' },
+      { id: 'winQuitinete', label: '🏠 Quitinete' },
       { id: 'winIrc', label: '💬 IRC Chat' },
       { id: 'winBrowser', label: '🌐 Browser' },
       { id: 'winScanner', label: '🎯 Scanner' },
