@@ -416,3 +416,42 @@ CREATE TABLE IF NOT EXISTS public.fbi_wanted (
   expires_at TIMESTAMPTZ NOT NULL,
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+
+-- ========================================================
+-- 15. FASE 2 COMPLETA (SEM DOOM): TASK MANAGER, BOUNCE, XHD,
+-- 5 BANCOS NPC, TRILHA DE ENIGMAS, CLÃS & MAIL
+-- (Sincronizado com supabase/migrations/20261118_phase2_tasks_bounce_banks_clans_mail.sql)
+-- ========================================================
+CREATE TABLE IF NOT EXISTS public.player_processes (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  title TEXT NOT NULL,
+  subtitle TEXT NOT NULL,
+  target_ip TEXT NOT NULL DEFAULT 'localhost',
+  queue_kind TEXT NOT NULL CHECK (queue_kind IN ('cpu', 'net')),
+  category TEXT NOT NULL,
+  work_total NUMERIC(12,2) NOT NULL CHECK (work_total > 0),
+  work_done NUMERIC(12,2) NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'running',
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.bounce_chains (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  chain_name TEXT NOT NULL DEFAULT 'Rota Principal',
+  hops JSONB NOT NULL DEFAULT '[]'::jsonb,
+  is_active BOOLEAN NOT NULL DEFAULT false
+);
+
+CREATE TABLE IF NOT EXISTS public.hacked_bank_accounts (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  hacker_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  bank_ip TEXT NOT NULL,
+  bank_name TEXT NOT NULL,
+  account_number TEXT NOT NULL,
+  pin_password TEXT NOT NULL,
+  last_known_balance NUMERIC(14,2) NOT NULL DEFAULT 0,
+  UNIQUE(hacker_id, account_number)
+);
