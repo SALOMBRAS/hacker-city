@@ -285,6 +285,10 @@ class BotAIService {
     }
     this.syslogRegistry.get(botIp).push(`[${new Date().toLocaleTimeString()}] INTRUSION src=${playerIp} dest=${botIp} exploit=OK`);
 
+    if (typeof window.addLocalLog === 'function') {
+      window.addLocalLog('SSH/EXPLOIT', `Acesso root em ${bot ? bot.handle : 'Host'} [${botIp}] — rastro ativo em /var/log/syslog`, 'warning');
+    }
+
     let delaySec = 15;
     let attackType = "light_theft";
 
@@ -316,6 +320,7 @@ class BotAIService {
       this.startCountdown(botIp);
     }
 
+    if (typeof window.renderLogsPage === 'function') window.renderLogsPage();
     return attackData;
   }
 
@@ -329,6 +334,9 @@ class BotAIService {
         return;
       }
       att.timeLeft -= 1;
+      if (typeof window.renderLogsPage === 'function' && window.winManager && window.winManager.current === 'winLogs') {
+        window.renderLogsPage();
+      }
       if (att.timeLeft <= 0) {
         clearInterval(interval);
         this.executeCounterAttack(botIp);
@@ -337,14 +345,20 @@ class BotAIService {
   }
 
   wipeLogs(botIp) {
-    if (this.syslogRegistry.has(botIp)) {
+    let hadTrace = false;
+    if (this.syslogRegistry.has(botIp) && this.syslogRegistry.get(botIp).length > 0) {
       this.syslogRegistry.set(botIp, []);
+      hadTrace = true;
     }
-    if (this.pendingAttacks.has(botIp)) {
+    const hadPending = this.pendingAttacks.has(botIp);
+    if (hadPending) {
       this.pendingAttacks.delete(botIp);
-      return true;
     }
-    return false;
+    if ((hadTrace || hadPending) && typeof window.addLocalLog === 'function') {
+      window.addLocalLog('RMLOG', `Rastro apagado em ${botIp}:/var/log/syslog${hadPending ? ' (contra-ataque abortado)' : ''}`, 'success');
+    }
+    if (typeof window.renderLogsPage === 'function') window.renderLogsPage();
+    return hadPending;
   }
 
   executeCounterAttack(botIp) {
@@ -359,24 +373,34 @@ class BotAIService {
     if (type === "light_theft") {
       const stolen = 50;
       if (window.currentWallet) {
-        window.currentWallet.balance = Math.max(0, window.currentWallet.balance - stolen);
+        window.currentWallet.balance = Math.max(0, parseFloat(window.currentWallet.balance) - stolen);
         if (typeof updateHudDisplays === 'function') updateHudDisplays();
+      }
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('INTRUSION-IN', `${handle} [${botIp}] rastreou seu IP pelos logs e drenou $ ${stolen}.00 HC`, 'danger');
       }
       alert(`[ALERTA DE INVASÃO]\nO bot defensor ${handle} [${botIp}] rastreou seus logs em /var/log/syslog e debitou $ ${stolen}.00 HC da sua conta!`);
     } else if (type === "bank_drain_and_vminer") {
       const stolen = 250;
       if (window.currentWallet) {
-        window.currentWallet.balance = Math.max(0, window.currentWallet.balance - stolen);
+        window.currentWallet.balance = Math.max(0, parseFloat(window.currentWallet.balance) - stolen);
         if (typeof updateHudDisplays === 'function') updateHudDisplays();
+      }
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('INTRUSION-IN', `${handle} [${botIp}] drenou $ ${stolen}.00 HC e instalou trojan 'vminer'`, 'danger');
       }
       if (window.hackerAudio) window.hackerAudio.playMalwareInstalled();
       alert(`[INVASÃO CRÍTICA]\n${handle} [${botIp}] invadiu seu sistema, drenou $ ${stolen}.00 HC e instalou o trojan 'vminer' na sua CPU!`);
     } else {
       // DDoS Swarm
       this.startDDoS(12);
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('DDOS-ALERT', `${handle} [${botIp}] disparou ataque DDoS de 12s contra 192.168.1.104`, 'danger');
+      }
       if (window.hackerAudio) window.hackerAudio.playDDoSAlert();
       alert(`[ATAQUE DEVASTADOR DDOS]\n${handle} [${botIp}] disparou um ataque maciço DDoS! Sua conexão de rede cairá por 12 segundos.`);
     }
+    if (typeof window.renderLogsPage === 'function') window.renderLogsPage();
   }
 
   startDDoS(durationSec = 12) {
@@ -425,10 +449,23 @@ class BotnetC2Engine {
     }
   }
 
+  getBonusMultiplier() {
+    let bonus = 1.0;
+    if (window.currentProfile && window.currentProfile.specialty === 'botmaster') {
+      bonus *= 1.30;
+    }
+    if (window.skillTreeEngine) {
+      const rank = typeof window.skillTreeEngine.getRank === 'function' ? window.skillTreeEngine.getRank('botnet_boost') : 0;
+      if (rank > 0) bonus *= (1 + rank * 0.15);
+      if (window.skillTreeEngine.selectedSubclass === 'sub_botmaster') bonus *= 1.20;
+    }
+    return bonus;
+  }
+
   getIncomeRate() {
     if (this.profile === "ddos") return 0.0;
     const baseTotal = this.slaves.reduce((acc, s) => acc + s.baseRate, 0);
-    return baseTotal * this.multiplier;
+    return baseTotal * this.multiplier * this.getBonusMultiplier();
   }
 
   addSlave(bot) {
@@ -442,6 +479,9 @@ class BotnetC2Engine {
         tier: bot.tier,
         baseRate: rate
       });
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('BOTNET-C2', `Zumbi ${bot.handle} [${bot.ip}] anexado ao enxame (+$ ${rate.toFixed(2)}/s base)`, 'info');
+      }
       if (window.hackerAudio) window.hackerAudio.playMalwareInstalled();
     }
   }
@@ -458,6 +498,9 @@ class BotnetC2Engine {
     if (window.currentWallet) {
       window.currentWallet.balance = parseFloat(window.currentWallet.balance) + amount;
       if (typeof updateHudDisplays === 'function') updateHudDisplays();
+    }
+    if (typeof window.addLocalLog === 'function') {
+      window.addLocalLog('BOTNET-PAYOUT', `Rendimentos de mineração coletados: +$ ${amount.toFixed(2)} HC`, 'success');
     }
 
     if (window.hackerAudio) window.hackerAudio.playMoneyCollect();
@@ -765,6 +808,9 @@ function drainBotBank(ip) {
       window.currentWallet.balance = parseFloat(window.currentWallet.balance) + loot;
       if (typeof updateHudDisplays === 'function') updateHudDisplays();
     }
+    if (typeof window.addLocalLog === 'function') {
+      window.addLocalLog('BANK-WIRE', `Saldo drenado de ${bot.handle} [${ip}]: +$ ${loot}.00 HC`, 'success');
+    }
     if (window.hackerAudio) window.hackerAudio.playMoneyCollect();
     alert(`Transação wire concluída! Drenado $ ${loot}.00 HC da conta de ${bot.handle}.`);
   }
@@ -786,6 +832,7 @@ function renderC2UI(containerId = 'botnetC2Body') {
   const c2 = window.botnetC2;
   const rate = c2.getIncomeRate();
   const prof = c2.profile;
+  const bonusMult = c2.getBonusMultiplier();
 
   let slavesRows = '';
   if (c2.slaves.length === 0) {
@@ -798,7 +845,7 @@ function renderC2UI(containerId = 'botnetC2Body') {
           ? '<span style="background: rgba(240, 160, 58, 0.15); color: #f0a03a; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">Tier II</span>'
           : '<span style="background: rgba(208, 68, 58, 0.15); color: #d0443a; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem;">Tier III</span>');
 
-      const liveRate = (s.baseRate * c2.multiplier).toFixed(2);
+      const liveRate = (s.baseRate * c2.multiplier * bonusMult).toFixed(2);
 
       slavesRows += `
         <div class="c2-slave-item">

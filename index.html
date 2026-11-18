@@ -211,6 +211,7 @@
         <div class="nav-section">Meu PC</div>
         <button type="button" class="nav-item" data-win="winHome" onclick="navTo('winHome')"><i data-icon="layout-dashboard"></i><span>Home</span></button>
         <button type="button" class="nav-item" data-win="winTerminal" onclick="navTo('winTerminal')"><i data-icon="terminal"></i><span>Terminal</span></button>
+        <button type="button" class="nav-item" data-win="winLogs" onclick="navTo('winLogs')"><i data-icon="file-text"></i><span>Logs</span></button>
         <button type="button" class="nav-item" data-win="winHardware" onclick="navTo('winHardware')"><i data-icon="cpu"></i><span>Hardware</span></button>
         <button type="button" class="nav-item" data-win="winSkillTree" onclick="navTo('winSkillTree')"><i data-icon="network"></i><span>Habilidades</span></button>
         <div class="nav-section">Rede</div>
@@ -414,11 +415,15 @@
         </div>
 
         <div id="gameCheckersView">
-          <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--hc-text); margin-bottom: 0.5rem;">
-            <span>Vez: <strong style="color: var(--cyan-neon);">SUA VEZ (AZUL)</strong></span>
-            <span>IA: <strong style="color: var(--hc-danger-text);">Aguardando jogada</strong></span>
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--hc-text); margin-bottom: 0.5rem; gap: 0.5rem; flex-wrap: wrap;">
+            <span>Vez: <strong id="checkersTurnStatus" style="color: var(--hc-accent-text);">SUA VEZ (VERDE)</strong></span>
+            <span>Placar: <strong id="checkersScoreStatus" style="color: var(--hc-text);">12 × 12 peças</strong></span>
+            <span>IA: <strong id="checkersAiStatus" style="color: var(--hc-danger-text);">Aguardando jogada</strong></span>
           </div>
-          <div id="checkersBoard" style="width: 320px; height: 320px; display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); border: 3px solid var(--hc-border-strong); margin: 0 auto;"></div>
+          <div id="checkersBoard" style="width: 320px; height: 320px; display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); border: 3px solid var(--hc-border-strong); margin: 0 auto; user-select: none;"></div>
+          <div style="text-align: center; margin-top: 0.65rem;">
+            <button type="button" class="btn-submit" style="width: auto; margin: 0; padding: 0.35rem 1rem; font-size: 0.78rem; background: var(--hc-surface-3); border-color: var(--hc-border-strong);" onclick="initCheckersBoard()">REINICIAR PARTIDA</button>
+          </div>
         </div>
 
         <div id="gameSnakeView" style="display: none; text-align: center;">
@@ -454,7 +459,7 @@
           </ul>
         </div>
 
-        <button class="btn-submit" style="background: var(--hc-danger); border-color: var(--hc-danger);" onclick="window.open('/panic/index.html', '_blank')">
+        <button class="btn-submit" style="background: var(--hc-danger); border-color: var(--hc-danger);" onclick="window.open('panic/index.html', '_blank')">
           ABRIR SIMULADOR DE BATIDA POLICIAL
         </button>
       </div>
@@ -570,6 +575,17 @@
       </div>
     </div>
 
+    <!-- JANELA 14: LOGS DE ACESSO (LOCAL & RASTROS REMOTOS /var/log/syslog) -->
+    <div class="window-frame" id="winLogs" style="display: none;">
+      <div class="window-header">
+        <div>
+          <div class="window-title">Logs de acesso</div>
+          <p class="page-sub">Auditoria do seu PC (192.168.1.104) e rastros ativos deixados em servidores remotos (/var/log/syslog).</p>
+        </div>
+      </div>
+      <div class="window-body" id="logsPageBody"></div>
+    </div>
+
   </div>
 
   <div class="toast-popup" id="globalToast">Notificação do sistema</div>
@@ -586,17 +602,158 @@
       ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) 
       : null;
 
-    let currentProfile = null;
-    let currentWallet = null;
-    let selectedSpecialty = 'exploiter';
+    var currentProfile = null;
+    var currentWallet = null;
+    var selectedSpecialty = 'exploiter';
+    var pendingVerifyEmail = '';
     let highestZ = 100;
+
+    // 1.5 REGISTRO CENTRAL DE LOGS DE ACESSO (LOCAIS + AUDITORIA REMOTA)
+    window.systemLogs = (function () {
+      try {
+        const raw = localStorage.getItem('HC_SYSTEM_LOGS');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch (e) {}
+      return [
+        { id: 1, time: new Date().toLocaleTimeString(), tag: 'BOOT', msg: 'Kernel HackerOS 4.19 inicializado em 192.168.1.104', level: 'info' }
+      ];
+    })();
+
+    window.addLocalLog = function (tag, msg, level = 'info') {
+      const entry = {
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        time: new Date().toLocaleTimeString(),
+        tag: tag || 'SYSTEM',
+        msg: msg || '',
+        level: level
+      };
+      window.systemLogs.unshift(entry);
+      if (window.systemLogs.length > 80) window.systemLogs.length = 80;
+      try { localStorage.setItem('HC_SYSTEM_LOGS', JSON.stringify(window.systemLogs)); } catch (e) {}
+      if (window.winManager && window.winManager.current === 'winLogs') {
+        window.renderLogsPage();
+      }
+      return entry;
+    };
+
+    window.deleteLocalLogEntry = function (id) {
+      window.systemLogs = window.systemLogs.filter(x => x.id !== id);
+      try { localStorage.setItem('HC_SYSTEM_LOGS', JSON.stringify(window.systemLogs)); } catch (e) {}
+      window.renderLogsPage();
+      showToast('Linha removida de /var/log/auth.log.');
+    };
+
+    window.clearLocalLogs = function () {
+      window.systemLogs = [];
+      try { localStorage.setItem('HC_SYSTEM_LOGS', JSON.stringify(window.systemLogs)); } catch (e) {}
+      window.renderLogsPage();
+      showToast('Arquivo /var/log/auth.log truncado com sucesso.');
+    };
+
+    window.wipeRemoteLogFromUI = function (ip) {
+      if (!window.botAI) return;
+      const aborted = window.botAI.wipeLogs(ip);
+      if (window.hackerAudio) window.hackerAudio.playKeyClick();
+      showToast(aborted
+        ? `Rastro em ${ip} apagado e contra-ataque neutralizado!`
+        : `Logs em ${ip}:/var/log/syslog apagados.`);
+      window.renderLogsPage();
+    };
+
+    window.renderLogsPage = function () {
+      const container = document.getElementById('logsPageBody');
+      if (!container) return;
+
+      // Coletar rastros remotos ativos no BotAIService
+      const remoteTraces = [];
+      if (window.botAI && window.botAI.syslogRegistry) {
+        window.botAI.syslogRegistry.forEach((lines, ip) => {
+          if (lines && lines.length > 0) {
+            const bot = window.botRegistry ? window.botRegistry.getBotByIp(ip) : null;
+            const pending = window.botAI.pendingAttacks ? window.botAI.pendingAttacks.get(ip) : null;
+            remoteTraces.push({ ip, bot, lines, pending });
+          }
+        });
+      }
+
+      const remoteHtml = remoteTraces.length === 0
+        ? `<div class="hc-card" style="padding: 1rem; color: var(--hc-text-2); font-size: 0.85rem; display: flex; align-items: center; gap: 0.65rem;">
+             <span class="hc-badge success">Limpo</span>
+             <span>Nenhum servidor remoto possui seu IP (<code>192.168.1.104</code>) gravado em <code>/var/log/syslog</code> no momento.</span>
+           </div>`
+        : remoteTraces.map(t => {
+            const statusBadge = t.pending
+              ? `<span class="hc-badge danger">Retaliação em ${t.pending.timeLeft}s (${t.pending.attackType})</span>`
+              : `<span class="hc-badge warn">Rastro exposto</span>`;
+            const linesHtml = t.lines.map(l => `<div style="font-family: var(--hc-font-mono); font-size: 0.78rem; color: var(--hc-warning);">${escapeHtml(l)}</div>`).join('');
+            return `
+              <div class="hc-card" style="padding: 0.9rem 1rem; border-color: ${t.pending ? 'var(--hc-danger)' : 'var(--hc-warning)'}; margin-bottom: 0.6rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                  <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <strong style="color: var(--hc-text); font-size: 0.9rem;">${t.bot ? escapeHtml(t.bot.handle) : 'Servidor Remoto'}</strong>
+                    <code style="font-family: var(--hc-font-mono); color: var(--hc-accent-text); font-size: 0.82rem;">${t.ip}:/var/log/syslog</code>
+                    ${statusBadge}
+                  </div>
+                  <button type="button" class="btn-submit" style="width: auto; margin: 0; padding: 0.35rem 0.85rem; font-size: 0.78rem; background: var(--hc-danger); border-color: var(--hc-danger);" onclick="wipeRemoteLogFromUI('${t.ip}')">
+                    Apagar rastro (rmlog)
+                  </button>
+                </div>
+                <div style="background: var(--hc-inset); border: 1px solid var(--hc-border); border-radius: 6px; padding: 0.55rem 0.75rem;">
+                  ${linesHtml}
+                </div>
+              </div>`;
+          }).join('');
+
+      const levelBadge = (lvl, tag) => {
+        const cls = lvl === 'danger' ? 'danger' : (lvl === 'warning' ? 'warn' : (lvl === 'success' ? 'success' : 'info'));
+        return `<span class="hc-badge ${cls}">${escapeHtml(tag)}</span>`;
+      };
+
+      const localHtml = window.systemLogs.length === 0
+        ? `<div style="padding: 1.25rem; text-align: center; color: var(--hc-text-3); font-family: var(--hc-font-mono); font-size: 0.82rem;">/var/log/auth.log está vazio (0 bytes).</div>`
+        : window.systemLogs.map(entry => `
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--hc-border); font-size: 0.82rem;">
+              <div style="display: flex; align-items: center; gap: 0.6rem; min-width: 0; flex-wrap: wrap;">
+                <span style="font-family: var(--hc-font-mono); color: var(--hc-text-3); font-size: 0.76rem;">[${escapeHtml(entry.time)}]</span>
+                ${levelBadge(entry.level, entry.tag)}
+                <span style="color: var(--hc-text); font-family: var(--hc-font-mono); word-break: break-word;">${escapeHtml(entry.msg)}</span>
+              </div>
+              <button type="button" class="hc-btn ghost sm" style="flex-shrink: 0; padding: 0.2rem 0.5rem; font-size: 0.72rem;" onclick="deleteLocalLogEntry(${entry.id})" title="Apagar linha">Apagar</button>
+            </div>
+          `).join('');
+
+      container.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; gap: 0.5rem; flex-wrap: wrap;">
+              <div class="hc-eyebrow">Rastros remotos ativos (/var/log/syslog em alvos invadidos)</div>
+              <span style="font-size: 0.76rem; color: var(--hc-text-2); font-family: var(--hc-font-mono);">Dica CLI: <code>logs [ip]</code> ou <code>rmlog &lt;ip&gt;</code></span>
+            </div>
+            ${remoteHtml}
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; gap: 0.5rem; flex-wrap: wrap;">
+              <div class="hc-eyebrow">Log local do seu PC (192.168.1.104:/var/log/auth.log · ${window.systemLogs.length} registros)</div>
+              <button type="button" class="btn-submit" style="width: auto; margin: 0; padding: 0.32rem 0.8rem; font-size: 0.76rem; background: var(--hc-surface-3); border-color: var(--hc-border-strong);" onclick="clearLocalLogs()">
+                Truncar /var/log/auth.log
+              </button>
+            </div>
+            <div style="background: var(--hc-inset); border: 1px solid var(--hc-border); border-radius: 8px; overflow: hidden; max-height: 360px; overflow-y: auto;">
+              ${localHtml}
+            </div>
+          </div>
+        </div>
+      `;
+    };
 
     // Alternar abas do portal
     function switchAuthTab(tab) {
       document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
-
-      let pendingVerifyEmail = '';
 
       if (tab === 'register') {
         document.getElementById('tabRegister').classList.add('active');
@@ -849,6 +1006,7 @@
         setupRealtimeSubscriptions();
 
         openWindow('winHome');
+        window.addLocalLog('AUTH-LOGIN', `Sessão iniciada pelo operador ${currentProfile.hacker_tag} (conta ${currentWallet.account_number})`, 'info');
         showToast(`Bem-vindo, ${currentProfile.hacker_tag}! Mainframe ativo.`);
 
       } catch (e) {
@@ -970,6 +1128,7 @@
 
       currentWallet.balance -= res.price;
       if (currentProfile) currentProfile.reputation += res.repGain;
+      window.addLocalLog('QUITINETE', `Despesa quitada (${billId}): -$ ${res.price}.00 HC (+${res.repGain} REP)`, 'success');
 
       if (window.hackerAudio) window.hackerAudio.playCashChime();
       showToast(res.message);
@@ -1026,6 +1185,7 @@
         }
 
         window.hardwareEngine.saveRig({ [category]: itemId });
+        window.addLocalLog('HARDWARE', `Upgrade instalado (${category.toUpperCase()} -> ${itemId}): -$ ${price}.00 HC`, 'info');
         if (window.hackerAudio) window.hackerAudio.playCashChime();
         showToast('Peça de Hardware comprada e instalada no Rig!');
         updateHudDisplays();
@@ -1035,6 +1195,7 @@
       } catch (err) {
         currentWallet.balance = Math.max(0, currentWallet.balance - price);
         window.hardwareEngine.saveRig({ [category]: itemId });
+        window.addLocalLog('HARDWARE', `Upgrade instalado (${category.toUpperCase()} -> ${itemId}): -$ ${price}.00 HC`, 'info');
         if (window.hackerAudio) window.hackerAudio.playCashChime();
         showToast('Hardware instalado com sucesso no seu Rig.');
         updateHudDisplays();
@@ -1156,6 +1317,7 @@
           if (window.hackerAudio) window.hackerAudio.playCashChime();
           showToast(data.message);
           currentWallet.balance = data.new_balance;
+          window.addLocalLog('BANK-P2P', `Transferência enviada para ${target}: -$ ${amount.toFixed(2)} HC`, 'info');
           updateHudDisplays();
           loadBankTransactions();
           document.getElementById('transferAmount').value = '';
@@ -1250,6 +1412,7 @@
           currentWallet.balance = data.new_balance;
           currentProfile.reputation += data.rep_gain;
           currentProfile.heat_level = data.heat_level;
+          window.addLocalLog('RPC-EXPLOIT', `Alvo ${ip} invadido via PostgreSQL (+$ ${parseFloat(data.reward).toFixed(2)} HC, Heat ${data.heat_level}/5)`, 'warning');
           updateHudDisplays();
           loadBankTransactions();
 
@@ -1363,6 +1526,7 @@
         appendCli('  hack [ip]            - Abre scanner de alvos ou explora nó vulnerável');
         appendCli('  bots [tier]          - Lista os 30 bots ativos hoje no agendador semanal');
         appendCli('  crack [ip]           - Inicia invasão interativa com Traceback Ativo & Bouncing');
+        appendCli('  logs [ip]            - Inspeciona logs locais (/var/log/auth.log) ou rastro em alvo remoto', 'var(--hc-accent-text)');
         appendCli('  rmlog <ip>           - Purga seus rastros em /var/log/syslog para cancelar retaliação');
         appendCli('  c2                   - Abre a matriz da Central Botnet Swarm & Mineração');
         appendCli('  zombies              - Lista dispositivos escravos sob controle da Botnet');
@@ -1515,7 +1679,7 @@
             const isOnline = window.botScheduler.isBotOnline(b.ip);
             const statusTxt = isOnline ? '[ONLINE]' : '[OFFLINE]';
             const statusColor = isOnline ? 'var(--hc-success)' : 'var(--hc-text-3)';
-            appendCli(`${b.handle.padEnd(19)} ${b.tierName.padEnd(12)} ${b.ip.padEnd(16)} ${(b.hardware.cpu_cores + 'c @ ' + b.hardware.cpu_ghz + 'GHz').padEnd(22)} ${statusTxt}`, statusColor);
+            appendCli(`${b.handle.padEnd(19)} ${b.tierName.padEnd(12)} ${b.ip.padEnd(16)} ${(b.hardware.cpuCores + 'c @ ' + b.hardware.cpuClock + 'GHz').padEnd(22)} ${statusTxt}`, statusColor);
           });
           appendCli("Dica: Para invadir com traceback ativo, use 'crack <ip>' ou abra o HC Cracker.", 'var(--hc-warning)');
         }
@@ -1526,6 +1690,41 @@
           window.renderCrackerUI('crackerAppBody', ip);
         }
         appendCli(`HC-Cracker Pro aberto. Alvo configurado: ${ip || 'primeiro bot ativo'}. Alerta de Traceback armado!`, 'var(--hc-warning)');
+      } else if (cmd === 'logs' || cmd === 'syslog') {
+        const targetIp = parts[1];
+        if (targetIp) {
+          const lines = (window.botAI && window.botAI.syslogRegistry && window.botAI.syslogRegistry.get(targetIp)) || [];
+          const pending = window.botAI && window.botAI.pendingAttacks ? window.botAI.pendingAttacks.get(targetIp) : null;
+          appendCli(`=== AUDITORIA REMOTA: ${targetIp}:/var/log/syslog ===`, 'var(--hc-accent-text)');
+          if (lines.length === 0) {
+            appendCli('  [LIMPO] Nenhum rastro do seu IP encontrado neste servidor.', 'var(--hc-success)');
+          } else {
+            lines.forEach(l => appendCli(`  ${l}`, 'var(--hc-warning)'));
+            if (pending) {
+              appendCli(`  [ALERTA] Contra-ataque da IA agendado em ${pending.timeLeft}s (${pending.attackType})! Use 'rmlog ${targetIp}'.`, 'var(--hc-danger)');
+            }
+          }
+        } else {
+          appendCli('=== AUDITORIA DE ACESSOS (LOCAL + RASTROS REMOTOS) ===', 'var(--hc-accent-text)');
+          let remoteCount = 0;
+          if (window.botAI && window.botAI.syslogRegistry) {
+            window.botAI.syslogRegistry.forEach((lines, ip) => {
+              if (lines && lines.length > 0) {
+                remoteCount++;
+                const p = window.botAI.pendingAttacks ? window.botAI.pendingAttacks.get(ip) : null;
+                appendCli(`  [RASTRO EXPOSTO] ${ip}:/var/log/syslog (${lines.length} entrada${lines.length > 1 ? 's' : ''})${p ? ` — RETALIAÇÃO EM ${p.timeLeft}s` : ''}`, 'var(--hc-danger)');
+              }
+            });
+          }
+          if (remoteCount === 0) {
+            appendCli('  [SEGURO] 0 rastros ativos em servidores remotos.', 'var(--hc-success)');
+          }
+          appendCli(`--- Últimos eventos locais (192.168.1.104:/var/log/auth.log) ---`, 'var(--hc-text-2)');
+          (window.systemLogs || []).slice(0, 6).forEach(e => {
+            appendCli(`  [${e.time}] [${e.tag}] ${e.msg}`, 'var(--hc-text)');
+          });
+          appendCli("Dica: Abra a aba 'Logs' no menu lateral ou use 'logs <ip>' / 'rmlog <ip>'.", 'var(--hc-text-2)');
+        }
       } else if (cmd === 'rmlog') {
         const ip = parts[1];
         if (!ip) {
@@ -1552,7 +1751,7 @@
       } else if (cmd === 'zombies') {
         if (window.botnetC2) {
           appendCli('=== ESCRAVOS ZUMBIS INFECTADOS (CENTRAL C2) ===', 'var(--hc-violet)');
-          appendCli(`Total de Máquinas: ${window.botnetC2.slaves.length} | Perfil Global: ${window.botnetC2.activeProfile.toUpperCase()}`);
+          appendCli(`Total de Máquinas: ${window.botnetC2.slaves.length} | Perfil Global: ${window.botnetC2.profile.toUpperCase()} | Taxa Total: $ ${window.botnetC2.getIncomeRate().toFixed(2)}/s`);
           appendCli(`Rendimento Acumulado Pendente: $ ${window.botnetC2.accumulatedProfits.toFixed(2)} HC`);
           appendCli('IP               HANDLE              TIER         TAXA BASE', 'var(--hc-text-2)');
           window.botnetC2.slaves.forEach(s => {
@@ -1591,22 +1790,274 @@
       }
     });
 
-    // Minigame de Damas
-    function initCheckersBoard() {
-      const board = document.getElementById('checkersBoard');
-      board.innerHTML = '';
+    // Minigame de Damas Brasileiras (8x8 Interativo + IA com Captura Obrigatória)
+    window.checkersState = {
+      board: [],
+      turn: 'player',
+      selected: null,
+      validMoves: [],
+      mustContinueFrom: null,
+      gameOver: false
+    };
+
+    function isPlayerPiece(p) { return p === 1 || p === 3; }
+    function isAiPiece(p) { return p === 2 || p === 4; }
+    function isKingPiece(p) { return p === 3 || p === 4; }
+
+    function getPieceCaptures(board, r, c) {
+      const p = board[r][c];
+      if (!p) return [];
+      const playerSide = isPlayerPiece(p);
+      const dirs = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+      const caps = [];
+      for (const [dr, dc] of dirs) {
+        const mr = r + dr, mc = c + dc;
+        const lr = r + dr * 2, lc = c + dc * 2;
+        if (lr >= 0 && lr < 8 && lc >= 0 && lc < 8) {
+          const mid = board[mr][mc];
+          if (mid !== 0 && (playerSide ? isAiPiece(mid) : isPlayerPiece(mid)) && board[lr][lc] === 0) {
+            caps.push({ fromR: r, fromC: c, r: lr, c: lc, capR: mr, capC: mc });
+          }
+        }
+      }
+      return caps;
+    }
+
+    function getPieceSteps(board, r, c) {
+      const p = board[r][c];
+      if (!p) return [];
+      const dirs = isKingPiece(p)
+        ? [[-1, -1], [-1, 1], [1, -1], [1, 1]]
+        : (isPlayerPiece(p) ? [[-1, -1], [-1, 1]] : [[1, -1], [1, 1]]);
+      const steps = [];
+      for (const [dr, dc] of dirs) {
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && board[nr][nc] === 0) {
+          steps.push({ fromR: r, fromC: c, r: nr, c: nc, capR: null, capC: null });
+        }
+      }
+      return steps;
+    }
+
+    function getAllLegalMoves(board, side, forcedOrigin = null) {
+      const wantPlayer = side === 'player';
+      if (forcedOrigin) {
+        return getPieceCaptures(board, forcedOrigin.r, forcedOrigin.c);
+      }
+      const allCaps = [];
+      const allSteps = [];
       for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
+          const p = board[r][c];
+          if (!p) continue;
+          if (wantPlayer !== isPlayerPiece(p)) continue;
+          allCaps.push(...getPieceCaptures(board, r, c));
+          allSteps.push(...getPieceSteps(board, r, c));
+        }
+      }
+      return allCaps.length > 0 ? allCaps : allSteps;
+    }
+
+    function initCheckersBoard() {
+      const b = Array.from({ length: 8 }, () => Array(8).fill(0));
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if ((r + c) % 2 === 1) {
+            if (r < 3) b[r][c] = 2;
+            else if (r > 4) b[r][c] = 1;
+          }
+        }
+      }
+      window.checkersState = {
+        board: b,
+        turn: 'player',
+        selected: null,
+        validMoves: [],
+        mustContinueFrom: null,
+        gameOver: false
+      };
+      renderCheckersBoard();
+    }
+
+    function renderCheckersBoard() {
+      const boardEl = document.getElementById('checkersBoard');
+      if (!boardEl) return;
+      const st = window.checkersState;
+      boardEl.innerHTML = '';
+
+      let playerCount = 0, aiCount = 0;
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const p = st.board[r][c];
+          if (isPlayerPiece(p)) playerCount++;
+          if (isAiPiece(p)) aiCount++;
+
           const cell = document.createElement('div');
           const isDark = (r + c) % 2 === 1;
-          cell.style = `display:flex;align-items:center;justify-content:center;background:${isDark ? 'var(--hc-border)' : 'var(--hc-text)'};`;
-          if (isDark && r < 3) {
-            cell.innerHTML = '<div style="width:26px;height:26px;border-radius:50%;background:var(--hc-danger);border:2px solid var(--hc-danger-text);"></div>';
-          } else if (isDark && r > 4) {
-            cell.innerHTML = '<div style="width:26px;height:26px;border-radius:50%;background:var(--hc-success);border:2px solid var(--hc-accent-text);"></div>';
+          const isSel = st.selected && st.selected.r === r && st.selected.c === c;
+          const moveTarget = st.validMoves.find(m => m.r === r && m.c === c);
+
+          cell.className = 'checkers-cell';
+          cell.dataset.r = r;
+          cell.dataset.c = c;
+          cell.style.cssText = `display:flex;align-items:center;justify-content:center;position:relative;cursor:${(isDark && !st.gameOver) ? 'pointer' : 'default'};background:${
+            moveTarget ? 'rgba(53, 184, 119, 0.28)' : (isDark ? '#1e242d' : '#d6dce5')
+          };${moveTarget ? 'box-shadow:inset 0 0 0 2px #35b877;' : ''}`;
+
+          if (p !== 0) {
+            const piece = document.createElement('div');
+            const mine = isPlayerPiece(p);
+            const king = isKingPiece(p);
+            piece.style.cssText = `width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:#fff;background:${
+              mine ? '#12a568' : '#d0443a'
+            };border:2px solid ${
+              isSel ? '#fbbf24' : (mine ? '#5fd499' : '#f79a91')
+            };box-shadow:${isSel ? '0 0 0 3px rgba(251,191,36,0.35)' : '0 2px 4px rgba(0,0,0,0.45)'};`;
+            if (king) piece.textContent = 'D';
+            cell.appendChild(piece);
+          } else if (moveTarget) {
+            const dot = document.createElement('div');
+            dot.style.cssText = 'width:10px;height:10px;border-radius:50%;background:#35b877;';
+            cell.appendChild(dot);
           }
-          board.appendChild(cell);
+
+          if (isDark) {
+            cell.addEventListener('click', () => onCheckersCellClick(r, c));
+          }
+          boardEl.appendChild(cell);
         }
+      }
+
+      const turnEl = document.getElementById('checkersTurnStatus');
+      const scoreEl = document.getElementById('checkersScoreStatus');
+      const aiEl = document.getElementById('checkersAiStatus');
+      if (scoreEl) scoreEl.textContent = `${playerCount} × ${aiCount} peças`;
+      if (turnEl && !st.gameOver) {
+        turnEl.textContent = st.turn === 'player' ? 'SUA VEZ (VERDE)' : 'VEZ DA IA (VERMELHO)';
+        turnEl.style.color = st.turn === 'player' ? 'var(--hc-accent-text)' : 'var(--hc-warning)';
+      }
+      if (aiEl && !st.gameOver && st.turn === 'player') {
+        aiEl.textContent = 'Aguardando sua jogada';
+      }
+    }
+
+    function onCheckersCellClick(r, c) {
+      const st = window.checkersState;
+      if (st.gameOver || st.turn !== 'player') return;
+
+      const move = st.validMoves.find(m => m.r === r && m.c === c);
+      if (move) {
+        applyCheckersMove(move, 'player');
+        return;
+      }
+
+      const p = st.board[r][c];
+      if (isPlayerPiece(p)) {
+        if (st.mustContinueFrom && (st.mustContinueFrom.r !== r || st.mustContinueFrom.c !== c)) {
+          showToast('Complete a captura múltipla com a mesma peça!');
+          return;
+        }
+        const legalAll = getAllLegalMoves(st.board, 'player', st.mustContinueFrom);
+        const pieceMoves = legalAll.filter(m => m.fromR === r && m.fromC === c);
+        if (pieceMoves.length === 0 && legalAll.some(m => m.capR !== null)) {
+          showToast('Captura obrigatória disponível em outra peça!');
+          return;
+        }
+        st.selected = { r, c };
+        st.validMoves = pieceMoves;
+        if (window.hackerAudio) window.hackerAudio.playKeyClick();
+        renderCheckersBoard();
+      }
+    }
+
+    function applyCheckersMove(move, side) {
+      const st = window.checkersState;
+      const piece = st.board[move.fromR][move.fromC];
+      st.board[move.fromR][move.fromC] = 0;
+      st.board[move.r][move.c] = piece;
+
+      let captured = false;
+      if (move.capR !== null && move.capC !== null) {
+        st.board[move.capR][move.capC] = 0;
+        captured = true;
+      }
+
+      // Promoção a Dama
+      let promoted = false;
+      if (side === 'player' && move.r === 0 && piece === 1) {
+        st.board[move.r][move.c] = 3;
+        promoted = true;
+      } else if (side === 'ai' && move.r === 7 && piece === 2) {
+        st.board[move.r][move.c] = 4;
+        promoted = true;
+      }
+
+      if (window.hackerAudio) window.hackerAudio.playKeyClick();
+
+      // Captura em cadeia
+      if (captured && !promoted) {
+        const followUps = getPieceCaptures(st.board, move.r, move.c);
+        if (followUps.length > 0) {
+          if (side === 'player') {
+            st.mustContinueFrom = { r: move.r, c: move.c };
+            st.selected = { r: move.r, c: move.c };
+            st.validMoves = followUps;
+            renderCheckersBoard();
+            return;
+          } else {
+            renderCheckersBoard();
+            setTimeout(() => applyCheckersMove(followUps[0], 'ai'), 300);
+            return;
+          }
+        }
+      }
+
+      st.mustContinueFrom = null;
+      st.selected = null;
+      st.validMoves = [];
+
+      const nextSide = side === 'player' ? 'ai' : 'player';
+      const nextMoves = getAllLegalMoves(st.board, nextSide);
+      if (nextMoves.length === 0) {
+        st.gameOver = true;
+        renderCheckersBoard();
+        const turnEl = document.getElementById('checkersTurnStatus');
+        const aiEl = document.getElementById('checkersAiStatus');
+        if (side === 'player') {
+          if (turnEl) { turnEl.textContent = 'VITÓRIA DO OPERADOR!'; turnEl.style.color = 'var(--hc-success)'; }
+          if (aiEl) aiEl.textContent = 'IA derrotada';
+          if (currentWallet) currentWallet.balance = parseFloat(currentWallet.balance) + 100;
+          if (currentProfile) currentProfile.reputation += 25;
+          window.addLocalLog('ARCADE', 'Vitória nas Damas Brasileiras contra IA (+$ 100.00 HC, +25 REP)', 'success');
+          updateHudDisplays();
+          showToast('Vitória nas Damas! +$ 100 HC e +25 REP.');
+        } else {
+          if (turnEl) { turnEl.textContent = 'VITÓRIA DA IA'; turnEl.style.color = 'var(--hc-danger-text)'; }
+          if (aiEl) aiEl.textContent = 'Partida encerrada';
+        }
+        return;
+      }
+
+      st.turn = nextSide;
+      renderCheckersBoard();
+
+      if (nextSide === 'ai') {
+        const aiEl = document.getElementById('checkersAiStatus');
+        if (aiEl) aiEl.textContent = 'Calculando jogada...';
+        setTimeout(() => {
+          if (st.gameOver || st.turn !== 'ai') return;
+          const legal = getAllLegalMoves(st.board, 'ai');
+          if (legal.length === 0) return;
+          // Prioriza promoção a Dama ou avanço central
+          legal.sort((a, b) => {
+            const scoreA = (a.capR !== null ? 10 : 0) + (a.r === 7 ? 5 : a.r * 0.2) - Math.abs(3.5 - a.c) * 0.1;
+            const scoreB = (b.capR !== null ? 10 : 0) + (b.r === 7 ? 5 : b.r * 0.2) - Math.abs(3.5 - b.c) * 0.1;
+            return scoreB - scoreA;
+          });
+          const chosen = legal[0];
+          if (aiEl) aiEl.textContent = `Moveu (${chosen.fromR},${chosen.fromC}) → (${chosen.r},${chosen.c})`;
+          applyCheckersMove(chosen, 'ai');
+        }, 450);
       }
     }
 
@@ -1624,36 +2075,78 @@
       }
     }
 
-    // Minigame da Cobrinha
+    // Minigame da Cobrinha (Canvas 2D com cores hex reais + controles isolados)
     let snakeInterval = null;
+    let snakeDir = { dx: 1, dy: 0 };
+    window.addEventListener('keydown', (e) => {
+      if (!snakeInterval) return;
+      const snakeView = document.getElementById('gameSnakeView');
+      if (!snakeView || snakeView.style.display === 'none') return;
+      const k = e.key;
+      if (k === 'ArrowUp' || k === 'w' || k === 'W') {
+        if (k.startsWith('Arrow')) e.preventDefault();
+        if (snakeDir.dy === 0) snakeDir = { dx: 0, dy: -1 };
+      } else if (k === 'ArrowDown' || k === 's' || k === 'S') {
+        if (k.startsWith('Arrow')) e.preventDefault();
+        if (snakeDir.dy === 0) snakeDir = { dx: 0, dy: 1 };
+      } else if (k === 'ArrowLeft' || k === 'a' || k === 'A') {
+        if (k.startsWith('Arrow')) e.preventDefault();
+        if (snakeDir.dx === 0) snakeDir = { dx: -1, dy: 0 };
+      } else if (k === 'ArrowRight' || k === 'd' || k === 'D') {
+        if (k.startsWith('Arrow')) e.preventDefault();
+        if (snakeDir.dx === 0) snakeDir = { dx: 1, dy: 0 };
+      }
+    });
+
     function startSnakeGame() {
       const canvas = document.getElementById('snakeCanvas');
       const ctx = canvas.getContext('2d');
       const grid = 15;
-      let snake = [{x: 10, y: 10}];
-      let food = {x: 5, y: 5};
-      let dx = 1, dy = 0;
+      let snake = [{x: 10, y: 10}, {x: 9, y: 10}, {x: 8, y: 10}];
+      let food = {x: 14, y: 10};
+      snakeDir = { dx: 1, dy: 0 };
       let score = 0;
+      document.getElementById('snakeScore').innerText = '0';
 
       function spawnFood() {
-        food.x = Math.floor(Math.random() * 20);
-        food.y = Math.floor(Math.random() * 20);
+        do {
+          food.x = Math.floor(Math.random() * 20);
+          food.y = Math.floor(Math.random() * 20);
+        } while (snake.some(s => s.x === food.x && s.y === food.y));
       }
 
-      window.onkeydown = (e) => {
-        if (e.key === 'ArrowUp' || e.key === 'w') { if (dy === 0) { dx = 0; dy = -1; } }
-        else if (e.key === 'ArrowDown' || e.key === 's') { if (dy === 0) { dx = 0; dy = 1; } }
-        else if (e.key === 'ArrowLeft' || e.key === 'a') { if (dx === 0) { dx = -1; dy = 0; } }
-        else if (e.key === 'ArrowRight' || e.key === 'd') { if (dx === 0) { dx = 1; dy = 0; } }
-      };
+      function drawFrame() {
+        ctx.fillStyle = '#0b0d10';
+        ctx.fillRect(0, 0, 300, 300);
 
+        // Grade sutil
+        ctx.strokeStyle = '#161b22';
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 300; i += grid) {
+          ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 300); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(300, i); ctx.stroke();
+        }
+
+        // Alvo (comida) em vermelho nítido
+        ctx.fillStyle = '#d0443a';
+        ctx.fillRect(food.x * grid + 1, food.y * grid + 1, grid - 2, grid - 2);
+
+        // Cobrinha em verde esmeralda nítido
+        snake.forEach((s, idx) => {
+          ctx.fillStyle = idx === 0 ? '#5fd499' : '#12a568';
+          ctx.fillRect(s.x * grid + 1, s.y * grid + 1, grid - 2, grid - 2);
+        });
+      }
+
+      drawFrame();
       clearInterval(snakeInterval);
       snakeInterval = setInterval(() => {
-        const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+        const head = {x: snake[0].x + snakeDir.dx, y: snake[0].y + snakeDir.dy};
 
         if (head.x < 0 || head.x >= 20 || head.y < 0 || head.y >= 20 || snake.some(s => s.x === head.x && s.y === head.y)) {
           clearInterval(snakeInterval);
-          alert(`Game Over! Pontos: ${score}`);
+          snakeInterval = null;
+          showToast(`Fim de jogo na Cobrinha! Pontuação: ${score}`);
           return;
         }
 
@@ -1661,23 +2154,22 @@
         if (head.x === food.x && head.y === food.y) {
           score++;
           document.getElementById('snakeScore').innerText = score;
+          if (window.hackerAudio) window.hackerAudio.playKeyClick();
           spawnFood();
           if (score >= 100) {
             clearInterval(snakeInterval);
-            alert('PARABÉNS! Meta de 100 pontos atingida!');
+            snakeInterval = null;
+            if (currentWallet) currentWallet.balance = parseFloat(currentWallet.balance) + 150;
+            if (currentProfile) currentProfile.reputation += 30;
+            window.addLocalLog('ARCADE', 'Meta de 100 pontos atingida na Cobrinha (+$ 150.00 HC, +30 REP)', 'success');
+            updateHudDisplays();
+            alert('PARABÉNS! Meta de 100 pontos atingida! +$ 150 HC e +30 REP creditados.');
           }
         } else {
           snake.pop();
         }
 
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, 300, 300);
-
-        ctx.fillStyle = 'var(--hc-danger)';
-        ctx.fillRect(food.x * grid, food.y * grid, grid - 2, grid - 2);
-
-        ctx.fillStyle = 'var(--hc-success)';
-        snake.forEach(s => ctx.fillRect(s.x * grid, s.y * grid, grid - 2, grid - 2));
+        drawFrame();
       }, 100);
     }
 
@@ -1712,7 +2204,7 @@
         step = { tag: 'Operação', title: 'Escolha um alvo e invada', text: 'Use o Scanner para achar IPs e o Cracker para quebrar o acesso. Quanto mais Heat, mais perto a polícia chega.', cta: 'Abrir Scanner', go: 'winScanner' };
       }
 
-      const shortcuts = [['winBrowser','globe','Internet'],['winScanner','radar','Scanner'],['winCracker','zap','Cracker'],['winBotnetC2','bot','Botnet'],['winBank','landmark','Banco'],['winSkillTree','network','Habilidades']];
+      const shortcuts = [['winBrowser','globe','Internet'],['winScanner','radar','Scanner'],['winCracker','zap','Cracker'],['winLogs','file-text','Logs'],['winBotnetC2','bot','Botnet'],['winSkillTree','network','Habilidades']];
 
       el.innerHTML = `
         <div class="home-head">
@@ -1752,6 +2244,9 @@
       }
       if (winId === 'winBotnetC2' && typeof window.renderC2UI === 'function') {
         window.renderC2UI('botnetC2Body');
+      }
+      if (winId === 'winLogs' && typeof window.renderLogsPage === 'function') {
+        window.renderLogsPage();
       }
     }
     function closeWindow(winId) { window.winManager ? window.winManager.close(winId) : null; }
