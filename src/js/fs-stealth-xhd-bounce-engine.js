@@ -141,19 +141,19 @@
 
       const routeText = isProtected
         ? `${esc(myIp)} → ${validHops.map((h) => `<strong style="color:var(--hc-accent-text);">${esc(h)}</strong>`).join(' → ')} → ${esc(targetIp)}`
-        : `${esc(myIp)} → ${esc(targetIp)} <span style="color:var(--hc-warning);">(Conexão Direta · Seu IP real ficará nos logs!)</span>`;
+        : `${esc(myIp)} → ${esc(targetIp)} <span style="color:var(--hc-warning);">(Conexão Direta · Apague seu IP da log antes de sair!)</span>`;
 
       return `
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;margin-bottom:10px;background:var(--hc-inset);border:1px solid ${isProtected ? 'rgba(53,184,119,0.4)' : 'var(--hc-border)'};border-radius:8px;font-size:0.78rem;">
+        <div id="inetBounceBar" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;margin-bottom:10px;background:var(--hc-inset);border:1px solid ${isProtected ? 'rgba(53,184,119,0.4)' : 'var(--hc-border)'};border-radius:8px;font-size:0.78rem;">
           <div style="font-family:var(--hc-font-mono);overflow:hidden;text-overflow:ellipsis;">
             <span class="hc-badge ${isProtected ? 'success' : 'warn'}" style="margin-right:6px;">
-              ${isProtected ? `BOUNCE ATIVO (${validHops.length} SALTO${validHops.length > 1 ? 'S' : ''})` : 'SEM PROXY BOUNCE'}
+              ${isProtected ? `DISFARCE ATIVO (${validHops.length} SALTO${validHops.length > 1 ? 'S' : ''})` : 'SEM DISFARCE DE IP'}
             </span>
             ${routeText}
           </div>
           <div style="display:flex;gap:6px;">
             <button type="button" id="btnToggleBounce" class="hc-btn ${isProtected ? 'primary' : 'ghost'} sm" onclick="window.bounceEngine.toggleEnabled()">
-              ${this.state.enabled ? 'Desligar Bounce' : 'Ativar Bounce'}
+              ${this.state.enabled ? 'Desligar Disfarce' : 'Ativar Disfarce de IP'}
             </button>
             <button type="button" id="btnOpenBounceBuilder" class="hc-btn ghost sm" onclick="window.bounceEngine.openBuilderModal()">
               Configurar Saltos (${this.state.hops.length})
@@ -435,6 +435,11 @@
         return { success: false, message: 'Seu HD principal está sem espaço livre para restaurar este backup!' };
       }
 
+      if (cur.installed && !cur.runningVerInt) {
+        cur.runningVerInt = cur.versionInt || bak.versionInt;
+      } else if (!cur.installed) {
+        cur.runningVerInt = 0;
+      }
       cur.owned = true;
       cur.versionInt = Math.max(cur.versionInt || 0, bak.versionInt);
       cur.licensed = true;
@@ -600,6 +605,11 @@
           this.state.seekerVerInt = remoteVersionInt;
           this.save();
         } else {
+          if (cur.installed && !cur.runningVerInt) {
+            cur.runningVerInt = cur.versionInt || remoteVersionInt;
+          } else if (!cur.installed) {
+            cur.runningVerInt = 0;
+          }
           cur.owned = true;
           cur.versionInt = remoteVersionInt;
           // Regra Oficial HE (softwares.txt): binário de Puzzle ou Freeware do Download Center vem licenciado; roubado de outros alvos exige comprar Licença p/ evoluir!
@@ -740,22 +750,22 @@
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-top:8px;">
           <!-- Ferramentas de Camuflagem Hider.hdr & Seeker.skr -->
           <div class="hc-card" style="padding:1.1rem;">
-            <div class="hc-eyebrow" style="margin-bottom:8px;">Camuflagem Forense: Hider.hdr & Seeker.skr</div>
+            <div class="hc-eyebrow" style="margin-bottom:8px;">Esconder &amp; Revelar Arquivos Secretos</div>
             <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--hc-border);">
               <div>
-                <strong style="font-family:var(--hc-font-mono);">Hider.hdr</strong>
+                <strong>Camuflador de Vírus <span style="font-family:var(--hc-font-mono);font-size:0.76rem;color:var(--hc-text-3);">(Hider.hdr)</span></strong>
                 <span class="hc-badge success" style="margin-left:6px;">v${this.getHiderVer().toFixed(1)}</span>
-                <div style="font-size:0.75rem;color:var(--hc-text-2);">Esconde seus vírus contra Antivírus/Seekers mais fracos.</div>
+                <div style="font-size:0.75rem;color:var(--hc-text-2);">Deixa seus vírus invisíveis contra Antivírus mais fracos.</div>
               </div>
-              <button type="button" id="btnUpgradeHider" class="hc-btn primary sm" onclick="window.handleUpgradeStealth('hider')">Evoluir Hider</button>
+              <button type="button" id="btnUpgradeHider" class="hc-btn primary sm" onclick="window.handleUpgradeStealth('hider')">Melhorar</button>
             </div>
             <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;">
               <div>
-                <strong style="font-family:var(--hc-font-mono);">Seeker.skr</strong>
+                <strong>Detector de Cofres <span style="font-family:var(--hc-font-mono);font-size:0.76rem;color:var(--hc-text-3);">(Seeker.skr)</span></strong>
                 <span class="hc-badge info" style="margin-left:6px;">v${this.getSeekerVer().toFixed(1)}</span>
-                <div style="font-size:0.75rem;color:var(--hc-text-2);">Revela cofres e arquivos ocultos em servidores invadidos.</div>
+                <div style="font-size:0.75rem;color:var(--hc-text-2);">Encontra pastas escondidas com dinheiro nos PCs que você invadir.</div>
               </div>
-              <button type="button" id="btnUpgradeSeeker" class="hc-btn primary sm" onclick="window.handleUpgradeStealth('seeker')">Evoluir Seeker</button>
+              <button type="button" id="btnUpgradeSeeker" class="hc-btn primary sm" onclick="window.handleUpgradeStealth('seeker')">Melhorar</button>
             </div>
           </div>
 
@@ -763,7 +773,7 @@
           <div class="hc-card" style="padding:1.1rem;">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
               <div>
-                <div class="hc-eyebrow">Cofre de Backup · HD Externo (XHD)</div>
+                <div class="hc-eyebrow">Pen-Drive / HD Externo de Backup (Protege contra Batida Policial!)</div>
                 <strong style="font-size:0.9rem;">${esc(xhd.name)} (${xhd.usedMb} / ${xhd.capMb} MB)</strong>
               </div>
               ${xhd.nextTier

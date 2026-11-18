@@ -43,6 +43,7 @@
   <script src="src/js/multi-banks-account-hack-engine.js"></script>
   <script src="src/js/social-clans-mail-ranking-engine.js"></script>
   <script src="src/js/online-cloud-pvp-engine.js"></script>
+  <script src="src/js/interactive-tour-ux-engine.js"></script>
 </head>
 <body>
 
@@ -226,38 +227,93 @@
         <span class="hc-badge success">beta</span>
       </div>
       <nav class="sidebar-nav" id="sidebarNav">
-        <div class="nav-section">Meu PC</div>
-        <button type="button" class="nav-item" data-win="winHome" onclick="navTo('winHome')"><i data-icon="layout-dashboard"></i><span>Home</span></button>
-        <button type="button" class="nav-item" data-win="winTaskManager" onclick="navTo('winTaskManager')"><i data-icon="activity"></i><span>Task Manager</span><span id="navTaskCountBadge" class="hc-badge success" style="margin-left:auto;display:none;font-size:0.65rem;padding:1px 6px;">0</span></button>
-        <button type="button" class="nav-item" data-win="winTerminal" onclick="navTo('winTerminal')"><i data-icon="terminal"></i><span>Terminal</span></button>
-        <button type="button" class="nav-item" data-win="winSoftware" onclick="navTo('winSoftware')"><i data-icon="package"></i><span>Software & Vírus</span></button>
-        <button type="button" class="nav-item" data-win="winLogs" onclick="navTo('winLogs')"><i data-icon="file-text"></i><span>Logs</span></button>
-        <button type="button" class="nav-item" data-win="winHardware" onclick="navTo('winHardware')"><i data-icon="cpu"></i><span>Hardware</span></button>
-        <button type="button" class="nav-item" data-win="winSkillTree" onclick="navTo('winSkillTree')"><i data-icon="network"></i><span>Habilidades</span></button>
-        <div class="nav-section">Rede</div>
-        <button type="button" class="nav-item" data-win="winBrowser" onclick="navTo('winBrowser')"><i data-icon="globe"></i><span>Internet</span></button>
-        <button type="button" class="nav-item" data-win="winOnline" onclick="navTo('winOnline')"><i data-icon="wifi"></i><span>Rede Online & PvP</span></button>
-        <button type="button" class="nav-item" data-win="winHackedDb" onclick="navTo('winHackedDb')"><i data-icon="database"></i><span>Hacked Database</span></button>
-        <button type="button" class="nav-item" data-win="winMissions" onclick="navTo('winMissions')"><i data-icon="target"></i><span>Missões</span></button>
-        <button type="button" class="nav-item" data-win="winFbi" onclick="navTo('winFbi')"><i data-icon="shield-alert"></i><span>Polícia & FBI</span></button>
-        <div class="nav-section">Dinheiro</div>
-        <button type="button" class="nav-item" data-win="winBank" onclick="navTo('winBank')"><i data-icon="landmark"></i><span>Banco</span></button>
-        <button type="button" class="nav-item" data-win="winBitcoin" onclick="navTo('winBitcoin')"><i data-icon="bitcoin"></i><span>Bitcoin</span></button>
-        <button type="button" class="nav-item" data-win="winQuitinete" onclick="navTo('winQuitinete')"><i data-icon="house"></i><span>Quitinete</span></button>
-        <div class="nav-section">Social</div>
-        <button type="button" class="nav-item" data-win="winMail" onclick="navTo('winMail')"><i data-icon="mail"></i><span>Mail</span><span id="navMailCountBadge" class="hc-badge info" style="margin-left:auto;display:none;font-size:0.65rem;padding:1px 6px;">0</span></button>
-        <button type="button" class="nav-item" data-win="winClan" onclick="navTo('winClan')"><i data-icon="users"></i><span>Clãs & Guerra</span></button>
-        <button type="button" class="nav-item" data-win="winRanking" onclick="navTo('winRanking')"><i data-icon="trophy"></i><span>Ranking & Badges</span></button>
-        <button type="button" class="nav-item" data-win="winIrc" onclick="navTo('winIrc')"><i data-icon="message-square"></i><span>Chat</span></button>
-        <div class="nav-section">Sistema</div>
-        <button type="button" class="nav-item" data-win="winUniversity" onclick="navTo('winUniversity')"><i data-icon="graduation-cap"></i><span>Universidade</span></button>
-        <button type="button" class="nav-item" data-win="winArcade" onclick="navTo('winArcade')"><i data-icon="gamepad-2"></i><span>Arcade</span></button>
-        <button type="button" class="nav-item" data-win="winPanic" onclick="navTo('winPanic')"><i data-icon="siren"></i><span>Protocolo 404</span></button>
-        <button type="button" class="nav-item" data-win="winProfile" onclick="navTo('winProfile')"><i data-icon="user"></i><span>Minha conta</span></button>
+        <button type="button" class="nav-item" id="navBtnHome" data-win="winHome" onclick="navTo('winHome')">
+          <i data-icon="layout-dashboard"></i><span>Início</span>
+        </button>
+
+        <!-- Tópico 1: Meu Computador -->
+        <details class="nav-topic" name="sidebar-topic" id="navTopic_pc">
+          <summary class="nav-topic-summary" id="navSummary_pc">
+            <span class="nav-topic-icon"><i data-icon="cpu"></i></span>
+            <span class="nav-topic-label">Meu Computador</span>
+            <span class="nav-chevron" aria-hidden="true">▸</span>
+          </summary>
+          <div class="nav-sublist">
+            <button type="button" class="nav-item" data-win="winSoftware" onclick="navTo('winSoftware')"><i data-icon="package"></i><span>Programas &amp; Proteção</span></button>
+            <button type="button" class="nav-item" data-win="winTaskManager" onclick="navTo('winTaskManager')"><i data-icon="activity"></i><span>Fila de Ações</span><span id="navTaskCountBadge" class="hc-badge success" style="margin-left:auto;display:none;font-size:0.65rem;padding:1px 6px;">0</span></button>
+            <button type="button" class="nav-item" data-win="winHardware" onclick="navTo('winHardware')"><i data-icon="cpu"></i><span>Melhorar Peças do PC</span></button>
+            <button type="button" class="nav-item" data-win="winLogs" onclick="navTo('winLogs')"><i data-icon="file-text"></i><span>Meus Rastros (Logs)</span></button>
+            <button type="button" class="nav-item" data-win="winSkillTree" onclick="navTo('winSkillTree')"><i data-icon="network"></i><span>Talentos &amp; Classes</span></button>
+            <button type="button" class="nav-item" data-win="winTerminal" onclick="navTo('winTerminal')"><i data-icon="terminal"></i><span>Modo Comando (Extra)</span></button>
+          </div>
+        </details>
+
+        <!-- Tópico 2: Explorar & Invadir -->
+        <details class="nav-topic" name="sidebar-topic" id="navTopic_net">
+          <summary class="nav-topic-summary" id="navSummary_net">
+            <span class="nav-topic-icon"><i data-icon="globe"></i></span>
+            <span class="nav-topic-label">Explorar &amp; Invadir</span>
+            <span class="nav-chevron" aria-hidden="true">▸</span>
+          </summary>
+          <div class="nav-sublist">
+            <button type="button" class="nav-item" data-win="winBrowser" onclick="navTo('winBrowser')"><i data-icon="globe"></i><span>Navegar por IPs</span></button>
+            <button type="button" class="nav-item" data-win="winOnline" onclick="navTo('winOnline')"><i data-icon="wifi"></i><span>Jogadores Online</span></button>
+            <button type="button" class="nav-item" data-win="winHackedDb" onclick="navTo('winHackedDb')"><i data-icon="database"></i><span>Senhas Descobertas</span></button>
+            <button type="button" class="nav-item" data-win="winMissions" onclick="navTo('winMissions')"><i data-icon="target"></i><span>Trabalhos &amp; Missões</span></button>
+            <button type="button" class="nav-item" data-win="winFbi" onclick="navTo('winFbi')"><i data-icon="shield-alert"></i><span>Polícia &amp; Recompensas</span></button>
+          </div>
+        </details>
+
+        <!-- Tópico 3: Dinheiro & Vida -->
+        <details class="nav-topic" name="sidebar-topic" id="navTopic_money">
+          <summary class="nav-topic-summary" id="navSummary_money">
+            <span class="nav-topic-icon"><i data-icon="landmark"></i></span>
+            <span class="nav-topic-label">Dinheiro &amp; Vida</span>
+            <span class="nav-chevron" aria-hidden="true">▸</span>
+          </summary>
+          <div class="nav-sublist">
+            <button type="button" class="nav-item" data-win="winBank" onclick="navTo('winBank')"><i data-icon="landmark"></i><span>Meu Banco &amp; Cofres</span></button>
+            <button type="button" class="nav-item" data-win="winBitcoin" onclick="navTo('winBitcoin')"><i data-icon="bitcoin"></i><span>Moeda Digital (BTC)</span></button>
+            <button type="button" class="nav-item" data-win="winQuitinete" onclick="navTo('winQuitinete')"><i data-icon="house"></i><span>Meu Esconderijo</span></button>
+          </div>
+        </details>
+
+        <!-- Tópico 4: Comunidade & Clãs -->
+        <details class="nav-topic" name="sidebar-topic" id="navTopic_social">
+          <summary class="nav-topic-summary" id="navSummary_social">
+            <span class="nav-topic-icon"><i data-icon="users"></i></span>
+            <span class="nav-topic-label">Comunidade &amp; Clãs</span>
+            <span class="nav-chevron" aria-hidden="true">▸</span>
+          </summary>
+          <div class="nav-sublist">
+            <button type="button" class="nav-item" data-win="winMail" onclick="navTo('winMail')"><i data-icon="mail"></i><span>Caixa de Mensagens</span><span id="navMailCountBadge" class="hc-badge info" style="margin-left:auto;display:none;font-size:0.65rem;padding:1px 6px;">0</span></button>
+            <button type="button" class="nav-item" data-win="winClan" onclick="navTo('winClan')"><i data-icon="users"></i><span>Equipes &amp; Guerras</span></button>
+            <button type="button" class="nav-item" data-win="winRanking" onclick="navTo('winRanking')"><i data-icon="trophy"></i><span>Placar dos Melhores</span></button>
+            <button type="button" class="nav-item" data-win="winIrc" onclick="navTo('winIrc')"><i data-icon="message-square"></i><span>Bate-Papo Global</span></button>
+          </div>
+        </details>
+
+        <!-- Tópico 5: Estudos & Conta -->
+        <details class="nav-topic" name="sidebar-topic" id="navTopic_career">
+          <summary class="nav-topic-summary" id="navSummary_career">
+            <span class="nav-topic-icon"><i data-icon="graduation-cap"></i></span>
+            <span class="nav-topic-label">Estudos &amp; Conta</span>
+            <span class="nav-chevron" aria-hidden="true">▸</span>
+          </summary>
+          <div class="nav-sublist">
+            <button type="button" class="nav-item" data-win="winUniversity" onclick="navTo('winUniversity')"><i data-icon="graduation-cap"></i><span>Cursos Rápidos</span></button>
+            <button type="button" class="nav-item" data-win="winArcade" onclick="navTo('winArcade')"><i data-icon="gamepad-2"></i><span>Fliperama</span></button>
+            <button type="button" class="nav-item" data-win="winPanic" onclick="navTo('winPanic')"><i data-icon="siren"></i><span>Fuga de Emergência</span></button>
+            <button type="button" class="nav-item" data-win="winProfile" onclick="navTo('winProfile')"><i data-icon="user"></i><span>Minha Conta &amp; Trocar IP</span></button>
+          </div>
+        </details>
       </nav>
       <div class="sidebar-footer">
+        <button type="button" id="btnStartInteractiveTour" class="nav-item nav-tour-btn" onclick="if(window.spotlightTour) window.spotlightTour.start(true);">
+          <i data-icon="graduation-cap"></i><span>Tour Guiado (Ajuda)</span>
+        </button>
         <button type="button" id="audioToggleBtn" class="nav-item" onclick="toggleAudio()"><i data-icon="volume-2"></i><span>Áudio ligado</span></button>
-        <div class="sidebar-version">v0.2 · beta</div>
+        <div class="sidebar-version">v0.3 · Menu Fácil</div>
       </div>
     </aside>
 
@@ -384,8 +440,8 @@
     <div class="window-frame" id="winBrowser" style="display: none;">
       <div class="window-header">
         <div>
-          <div class="window-title">Internet</div>
-          <p class="page-sub">Navegue por IP, invada por força-bruta ou exploit, troque seu IP no provedor (71.4.5.1) e apague seu rastro nos logs.</p>
+          <div class="window-title">Navegar por IPs</div>
+          <p class="page-sub">Digite o endereço (IP) de qualquer computador, quebre a senha na aba Invadir e apague seu rastro antes de sair!</p>
         </div>
       </div>
       <div class="window-body" id="internetAppBody"></div>
@@ -579,8 +635,8 @@
     <div class="window-frame" id="winLogs" style="display: none;">
       <div class="window-header">
         <div>
-          <div class="window-title">Logs de acesso</div>
-          <p class="page-sub" id="logsPageSubtitle">Auditoria do seu PC e rastros ativos deixados em servidores remotos (/var/log/syslog).</p>
+          <div class="window-title">Meus Rastros &amp; Avisos</div>
+          <p class="page-sub" id="logsPageSubtitle">Veja onde você esqueceu seu endereço (IP) exposto e confira quem entrou ou deixou recados no seu computador.</p>
         </div>
       </div>
       <div class="window-body" id="logsPageBody"></div>
@@ -590,8 +646,8 @@
     <div class="window-frame" id="winHackedDb" style="display: none;">
       <div class="window-header">
         <div>
-          <div class="window-title">Hacked Database</div>
-          <p class="page-sub">Todos os IPs, senhas root, exploits e anotações dos servidores que você invadiu.</p>
+          <div class="window-title">Senhas Descobertas</div>
+          <p class="page-sub">Seu caderno automático com todos os computadores, senhas e contas bancárias que você já conseguiu invadir.</p>
         </div>
       </div>
       <div class="window-body" id="hackedDbBody"></div>
@@ -601,8 +657,8 @@
     <div class="window-frame" id="winSoftware" style="display: none;">
       <div class="window-header">
         <div>
-          <div class="window-title">Software & Vírus</div>
-          <p class="page-sub">Pesquise potências maiores (v1.0 → v10.0), rode Antivírus e colete $ HC e BTC dos seus vírus instalados.</p>
+          <div class="window-title">Programas &amp; Proteção</div>
+          <p class="page-sub">Veja o que está rodando no seu PC agora, troque versões com tempo de carência, passe o Antivírus e recolha dinheiro dos seus vírus.</p>
         </div>
       </div>
       <div class="window-body" id="softwareAppBody"></div>
@@ -1216,6 +1272,7 @@
         openWindow('winHome');
         window.addLocalLog('AUTH-LOGIN', `Sessão iniciada por ${currentProfile.hacker_tag} · IP Público: ${window.networkIdentity ? window.networkIdentity.getPublicIp() : 'alocado'}`, 'info');
         showToast(`Bem-vindo, ${currentProfile.hacker_tag}! Mainframe sincronizado.`);
+        if (window.spotlightTour) window.spotlightTour.maybeAutoStartForSession();
 
       } catch (e) {
         console.error('Erro ao carregar sessão:', e);
@@ -1273,6 +1330,7 @@
       openWindow('winHome');
       window.addLocalLog('INSTANT-BOOT', `Operador rápido ${tag} conectado (${window.networkIdentity ? window.networkIdentity.getPublicIp() : ''})`, 'success');
       showToast(`Conectado como ${tag}! Seu progresso salva automaticamente.`);
+      if (window.spotlightTour) window.spotlightTour.maybeAutoStartForSession();
     }
 
     function updateHudDisplays() {
@@ -2593,6 +2651,7 @@
       if (win === 'winQuitinete') return openQuitineteWindow();
       openWindow(win);
     }
+    window.navTo = navTo;
 
     function fmtMoney(v) {
       return '$' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -2628,12 +2687,12 @@
       const btcStr = window.bitcoinEngine ? window.bitcoinEngine.getFormattedBtc() : '0.00000000';
       const harvest = window.softwareEngine ? window.softwareEngine.getPendingHarvestSummary() : { virusCount: 0, cashReady: 0, btcReadyStr: '0.00000000' };
       const shortcuts = [
-        ['winBrowser', 'globe', 'Internet'],
-        ['winTaskManager', 'activity', 'Task Manager'],
-        ['winMissions', 'target', 'Missões'],
-        ['winSoftware', 'package', 'Software & XHD'],
-        ['winClan', 'users', 'Clãs & Guerra'],
-        ['winRanking', 'trophy', 'Ranking & Badges']
+        ['winBrowser', 'globe', 'Navegar por IPs'],
+        ['winSoftware', 'package', 'Programas & Proteção'],
+        ['winTaskManager', 'activity', 'Fila de Ações'],
+        ['winMissions', 'target', 'Trabalhos & Missões'],
+        ['winHackedDb', 'database', 'Senhas Descobertas'],
+        ['winLogs', 'file-text', 'Meus Rastros']
       ];
 
       if (window.safenetFbiEngine) window.safenetFbiEngine.ensureSeeded();
@@ -2645,10 +2704,15 @@
       el.innerHTML = `
         <div class="home-head" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
           <div>
-            <h1 class="home-title">Bem-vindo de volta, ${currentProfile.hacker_tag}</h1>
-            <p class="home-sub">${title}</p>
+            <h1 class="home-title">Olá, ${currentProfile.hacker_tag}!</h1>
+            <p class="home-sub">${title} · Tudo explicado sem termos difíceis</p>
           </div>
-          <button type="button" class="hc-btn" onclick="navTo('winBrowser')">${HC.icon('globe')} Abrir Internet</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button type="button" id="btnHomeStartTour" class="hc-btn primary" onclick="if(window.spotlightTour) window.spotlightTour.start(true);">
+              🎓 Me Ensine Onde Clicar (Tour Guiado)
+            </button>
+            <button type="button" class="hc-btn ghost" onclick="navTo('winBrowser')">${HC.icon('globe')} Navegar por IPs</button>
+          </div>
         </div>
 
         <div class="stat-grid">
