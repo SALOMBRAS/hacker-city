@@ -5,11 +5,11 @@
 
 /* ---------- Topbar: Busca Rápida de IP + Chip SEU IP ---------- */
 .sidebar-nav .nav-section {
-  padding: 7px 10px 2px;
+  padding: 5px 10px 1px;
 }
 .sidebar-nav .nav-item {
-  height: 27px;
-  font-size: 12.8px;
+  height: 25px;
+  font-size: 12.6px;
 }
 
 .topbar {

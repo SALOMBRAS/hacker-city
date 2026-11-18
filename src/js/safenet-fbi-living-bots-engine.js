@@ -136,6 +136,14 @@
           if (typeof window.showToast === 'function') {
             window.showToast(`ALERTA SAFENET: Seu IP (${ip}) está sob investigação forense!`);
           }
+          if (window.mailEngine) {
+            window.mailEngine.pushSystemMail(
+              'Safenet Authority <forensics@safenet.hc>',
+              `Aviso Forense: Seu IP (${ip}) entrou em investigação`,
+              `Detectamos atividade suspeita partindo de ${ip} (${reason}).\nReincidência sem ocultação por Proxy Bounce elevará seu caso para a Lista de Procurados do FBI!`,
+              'fbi'
+            );
+          }
         }
         return { stage: 'safenet' };
       }
@@ -177,6 +185,14 @@
         }
         if (typeof window.showToast === 'function') {
           window.showToast(`PERIGO FBI: Seu IP (${ip}) entrou na Lista de Procurados (${fmtUsd(fbiEntry.bountyCash)})!`);
+        }
+        if (window.mailEngine) {
+          window.mailEngine.pushSystemMail(
+            'FBI Cyber Division <bounty@safenet.hc>',
+            `MANDADO FEDERAL: Recompensa de ${fmtUsd(fbiEntry.bountyCash)} sobre ${ip}!`,
+            `Seu endereço IP (${ip}) foi incluído na Lista Pública de Procurados do FBI por: ${reason}.\nRenove imediatamente seu IP em 71.4.5.1 antes que caçadores derrubem sua máquina via DDoS!`,
+            'fbi'
+          );
         }
       }
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();

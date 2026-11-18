@@ -293,9 +293,11 @@
       this.drainedRemoteWallets.add(host.ip);
       this.creditSats(sats, 'WALLET-LOOT', `Chave wallet.dat extraída de ${host.hostname} [${host.ip}]`);
 
-      const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0';
+      const visibleIp = window.bounceEngine
+        ? window.bounceEngine.routeConnectionAndGetVisibleIp(host.ip).visibleIp
+        : (window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0');
       if (window.internetEngine) {
-        window.internetEngine.appendServerLog(host.ip, `${myIp} exported private key from /root/wallet.dat (${fmtSatsToBtc(sats)} BTC)`);
+        window.internetEngine.appendServerLog(host.ip, `${visibleIp} exported private key from /root/wallet.dat (${fmtSatsToBtc(sats)} BTC)`);
       }
       if (typeof window.addLocalLog === 'function') {
         window.addLocalLog('BTC-STEAL', `Carteira wallet.dat drenada de ${host.ip}: +${fmtSatsToBtc(sats)} BTC`, 'warning');
@@ -1015,10 +1017,12 @@
       }
       this.save();
 
-      const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0';
+      const visibleIp = window.bounceEngine
+        ? window.bounceEngine.routeConnectionAndGetVisibleIp(host.ip).visibleIp
+        : (window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0');
       window.internetEngine.appendServerLog(
         host.ip,
-        `${myIp} uploaded (${newSizeMb}MB) and executed ${def.filename} (${this.fmtVer(inv.versionInt)})`
+        `${visibleIp} uploaded (${newSizeMb}MB) and executed ${def.filename} (${this.fmtVer(inv.versionInt)})`
       );
       if (typeof window.addLocalLog === 'function') {
         window.addLocalLog('VIRUS-DEPLOY', `${def.filename} (${this.fmtVer(inv.versionInt)}, ${newSizeMb}MB) instalado em ${host.hostname} [${host.ip}]`, 'warning');
@@ -1139,7 +1143,7 @@
       list.forEach((v) => {
         const host = window.internetEngine ? window.internetEngine.resolveHost(v.targetIp) : null;
         const avVer = host && host.antivirusVer !== undefined ? host.antivirusVer : (v.targetAvVer || 0);
-        const virusPotency = (v.versionInt || 10) / 10;
+        const virusPotency = Math.max(v.versionInt || 10, v.effectiveStealthInt || 0) / 10;
 
         // Se forceSweepAll=true testa todos; no loop normal, cada host tem 45% de chance de rodar scan no turno
         const runsScanNow = forceSweepAll || Math.random() < 0.45;
@@ -1429,12 +1433,14 @@
             <div style="display:flex;flex-direction:column;gap:8px;">${sysKeys.map(renderRow).join('')}</div>
           </div>
         `;
+      } else if (this.activeTab === 'xhd' && window.stealthXhdEngine) {
+        tabContent = window.stealthXhdEngine.renderXhdAndStealthPanelHtml();
       } else {
         const list = this.state.remoteInfections || [];
         const rows = list.length === 0
           ? `<div class="hc-card" style="padding:2rem;text-align:center;color:var(--hc-text-2);">
                <div style="font-weight:600;color:var(--hc-text);margin-bottom:6px;">Nenhum vírus instalado em servidores remotos ainda</div>
-               <div style="font-size:0.84rem;margin-bottom:14px;">Invada servidores com boa CPU/Internet e espaço em disco livre na aba <strong>Internet</strong>! Lembre-se: vírus mais fracos que o <code>Antivirus.av</code> do alvo são expurgados nas varreduras.</div>
+               <div style="font-size:0.84rem;margin-bottom:14px;">Invada servidores com boa CPU/Internet e espaço em disco livre na aba <strong>Internet</strong>! Lembre-se: vírus mais fracos que o <code>Antivirus.av</code> do alvo são expurgados nas varreduras (ou camufle-os com <code>Hider.hdr</code>!).</div>
                <button type="button" class="hc-btn primary" onclick="window.internetEngine.openIp('203.17.88.40', 'invadir')">Ir Invadir um Servidor →</button>
              </div>`
           : list.map((v) => {
@@ -1442,7 +1448,8 @@
               const cpuMhz = (host && host.cpuMhz) || v.targetCpuMhz || 800;
               const netMbps = (host && host.netMbps) || v.targetNetMbps || 4;
               const avVer = host && host.antivirusVer !== undefined ? host.antivirusVer : (v.targetAvVer || 0);
-              const isFud = avVer <= 0 || (v.versionInt / 10) > avVer;
+              const effPotency = Math.max(v.versionInt || 10, v.effectiveStealthInt || 0) / 10;
+              const isFud = avVer <= 0 || effPotency > avVer;
 
               const rate = this.computeInfectionPerSec(v);
               const perHourCash = +(rate.cashPerSec * 3600 * Math.max(1, harvest.collectorMult)).toFixed(2);
@@ -1460,7 +1467,7 @@
                   <div>
                     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                       <strong style="font-family:var(--hc-font-mono);color:var(--hc-accent-text);">${esc(v.targetIp)}</strong>
-                      <span class="hc-badge ${isFud ? 'success' : 'danger'}">${isFud ? 'FUD / INVISÍVEL' : `RISCO AV v${avVer.toFixed(1)}`}</span>
+                      <span class="hc-badge ${isFud ? 'success' : 'danger'}">${isFud ? (v.hiddenWithVer ? `CAMUFLADO (Hider v${v.hiddenWithVer.toFixed(1)})` : 'FUD / INVISÍVEL') : `RISCO AV v${avVer.toFixed(1)}`}</span>
                     </div>
                     <div style="font-size:0.78rem;color:var(--hc-text-2);">${esc(v.targetHostname)}</div>
                     <div style="font-size:0.72rem;color:var(--hc-text-3);font-family:var(--hc-font-mono);">
@@ -1480,7 +1487,10 @@
                     <strong style="font-family:var(--hc-font-mono);font-size:0.88rem;color:var(--hc-warning);">${accStr}</strong>
                   </div>
 
-                  <div style="display:flex;gap:6px;justify-content:flex-end;">
+                  <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">
+                    ${window.stealthXhdEngine
+                      ? `<button type="button" id="btnHideVirus_${v.id}" class="hc-btn ghost sm" onclick="window.stealthXhdEngine.hideRemoteVirusWithHider(${v.id})">Hider (v${window.stealthXhdEngine.getHiderVer().toFixed(1)})</button>`
+                      : ''}
                     <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(v.targetIp)}', 'entrar')">SSH</button>
                     <button type="button" class="hc-btn ghost sm" style="color:var(--hc-danger-text);" onclick="window.softwareEngine.removeRemoteVirus(${v.id})">Remover</button>
                   </div>
@@ -1573,6 +1583,9 @@
             </button>
             <button type="button" id="tabActiveViruses" class="hc-btn sm ${this.activeTab === 'viruses' ? 'primary' : 'ghost'}" onclick="window.softwareEngine.activeTab='viruses';window.softwareEngine.renderUI();">
               Vírus Instalados & Coletor (${harvest.virusCount})
+            </button>
+            <button type="button" id="tabStealthAndXhd" class="hc-btn sm ${this.activeTab === 'xhd' ? 'primary' : 'ghost'}" onclick="window.softwareEngine.activeTab='xhd';window.softwareEngine.renderUI();">
+              Camuflagem (Hider/Seeker) & HD Externo (XHD)
             </button>
           </div>
 

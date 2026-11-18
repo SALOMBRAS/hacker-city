@@ -37,6 +37,10 @@
   <script src="src/js/software-bitcoin-engine.js"></script>
   <script src="src/js/progression-missions-engine.js"></script>
   <script src="src/js/safenet-fbi-living-bots-engine.js"></script>
+  <script src="src/js/task-manager-minigame-engine.js"></script>
+  <script src="src/js/fs-stealth-xhd-bounce-engine.js"></script>
+  <script src="src/js/multi-banks-account-hack-engine.js"></script>
+  <script src="src/js/social-clans-mail-ranking-engine.js"></script>
 </head>
 <body>
 
@@ -215,6 +219,7 @@
       <nav class="sidebar-nav" id="sidebarNav">
         <div class="nav-section">Meu PC</div>
         <button type="button" class="nav-item" data-win="winHome" onclick="navTo('winHome')"><i data-icon="layout-dashboard"></i><span>Home</span></button>
+        <button type="button" class="nav-item" data-win="winTaskManager" onclick="navTo('winTaskManager')"><i data-icon="activity"></i><span>Task Manager</span><span id="navTaskCountBadge" class="hc-badge success" style="margin-left:auto;display:none;font-size:0.65rem;padding:1px 6px;">0</span></button>
         <button type="button" class="nav-item" data-win="winTerminal" onclick="navTo('winTerminal')"><i data-icon="terminal"></i><span>Terminal</span></button>
         <button type="button" class="nav-item" data-win="winSoftware" onclick="navTo('winSoftware')"><i data-icon="package"></i><span>Software & Vírus</span></button>
         <button type="button" class="nav-item" data-win="winLogs" onclick="navTo('winLogs')"><i data-icon="file-text"></i><span>Logs</span></button>
@@ -233,6 +238,9 @@
         <button type="button" class="nav-item" data-win="winBitcoin" onclick="navTo('winBitcoin')"><i data-icon="bitcoin"></i><span>Bitcoin</span></button>
         <button type="button" class="nav-item" data-win="winQuitinete" onclick="navTo('winQuitinete')"><i data-icon="house"></i><span>Quitinete</span></button>
         <div class="nav-section">Social</div>
+        <button type="button" class="nav-item" data-win="winMail" onclick="navTo('winMail')"><i data-icon="mail"></i><span>Mail</span><span id="navMailCountBadge" class="hc-badge info" style="margin-left:auto;display:none;font-size:0.65rem;padding:1px 6px;">0</span></button>
+        <button type="button" class="nav-item" data-win="winClan" onclick="navTo('winClan')"><i data-icon="users"></i><span>Clãs & Guerra</span></button>
+        <button type="button" class="nav-item" data-win="winRanking" onclick="navTo('winRanking')"><i data-icon="trophy"></i><span>Ranking & Badges</span></button>
         <button type="button" class="nav-item" data-win="winIrc" onclick="navTo('winIrc')"><i data-icon="message-square"></i><span>Chat</span></button>
         <div class="nav-section">Sistema</div>
         <button type="button" class="nav-item" data-win="winUniversity" onclick="navTo('winUniversity')"><i data-icon="graduation-cap"></i><span>Universidade</span></button>
@@ -325,6 +333,9 @@
             <div class="bank-acc-bal" id="bankDisplayBalance">$ 0.00 HC</div>
           </div>
         </div>
+
+        <!-- Contas Multi-Bancos Offshore (5 Bancos NPC) -->
+        <div id="multiBankMount"></div>
 
         <div style="background: var(--hc-inset); border: 1px solid var(--hc-border); border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
           <h4 style="color: #fff; font-size: 0.88rem; margin-bottom: 0.5rem;">Transferência P2P em Tempo Real (Entre Jogadores)</h4>
@@ -648,6 +659,50 @@
         </div>
       </div>
       <div class="window-body" id="fbiAppBody"></div>
+    </div>
+
+    <!-- JANELA 21: TASK MANAGER REAL & ACELERAÇÃO DE PROCESSOS (COFRE GIRATÓRIO) -->
+    <div class="window-frame" id="winTaskManager" style="display: none;">
+      <div class="window-header">
+        <div>
+          <div class="window-title">Task Manager</div>
+          <p class="page-sub">Processos concorrentes dividindo CPU e Banda em tempo real (100% / N). Acelere qualquer processo jogando o Cofre de Segurança.</p>
+        </div>
+      </div>
+      <div class="window-body" id="taskManagerBody"></div>
+    </div>
+
+    <!-- JANELA 22: CORREIO CRIPTOGRAFADO (MAIL) -->
+    <div class="window-frame" id="winMail" style="display: none;">
+      <div class="window-header">
+        <div>
+          <div class="window-title">Mail Criptografado</div>
+          <p class="page-sub">Caixa de entrada de Ensei Tankado, alertas forenses da Safenet/FBI, avisos de Guerra de Clãs e mensagens entre operadores.</p>
+        </div>
+      </div>
+      <div class="window-body" id="mailAppBody"></div>
+    </div>
+
+    <!-- JANELA 23: CLÃS, SERVIDOR DEDICADO & GUERRA DE CLÃS -->
+    <div class="window-frame" id="winClan" style="display: none;">
+      <div class="window-header">
+        <div>
+          <div class="window-title">Clãs & Guerra de Clãs</div>
+          <p class="page-sub">Funde um clã com servidor dedicado próprio ($ 1.000 HC), deposite no cofre coletivo e dispute Bounties em Guerras de DDoS.</p>
+        </div>
+      </div>
+      <div class="window-body" id="clanAppBody"></div>
+    </div>
+
+    <!-- JANELA 24: RANKING OFICIAL (4 CATEGORIAS) & MEDALHAS (BADGES) -->
+    <div class="window-frame" id="winRanking" style="display: none;">
+      <div class="window-header">
+        <div>
+          <div class="window-title">Ranking & Medalhas (Badges)</div>
+          <p class="page-sub">Classificação em 4 categorias (Reputação, Melhor Software, Poder DDoS e Clãs) + Vitrine de 16 Medalhas desbloqueáveis.</p>
+        </div>
+      </div>
+      <div class="window-body" id="rankingAppBody"></div>
     </div>
 
   </div>
@@ -1137,6 +1192,15 @@
       renderHome();
       if (window.quitineteEngine) {
         window.quitineteEngine.updatePill();
+      }
+      if (window.mailEngine) {
+        window.mailEngine.syncBadge();
+      }
+      if (window.taskManager) {
+        window.taskManager.syncWidgets();
+      }
+      if (window.multiBankEngine) {
+        window.multiBankEngine.renderMultiBankOverview('multiBankMount');
       }
       updateSkillTreeDisplay();
     }
@@ -1950,6 +2014,26 @@
         }
       } else if (cmd === 'panic') {
         openWindow('winPanic');
+      } else if (cmd === 'tasks' || cmd === 'ps' || cmd === 'top') {
+        openWindow('winTaskManager');
+        appendCli('Task Manager aberto na área principal.', 'var(--hc-accent-text)');
+      } else if (cmd === 'mail' || cmd === 'inbox') {
+        openWindow('winMail');
+        appendCli(`Mail Criptografado aberto (${window.mailEngine ? window.mailEngine.getUnreadCount() : 0} não lidos).`, 'var(--hc-accent-text)');
+      } else if (cmd === 'clan' || cmd === 'clans') {
+        openWindow('winClan');
+        appendCli('Painel de Clãs & Guerra aberto.', 'var(--hc-accent-text)');
+      } else if (cmd === 'ranking' || cmd === 'rank' || cmd === 'badges') {
+        openWindow('winRanking');
+        appendCli('Ranking Oficial & Medalhas aberto.', 'var(--hc-accent-text)');
+      } else if (cmd === 'puzzle' || cmd === 'enigma') {
+        window.internetEngine.openIp('109.64.200.10');
+        appendCli('Abrindo Trilha de Enigmas em 109.64.200.10 (First Puzzle)...', 'var(--hc-success)');
+      } else if (cmd === 'bounce') {
+        if (window.bounceEngine) {
+          const on = window.bounceEngine.toggleEnabled();
+          appendCli(`[BOUNCE PROXY] Status: ${on ? 'ATIVADO (' + window.bounceEngine.state.hops.join(' -> ') + ')' : 'DESATIVADO'}`, on ? 'var(--hc-success)' : 'var(--hc-warning)');
+        }
       } else {
         if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
         appendCli(`Comando '${cmd}' não reconhecido. Digite 'help'.`, 'var(--hc-danger)');
@@ -2404,7 +2488,14 @@
       const ipStatus = window.networkIdentity ? window.networkIdentity.getWeeklyResetStatus() : { canResetFree: true, formattedRemaining: '' };
       const btcStr = window.bitcoinEngine ? window.bitcoinEngine.getFormattedBtc() : '0.00000000';
       const harvest = window.softwareEngine ? window.softwareEngine.getPendingHarvestSummary() : { virusCount: 0, cashReady: 0, btcReadyStr: '0.00000000' };
-      const shortcuts = [['winBrowser','globe','Internet'],['winMissions','target','Missões'],['winUniversity','graduation-cap','Universidade'],['winFbi','shield-alert','Polícia & FBI'],['winSoftware','package','Software & Vírus'],['winBitcoin','bitcoin','Bitcoin']];
+      const shortcuts = [
+        ['winBrowser', 'globe', 'Internet'],
+        ['winTaskManager', 'activity', 'Task Manager'],
+        ['winMissions', 'target', 'Missões'],
+        ['winSoftware', 'package', 'Software & XHD'],
+        ['winClan', 'users', 'Clãs & Guerra'],
+        ['winRanking', 'trophy', 'Ranking & Badges']
+      ];
 
       if (window.safenetFbiEngine) window.safenetFbiEngine.ensureSeeded();
       if (window.livingBotsEngine) window.livingBotsEngine.ensureInitialized();
@@ -2464,9 +2555,17 @@
           <button type="button" class="hc-btn primary" onclick="${step.customOnclick ? step.customOnclick : `navTo('${step.go}')`}">${escapeHtml(step.cta)} ${HC.icon('arrow-right')}</button>
         </div>
 
-        <div class="hc-eyebrow section-label">Atalhos</div>
+        <div class="hc-eyebrow section-label">Atalhos & Trilha de Enigmas</div>
         <div class="shortcut-grid">
           ${shortcuts.map(s => `<button type="button" class="hc-card shortcut" onclick="navTo('${s[0]}')">${HC.icon(s[1], 'lg')}<span>${s[2]}</span></button>`).join('')}
+        </div>
+        <div class="hc-card" style="margin-top:12px;padding:0.85rem 1.1rem;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div style="font-size:0.83rem;">
+            <span class="hc-badge info">TRILHA DE ENIGMAS</span>
+            <strong style="margin-left:8px;">First Puzzle (<code>109.64.200.10</code>)</strong>
+            <span style="color:var(--hc-text-2);margin-left:6px;">— Resolva os 6 servidores em cadeia para destravar softwares v1.5 → v3.0 grátis!</span>
+          </div>
+          <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('109.64.200.10')">Ir ao First Puzzle →</button>
         </div>
 
         <div class="hc-eyebrow section-label">O Mundo Vivo</div>
@@ -2558,6 +2657,21 @@
       }
       if (winId === 'winLogs' && typeof window.renderLogsPage === 'function') {
         window.renderLogsPage();
+      }
+      if (winId === 'winTaskManager' && window.taskManager) {
+        window.taskManager.renderUI('taskManagerBody');
+      }
+      if (winId === 'winMail' && window.mailEngine) {
+        window.mailEngine.renderUI('mailAppBody');
+      }
+      if (winId === 'winClan' && window.clanEngine) {
+        window.clanEngine.renderUI('clanAppBody');
+      }
+      if (winId === 'winRanking' && window.rankingBadgesEngine) {
+        window.rankingBadgesEngine.renderUI('rankingAppBody');
+      }
+      if (winId === 'winBank' && window.multiBankEngine) {
+        window.multiBankEngine.renderMultiBankOverview('multiBankMount');
       }
     }
     function closeWindow(winId) { window.winManager ? window.winManager.close(winId) : null; }

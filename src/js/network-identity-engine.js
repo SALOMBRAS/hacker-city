@@ -6,7 +6,7 @@
  */
 (function () {
   const WEEK_MS = 7 * 24 * 60 * 60 * 1000; // 7 dias exatos (168h)
-  const RESERVED_FIRST_OCTETS = new Set([0, 10, 33, 71, 77, 100, 109, 127, 133, 169, 172, 185, 192, 198, 203, 224, 240, 255]);
+  const RESERVED_FIRST_OCTETS = new Set([0, 10, 33, 71, 77, 100, 109, 127, 133, 155, 169, 172, 185, 192, 198, 203, 224, 240, 255]);
 
   function esc(str) {
     return String(str == null ? '' : str)
@@ -363,6 +363,7 @@
     constructor() {
       this.userId = null;
       this.entries = [];
+      this.activeSection = 'servers'; // 'servers' | 'banks'
       this.filterKind = 'all';
       this.searchQuery = '';
     }
@@ -528,7 +529,28 @@
             `;
           }).join('');
 
+      const bankAccCount = window.multiBankEngine
+        ? (window.multiBankEngine.ensureLoaded().hackedAccounts || []).length
+        : 0;
+
+      const sectionTabsHtml = `
+        <div style="display:flex;gap:8px;border-bottom:1px solid var(--hc-border);padding-bottom:10px;margin-bottom:12px;flex-wrap:wrap;">
+          <button type="button" id="tabHdbServers" class="hc-btn sm ${this.activeSection !== 'banks' ? 'primary' : 'ghost'}" onclick="window.hackedDb.activeSection='servers';window.hackedDb.renderUI();">
+            Servidores Invadidos (${this.entries.length})
+          </button>
+          <button type="button" id="tabHdbBanks" class="hc-btn sm ${this.activeSection === 'banks' ? 'primary' : 'ghost'}" onclick="window.hackedDb.activeSection='banks';window.hackedDb.renderUI();">
+            Contas Bancárias Hackeadas (${bankAccCount})
+          </button>
+        </div>
+      `;
+
+      if (this.activeSection === 'banks' && window.multiBankEngine) {
+        container.innerHTML = sectionTabsHtml + window.multiBankEngine.renderHackedBankAccountsHtml();
+        return;
+      }
+
       container.innerHTML = `
+        ${sectionTabsHtml}
         <div class="hdb-toolbar">
           <div class="hdb-filters">
             ${filters.map(([k, lbl]) => `
@@ -826,11 +848,14 @@
 
   const IMPORTANT_BOOKMARKS = [
     { ip: '198.51.100.42', label: 'Alvo Tutorial Numataka' },
+    { ip: '109.64.200.10', label: 'First Puzzle (Trilha de Enigmas)' },
     { ip: '71.4.5.1', label: 'HC Telecom ISP (Trocar IP)' },
     { ip: '71.4.20.1', label: 'First Whois' },
     { ip: '203.17.88.40', label: 'Farofa Systems' },
     { ip: '33.8.2.71', label: 'Download Center' },
-    { ip: '77.3.9.21', label: 'Banco Colchão HC' },
+    { ip: '77.3.9.21', label: 'First Bank / Colchão HC' },
+    { ip: '77.3.10.44', label: 'HEBC Clearing Bank' },
+    { ip: '77.3.12.15', label: 'Swiss Offshore Vault' },
     { ip: '185.220.101.9', label: 'Blackmarket Onion' },
     { ip: '133.70.13.37', label: 'Rádio Pirata 1337 FM' },
     { ip: '109.64.211.37', label: 'Safenet Authority' }
@@ -898,6 +923,11 @@
       if (q === 'whois') return '71.4.20.1';
       if (q === 'download' || q === 'dc') return '33.8.2.71';
       if (q === 'bank' || q === 'banco') return '77.3.9.21';
+      if (q === 'hebc' || q === 'hebc.hc') return '77.3.10.44';
+      if (q === 'amex' || q === 'amex.hc') return '77.3.11.88';
+      if (q === 'swiss' || q === 'swiss.hc') return '77.3.12.15';
+      if (q === 'quantum' || q === 'quantum-bank.hc') return '77.3.13.99';
+      if (q === 'puzzle' || q === 'firstpuzzle') return '109.64.200.10';
       if (q === 'market' || q === 'blackmarket' || q === 'blackmarket.onion') return '185.220.101.9';
       if (q === 'safenet') return '109.64.211.37';
       if (q === 'farofa') return '203.17.88.40';
@@ -943,6 +973,102 @@
           bankBalance: this.drainedNpcIps.has(npc.ip) ? 0 : npc.bankBalance,
           files: (npc.files || []).filter((f) => !deletedSet.has(f.name))
         };
+      }
+
+      // 2b. Os 5 Bancos NPC Internacionais (MultiBankEngine)?
+      if (window.multiBankEngine) {
+        const bMeta = window.multiBankEngine.getBankByIp(ip);
+        if (bMeta) {
+          return {
+            ip: bMeta.ip,
+            domain: bMeta.domain,
+            hostname: bMeta.name,
+            kind: 'banco',
+            badge: 'Instituição Bancária',
+            online: true,
+            tier: bMeta.tier,
+            securityLevel: bMeta.tier + 1,
+            cpuMhz: bMeta.cpuMhz,
+            netMbps: bMeta.netMbps,
+            hddTotalMb: bMeta.hddTotalMb,
+            hddOsBaseMb: Math.round(bMeta.hddTotalMb * 0.42),
+            ramTotalMb: bMeta.ramTotalMb,
+            ramOsBaseMb: Math.round(bMeta.ramTotalMb * 0.42),
+            hasherVer: bMeta.serverHasherVer,
+            firewallVer: bMeta.firewallVer,
+            antivirusVer: bMeta.antivirusVer,
+            rootPassword: deterministicPassword('BANK_ROOT::' + bMeta.ip),
+            cpuSpec: `${bMeta.cpuMhz.toLocaleString('pt-BR')} MHz · ${bMeta.netMbps} Mbps · AV v${bMeta.antivirusVer.toFixed(1)}`,
+            bankBalance: this.drainedNpcIps.has(bMeta.ip) ? 0 : bMeta.tier * 650,
+            files: [
+              { name: 'interbank_swift.enc', size: '90 MB', sizeMb: 90, content: `Clearing criptografado de ${bMeta.shortName}.` }
+            ].filter((f) => !deletedSet.has(f.name))
+          };
+        }
+      }
+
+      // 2c. Servidor da Trilha Oficial de Enigmas ("First Puzzle" 109.64.200.10 -> .77)?
+      if (window.puzzleTrailEngine) {
+        const pNode = window.puzzleTrailEngine.getNodeByIp(ip);
+        if (pNode) {
+          return {
+            ip: pNode.ip,
+            hostname: pNode.hostname,
+            kind: 'puzzle',
+            badge: `Enigma #${pNode.index}`,
+            puzzleNode: pNode,
+            online: true,
+            tier: 1,
+            securityLevel: 1,
+            cpuMhz: 2600,
+            netMbps: 200,
+            hddTotalMb: 640,
+            hddOsBaseMb: 280,
+            ramTotalMb: 512,
+            ramOsBaseMb: 200,
+            hasherVer: 1.0,
+            firewallVer: 1.0,
+            antivirusVer: 1.0,
+            rootPassword: deterministicPassword('PUZZLE::' + pNode.ip),
+            cpuSpec: '2.600 MHz · 200 Mbps · Servidor de Enigma',
+            bankBalance: 0,
+            files: [
+              { name: `enigma_${pNode.index}_hint.txt`, size: '12 MB', sizeMb: 12, content: `Resolva o desafio na aba Página para destravar o software de recompensa no HD deste host!` }
+            ].filter((f) => !deletedSet.has(f.name))
+          };
+        }
+      }
+
+      // 2d. Servidor Dedicado de Clã (155.90.X.X)?
+      if (window.clanEngine) {
+        const clan = window.clanEngine.getClanByServerIp(ip);
+        if (clan) {
+          return {
+            ip: clan.serverIp,
+            hostname: `Mainframe do Clã [${clan.tag}] ${clan.name}`,
+            kind: 'clan',
+            badge: `Clã [${clan.tag}]`,
+            clanRef: clan,
+            online: true,
+            tier: 2,
+            securityLevel: 2,
+            cpuMhz: 6400,
+            netMbps: 500,
+            hddTotalMb: 2048,
+            hddOsBaseMb: 900,
+            ramTotalMb: 1024,
+            ramOsBaseMb: 480,
+            hasherVer: 2.0,
+            firewallVer: 2.0,
+            antivirusVer: 2.5,
+            rootPassword: deterministicPassword('CLAN::' + clan.serverIp),
+            cpuSpec: '6.400 MHz · 500 Mbps · Servidor de Clã',
+            bankBalance: this.drainedNpcIps.has(clan.serverIp) ? 0 : 320,
+            files: [
+              { name: 'clan_manifest.txt', size: '16 MB', sizeMb: 16, content: `Líder: ${clan.leader} | Membros: ${clan.members} | Poder: ${clan.powerScore}` }
+            ].filter((f) => !deletedSet.has(f.name))
+          };
+        }
       }
 
       // 3. É um dos 210 Bots Determinísticos?
@@ -1044,9 +1170,14 @@
     getServerLogs(ip) {
       if (!window.botAI) return [];
       if (!window.botAI.syslogRegistry.has(ip)) {
-        window.botAI.syslogRegistry.set(ip, [
+        const initLines = [
           `[00:00:01] systemd[1]: sshd.service initialized on ${ip}:22`
-        ]);
+        ];
+        if (window.multiBankEngine) {
+          const bankWireLeak = window.multiBankEngine.getForensicBankLogForHost(ip);
+          if (bankWireLeak) initLines.unshift(bankWireLeak);
+        }
+        window.botAI.syslogRegistry.set(ip, initLines);
       }
       return window.botAI.syslogRegistry.get(ip);
     }
@@ -1173,6 +1304,51 @@
       this.isCracking = true;
       this.crackPct = 0;
       const power = this.getPlayerAttackPower();
+      const idealSec = Math.max(1.3, Math.min(8.0, +(1.8 * reqHasher / Math.max(0.8, power * 0.9)).toFixed(1)));
+      this.activeCrackPid = null;
+
+      if (window.taskManager) {
+        const enq = window.taskManager.enqueue({
+          dedupeKey: `bf_ssh_${host.ip}`,
+          title: `Quebrar senha root (${host.hostname})`,
+          subtitle: `Cracker.crc v${crcVer.toFixed(1)} · ${power}x`,
+          targetIp: host.ip,
+          queueKind: 'cpu',
+          category: 'Ataque',
+          idealSeconds: idealSec,
+          onComplete: () => {
+            this.isCracking = false;
+            this.activeCrackPid = null;
+            this.crackPct = 100;
+            this.onAttackSucceeded(host, 'password', host.rootPassword);
+          },
+          onCancel: () => {
+            this.isCracking = false;
+            this.activeCrackPid = null;
+            this.crackPct = 0;
+            this.render();
+          }
+        });
+
+        if (enq.started) {
+          this.activeCrackPid = enq.process.pid;
+          const uiSync = setInterval(() => {
+            const p = window.taskManager.processes.find((x) => x.pid === enq.process.pid);
+            if (!p || p.status !== 'running') {
+              clearInterval(uiSync);
+              return;
+            }
+            this.crackPct = Math.min(99, Math.round((p.workDone / p.workTotal) * 100));
+            const bar = document.getElementById('inetCrackBarFill');
+            const lbl = document.getElementById('inetCrackPctLabel');
+            if (bar) bar.style.width = this.crackPct + '%';
+            if (lbl) lbl.textContent = this.crackPct + '%';
+          }, 140);
+          this.render();
+          return;
+        }
+      }
+
       const stepInc = Math.max(8, Math.round((26 * power) / Math.max(1, reqHasher)));
       this.render();
 
@@ -1214,7 +1390,10 @@
     }
 
     onAttackSucceeded(host, method, pwdOrToken) {
-      const myIp = window.networkIdentity.getPublicIp();
+      const route = window.bounceEngine
+        ? window.bounceEngine.routeConnectionAndGetVisibleIp(host.ip)
+        : { visibleIp: window.networkIdentity.getPublicIp(), bounced: false };
+      const visibleIp = route.visibleIp;
 
       // Salvar no Hacked Database
       if (window.hackedDb) {
@@ -1229,11 +1408,11 @@
         });
       }
 
-      // Se for bot, registrar intrusão na IA com o IP PÚBLICO REAL atual do jogador!
+      // Se for bot, registrar intrusão na IA com o IP visível (se Bounce ativo, registra apenas o último salto!)
       if (host.kind === 'bot' && window.botAI) {
-        window.botAI.registerIntrusion(host.ip, myIp);
+        window.botAI.registerIntrusion(host.ip, visibleIp);
       } else {
-        this.appendServerLog(host.ip, `INTRUSION src=${myIp} dest=${host.ip} method=${method.toUpperCase()} root=GRANTED`);
+        this.appendServerLog(host.ip, `INTRUSION src=${visibleIp} dest=${host.ip} method=${method.toUpperCase()} root=GRANTED`);
       }
 
       if (window.currentProfile) {
@@ -1271,7 +1450,9 @@
         return false;
       }
 
-      const myIp = window.networkIdentity.getPublicIp();
+      const route = window.bounceEngine
+        ? window.bounceEngine.routeConnectionAndGetVisibleIp(host.ip)
+        : { visibleIp: window.networkIdentity.getPublicIp(), bounced: false };
       this.activeSshIp = host.ip;
       this.activeTab = 'entrar';
 
@@ -1279,7 +1460,7 @@
       if (typeof window.addLocalLog === 'function') {
         window.addLocalLog('SSH-OUT', `localhost logged in to ${host.ip} as root`, 'info');
       }
-      this.appendServerLog(host.ip, `${myIp} logged in as root`);
+      this.appendServerLog(host.ip, `${route.visibleIp} logged in as root`);
 
       if (window.tutorialEngine) {
         window.tutorialEngine.onHostHackedOrLoggedRoot(host.ip);
@@ -1358,15 +1539,17 @@
       if (window.currentWallet) {
         window.currentWallet.balance = parseFloat(window.currentWallet.balance) + loot;
       }
-      const myIp = window.networkIdentity.getPublicIp();
-      this.appendServerLog(host.ip, `${myIp} transferred $ ${loot}.00 HC from local_vault`);
+      const route = window.bounceEngine
+        ? window.bounceEngine.routeConnectionAndGetVisibleIp(host.ip)
+        : { visibleIp: window.networkIdentity.getPublicIp(), bounced: false };
+      this.appendServerLog(host.ip, `${route.visibleIp} transferred $ ${loot}.00 HC from local_vault`);
       if (typeof window.addLocalLog === 'function') {
         window.addLocalLog('WIRE-LOOT', `Transferência remota de ${host.hostname} [${host.ip}]: +$ ${loot}.00 HC`, 'success');
       }
       if (window.missionsEngine) {
         window.missionsEngine.notifyHostDrained(host.ip);
       }
-      if (loot >= 800 && window.safenetFbiEngine) {
+      if (!route.bounced && loot >= 800 && window.safenetFbiEngine) {
         window.safenetFbiEngine.evaluatePlayerCrime(`Transferência ilícita de $ ${loot} HC`, loot, host.ip);
       }
       if (window.hackerAudio) window.hackerAudio.playMoneyCollect();
@@ -1409,8 +1592,10 @@
         this.deletedHostFiles.set(ip, new Set());
       }
       this.deletedHostFiles.get(ip).add(fileName);
-      const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0';
-      this.appendServerLog(ip, `${myIp} deleted file /root/${fileName} (disk space freed)`);
+      const visibleIp = window.bounceEngine
+        ? window.bounceEngine.routeConnectionAndGetVisibleIp(ip).visibleIp
+        : (window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0');
+      this.appendServerLog(ip, `${visibleIp} deleted file /root/${fileName} (disk space freed)`);
       if (typeof window.addLocalLog === 'function') {
         window.addLocalLog('RM-REMOTE', `Arquivo ${fileName} removido de ${ip}:/root (espaço em disco liberado no alvo)`, 'info');
       }
@@ -1596,13 +1781,39 @@
         `;
       }
 
-      // 6. Banco (77.3.9.21)
+      // 6. Os 5 Bancos NPC (MultiBankEngine: 77.3.9.21, 77.3.10.44, 77.3.11.88, 77.3.12.15, 77.3.13.99)
       if (host.kind === 'banco') {
+        if (window.multiBankEngine) {
+          return window.multiBankEngine.renderBankPortalHtml(host);
+        }
         return `
           <div class="hc-card" style="padding: 1.15rem;">
             <div class="hc-eyebrow" style="margin-bottom: 0.4rem;">Internet Banking & Clearing Interbancário</div>
             <p style="font-size: 0.85rem; color: var(--hc-text-2); margin-bottom: 1rem;">Acesse sua conta oficial para transferências P2P em tempo real ou tente invadir o cofre administrativo na aba <strong>Invadir</strong>.</p>
             <button type="button" class="hc-btn primary" onclick="navTo('winBank')">Abrir Minha Conta no Banco →</button>
+          </div>
+        `;
+      }
+
+      // 6a. Servidor da Trilha de Enigmas ("First Puzzle" 109.64.200.10 -> .77)
+      if (host.kind === 'puzzle' && window.puzzleTrailEngine && host.puzzleNode) {
+        return window.puzzleTrailEngine.renderPuzzlePublicPage(host.puzzleNode);
+      }
+
+      // 6c. Servidor Dedicado de Clã (155.90.X.X)
+      if (host.kind === 'clan' && host.clanRef) {
+        const c = host.clanRef;
+        return `
+          <div class="hc-card" style="padding:1.2rem;border-color:rgba(53,184,119,0.35);">
+            <div class="hc-eyebrow" style="margin-bottom:0.35rem;">Mainframe Oficial de Clã · ${esc(c.serverIp)}</div>
+            <h3 style="font-size:1.08rem;margin-bottom:0.35rem;">[${esc(c.tag)}] ${esc(c.name)}</h3>
+            <p style="font-size:0.84rem;color:var(--hc-text-2);margin-bottom:0.9rem;">
+              ${esc(c.desc)} · Líder: <strong>${esc(c.leader)}</strong> · Poder: <strong>${c.powerScore} pts</strong> · Guerras vencidas: <strong>${c.warsWon}</strong>.
+            </p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="button" class="hc-btn primary" onclick="navTo('winClan')">Abrir Painel de Clãs & Guerra →</button>
+              <button type="button" class="hc-btn ghost" onclick="window.internetEngine.switchTab('invadir')">Tentar Invadir Servidor do Clã</button>
+            </div>
           </div>
         `;
       }
@@ -1815,6 +2026,39 @@
                 : ''}
             </div>
 
+            <!-- Softwares no HD do Alvo (Roubo / Download Grátis p/ Seu PC!) & Varredura Seeker.skr -->
+            ${window.stealthXhdEngine ? (() => {
+              const stealables = window.stealthXhdEngine.getStealableSoftwaresOnHost(host);
+              const seekerRevealed = window.stealthXhdEngine.revealedHosts.has(host.ip);
+              const seekerClaimed = window.stealthXhdEngine.claimedHiddenLoot.has(host.ip);
+              return `
+                <div class="hc-card" style="padding:0.9rem 1.05rem;display:flex;flex-direction:column;gap:8px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <div class="hc-eyebrow">Softwares Binários & Arquivos Ocultos no Alvo</div>
+                    ${!seekerRevealed
+                      ? `<button type="button" id="btnRunRemoteSeeker" class="hc-btn ghost sm" onclick="window.handleRunRemoteSeeker('${esc(host.ip)}')">🔍 Rodar Seeker.skr (v${window.stealthXhdEngine.getSeekerVer().toFixed(1)})</button>`
+                      : (!seekerClaimed
+                          ? `<button type="button" id="btnClaimHiddenVault" class="hc-btn primary sm" onclick="window.handleClaimHiddenVault('${esc(host.ip)}')">💎 Extrair Cofre Oculto (.secret_vault.enc)</button>`
+                          : `<span class="hc-badge success">Cofre Oculto Extraído</span>`)}
+                  </div>
+                  ${stealables.length === 0
+                    ? `<div style="font-size:0.77rem;color:var(--hc-text-3);">Nenhum binário superior destravado para download neste host (visite servidores da Trilha de Enigmas, Empresas, Bancos ou Bots Tier II/III!).</div>`
+                    : stealables.map((st) => `
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--hc-inset);border:1px solid var(--hc-border);border-radius:7px;gap:8px;flex-wrap:wrap;font-size:0.8rem;">
+                          <div>
+                            <strong style="font-family:var(--hc-font-mono);color:var(--hc-accent-text);">${esc(st.filename)}</strong>
+                            <span class="hc-badge success" style="margin-left:6px;">v${(st.versionInt / 10).toFixed(1)}</span>
+                            <span class="hc-badge info" style="margin-left:4px;">${esc(st.sourceBadge)}</span>
+                          </div>
+                          <button type="button" id="btnStealSoft_${esc(st.softKey)}" class="hc-btn primary sm" onclick="window.handleDownloadRemoteSoft('${esc(host.ip)}', '${esc(st.softKey)}', ${st.versionInt})">
+                            ⬇ Baixar p/ Meu PC (Grátis)
+                          </button>
+                        </div>
+                      `).join('')}
+                </div>
+              `;
+            })() : ''}
+
             <div class="hc-eyebrow">Arquivos em /root (${allFiles.length})</div>
             <div style="display: flex; flex-direction: column; gap: 8px;">${filesHtml || '<div style="color:var(--hc-text-3);font-size:0.82rem;">Diretório vazio.</div>'}</div>
           </div>
@@ -1875,9 +2119,14 @@
 
           ${this.isCracking ? `
             <div class="hc-card" style="padding: 1rem; margin-bottom: 14px; border-color: var(--hc-accent);">
-              <div style="display: flex; justify-content: space-between; font-family: var(--hc-font-mono); font-size: 0.82rem; margin-bottom: 6px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-family: var(--hc-font-mono); font-size: 0.82rem; margin-bottom: 6px;">
                 <span>QUEBRANDO HASH ROOT (Cracker.crc v${crcVer.toFixed(1)} · ${power}x)...</span>
-                <strong id="inetCrackPctLabel" style="color: var(--hc-accent-text);">${this.crackPct}%</strong>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <strong id="inetCrackPctLabel" style="color: var(--hc-accent-text);">${this.crackPct}%</strong>
+                  ${this.activeCrackPid && window.attackMinigame
+                    ? `<button type="button" id="btnOpenVaultFromCrack" class="hc-btn primary sm" onclick="window.attackMinigame.openForProcess(${this.activeCrackPid})">⚡ Cortar Tempo (Cofre)</button>`
+                    : ''}
+                </div>
               </div>
               <div style="height: 10px; background: var(--hc-inset); border-radius: 999px; overflow: hidden; border: 1px solid var(--hc-border);">
                 <div id="inetCrackBarFill" style="height: 100%; width: ${this.crackPct}%; background: var(--hc-accent); transition: width 0.12s linear;"></div>
@@ -1959,7 +2208,12 @@
           ? this.renderPublicPageTab(host)
           : (this.activeTab === 'entrar' ? this.renderLoginOrRootTab(host) : this.renderInvadirTab(host));
 
+        const bounceBar = (window.bounceEngine && host.kind !== 'self')
+          ? window.bounceEngine.renderInternetBounceBarHtml(host.ip)
+          : '';
+
         bodyHtml = `
+          ${bounceBar}
           <div class="inet-host-banner">
             <div class="inet-host-id">
               <div class="inet-host-icon">${HC.icon(host.kind === 'isp' ? 'wifi' : (host.kind === 'banco' ? 'landmark' : 'server'))}</div>
@@ -2092,6 +2346,31 @@
     if (window.internetEngine) {
       window.internetEngine.render();
     }
+  };
+
+  window.handleDownloadRemoteSoft = function (ip, softKey, remoteVersionInt) {
+    if (!window.stealthXhdEngine || !window.internetEngine) return null;
+    const host = window.internetEngine.resolveHost(ip);
+    const res = window.stealthXhdEngine.downloadRemoteSoftware(host, softKey, remoteVersionInt, false);
+    if (!res.success) alert(res.message);
+    return res;
+  };
+
+  window.handleRunRemoteSeeker = function (ip) {
+    if (!window.stealthXhdEngine || !window.internetEngine) return null;
+    const host = window.internetEngine.resolveHost(ip);
+    const res = window.stealthXhdEngine.runRemoteSeeker(host);
+    if (!res.success) alert(res.message);
+    else if (typeof window.showToast === 'function') window.showToast(res.message);
+    return res;
+  };
+
+  window.handleClaimHiddenVault = function (ip) {
+    if (!window.stealthXhdEngine || !window.internetEngine) return null;
+    const host = window.internetEngine.resolveHost(ip);
+    const res = window.stealthXhdEngine.claimHiddenSecretFile(host);
+    if (!res.success) alert(res.message);
+    return res;
   };
 
   // Atalho global Ctrl+K / Cmd+K para focar a busca rápida de IP na Topbar
