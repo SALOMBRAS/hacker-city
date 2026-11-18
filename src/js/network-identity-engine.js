@@ -552,10 +552,10 @@
       const sectionTabsHtml = `
         <div style="display:flex;gap:8px;border-bottom:1px solid var(--hc-border);padding-bottom:10px;margin-bottom:12px;flex-wrap:wrap;">
           <button type="button" id="tabHdbServers" class="hc-btn sm ${this.activeSection !== 'banks' ? 'primary' : 'ghost'}" onclick="window.hackedDb.activeSection='servers';window.hackedDb.renderUI();">
-            Servidores Invadidos (${this.entries.length})
+            PCs &amp; Senhas Descobertas (${this.entries.length})
           </button>
           <button type="button" id="tabHdbBanks" class="hc-btn sm ${this.activeSection === 'banks' ? 'primary' : 'ghost'}" onclick="window.hackedDb.activeSection='banks';window.hackedDb.renderUI();">
-            Contas Bancárias Hackeadas (${bankAccCount})
+            Contas de Banco Descobertas (${bankAccCount})
           </button>
         </div>
       `;
@@ -2366,24 +2366,24 @@
         const myTag = (window.currentProfile && window.currentProfile.hacker_tag) || 'Operador';
         const defaultTaunt = `Firewall de papelão hein fraco kkk passei a limpa e apaguei meu IP! - Ass: ${myTag}`;
         subContent = `
-          <div style="display:flex;flex-direction:column;gap:8px;">
+          <div id="remoteLogEditorBox" style="display:flex;flex-direction:column;gap:8px;">
             <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
               <div>
-                <strong style="font-size: 0.88rem;">Editor Remoto: <code>${esc(host.ip)}:/var/log/syslog</code></strong>
+                <strong style="font-size: 0.88rem;">Rastros de Acesso neste PC <span style="font-family:var(--hc-font-mono);font-size:0.78rem;color:var(--hc-text-3);">(${esc(host.ip)}:/var/log/syslog)</span></strong>
                 <div style="font-size: 0.78rem; color: ${myIpExposed ? 'var(--hc-danger-text)' : 'var(--hc-text-2)'};">
                   ${myIpExposed
-                    ? `ALERTA: Seu IP (${esc(myIp)}) consta na log! Se sair sem apagar, bots ativos e jogadores pegarão seu IP daqui!`
-                    : `Seguro: seu IP atual (${esc(myIp)}) não aparece neste arquivo de log.`}
+                    ? `⚠️ CUIDADO: Seu endereço (${esc(myIp)}) está anotado abaixo! Apague antes de sair para ninguém te rastrear!`
+                    : `✅ Limpo! Seu endereço (${esc(myIp)}) não aparece mais nos rastros deste PC.`}
                 </div>
               </div>
               <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                <button type="button" class="hc-btn ghost sm" onclick="document.getElementById('remoteSyslogTextarea').value=''; window.internetEngine.saveEditedRemoteLogs();">Limpar Tudo</button>
-                <button type="button" id="btnSaveRemoteSyslog" class="hc-btn primary sm" onclick="window.internetEngine.saveEditedRemoteLogs()">Salvar / Reescrever Syslog</button>
+                <button type="button" id="btnWipeAllRemoteLogs" class="hc-btn ghost sm" onclick="document.getElementById('remoteSyslogTextarea').value=''; window.internetEngine.saveEditedRemoteLogs();">Apagar Tudo</button>
+                <button type="button" id="btnSaveRemoteSyslog" class="hc-btn primary sm" onclick="window.internetEngine.saveEditedRemoteLogs()">Salvar Alteração</button>
               </div>
             </div>
 
             <!-- Barra Rápida: Apagar Próprio IP & Deixar Farpa / Recado para o Alvo! -->
-            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 10px;background:var(--hc-inset);border:1px solid rgba(216,155,56,0.35);border-radius:7px;">
+            <div id="remoteTauntQuickBar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 10px;background:var(--hc-inset);border:1px solid rgba(216,155,56,0.35);border-radius:7px;">
               <input type="text" id="remoteTauntMsgInput" class="form-input" style="flex:1;min-width:240px;font-family:var(--hc-font-mono);font-size:0.77rem;" value="${esc(defaultTaunt)}" placeholder="Escreva uma farpa/aviso p/ deixar na log do alvo sem seu IP...">
               <button type="button" id="btnQuickWipeAndTaunt" class="hc-btn sm" style="border-color:var(--hc-warning);color:var(--hc-warning);" onclick="window.internetEngine.applyQuickTauntToRemoteLog()">
                 🔥 Apagar Meu IP &amp; Deixar Farpa
@@ -2655,39 +2655,39 @@
           ` : ''}
 
           <div class="inet-attack-grid">
-            <div class="inet-attack-card">
+            <div class="inet-attack-card" id="cardAttackBruteforce">
               <div class="inet-attack-icon">${HC.icon('key-round')}</div>
-              <strong style="font-size: 0.95rem;">Ataque força-bruta (Root)</strong>
+              <strong style="font-size: 0.95rem;">Quebrar Senha (Força-Bruta)</strong>
               <div style="font-size: 0.77rem; color: var(--hc-text-2);">
-                Seu <code>Cracker.crc ${crcVer > 0 ? 'v' + crcVer.toFixed(1) : 'OFF'}</code> precisa superar <strong>AMBOS</strong>: <code>Firewall v${reqFwl.toFixed(1)}</code> e <code>Hasher v${reqHasher.toFixed(1)}</code>.
+                Testa senhas até descobrir a chave principal deste PC. Seu <strong>Quebrador de Senhas</strong> (<code>${crcVer > 0 ? 'v' + crcVer.toFixed(1) : 'Desligado'}</code>) precisa ser igual ou maior que o <code>Escudo v${reqFwl.toFixed(1)}</code> e o <code>Cofre v${reqHasher.toFixed(1)}</code> do alvo.
                 <span style="color:${canBruteforce ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};display:block;margin-top:3px;font-weight:600;">
                   ${crcVer <= 0
-                    ? '● BLOQUEADO: Cracker.crc desativado na RAM!'
+                    ? '● BLOQUEADO: Ligue seu Quebrador de Senhas (Cracker) na memória!'
                     : (crcVer < reqFwl
-                        ? `● BLOQUEADO PELO FIREWALL v${reqFwl.toFixed(1)} (Exige Cracker >= v${reqBfMin.toFixed(1)})`
+                        ? `● BLOQUEADO PELO ESCUDO (Firewall v${reqFwl.toFixed(1)}) — Evolua seu Cracker p/ >= v${reqBfMin.toFixed(1)}`
                         : (crcVer < reqHasher
-                            ? `● BLOQUEADO PELO HASHER v${reqHasher.toFixed(1)} (Exige Cracker >= v${reqBfMin.toFixed(1)})`
-                            : `● Potência suficiente (Velocidade CPU: ${speedFactor}x)`))}
+                            ? `● BLOQUEADO PELO COFRE (Hasher v${reqHasher.toFixed(1)}) — Evolua seu Cracker p/ >= v${reqBfMin.toFixed(1)}`
+                            : `● Pronto para invadir! (Velocidade do seu PC: ${speedFactor}x)`))}
                 </span>
               </div>
               <button type="button" id="btnInetBruteforce" class="hc-btn primary" style="margin-top: 6px; width: 100%; justify-content: center;" onclick="window.internetEngine.startBruteforce()">
-                Iniciar Força-Bruta
+                🔑 Quebrar Senha Agora
               </button>
             </div>
 
-            <div class="inet-attack-card">
+            <div class="inet-attack-card" id="cardAttackExploit">
               <div class="inet-attack-icon">${HC.icon('zap')}</div>
-              <strong style="font-size: 0.95rem;">Ataque exploit (Portas 21/22)</strong>
+              <strong style="font-size: 0.95rem;">Entrar por Brecha (Sem Senha)</strong>
               <div style="font-size: 0.77rem; color: var(--hc-text-2);">
-                Seus Exploits <code>FTP ${ftpVer > 0 ? 'v' + ftpVer.toFixed(1) : 'OFF'}</code> / <code>SSH ${sshVer > 0 ? 'v' + sshVer.toFixed(1) : 'OFF'}</code> vs <code>Firewall v${reqFwl.toFixed(1)}</code>.
+                Pula a senha entrando direto por falhas nas portas! Exige passar no <strong>Scanner de Portas</strong> antes e ter Invasores <code>FTP ${ftpVer > 0 ? 'v' + ftpVer.toFixed(1) : 'OFF'}</code> / <code>SSH ${sshVer > 0 ? 'v' + sshVer.toFixed(1) : 'OFF'}</code> &gt;= <code>Firewall v${reqFwl.toFixed(1)}</code>.
                 <span style="color:${canAnyExp ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};display:block;margin-top:3px;font-weight:600;">
                   ${canAnyExp
-                    ? `● Capaz de furar Firewall → Concede: ${predictedExpRole}`
-                    : `● BLOQUEADO PELO FIREWALL v${reqFwl.toFixed(1)} (Exige Exploit >= v${reqFwl.toFixed(1)})`}
+                    ? `● Capaz de furar Escudo → Libera: ${predictedExpRole}`
+                    : `● BLOQUEADO PELO ESCUDO (Firewall v${reqFwl.toFixed(1)}) — Exige Exploit >= v${reqFwl.toFixed(1)}`}
                 </span>
               </div>
               <button type="button" id="btnInetExploit" class="hc-btn" style="margin-top: 6px; width: 100%; justify-content: center;" onclick="window.internetEngine.startExploitAttack()">
-                Disparar Exploit (${canFtpExp && canSshExp ? 'FTP+SSH' : (canFtpExp ? 'FTP' : 'SSH')})
+                ⚡ Entrar por Brecha (${canFtpExp && canSshExp ? 'Acesso Total' : (canFtpExp ? 'Arquivos' : 'Comandos')})
               </button>
             </div>
           </div>
@@ -2759,10 +2759,10 @@
             </div>
           </div>
 
-          <div class="inet-tabs">
-            <button type="button" class="inet-tab ${this.activeTab === 'pagina' ? 'active' : ''}" onclick="window.internetEngine.switchTab('pagina')">${HC.icon('globe')} <span>Página</span></button>
-            <button type="button" class="inet-tab ${this.activeTab === 'entrar' ? 'active' : ''}" onclick="window.internetEngine.switchTab('entrar')">${HC.icon('terminal')} <span>Entrar${this.activeSshIp === host.ip ? ' (Root)' : ''}</span></button>
-            <button type="button" class="inet-tab ${this.activeTab === 'invadir' ? 'active' : ''}" onclick="window.internetEngine.switchTab('invadir')">${HC.icon('zap')} <span>Invadir</span></button>
+          <div class="inet-tabs" id="inetBrowserTabs">
+            <button type="button" id="btnInetTabPagina" class="inet-tab ${this.activeTab === 'pagina' ? 'active' : ''}" onclick="window.internetEngine.switchTab('pagina')">${HC.icon('globe')} <span>1. Ver Site</span></button>
+            <button type="button" id="btnInetTabEntrar" class="inet-tab ${this.activeTab === 'entrar' ? 'active' : ''}" onclick="window.internetEngine.switchTab('entrar')">${HC.icon('terminal')} <span>2. Entrar no PC${this.activeSshIp === host.ip ? ' (Conectado!)' : ''}</span></button>
+            <button type="button" id="btnInetTabInvadir" class="inet-tab ${this.activeTab === 'invadir' ? 'active' : ''}" onclick="window.internetEngine.switchTab('invadir')">${HC.icon('zap')} <span>3. Invadir PC</span></button>
           </div>
 
           <div class="inet-viewport">${tabBody}</div>

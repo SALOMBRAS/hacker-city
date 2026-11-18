@@ -433,50 +433,54 @@
     cracker: {
       key: 'cracker',
       filename: 'Cracker.crc',
+      friendlyTitle: 'Quebrador de Senhas (Cracker)',
       category: 'system',
-      badge: 'Força-Bruta & Hash',
+      badge: 'Descobrir Senhas',
       multCost: 1.25,
       baseMb: 20,
       baseRam: 16,
       starterOwned: true,
       starterInstalled: true,
       acquireIp: '33.8.2.71',
-      acquireHint: 'Kit Inicial de Boot / Download Center (33.8.2.71)',
-      desc: 'Descriptografa rede e quebra senhas root/bancárias. Exige versão >= Firewall.fwl E >= Hasher.hash do alvo!'
+      acquireHint: 'Já vem no seu PC / Central de Downloads (33.8.2.71)',
+      desc: 'Descobre a senha de outros computadores e contas bancárias. Precisa ter versão igual ou maior que o Escudo e o Cofre de Senha da vítima!'
     },
     hasher: {
       key: 'hasher',
       filename: 'Hasher.hash',
+      friendlyTitle: 'Cofre da Sua Senha (Hasher)',
       category: 'system',
-      badge: 'Defesa Senha Root',
+      badge: 'Tranca sua Senha',
       multCost: 1.15,
       baseMb: 18,
       baseRam: 14,
       starterOwned: true,
       starterInstalled: true,
       acquireIp: '33.8.2.71',
-      acquireHint: 'Kit Inicial de Boot / Download Center (33.8.2.71)',
-      desc: 'Criptografa sua senha root. Bloqueia qualquer ataque força-bruta cujo Cracker.crc seja menor que sua versão.'
+      acquireHint: 'Já vem no seu PC / Central de Downloads (33.8.2.71)',
+      desc: 'Embaralha e tranca a senha do seu PC. Impede que invasores com Quebrador de Senha mais fraco consigam adivinhar sua senha!'
     },
     firewall: {
       key: 'firewall',
       filename: 'Firewall.fwl',
+      friendlyTitle: 'Escudo de Rede (Firewall)',
       category: 'system',
-      badge: 'Escudo de Rede',
+      badge: 'Protege seu PC',
       multCost: 1.2,
       baseMb: 20,
       baseRam: 18,
       starterOwned: true,
       starterInstalled: true,
       acquireIp: '33.8.2.71',
-      acquireHint: 'Kit Inicial de Boot / Download Center (33.8.2.71)',
-      desc: 'Barreira de perímetro: bloqueia Exploits, Descriptografia/Força-Bruta e Nmap mais fracos que ele, e mitiga DDoS (Curso #5).'
+      acquireHint: 'Já vem no seu PC / Central de Downloads (33.8.2.71)',
+      desc: 'A porta blindada do seu PC: barra invasões mais fracas que ele! Só pode rodar 1 Escudo por vez (com tempo de carência ao trocar).'
     },
     portscan: {
       key: 'portscan',
       filename: 'PortScan.scan',
+      friendlyTitle: 'Detector de Brechas (Scanner)',
       category: 'system',
-      badge: 'Scanner TCP',
+      badge: 'Olhar Portas',
       multCost: 1.0,
       baseMb: 8,
       baseRam: 8,
@@ -484,70 +488,75 @@
       starterOwned: true,
       starterInstalled: true,
       acquireIp: '33.8.2.71',
-      acquireHint: 'Kit Inicial de Boot / Download Center (33.8.2.71)',
-      desc: 'Obrigatório na RAM para varrer portas abertas (21/FTP e 22/SSH) antes de um Ataque Exploit. Não pesquisável.'
+      acquireHint: 'Já vem no seu PC / Central de Downloads (33.8.2.71)',
+      desc: 'Verifica se o computador alvo tem portas destrancadas antes de tentar entrar sem senha.'
     },
     exploit_ftp: {
       key: 'exploit_ftp',
       filename: 'FTP_Exploit.exp',
+      friendlyTitle: 'Chave Mestra de Arquivos (FTP)',
       category: 'system',
-      badge: 'Exploit Porta 21',
+      badge: 'Invasão s/ Senha (Arquivos)',
       multCost: 1.32,
       baseMb: 16,
       baseRam: 14,
       starterOwned: false,
       starterInstalled: false,
       acquireIp: '109.64.200.35',
-      acquireHint: 'Enigma #3 (109.64.200.35) ou Darknet (185.220.101.9)',
-      desc: 'Explora porta 21 se versão >= Firewall.fwl do alvo (concede permissão FTP: Logs + Download/Upload; junto c/ SSH dá ROOT).'
+      acquireHint: 'Enigma #3 (109.64.200.35) ou Mercado Clandestino (185.220.101.9)',
+      desc: 'Entra sem saber a senha se vencer o Escudo do alvo! Libera baixar/enviar arquivos (junto com a Chave SSH dá controle total).'
     },
     exploit_ssh: {
       key: 'exploit_ssh',
       filename: 'SSH_Exploit.exp',
+      friendlyTitle: 'Chave Mestra de Comandos (SSH)',
       category: 'system',
-      badge: 'Exploit Porta 22',
+      badge: 'Invasão s/ Senha (Comandos)',
       multCost: 1.4,
       baseMb: 18,
       baseRam: 16,
       starterOwned: false,
       starterInstalled: false,
       acquireIp: '109.64.200.35',
-      acquireHint: 'Enigma #3 (109.64.200.35) ou Darknet (185.220.101.9)',
-      desc: 'Explora porta 22 se versão >= Firewall.fwl do alvo (concede permissão SSH: Logs + Executar/Deletar; junto c/ FTP dá ROOT).'
+      acquireHint: 'Enigma #3 (109.64.200.35) ou Mercado Clandestino (185.220.101.9)',
+      desc: 'Entra sem saber a senha se vencer o Escudo do alvo! Libera rodar programas e apagar arquivos (junto com a Chave FTP dá controle total).'
     },
     antivirus: {
       key: 'antivirus',
       filename: 'Antivirus.av',
+      friendlyTitle: 'Faxina de Vírus (Antivírus)',
       category: 'system',
-      badge: 'Limpeza Malware',
+      badge: 'Limpa seu PC',
       multCost: 1.05,
       baseMb: 18,
       baseRam: 16,
       starterOwned: false,
       starterInstalled: false,
       acquireIp: '33.8.2.71',
-      acquireHint: 'Download Center (33.8.2.71 — v1.0) ou Enigma #4 (109.64.200.48 — v1.5)',
-      desc: 'SÓ remove vírus VISÍVEIS cuja potência seja <= versão do seu Antivirus.av! Vírus mais fortes exigem upgrade ou Formatar HD.'
+      acquireHint: 'Central de Downloads (33.8.2.71 — grátis!) ou Enigma #4 (109.64.200.48)',
+      desc: 'Remove vírus que inimigos colocaram no seu PC — mas só apaga vírus de força igual ou menor que o seu Antivírus!'
     },
     collector: {
       key: 'collector',
       filename: 'Collector.vcol',
+      friendlyTitle: 'Recolhedor de Dinheiro (Coletor)',
       category: 'system',
-      badge: 'Coletor Botnet',
+      badge: 'Puxa seus Lucros',
       multCost: 1.5,
       baseMb: 14,
       baseRam: 12,
       starterOwned: false,
       starterInstalled: false,
       acquireIp: '109.64.200.10',
-      acquireHint: 'First Puzzle / Enigma #1 (109.64.200.10)',
-      desc: 'PRECISA estar ativo na RAM p/ coletar! Cada upgrade aumenta em +36% o lucro extraído dos vírus.'
+      acquireHint: 'Primeiro Enigma (109.64.200.10)',
+      desc: 'Deixe ligado na memória para recolher o dinheiro e os Bitcoins que seus vírus estão gerando! Melhorar ele aumenta seus ganhos em +36%.'
     },
     torrent: {
       key: 'torrent',
       filename: 'Torrent.torrent',
+      friendlyTitle: 'Distribuidor Pirata (Torrent)',
       category: 'system',
-      badge: 'Tracker Warez',
+      badge: 'Ativa Vírus Warez',
       multCost: 1.0,
       baseMb: 10,
       baseRam: 8,
@@ -556,13 +565,14 @@
       starterInstalled: false,
       acquireIp: '109.64.200.22',
       acquireHint: 'Enigma #2 (109.64.200.22)',
-      desc: 'Obrigatório rodando na sua RAM para que seus vírus Warez.vwarez consigam vender pirataria e gerar dinheiro!'
+      desc: 'Precisa estar ligado no seu PC para que seus vírus de vendas piratas (Warez) funcionem e gerem dinheiro!'
     },
     ddos_breaker: {
       key: 'ddos_breaker',
       filename: 'DDoS_Breaker.vbrk',
+      friendlyTitle: 'Disparador de Sobrecarga (DDoS)',
       category: 'system',
-      badge: 'Gatilho DDoS',
+      badge: 'Botão de Ataque em Massa',
       multCost: 1.25,
       baseMb: 14,
       baseRam: 12,
@@ -570,27 +580,29 @@
       starterInstalled: false,
       acquireIp: '109.64.200.61',
       acquireHint: 'Enigma #5 (109.64.200.61)',
-      desc: 'Necessário ativo na sua RAM (junto aos nós .vddos e Curso #4) para disparar ataques DDoS contra servidores e FBI.'
+      desc: 'O controle remoto que junta seus vírus de sobrecarga para derrubar servidores rivais e capturar procurados do FBI!'
     },
     nmap: {
       key: 'nmap',
       filename: 'Nmap.nmap',
+      friendlyTitle: 'Rastreador de Espiões (Nmap)',
       category: 'system',
-      badge: 'Rastreio IPs',
+      badge: 'Descobre Quem Conectou',
       multCost: 1.15,
       baseMb: 12,
       baseRam: 10,
       starterOwned: false,
       starterInstalled: false,
       acquireIp: '109.64.200.35',
-      acquireHint: 'Enigma #3 (109.64.200.35) ou Bots Tier II',
-      desc: 'Varre conexões ativas no localhost ou servidor invadido, listando IPs cujo Firewall.fwl seja <= sua versão.'
+      acquireHint: 'Enigma #3 (109.64.200.35)',
+      desc: 'Mostra o endereço de quem está conectado na rede agora (se o Escudo deles for mais fraco que seu Rastreador).'
     },
     analyzer: {
       key: 'analyzer',
       filename: 'Analyzer.ana',
+      friendlyTitle: 'Raio-X de Máquina (Analyzer)',
       category: 'system',
-      badge: 'Scanner Hardware',
+      badge: 'Olha a Força do Alvo',
       multCost: 1.3,
       baseMb: 12,
       baseRam: 10,
@@ -598,14 +610,15 @@
       starterOwned: false,
       starterInstalled: false,
       acquireIp: '33.8.2.71',
-      acquireHint: 'Download Center (33.8.2.71 — v1.0) ou Farofa Systems (203.17.88.40 — v2.0)',
-      desc: 'Analisa CPU/RAM da vítima e grava no Hacked Database (v1.0 = ~50% precisão, v2.0 = ~80%, v3.0 = 100% exato).'
+      acquireHint: 'Central de Downloads (33.8.2.71 — grátis!)',
+      desc: 'Examina a potência das peças do computador invadido e anota automaticamente no seu Caderno de Senhas.'
     },
     webserver: {
       key: 'webserver',
       filename: 'WebServer.exe',
+      friendlyTitle: 'Criador de Página Web',
       category: 'system',
-      badge: 'Servidor HTTP :80',
+      badge: 'Seu Site & Pichação',
       multCost: 1.0,
       baseMb: 10,
       baseRam: 10,
@@ -613,80 +626,85 @@
       starterOwned: false,
       starterInstalled: false,
       acquireIp: '33.8.2.71',
-      acquireHint: 'Download Center (33.8.2.71)',
-      desc: 'Publica página HTTP customizada no seu IP público e permite alterar/pichar (Deface) páginas de servidores invadidos.'
+      acquireHint: 'Central de Downloads (33.8.2.71 — grátis!)',
+      desc: 'Permite colocar uma mensagem no seu próprio endereço IP e pichar a capa de sites que você invadir!'
     },
 
-    // --- 5 Famílias de Vírus (NÃO vêm prontos nem se compram do nada: baixe os básicos v1.0 nas máquinas de Puzzle!) ---
+    // --- 5 Famílias de Vírus (Baixe os básicos v1.0 resolvendo as máquinas de Enigma!) ---
     vspam: {
       key: 'vspam',
       filename: 'Spam.vspam',
+      friendlyTitle: 'Vírus de Propaganda (Spam)',
       category: 'virus',
       virusKind: 'cash_cpu',
-      badge: 'Spam ($ × CPU Alvo)',
+      badge: 'Gera Dinheiro Fácil',
       multCost: 1.0,
       baseMb: 16,
       baseRam: 10,
       starterOwned: false,
       acquireIp: '109.64.200.10',
-      acquireHint: 'First Puzzle / Enigma #1 (109.64.200.10)',
-      desc: 'Leve em disco/RAM. Lucro depende da CPU (MHz) do alvo × potência do vírus. Cai se versão <= AV do alvo.'
+      acquireHint: 'Primeiro Enigma (109.64.200.10)',
+      desc: 'Seu primeiro vírus! Levinho, envia propagandas usando o computador da vítima e gera dólares continuamente.'
     },
     vwarez: {
       key: 'vwarez',
       filename: 'Warez.vwarez',
+      friendlyTitle: 'Vírus de Vendas Piratas (Warez)',
       category: 'virus',
       virusKind: 'cash_net',
-      badge: 'Warez ($ × Net + Torrent)',
+      badge: 'Gera + Dinheiro c/ Internet Boa',
       multCost: 1.2,
       baseMb: 22,
       baseRam: 14,
       starterOwned: false,
       acquireIp: '109.64.200.22',
       acquireHint: 'Enigma #2 (109.64.200.22)',
-      desc: 'Exige Torrent.torrent ativo na SUA RAM! Lucro escala com a Internet (Mbit/s) da vítima × potência.'
+      desc: 'Usa a internet rápida da vítima para vender downloads e render bons dólares (mantenha o Distribuidor Torrent ligado!).'
     },
     vminer: {
       key: 'vminer',
       filename: 'Miner.vminer',
+      friendlyTitle: 'Garimpeiro de Bitcoin (Miner)',
       category: 'virus',
       virusKind: 'btc_cpu',
-      badge: 'Minerador (BTC × CPU Alvo)',
+      badge: 'Gera Moeda Bitcoin',
       multCost: 1.55,
       baseMb: 26,
       baseRam: 18,
       starterOwned: false,
       acquireIp: '109.64.200.48',
       acquireHint: 'Enigma #4 (109.64.200.48)',
-      desc: 'Minera satoshis de Bitcoin proporcional à CPU (MHz) da vítima × potência. Exige bom espaço no alvo.'
+      desc: 'Coloca o computador invadido para garimpar moedas digitais Bitcoin de graça para a sua carteira!'
     },
     vbank: {
       key: 'vbank',
       filename: 'BankTrojan.vbank',
+      friendlyTitle: 'Vírus Espião de Cofre (Trojan)',
       category: 'virus',
       virusKind: 'cash_fin',
-      badge: 'Trojan Bancário ($ Alto)',
+      badge: 'Lucro Pesado em Bancos',
       multCost: 1.85,
       baseMb: 34,
       baseRam: 26,
       starterOwned: false,
       acquireIp: '109.64.200.77',
-      acquireHint: 'Enigma #6 (109.64.200.77) ou Cofres Bancários',
-      desc: 'Pesado em Disco e RAM no alvo! Rende alto em Bancos/Empresas fortes, mas não cabe em PCs sucata.'
+      acquireHint: 'Enigma #6 (109.64.200.77)',
+      desc: 'Grande e pesado, mas rende muito dinheiro quando instalado em Bancos e grandes Empresas!'
     },
     vddos: {
       key: 'vddos',
       filename: 'DDoS_Node.vddos',
+      friendlyTitle: 'Vírus de Sobrecarga (DDoS)',
       category: 'virus',
       virusKind: 'ddos_power',
-      badge: 'Canhão DDoS (Gbps)',
+      badge: 'Derruba Servidores & FBI',
       multCost: 1.35,
       baseMb: 20,
       baseRam: 16,
       starterOwned: false,
       acquireIp: '109.64.200.61',
       acquireHint: 'Enigma #5 (109.64.200.61)',
-      desc: 'Soma poder DDoS (Gbps) baseado na CPU + Internet da vítima × potência. Exige DDoS_Breaker.vbrk para disparar.'
+      desc: 'Transforma o computador invadido num soldado do seu exército para derrubar alvos pesados e procurados do FBI.'
     }
   };
 
@@ -698,6 +716,8 @@
       this.activeUploadJob = null;
       this.avPurgeHistory = [];
       this.lastNmapReport = null;
+      this.transitions = {}; // softKey -> { mode: 'cooldown_off' | 'booting' | 'swapping', fromVerInt, toVerInt, startedAt, endsAt, durationMs }
+      this.startTransitionUiLoop();
       this.startVirusYieldTicker();
       this.startRemoteAvSweepLoop();
     }
@@ -706,14 +726,81 @@
       return `HC_SOFTWARE_STATE_${uid || 'guest'}`;
     }
 
+    startTransitionUiLoop() {
+      setInterval(() => {
+        const keys = Object.keys(this.transitions || {});
+        if (keys.length === 0) return;
+        const now = Date.now();
+        let anyChanged = false;
+
+        keys.forEach((k) => {
+          const tr = this.transitions[k];
+          if (!tr) return;
+          if (now >= tr.endsAt) {
+            delete this.transitions[k];
+            anyChanged = true;
+            if (tr.mode === 'booting' || tr.mode === 'swapping') {
+              this.ensureLoaded();
+              const cur = this.state.inventory[k];
+              if (cur && cur.owned) {
+                cur.installed = true;
+                cur.runningVerInt = tr.toVerInt || cur.versionInt;
+                this.save();
+                if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+                const def = SOFTWARE_DEFINITIONS[k];
+                if (typeof window.addLocalLog === 'function') {
+                  window.addLocalLog('RAM-ACTIVE', `${def?.friendlyTitle || def?.filename || k} (${this.fmtVer(cur.runningVerInt)}) terminou o tempo de carência e está ATIVO na memória!`, 'success');
+                }
+                if (typeof window.showToast === 'function') {
+                  window.showToast(`${def?.friendlyTitle || def?.filename} (${this.fmtVer(cur.runningVerInt)}) agora está ATIVO no seu PC!`);
+                }
+              }
+            }
+          }
+        });
+
+        if (window.winManager && window.winManager.current === 'winSoftware') {
+          this.renderUI();
+        } else if (anyChanged && typeof window.updateHudDisplays === 'function') {
+          window.updateHudDisplays();
+        }
+      }, 250);
+    }
+
+    getTransitionInfo(softKey) {
+      const tr = this.transitions && this.transitions[softKey];
+      if (!tr) return null;
+      const now = Date.now();
+      if (now >= tr.endsAt) return null;
+      const remMs = Math.max(0, tr.endsAt - now);
+      const pct = Math.min(99, Math.max(4, Math.round(((now - tr.startedAt) / Math.max(200, tr.durationMs)) * 100)));
+      return {
+        ...tr,
+        remainingSec: +(remMs / 1000).toFixed(1),
+        pct
+      };
+    }
+
+    isSoftwareInTransition(softKey) {
+      return !!this.getTransitionInfo(softKey);
+    }
+
+    getGraceDurationMs(baseMs = 3500) {
+      const cpuMhz = this.getPlayerCpuMhz();
+      const speedMult = Math.max(1, Math.pow(cpuMhz / 800, 0.35));
+      return Math.max(1800, Math.round(baseMs / speedMult));
+    }
+
     buildStarterInventory() {
       const inv = {};
       for (const [k, def] of Object.entries(SOFTWARE_DEFINITIONS)) {
         const owned = !!def.starterOwned;
+        const inst = owned && def.category === 'system' ? !!def.starterInstalled : false;
         inv[k] = {
           owned,
           versionInt: owned ? 10 : 0,
-          installed: owned && def.category === 'system' ? !!def.starterInstalled : false,
+          runningVerInt: inst ? 10 : 0,
+          installed: inst,
           licensed: owned
         };
       }
@@ -725,6 +812,7 @@
       if (this.userId === uid && this.state) return this.state;
 
       this.userId = uid;
+      this.transitions = {};
       let saved = null;
       try {
         const raw = localStorage.getItem(this.storageKey(uid));
@@ -738,14 +826,17 @@
             saved.inventory[k] = { ...defVal };
           } else {
             if (saved.inventory[k].owned === undefined) {
-              // Migração segura: conta nova ou sem upgrade mantém owned só nos starterOwned ou itens já pesquisados (> v1.0)
               const inferredOwned = !!SOFTWARE_DEFINITIONS[k]?.starterOwned || Number(saved.inventory[k].versionInt || 0) > 10;
               saved.inventory[k].owned = inferredOwned;
               if (!inferredOwned) {
                 saved.inventory[k].versionInt = 0;
+                saved.inventory[k].runningVerInt = 0;
                 saved.inventory[k].installed = false;
                 saved.inventory[k].licensed = false;
               }
+            }
+            if (saved.inventory[k].runningVerInt === undefined) {
+              saved.inventory[k].runningVerInt = saved.inventory[k].installed ? Number(saved.inventory[k].versionInt || 10) : 0;
             }
             if (saved.inventory[k].licensed === undefined) {
               saved.inventory[k].licensed = !!saved.inventory[k].owned;
@@ -791,17 +882,24 @@
       return !!(item && item.owned && item.versionInt > 0);
     }
 
+    // REGRA REALISTA DE EXECUÇÃO:
+    // Durante o tempo de carência (desligando/trocando/ligando), o programa está FORA DE OPERAÇÃO (retorna 0)!
+    // E enquanto você não trocar para a versão mais nova do disco, vale a versão que está RODANDO na memória (runningVerInt)!
     getSoftwareVersion(softKey) {
       this.ensureLoaded();
       const item = this.state.inventory[softKey];
       if (!item || !item.owned || item.versionInt <= 0) return 0;
-      if (SOFTWARE_DEFINITIONS[softKey]?.category === 'system' && !item.installed) return 0;
+      if (SOFTWARE_DEFINITIONS[softKey]?.category === 'system') {
+        if (!item.installed || this.isSoftwareInTransition(softKey)) return 0;
+        return (item.runningVerInt || item.versionInt) / 10;
+      }
       return item.versionInt / 10;
     }
 
     isSoftwareInstalled(softKey) {
       this.ensureLoaded();
       const item = this.state.inventory[softKey];
+      if (this.isSoftwareInTransition(softKey)) return false;
       return !!(item && item.owned && item.installed);
     }
 
@@ -858,8 +956,8 @@
       this.ensureLoaded();
       let sum = 0;
       for (const [k, st] of Object.entries(this.state.inventory)) {
-        if (st.owned && st.installed && SOFTWARE_DEFINITIONS[k]?.category === 'system') {
-          sum += this.getItemRamMb(k, st.versionInt, false);
+        if (st.owned && st.installed && !this.isSoftwareInTransition(k) && SOFTWARE_DEFINITIONS[k]?.category === 'system') {
+          sum += this.getItemRamMb(k, st.runningVerInt || st.versionInt, false);
         }
       }
       sum += (this.state.localHostileInfections || []).reduce((acc, inf) => acc + (inf.ramMb || 32), 0);
@@ -998,6 +1096,10 @@
 
       cur.versionInt = nextVer;
       cur.licensed = true;
+      // REGRA REALISTA DE EXECUÇÃO NO PC:
+      // Se este programa de sistema JÁ estava rodando na memória (ex: Escudo v1.0), ele NÃO duplica nem pula magicamente!
+      // A versão antiga (runningVerInt) continua rodando até você desligá-la e ativar a nova após o tempo de carência!
+      const needsSwap = def.category === 'system' && cur.installed && (cur.runningVerInt || 10) < nextVer;
       this.save();
       if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
 
@@ -1005,40 +1107,235 @@
         window.currentProfile.reputation = (window.currentProfile.reputation || 0) + 35;
       }
       if (typeof window.addLocalLog === 'function') {
-        window.addLocalLog('RESEARCH', `${def.filename} evoluído para potência ${this.fmtVer(nextVer)} (-$ ${cost} HC, Disco: ${this.getItemSizeMb(softKey, nextVer)} MB)`, 'success');
+        window.addLocalLog('RESEARCH', `${def.friendlyTitle || def.filename} evoluído no disco para ${this.fmtVer(nextVer)} (-$ ${cost} HC)${needsSwap ? ' — troque a versão em uso para ativar!' : ''}`, 'success');
       }
       if (window.hackerAudio) window.hackerAudio.playCashChime();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       this.renderUI();
-      return { success: true, newVersion: this.fmtVer(nextVer), message: `${def.filename} compilado na potência ${this.fmtVer(nextVer)}!` };
+      return {
+        success: true,
+        newVersion: this.fmtVer(nextVer),
+        needsSwap,
+        runningVersion: cur.installed ? this.fmtVer(cur.runningVerInt || 10) : null,
+        message: needsSwap
+          ? `${def.friendlyTitle || def.filename} ${this.fmtVer(nextVer)} salvo no disco! Como já há o ${this.fmtVer(cur.runningVerInt || 10)} rodando (não pode ter 2 iguais!), clique em "🔄 Trocar Versão" e aguarde a carência!`
+          : `${def.friendlyTitle || def.filename} compilado na potência ${this.fmtVer(nextVer)}!`
+      };
     }
 
-    toggleLocalInstall(softKey) {
+    notifyActionBlocked(msg, opts = {}) {
+      if (opts && opts.silent) return;
+      if (window.hackerAudio && typeof window.hackerAudio.playErrorBuzz === 'function') {
+        window.hackerAudio.playErrorBuzz();
+      }
+      if (typeof window.showToast === 'function') {
+        window.showToast(msg);
+      }
+    }
+
+    // 1) Desligar programa que está rodando na memória -> entra em TEMPO DE CARÊNCIA antes de poder ligar outro!
+    deactivateLocalSoftware(softKey, opts = {}) {
       this.ensureLoaded();
       const def = SOFTWARE_DEFINITIONS[softKey];
       const cur = this.state.inventory[softKey];
       if (!def || !cur || def.category !== 'system') return { success: false };
-      if (!cur.owned || cur.versionInt <= 0) {
-        const msg = `Você ainda não possui ${def.filename} no seu HD! Baixe-o primeiro em ${def.acquireHint || '109.64.200.10 / 33.8.2.71'}.`;
-        alert(msg);
-        return { success: false, code: 'NOT_OWNED', message: msg };
+
+      const tr = this.getTransitionInfo(softKey);
+      if (tr) {
+        const msg = `Aguarde o tempo de carência atual (${tr.remainingSec}s restantes)!`;
+        this.notifyActionBlocked(msg, opts);
+        return { success: false, code: 'IN_COOLDOWN', remainingSec: tr.remainingSec, message: msg };
       }
 
       if (!cur.installed) {
-        const neededRam = this.getItemRamMb(softKey, cur.versionInt, false);
-        if (this.getUsedRamMb() + neededRam > this.getMaxRamMb()) {
-          const msg = `RAM insuficiente (${this.getUsedRamMb()}/${this.getMaxRamMb()} MB)! Desative outro utilitário ou compre mais RAM na Oficina de Hardware.`;
-          alert(msg);
-          return { success: false, message: msg };
-        }
-        cur.installed = true;
-      } else {
-        cur.installed = false;
+        return { success: false, code: 'ALREADY_OFF', message: `${def.friendlyTitle || def.filename} já está desligado.` };
       }
+
+      const prevVer = cur.runningVerInt || cur.versionInt;
+      cur.installed = false;
+      cur.runningVerInt = 0;
       this.save();
       if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+
+      if (opts.instant) {
+        this.renderUI();
+        return { success: true, installed: false, cooldownSec: 0 };
+      }
+
+      const durMs = opts.durationMs || this.getGraceDurationMs(3200);
+      const now = Date.now();
+      this.transitions[softKey] = {
+        mode: 'cooldown_off',
+        fromVerInt: prevVer,
+        toVerInt: 0,
+        startedAt: now,
+        endsAt: now + durMs,
+        durationMs: durMs
+      };
+
+      const sec = +(durMs / 1000).toFixed(1);
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('RAM-STOP', `${def.friendlyTitle || def.filename} (${this.fmtVer(prevVer)}) desligado — tempo de carência de ${sec}s iniciado.`, 'warning');
+      }
+      if (!opts.silent && typeof window.showToast === 'function') {
+        window.showToast(`${def.friendlyTitle || def.filename} desligado! Aguarde ${sec}s de carência antes de ligar outra versão.`);
+      }
       this.renderUI();
-      return { success: true, installed: cur.installed };
+      return { success: true, installed: false, cooldownSec: sec };
+    }
+
+    // 2) Ligar programa na memória -> PROIBIDO ligar 2 iguais ao mesmo tempo + exige fim da carência + tempo de inicialização!
+    activateLocalSoftware(softKey, opts = {}) {
+      this.ensureLoaded();
+      const def = SOFTWARE_DEFINITIONS[softKey];
+      const cur = this.state.inventory[softKey];
+      if (!def || !cur || def.category !== 'system') return { success: false };
+
+      if (!cur.owned || cur.versionInt <= 0) {
+        const msg = `Você ainda não possui ${def.friendlyTitle || def.filename} no seu PC! Baixe primeiro em ${def.acquireHint || '109.64.200.10 / 33.8.2.71'}.`;
+        this.notifyActionBlocked(msg, opts);
+        return { success: false, code: 'NOT_OWNED', message: msg };
+      }
+
+      // REGRA DE EXCLUSIVIDADE: Nunca podem rodar 2 Firewalls (ou 2 programas do mesmo tipo) juntos!
+      if (cur.installed && !this.isSoftwareInTransition(softKey)) {
+        const runVerStr = this.fmtVer(cur.runningVerInt || cur.versionInt);
+        const diskVerStr = this.fmtVer(cur.versionInt);
+        const msg = cur.versionInt > (cur.runningVerInt || cur.versionInt)
+          ? `PROIBIDO RODAR DOIS DO MESMO TIPO! Seu ${def.friendlyTitle || def.filename} (${runVerStr}) ainda está rodando no PC. Desligue o ${runVerStr} e aguarde a carência (ou clique em "🔄 Trocar p/ ${diskVerStr}")!`
+          : `${def.friendlyTitle || def.filename} (${runVerStr}) já está rodando na memória! Não é permitido abrir dois ao mesmo tempo.`;
+        this.notifyActionBlocked(msg, opts);
+        return { success: false, code: 'ALREADY_RUNNING_SAME_TYPE', message: msg };
+      }
+
+      // REGRA DO TEMPO DE CARÊNCIA: Não pode religar enquanto o encerramento ou troca anterior não terminar!
+      const tr = this.getTransitionInfo(softKey);
+      if (tr) {
+        const msg = `TEMPO DE CARÊNCIA ATIVO! Aguarde mais ${tr.remainingSec}s para o sistema liberar o slot antes de ligar ${def.friendlyTitle || def.filename} (${this.fmtVer(cur.versionInt)}).`;
+        this.notifyActionBlocked(msg, opts);
+        return { success: false, code: 'IN_COOLDOWN', remainingSec: tr.remainingSec, message: msg };
+      }
+
+      const neededRam = this.getItemRamMb(softKey, cur.versionInt, false);
+      if (this.getUsedRamMb() + neededRam > this.getMaxRamMb()) {
+        const msg = `Memória RAM cheia (${this.getUsedRamMb()}/${this.getMaxRamMb()} MB)! Desligue algum programa ou compre mais Memória em "Melhorar Peças do PC".`;
+        this.notifyActionBlocked(msg, opts);
+        return { success: false, code: 'RAM_FULL', message: msg };
+      }
+
+      if (opts.instant) {
+        cur.installed = true;
+        cur.runningVerInt = cur.versionInt;
+        this.save();
+        if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+        this.renderUI();
+        return { success: true, installed: true, bootSec: 0 };
+      }
+
+      const durMs = opts.durationMs || this.getGraceDurationMs(2800);
+      const now = Date.now();
+      this.transitions[softKey] = {
+        mode: 'booting',
+        fromVerInt: 0,
+        toVerInt: cur.versionInt,
+        startedAt: now,
+        endsAt: now + durMs,
+        durationMs: durMs
+      };
+
+      const sec = +(durMs / 1000).toFixed(1);
+      if (window.taskManager) {
+        window.taskManager.enqueue({
+          dedupeKey: `boot_local_${softKey}`,
+          title: `Ativar ${def.friendlyTitle || def.filename} (${this.fmtVer(cur.versionInt)})`,
+          subtitle: `Carência de Inicialização · ${neededRam} MB RAM`,
+          targetIp: 'localhost',
+          queueKind: 'cpu',
+          category: 'Sistema',
+          idealSeconds: sec
+        });
+      }
+      if (!opts.silent && typeof window.showToast === 'function') {
+        window.showToast(`Iniciando ${def.friendlyTitle || def.filename} (${this.fmtVer(cur.versionInt)}) — ativo em ${sec}s...`);
+      }
+      this.renderUI();
+      return { success: true, booting: true, bootSec: sec };
+    }
+
+    // 3) Trocar da versão antiga p/ a versão mais forte do disco (Desliga o antigo NA HORA -> PC fica sem ele durante a carência -> Liga o novo!)
+    swapToLatestVersion(softKey, opts = {}) {
+      this.ensureLoaded();
+      const def = SOFTWARE_DEFINITIONS[softKey];
+      const cur = this.state.inventory[softKey];
+      if (!def || !cur || def.category !== 'system' || !cur.owned) return { success: false };
+
+      const tr = this.getTransitionInfo(softKey);
+      if (tr) {
+        const msg = `Já existe uma transição em andamento (${tr.remainingSec}s restantes)!`;
+        this.notifyActionBlocked(msg, opts);
+        return { success: false, code: 'IN_COOLDOWN', remainingSec: tr.remainingSec, message: msg };
+      }
+
+      const oldVer = cur.installed ? (cur.runningVerInt || 10) : 0;
+      const targetVer = cur.versionInt;
+      if (cur.installed && oldVer >= targetVer) {
+        return { success: false, code: 'ALREADY_LATEST', message: 'A versão mais forte já está em uso!' };
+      }
+
+      const oldRam = cur.installed ? this.getItemRamMb(softKey, oldVer, false) : 0;
+      const newRam = this.getItemRamMb(softKey, targetVer, false);
+      if (this.getUsedRamMb() - oldRam + newRam > this.getMaxRamMb()) {
+        const msg = `Memória insuficiente para subir a versão ${this.fmtVer(targetVer)} (precisa de ${newRam} MB)!`;
+        this.notifyActionBlocked(msg, opts);
+        return { success: false, code: 'RAM_FULL', message: msg };
+      }
+
+      // Desliga o antigo imediatamente (deixando a máquina temporariamente vulnerável durante a carência!)
+      cur.installed = false;
+      cur.runningVerInt = 0;
+      this.save();
+
+      const durMs = opts.durationMs || this.getGraceDurationMs(4200);
+      const now = Date.now();
+      this.transitions[softKey] = {
+        mode: 'swapping',
+        fromVerInt: oldVer,
+        toVerInt: targetVer,
+        startedAt: now,
+        endsAt: now + durMs,
+        durationMs: durMs
+      };
+
+      const sec = +(durMs / 1000).toFixed(1);
+      if (window.taskManager) {
+        window.taskManager.enqueue({
+          dedupeKey: `swap_local_${softKey}`,
+          title: `Trocar ${def.friendlyTitle || def.filename} (${this.fmtVer(oldVer)} → ${this.fmtVer(targetVer)})`,
+          subtitle: `Tempo de carência (${sec}s sem ${def.filename} ativo!)`,
+          targetIp: 'localhost',
+          queueKind: 'cpu',
+          category: 'Sistema',
+          idealSeconds: sec
+        });
+      }
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('RAM-SWAP', `Trocando ${def.friendlyTitle || def.filename} (${this.fmtVer(oldVer)} → ${this.fmtVer(targetVer)}): carência de ${sec}s (proteção temporariamente desligada!).`, 'warning');
+      }
+      if (!opts.silent && typeof window.showToast === 'function') {
+        window.showToast(`Desligando ${this.fmtVer(oldVer)} e subindo ${this.fmtVer(targetVer)}... Aguarde ${sec}s de carência!`);
+      }
+      this.renderUI();
+      return { success: true, swapping: true, cooldownSec: sec, fromVer: this.fmtVer(oldVer), toVer: this.fmtVer(targetVer) };
+    }
+
+    toggleLocalInstall(softKey, opts = {}) {
+      this.ensureLoaded();
+      const cur = this.state.inventory[softKey];
+      if (!cur) return { success: false };
+      if (cur.installed) {
+        return this.deactivateLocalSoftware(softKey, opts);
+      }
+      return this.activateLocalSoftware(softKey, opts);
     }
 
     infectLocalPc(malwareId, label, versionInt = 15, attackerIp = 'desconhecido', hiddenWithVer = 0, attackerUserId = null) {
@@ -1106,13 +1403,16 @@
         alert(msg);
         return { success: false, code: 'AV_NOT_OWNED', cleaned: 0, remaining: this.state.localHostileInfections.length, message: msg };
       }
-      if (!av.installed) {
-        const msg = 'Seu Antivirus.av está DESATIVADO na RAM! Instale-o na lista de softwares antes de executar a varredura.';
+      if (!av.installed || this.isSoftwareInTransition('antivirus')) {
+        const tr = this.getTransitionInfo('antivirus');
+        const msg = tr
+          ? `Aguarde mais ${tr.remainingSec}s: seu Antivírus ainda está em tempo de carência!`
+          : 'Seu Antivírus está DESLIGADO! Clique em "Ligar na Memória" na lista de programas e aguarde os segundos de inicialização.';
         alert(msg);
         return { success: false, code: 'AV_NOT_INSTALLED', cleaned: 0, remaining: this.state.localHostileInfections.length, message: msg };
       }
 
-      const avVer = av.versionInt;
+      const avVer = av.runningVerInt || av.versionInt;
       const before = this.state.localHostileInfections.length;
       if (before === 0) {
         const okMsg = `Varredura Antivirus.av (${this.fmtVer(avVer)}): 0 ameaças encontradas no seu PC.`;
@@ -1710,15 +2010,15 @@
     }
 
     isCollectorActive() {
-      this.ensureLoaded();
-      return !!(this.state.inventory.collector && this.state.inventory.collector.installed);
+      return this.isSoftwareInstalled('collector');
     }
 
-    // Multiplicador forte do Collector.vcol por versão (v1.0=1.00x, v2.0=1.36x, v5.0=2.44x, v10.0=4.24x)
+    // Multiplicador forte do Collector.vcol por versão em execução (v1.0=1.00x, v2.0=1.36x, v5.0=2.44x, v10.0=4.24x)
     getCollectorMultiplier() {
       this.ensureLoaded();
       if (!this.isCollectorActive()) return 0;
-      const colVer = ((this.state.inventory.collector && this.state.inventory.collector.versionInt) || 10) / 10;
+      const colItem = this.state.inventory.collector;
+      const colVer = ((colItem && (colItem.runningVerInt || colItem.versionInt)) || 10) / 10;
       let mult = 1 + (colVer - 1.0) * 0.36;
       if (window.currentProfile && window.currentProfile.specialty === 'botmaster') mult *= 1.25;
       if (window.universityEngine && window.universityEngine.hasCert(4)) mult *= 1.15;
@@ -1917,9 +2217,9 @@
       const harvest = this.getPendingHarvestSummary();
       const hostiles = this.state.localHostileInfections || [];
 
-      const avItem = this.state.inventory.antivirus || { owned: false, versionInt: 0, installed: false };
-      const avOwnedAndActive = !!(avItem.owned && avItem.installed && avItem.versionInt > 0);
-      const myActiveAvVerInt = avOwnedAndActive ? avItem.versionInt : 0;
+      const avItem = this.state.inventory.antivirus || { owned: false, versionInt: 0, runningVerInt: 0, installed: false };
+      const avOwnedAndActive = !!(avItem.owned && avItem.installed && !this.isSoftwareInTransition('antivirus') && avItem.versionInt > 0);
+      const myActiveAvVerInt = avOwnedAndActive ? (avItem.runningVerInt || avItem.versionInt) : 0;
       const mySeekerVer = window.stealthXhdEngine ? window.stealthXhdEngine.getSeekerVer() : 1.0;
       const hasHiddenLocal = hostiles.some((h) => !h.revealed && (h.hiddenWithVer || 0) > 0);
       const hasUnremovableByCurrentAv = hostiles.some((h) => !avOwnedAndActive || h.versionInt > myActiveAvVerInt || (!h.revealed && (h.hiddenWithVer || 0) > 0));
@@ -1929,28 +2229,28 @@
           <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
             <div>
               <strong style="color:var(--hc-danger-text);font-size:0.92rem;">
-                ALERTA DE INFECÇÃO LOCAL: ${hostiles.length} malware(s) na sua máquina! (Seu Antivirus.av: ${!avItem.owned ? 'NÃO BAIXADO NO HD' : (avItem.installed ? this.fmtVer(avItem.versionInt) : 'DESATIVADO')})
+                ALERTA DE VÍRUS NO SEU PC: ${hostiles.length} invasão(ões) ativa(s)! (Seu Antivírus: ${!avItem.owned ? 'NÃO BAIXADO' : (avOwnedAndActive ? this.fmtVer(myActiveAvVerInt) : 'DESLIGADO / EM CARÊNCIA')})
               </strong>
               <div style="font-size:0.76rem;color:var(--hc-text-2);margin-top:2px;">
-                Regra de Potência: o <code>Antivirus.av</code> <strong>SÓ remove vírus visíveis de versão &lt;= seu Antivírus</strong>! ${!avItem.owned ? 'Baixe o Antivirus.av grátis no Download Center (33.8.2.71) ou use <strong>Formatar HD</strong>.' : 'Se o vírus for mais forte, evolua seu <code>Antivirus.av</code> ou use <strong>Formatar HD</strong>.'}
+                Regra Simples: seu <strong>Antivírus</strong> só limpa vírus de força igual ou menor que ele! ${!avItem.owned ? 'Baixe o Antivírus grátis em <code>33.8.2.71</code> ou use <strong>Formatar Disco</strong>.' : 'Se o vírus for mais forte, melhore seu Antivírus ou use <strong>Formatar Disco</strong>.'}
               </div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               ${hasHiddenLocal
                 ? `<button type="button" id="btnRunLocalSeeker" class="hc-btn sm" style="border-color:var(--hc-warning);color:var(--hc-warning);" onclick="window.softwareEngine.runLocalSeekerScan()">
-                     🔍 Revelar Ocultos (Seeker v${mySeekerVer.toFixed(1)})
+                     🔍 Revelar Escondidos (v${mySeekerVer.toFixed(1)})
                    </button>`
                 : ''}
               ${!avItem.owned
                 ? `<button type="button" class="hc-btn sm" style="border-color:var(--hc-accent);color:var(--hc-accent-text);" onclick="window.internetEngine.openIp('33.8.2.71')">
-                     ⬇ Ir Baixar Antivirus.av (33.8.2.71)
+                     ⬇ Baixar Antivírus Grátis (33.8.2.71)
                    </button>`
                 : ''}
               <button type="button" id="btnRunLocalAv" class="hc-btn primary sm" style="background:var(--hc-danger);border-color:var(--hc-danger);" onclick="window.softwareEngine.runLocalAntivirus()">
-                🛡 Varrer c/ Antivirus.av (${avOwnedAndActive ? this.fmtVer(avItem.versionInt) : 'OFF'})
+                🛡 Limpar PC (${avOwnedAndActive ? this.fmtVer(myActiveAvVerInt) : 'OFF'})
               </button>
               <button type="button" id="btnEmergencyFormatHd" class="hc-btn ghost sm" style="border-color:var(--hc-danger);color:var(--hc-danger-text);" onclick="window.softwareEngine.formatLocalHardDrive(false)">
-                ☢ Formatar HD (Limpeza Total)
+                ☢ Formatar Disco (Limpeza Geral)
               </button>
             </div>
           </div>
@@ -1960,33 +2260,33 @@
               const isHidden = !h.revealed && (h.hiddenWithVer || 0) > 0;
               const canCleanNow = avOwnedAndActive && !isHidden && myActiveAvVerInt >= h.versionInt;
               const statusBadge = isHidden
-                ? `<span class="hc-badge warn">OCULTO POR HIDER v${Number(h.hiddenWithVer).toFixed(1)} — Exige Seeker.skr &gt;= v${Number(h.hiddenWithVer).toFixed(1)}</span>`
+                ? `<span class="hc-badge warn">ESCONDIDO (v${Number(h.hiddenWithVer).toFixed(1)}) — Clique em Revelar Escondidos</span>`
                 : (!avItem.owned
-                    ? `<span class="hc-badge danger">BLOQUEADO: Baixe o Antivirus.av em 33.8.2.71 (ou Formate o HD)!</span>`
-                    : (!avItem.installed
-                        ? `<span class="hc-badge danger">BLOQUEADO: Ative seu Antivirus.av na RAM!</span>`
+                    ? `<span class="hc-badge danger">Baixe o Antivírus em 33.8.2.71 (ou Formate o Disco)!</span>`
+                    : (!avOwnedAndActive
+                        ? `<span class="hc-badge danger">Ligue seu Antivírus na Memória!</span>`
                         : (canCleanNow
-                            ? `<span class="hc-badge success">REMOVÍVEL (Seu AV ${this.fmtVer(myActiveAvVerInt)} &gt;= Vírus ${this.fmtVer(h.versionInt)})</span>`
-                            : `<span class="hc-badge danger">BLOQUEADO: Vírus ${this.fmtVer(h.versionInt)} &gt; Seu Antivirus.av ${this.fmtVer(myActiveAvVerInt)} (Exige AV &gt;= ${this.fmtVer(h.versionInt)} ou Formatar HD)</span>`)));
+                            ? `<span class="hc-badge success">PODE LIMPAR (Seu AV ${this.fmtVer(myActiveAvVerInt)} &gt;= Vírus ${this.fmtVer(h.versionInt)})</span>`
+                            : `<span class="hc-badge danger">MUITO FORTE: Vírus ${this.fmtVer(h.versionInt)} &gt; Seu AV ${this.fmtVer(myActiveAvVerInt)} (Melhore o AV ou Formate o Disco)</span>`)));
               return `
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 10px;background:var(--hc-inset);border:1px solid ${canCleanNow ? 'rgba(53,184,119,0.4)' : 'var(--hc-danger)'};border-radius:7px;font-family:var(--hc-font-mono);font-size:0.77rem;">
                   <div>
-                    <strong style="color:var(--hc-text);">${isHidden ? '??? [Processo Camuflado na RAM]' : esc(h.label)}</strong>
-                    <span style="color:var(--hc-warning);margin-left:6px;">${isHidden ? `(Hider v${Number(h.hiddenWithVer).toFixed(1)})` : this.fmtVer(h.versionInt)}</span>
-                    <span style="color:var(--hc-text-3);margin-left:6px;">Drena ${h.ramMb || 24}MB RAM · Origem: ${esc(h.attackerIp)}</span>
+                    <strong style="color:var(--hc-text);">${isHidden ? '??? [Vírus Escondido na Memória]' : esc(h.label)}</strong>
+                    <span style="color:var(--hc-warning);margin-left:6px;">${isHidden ? `(Camuflagem v${Number(h.hiddenWithVer).toFixed(1)})` : this.fmtVer(h.versionInt)}</span>
+                    <span style="color:var(--hc-text-3);margin-left:6px;">Usa ${h.ramMb || 24}MB · Origem: ${esc(h.attackerIp)}</span>
                   </div>
                   ${statusBadge}
                 </div>
               `;
             }).join('')}
           </div>
-          ${hasUnremovableByCurrentAv ? `<div style="font-size:0.75rem;color:var(--hc-warning);">Dica Tática: Salve seus melhores programas no <strong>HD Externo (XHD)</strong> antes de clicar em <strong>Formatar HD</strong> para recuperá-los intactos após a limpeza!</div>` : ''}
+          ${hasUnremovableByCurrentAv ? `<div style="font-size:0.75rem;color:var(--hc-warning);">Dica: Guarde seus melhores programas na aba <strong>Pen-Drive Externo (Backup)</strong> antes de clicar em <strong>Formatar Disco</strong>!</div>` : ''}
         </div>
       `;
 
       const avAlertBanner = this.avPurgeHistory.length === 0 ? '' : `
         <div class="hc-card" style="padding:0.8rem 1.1rem;border-color:var(--hc-warning);background:rgba(216,155,56,0.07);font-size:0.79rem;">
-          <strong style="color:var(--hc-warning);">Últimos alertas de Antivírus dos Alvos:</strong>
+          <strong style="color:var(--hc-warning);">Últimos avisos da sua rede de vírus:</strong>
           <span style="color:var(--hc-text-2);margin-left:6px;">${esc(this.avPurgeHistory[0].msg)}</span>
         </div>
       `;
@@ -2004,59 +2304,149 @@
         const ownedSysKeys = sysKeys.filter((k) => this.isSoftwareOwned(k));
         const unownedAllKeys = [...virKeys, ...sysKeys].filter((k) => !this.isSoftwareOwned(k));
 
+        // Painel Visual "O Que Está Rodando no Meu PC Agora" (Exclusividade de 1 instância + Tempo de Carência)
+        const activeOrTransitioningKeys = ownedSysKeys.filter((k) => {
+          const st = this.state.inventory[k];
+          return (st && st.installed) || this.isSoftwareInTransition(k) || (st && st.versionInt > (st.runningVerInt || 0) && k === 'firewall');
+        });
+
+        const runningChipsHtml = activeOrTransitioningKeys.length === 0
+          ? `<div style="font-size:0.8rem;color:var(--hc-text-3);">Nenhum programa ligado na memória neste instante (seu PC está desprotegido!).</div>`
+          : activeOrTransitioningKeys.map((k) => {
+              const def = SOFTWARE_DEFINITIONS[k];
+              const cur = this.state.inventory[k];
+              const tr = this.getTransitionInfo(k);
+              const runVer = cur.runningVerInt || cur.versionInt;
+              const hasNewerOnDisk = cur.installed && !tr && cur.versionInt > runVer;
+
+              if (tr) {
+                const trLabel = tr.mode === 'swapping'
+                  ? `Trocando ${this.fmtVer(tr.fromVerInt)} → ${this.fmtVer(tr.toVerInt)} (Carência: ${tr.remainingSec}s — Desprotegido agora!)`
+                  : (tr.mode === 'booting'
+                      ? `Ligando ${this.fmtVer(tr.toVerInt)} (${tr.remainingSec}s restantes...)`
+                      : `Encerrando ${this.fmtVer(tr.fromVerInt)} — Aguarde ${tr.remainingSec}s de carência p/ religar!`);
+                return `
+                  <div id="ramSlotCard_${k}" style="padding:8px 11px;background:rgba(240,160,58,0.10);border:1px solid var(--hc-warning);border-radius:8px;display:flex;flex-direction:column;gap:5px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:0.8rem;">
+                      <strong>⏳ ${esc(def.friendlyTitle || def.filename)}</strong>
+                      <span class="hc-badge warning">${trLabel}</span>
+                    </div>
+                    <div style="height:6px;background:var(--hc-inset);border-radius:999px;overflow:hidden;">
+                      <div style="height:100%;width:${tr.pct}%;background:var(--hc-warning);transition:width 0.2s linear;"></div>
+                    </div>
+                  </div>
+                `;
+              }
+
+              return `
+                <div id="ramSlotCard_${k}" style="padding:8px 11px;background:var(--hc-inset);border:1px solid ${hasNewerOnDisk ? 'var(--hc-warning)' : 'rgba(53,184,119,0.35)'};border-radius:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:0.8rem;">
+                  <div>
+                    <span class="hc-badge ${cur.installed ? 'success' : 'danger'}">${cur.installed ? `RODANDO ${this.fmtVer(runVer)}` : 'DESLIGADO'}</span>
+                    <strong style="margin-left:6px;">${esc(def.friendlyTitle || def.filename)}</strong>
+                    ${hasNewerOnDisk
+                      ? `<span class="hc-badge warning" style="margin-left:6px;">✨ Versão ${this.fmtVer(cur.versionInt)} pronta no Disco!</span>`
+                      : ''}
+                  </div>
+                  <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                    ${hasNewerOnDisk
+                      ? `<button type="button" id="btnSwapVer_${k}" class="hc-btn primary sm" onclick="window.softwareEngine.swapToLatestVersion('${k}')">
+                           🔄 Trocar ${this.fmtVer(runVer)} → ${this.fmtVer(cur.versionInt)} (Carência)
+                         </button>`
+                      : ''}
+                    ${cur.installed
+                      ? `<button type="button" class="hc-btn ghost sm" onclick="window.softwareEngine.deactivateLocalSoftware('${k}')">Desligar</button>`
+                      : `<button type="button" class="hc-btn primary sm" onclick="window.softwareEngine.activateLocalSoftware('${k}')">Ligar ${this.fmtVer(cur.versionInt)}</button>`}
+                  </div>
+                </div>
+              `;
+            }).join('');
+
+        const runningProgramsPanel = `
+          <div id="runningProgramsPanel" class="hc-card" style="padding:1rem 1.15rem;border-color:rgba(53,184,119,0.4);display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+              <div>
+                <div class="hc-eyebrow" style="color:var(--hc-accent-text);">🟢 O Que Está Rodando no Seu PC Agora (Memória Ativa)</div>
+                <div style="font-size:0.78rem;color:var(--hc-text-2);margin-top:2px;">
+                  <strong>Regra do Sistema:</strong> nunca podem rodar 2 programas iguais juntos (ex: 2 Escudos). Para ativar uma versão mais forte, é preciso desligar a antiga e aguardar os segundos de <strong>tempo de carência</strong>!
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              ${runningChipsHtml}
+            </div>
+          </div>
+        `;
+
         const renderRow = (k) => {
           const def = SOFTWARE_DEFINITIONS[k];
-          const cur = this.state.inventory[k] || { owned: true, versionInt: 10, installed: false, licensed: true };
+          const cur = this.state.inventory[k] || { owned: true, versionInt: 10, runningVerInt: 10, installed: false, licensed: true };
+          const tr = this.getTransitionInfo(k);
           const stepVer = k === 'analyzer' ? 10 : 5;
           const maxVer = def.maxVerInt || 100;
           const cost = this.getResearchCost(k);
           const licCost = this.getLicenseCost(k);
           const sizeMb = this.getItemSizeMb(k, cur.versionInt);
           const nextSizeMb = this.getItemSizeMb(k, Math.min(maxVer, cur.versionInt + stepVer));
+          const runVer = cur.runningVerInt || cur.versionInt;
           const ramMb = def.category === 'system'
-            ? this.getItemRamMb(k, cur.versionInt, false)
+            ? this.getItemRamMb(k, cur.installed ? runVer : cur.versionInt, false)
             : this.getItemRamMb(k, cur.versionInt, true);
           const nextVerStr = this.fmtVer(Math.min(maxVer, cur.versionInt + stepVer));
           const needsLicense = cur.licensed === false && !def.nonResearchable;
+          const hasPendingNewerVer = def.category === 'system' && cur.installed && !tr && cur.versionInt > runVer;
+
+          const statusText = tr
+            ? `EM CARÊNCIA (${tr.remainingSec}s...)`
+            : (cur.installed
+                ? (hasPendingNewerVer ? `RODANDO ${this.fmtVer(runVer)} (Novo ${this.fmtVer(cur.versionInt)} no Disco!)` : `LIGADO NA MEMÓRIA (${this.fmtVer(runVer)})`)
+                : 'DESLIGADO');
 
           return `
-            <div class="hc-card" style="padding:0.85rem 1.05rem;display:grid;grid-template-columns:minmax(225px,1.45fr) minmax(190px,1.5fr) auto;gap:12px;align-items:center;">
+            <div class="hc-card" style="padding:0.85rem 1.05rem;display:grid;grid-template-columns:minmax(235px,1.5fr) minmax(190px,1.5fr) auto;gap:12px;align-items:center;">
               <div>
                 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                  <strong style="font-family:var(--hc-font-mono);font-size:0.9rem;">${esc(def.filename)}</strong>
-                  <span class="hc-badge success">${this.fmtVer(cur.versionInt)}</span>
+                  <strong style="font-size:0.92rem;">${esc(def.friendlyTitle || def.filename)}</strong>
+                  <code style="font-size:0.74rem;color:var(--hc-text-3);">${esc(def.filename)}</code>
+                  <span class="hc-badge success">Disco ${this.fmtVer(cur.versionInt)}</span>
                   <span class="hc-badge info">${esc(def.badge)}</span>
-                  ${needsLicense ? `<span class="hc-badge warn">Sem Licença (Roubado)</span>` : ''}
+                  ${needsLicense ? `<span class="hc-badge warn">Precisa de Licença</span>` : ''}
                 </div>
-                <div style="font-size:0.72rem;color:var(--hc-text-3);font-family:var(--hc-font-mono);margin-top:3px;">
+                <div style="font-size:0.73rem;color:${tr || hasPendingNewerVer ? 'var(--hc-warning)' : 'var(--hc-text-3)'};font-family:var(--hc-font-mono);margin-top:3px;">
                   ${def.category === 'system'
-                    ? `Disco: ${sizeMb}MB${def.nonResearchable ? '' : ` (próx: ${nextSizeMb}MB)`} · RAM: ${ramMb}MB (${cur.installed ? 'ATIVO NA RAM' : 'DESATIVADO'})`
-                    : `Seu Disco: ${sizeMb}MB · Exige no Alvo: ${sizeMb}MB HDD + ${ramMb}MB RAM`}
+                    ? `Tamanho: ${sizeMb}MB${def.nonResearchable ? '' : ` (próx: ${nextSizeMb}MB)`} · Usa ${ramMb}MB Memória · ${statusText}`
+                    : `Tamanho no seu PC: ${sizeMb}MB · Exige na Vítima: ${sizeMb}MB Disco + ${ramMb}MB Memória`}
                 </div>
               </div>
 
-              <div style="font-size:0.79rem;color:var(--hc-text-2);">${esc(def.desc)}</div>
+              <div style="font-size:0.8rem;color:var(--hc-text-2);">${esc(def.desc)}</div>
 
               <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
                 ${k === 'antivirus'
-                  ? `<button type="button" class="hc-btn ghost sm" onclick="window.softwareEngine.runLocalAntivirus()">Varrer PC</button>`
+                  ? `<button type="button" class="hc-btn ghost sm" onclick="window.softwareEngine.runLocalAntivirus()">Limpar PC</button>`
                   : ''}
-                ${k === 'nmap' && cur.installed
-                  ? `<button type="button" id="btnRunLocalNmap" class="hc-btn ghost sm" onclick="window.softwareEngine.runLocalNmapScan()">Escanear Rede</button>`
+                ${k === 'nmap' && cur.installed && !tr
+                  ? `<button type="button" id="btnRunLocalNmap" class="hc-btn ghost sm" onclick="window.softwareEngine.runLocalNmapScan()">Ver Conectados</button>`
+                  : ''}
+                ${hasPendingNewerVer
+                  ? `<button type="button" id="btnRowSwap_${k}" class="hc-btn primary sm" style="background:var(--hc-warning);border-color:var(--hc-warning);color:#111;" onclick="window.softwareEngine.swapToLatestVersion('${k}')">
+                       🔄 Trocar p/ ${this.fmtVer(cur.versionInt)}
+                     </button>`
                   : ''}
                 ${def.category === 'system'
-                  ? `<button type="button" id="btnToggleInstall_${k}" class="hc-btn ${cur.installed ? 'ghost' : 'primary'} sm" onclick="window.softwareEngine.toggleLocalInstall('${k}')">${cur.installed ? 'Desativar' : 'Instalar na RAM'}</button>`
+                  ? `<button type="button" id="btnToggleInstall_${k}" class="hc-btn ${cur.installed ? 'ghost' : 'primary'} sm" ${tr ? 'disabled' : ''} onclick="window.softwareEngine.toggleLocalInstall('${k}')">
+                       ${tr ? `⏳ ${tr.remainingSec}s` : (cur.installed ? `Desligar (${this.fmtVer(runVer)})` : `Ligar (${this.fmtVer(cur.versionInt)})`)}
+                     </button>`
                   : ''}
                 ${def.nonResearchable
-                  ? `<span class="hc-badge" style="opacity:0.7;">Versão Fixa</span>`
+                  ? `<span class="hc-badge" style="opacity:0.7;">Versão Única</span>`
                   : (cur.versionInt >= maxVer
                       ? `<span class="hc-badge success">MÁX (${this.fmtVer(maxVer)})</span>`
                       : (needsLicense
                           ? `<button type="button" id="btnBuyLicense_${k}" class="hc-btn sm" style="border-color:var(--hc-warning);color:var(--hc-warning);" onclick="window.handleBuySoftwareLicense('${k}')">
-                               Comprar Licença ($ ${licCost.toLocaleString('pt-BR')})
+                               Liberar Melhoria ($ ${licCost.toLocaleString('pt-BR')})
                              </button>`
                           : `<button type="button" id="btnResearch_${k}" class="hc-btn primary sm" onclick="window.handleSoftwareResearch('${k}')">
-                               Upgrade → ${nextVerStr} ($ ${cost.toLocaleString('pt-BR')})
+                               Melhorar → ${nextVerStr} ($ ${cost.toLocaleString('pt-BR')})
                              </button>`))}
               </div>
             </div>
@@ -2067,21 +2457,21 @@
           const def = SOFTWARE_DEFINITIONS[k];
           const isVirus = def.category === 'virus';
           return `
-            <div class="hc-card" style="padding:0.75rem 1rem;display:grid;grid-template-columns:minmax(225px,1.4fr) minmax(190px,1.6fr) auto;gap:12px;align-items:center;opacity:0.78;border-style:dashed;">
+            <div class="hc-card" style="padding:0.75rem 1rem;display:grid;grid-template-columns:minmax(235px,1.45fr) minmax(190px,1.55fr) auto;gap:12px;align-items:center;opacity:0.82;border-style:dashed;">
               <div>
                 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                  <strong style="font-family:var(--hc-font-mono);font-size:0.88rem;color:var(--hc-text-2);">${esc(def.filename)}</strong>
-                  <span class="hc-badge warn">NÃO BAIXADO</span>
-                  <span class="hc-badge ${isVirus ? 'danger' : 'info'}">${isVirus ? 'Vírus Básico em Puzzle' : esc(def.badge)}</span>
+                  <strong style="font-size:0.9rem;color:var(--hc-text-2);">${esc(def.friendlyTitle || def.filename)}</strong>
+                  <span class="hc-badge warn">AINDA NÃO TEM</span>
+                  <span class="hc-badge ${isVirus ? 'danger' : 'info'}">${isVirus ? 'Baixe no Enigma' : esc(def.badge)}</span>
                 </div>
-                <div style="font-size:0.72rem;color:var(--hc-accent-text);font-family:var(--hc-font-mono);margin-top:3px;">
-                  Onde obter: ${esc(def.acquireHint || 'Trilha de Enigmas (109.64.200.10)')}
+                <div style="font-size:0.73rem;color:var(--hc-accent-text);font-family:var(--hc-font-mono);margin-top:3px;">
+                  Onde pegar grátis: ${esc(def.acquireHint || 'Primeiro Enigma (109.64.200.10)')}
                 </div>
               </div>
-              <div style="font-size:0.77rem;color:var(--hc-text-3);">${esc(def.desc)}</div>
+              <div style="font-size:0.78rem;color:var(--hc-text-3);">${esc(def.desc)}</div>
               <div style="display:flex;justify-content:flex-end;">
                 <button type="button" id="btnFindSoft_${k}" class="hc-btn ghost sm" style="border-color:var(--hc-border-strong);" onclick="window.internetEngine.openIp('${esc(def.acquireIp || '109.64.200.10')}')">
-                  Buscar em ${esc(def.acquireIp || '109.64.200.10')} →
+                  Ir Buscar (${esc(def.acquireIp || '109.64.200.10')}) →
                 </button>
               </div>
             </div>
@@ -2091,23 +2481,23 @@
         const nmapPanel = this.lastNmapReport ? `
           <div class="hc-card" style="padding:0.85rem 1.05rem;border-color:rgba(53,184,119,0.35);font-family:var(--hc-font-mono);font-size:0.78rem;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
-              <strong style="color:var(--hc-accent-text);">Relatório Nmap_localhost.txt (Nmap v${esc(this.lastNmapReport.nmapVer)} · ${esc(this.lastNmapReport.at)})</strong>
+              <strong style="color:var(--hc-accent-text);">Conexões Detectadas (Rastreador v${esc(this.lastNmapReport.nmapVer)} · ${esc(this.lastNmapReport.at)})</strong>
               <button type="button" class="hc-btn ghost sm" onclick="window.softwareEngine.lastNmapReport=null;window.softwareEngine.renderUI();">Fechar</button>
             </div>
             <div style="margin-top:6px;color:var(--hc-text-2);">
               ${this.lastNmapReport.found.length === 0
-                ? 'Nenhum IP externo desprotegido (Firewall <= Nmap) detectado conectado neste momento.'
-                : this.lastNmapReport.found.map((f) => `<div>• IP [${esc(f.ip)}] detectado (${esc(f.role)} · Firewall v${f.fwl.toFixed(1)}) <button type="button" class="hc-btn ghost sm" style="padding:1px 6px;margin-left:6px;" onclick="window.internetEngine.openIp('${esc(f.ip)}', 'invadir')">Abrir IP</button></div>`).join('')}
+                ? 'Nenhum IP externo desprotegido conectado agora.'
+                : this.lastNmapReport.found.map((f) => `<div>• IP [${esc(f.ip)}] detectado (${esc(f.role)} · Escudo v${f.fwl.toFixed(1)}) <button type="button" class="hc-btn ghost sm" style="padding:1px 6px;margin-left:6px;" onclick="window.internetEngine.openIp('${esc(f.ip)}', 'invadir')">Visitar IP</button></div>`).join('')}
             </div>
           </div>
         ` : '';
 
         const webServerPanel = this.isSoftwareInstalled('webserver') ? `
           <div class="hc-card" style="padding:0.95rem 1.1rem;border-color:rgba(53,184,119,0.35);">
-            <div class="hc-eyebrow" style="margin-bottom:6px;">Servidor HTTP Público Ativo (WebServer.exe · Porta 80)</div>
+            <div class="hc-eyebrow" style="margin-bottom:6px;">Sua Página Web Pública (Visível quando outros visitam seu IP)</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <input type="text" id="localWebServerTextInput" class="form-input" style="flex:1;min-width:240px;font-family:var(--hc-font-mono);font-size:0.8rem;" value="${esc(this.state.customWebPage || '')}" placeholder="Mensagem exibida quando visitarem seu IP público...">
-              <button type="button" id="btnSaveLocalWebPage" class="hc-btn primary sm" onclick="window.softwareEngine.saveLocalWebServerPage(document.getElementById('localWebServerTextInput').value)">Publicar Página HTTP</button>
+              <input type="text" id="localWebServerTextInput" class="form-input" style="flex:1;min-width:240px;font-family:var(--hc-font-mono);font-size:0.8rem;" value="${esc(this.state.customWebPage || '')}" placeholder="Escreva o recado público da sua máquina...">
+              <button type="button" id="btnSaveLocalWebPage" class="hc-btn primary sm" onclick="window.softwareEngine.saveLocalWebServerPage(document.getElementById('localWebServerTextInput').value)">Publicar na Rede</button>
             </div>
           </div>
         ` : '';
@@ -2115,28 +2505,29 @@
         const emptyVirusesCard = ownedVirKeys.length === 0
           ? `<div id="noOwnedVirusesBanner" class="hc-card" style="padding:1rem 1.2rem;border-color:var(--hc-warning);background:rgba(216,155,56,0.08);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
                <div>
-                 <strong style="color:var(--hc-warning);font-size:0.9rem;">Nenhum vírus baixado no seu HD ainda (0 / 5 famílias)</strong>
+                 <strong style="color:var(--hc-warning);font-size:0.9rem;">Você ainda não baixou nenhum vírus (0 de 5 tipos)</strong>
                  <div style="font-size:0.8rem;color:var(--hc-text-2);margin-top:3px;">
-                   No Hacker City você <strong>não compra qualquer vírus a qualquer hora</strong>! Resolva e invada as máquinas da <strong>Trilha de Enigmas</strong> (começando em <code>109.64.200.10</code>) para baixar os vírus básicos (<code>v1.0</code>) e liberar pesquisa deles!
+                   Você não compra vírus prontos em loja! Clique ao lado para abrir o <strong>Primeiro Enigma (<code>109.64.200.10</code>)</strong>, resolva o desafio e invada o computador dele para baixar seu primeiro vírus grátis!
                  </div>
                </div>
                <button type="button" id="btnGoFirstPuzzleFromSoft" class="hc-btn primary sm" onclick="window.internetEngine.openIp('109.64.200.10')">
-                 Ir p/ First Puzzle (109.64.200.10) →
+                 Ir ao Primeiro Enigma →
                </button>
              </div>`
           : `<div style="display:flex;flex-direction:column;gap:8px;">${ownedVirKeys.map(renderRow).join('')}</div>`;
 
         tabContent = `
           <div style="display:flex;flex-direction:column;gap:14px;">
+            ${runningProgramsPanel}
             ${nmapPanel}
             ${webServerPanel}
-            <div class="hc-eyebrow">1. Meus Vírus Baixados no HD (${ownedVirKeys.length} / ${virKeys.length} adquiridos)</div>
+            <div class="hc-eyebrow">1. Meus Vírus para Ganhar Dinheiro (${ownedVirKeys.length} / ${virKeys.length} baixados)</div>
             ${emptyVirusesCard}
 
             <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;flex-wrap:wrap;gap:8px;">
-              <div class="hc-eyebrow">2. Meus Utilitários no HD (${ownedSysKeys.length} / ${sysKeys.length} adquiridos · Rodando na RAM)</div>
+              <div class="hc-eyebrow">2. Meus Programas de Proteção &amp; Invasão (${ownedSysKeys.length} / ${sysKeys.length} no seu Disco)</div>
               <button type="button" class="hc-btn ghost sm" style="color:var(--hc-danger-text);" onclick="window.softwareEngine.formatLocalHardDrive(false)">
-                ☢ Formatar Meu HD (Reset Limpo)
+                ☢ Formatar Meu Disco (Zerar Vírus)
               </button>
             </div>
             <div style="display:flex;flex-direction:column;gap:8px;">${ownedSysKeys.map(renderRow).join('')}</div>
@@ -2144,7 +2535,7 @@
             ${unownedAllKeys.length > 0 ? `
               <div style="margin-top:8px;">
                 <div class="hc-eyebrow" style="margin-bottom:8px;color:var(--hc-warning);">
-                  3. Softwares &amp; Vírus Não Adquiridos (${unownedAllKeys.length} restantes — Baixe nas Máquinas de Puzzle / Download Center)
+                  3. Ainda Não Desbloqueados (${unownedAllKeys.length} itens — Descubra e Baixe nos Enigmas / Central de Downloads)
                 </div>
                 <div style="display:flex;flex-direction:column;gap:7px;">${unownedAllKeys.map(renderUnownedRow).join('')}</div>
               </div>

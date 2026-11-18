@@ -23,6 +23,9 @@ class WindowManager {
     el.style.display = 'flex';
     el.classList.add('focused');
     this.current = winId;
+    if (winId === this.home && !(window.spotlightTour && window.spotlightTour.isActive)) {
+      document.querySelectorAll('details.nav-topic').forEach(d => { d.open = false; });
+    }
     this.syncNav();
   }
 
@@ -43,6 +46,7 @@ class WindowManager {
   updateTaskbar() { this.syncNav(); }
 
   syncNav() {
+    let activeTopic = null;
     document.querySelectorAll('.nav-item[data-win]').forEach(btn => {
       const active = btn.getAttribute('data-win') === this.current;
       btn.classList.toggle('active', active);
@@ -51,8 +55,17 @@ class WindowManager {
         const title = document.getElementById('pageTitle');
         const label = btn.querySelector('span');
         if (title && label) title.textContent = label.textContent;
+        activeTopic = btn.closest('details.nav-topic');
       } else {
         btn.removeAttribute('aria-current');
+      }
+    });
+
+    document.querySelectorAll('details.nav-topic').forEach(topic => {
+      const isParent = topic === activeTopic;
+      topic.classList.toggle('has-active-child', isParent);
+      if (isParent && !topic.open) {
+        topic.open = true;
       }
     });
   }
