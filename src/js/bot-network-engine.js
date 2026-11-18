@@ -274,7 +274,8 @@ class BotAIService {
     this.ddosTimer = null;
   }
 
-  registerIntrusion(botIp, playerIp = "192.168.1.104") {
+  registerIntrusion(botIp, playerIp = null) {
+    const activeIp = playerIp || (window.networkIdentity ? window.networkIdentity.getPublicIp() : "142.87.13.9");
     const reg = window.botRegistry;
     const bot = reg ? reg.getBotByIp(botIp) : null;
     const tier = bot ? bot.tier : 1;
@@ -283,10 +284,10 @@ class BotAIService {
     if (!this.syslogRegistry.has(botIp)) {
       this.syslogRegistry.set(botIp, []);
     }
-    this.syslogRegistry.get(botIp).push(`[${new Date().toLocaleTimeString()}] INTRUSION src=${playerIp} dest=${botIp} exploit=OK`);
+    this.syslogRegistry.get(botIp).push(`[${new Date().toLocaleTimeString()}] INTRUSION src=${activeIp} dest=${botIp} exploit=OK`);
 
     if (typeof window.addLocalLog === 'function') {
-      window.addLocalLog('SSH/EXPLOIT', `Acesso root em ${bot ? bot.handle : 'Host'} [${botIp}] — rastro ativo em /var/log/syslog`, 'warning');
+      window.addLocalLog('SSH/EXPLOIT', `Acesso root em ${bot ? bot.handle : 'Host'} [${botIp}] — seu IP (${activeIp}) ficou em /var/log/syslog`, 'warning');
     }
 
     let delaySec = 15;
@@ -309,7 +310,8 @@ class BotAIService {
       tier,
       attackType,
       delaySec,
-      timeLeft: delaySec
+      timeLeft: delaySec,
+      loggedPlayerIp: activeIp
     };
 
     this.pendingAttacks.set(botIp, attackData);
@@ -365,10 +367,32 @@ class BotAIService {
     const att = this.pendingAttacks.get(botIp);
     this.pendingAttacks.delete(botIp);
 
+    const handle = att ? att.botHandle : "Bot Defensor";
+    const currentIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : null;
+    const syslogLines = this.syslogRegistry.get(botIp) || [];
+
+    // Se o jogador trocou de IP no Provedor ISP (ou apagou/editou o IP do syslog), o contra-ataque perde a rota!
+    if (att && att.loggedPlayerIp) {
+      const stillInLog = syslogLines.some((l) => l.includes(att.loggedPlayerIp));
+      if (!stillInLog) {
+        if (typeof window.renderLogsPage === 'function') window.renderLogsPage();
+        return;
+      }
+      if (currentIp && att.loggedPlayerIp !== currentIp) {
+        if (typeof window.addLocalLog === 'function') {
+          window.addLocalLog('ISP-SHIELD', `${handle} [${botIp}] tentou retaliar seu IP antigo (${att.loggedPlayerIp}), mas seu novo IP (${currentIp}) escapou ileso!`, 'success');
+        }
+        if (typeof window.showToast === 'function') {
+          window.showToast(`Contra-ataque de ${handle} despistado! Ele mirou no seu IP antigo (${att.loggedPlayerIp}).`);
+        }
+        if (typeof window.renderLogsPage === 'function') window.renderLogsPage();
+        return;
+      }
+    }
+
     if (window.hackerAudio) window.hackerAudio.playInvasionAlert();
 
     const type = att ? att.attackType : "light_theft";
-    const handle = att ? att.botHandle : "Bot Defensor";
 
     if (type === "light_theft") {
       const stolen = 50;
@@ -395,7 +419,7 @@ class BotAIService {
       // DDoS Swarm
       this.startDDoS(12);
       if (typeof window.addLocalLog === 'function') {
-        window.addLocalLog('DDOS-ALERT', `${handle} [${botIp}] disparou ataque DDoS de 12s contra 192.168.1.104`, 'danger');
+        window.addLocalLog('DDOS-ALERT', `${handle} [${botIp}] disparou ataque DDoS de 12s contra ${currentIp || 'seu gateway'}`, 'danger');
       }
       if (window.hackerAudio) window.hackerAudio.playDDoSAlert();
       alert(`[ATAQUE DEVASTADOR DDOS]\n${handle} [${botIp}] disparou um ataque maciço DDoS! Sua conexão de rede cairá por 12 segundos.`);
@@ -622,9 +646,10 @@ function renderCrackerProxyStrip() {
   if (!container) return;
   container.innerHTML = '';
 
+  const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '142.87.13.9';
   const originPill = document.createElement('div');
   originPill.className = 'proxy-node-pill active';
-  originPill.innerHTML = `<span>Você [192.168.1.104]</span>`;
+  originPill.innerHTML = `<span>Você [${myIp}]</span>`;
   container.appendChild(originPill);
 
   window.traceEngine.activeProxies.forEach((ip, idx) => {
@@ -732,8 +757,20 @@ function startCrackerAttack() {
       btnBypass.style.opacity = '0.4';
       if (window.hackerAudio) window.hackerAudio.playMoneyCollect();
 
-      // Gravar invasão na IA do bot (para auditoria)
+      // Gravar invasão na IA do bot (para auditoria) + salvar no Hacked Database
       window.botAI.registerIntrusion(bot.ip);
+      if (window.hackedDb && window.internetEngine) {
+        const hostMeta = window.internetEngine.resolveHost(bot.ip);
+        window.hackedDb.upsertHost({
+          ip: bot.ip,
+          hostname: hostMeta.hostname || bot.handle,
+          kind: 'bot',
+          tier: bot.tier,
+          accessMethod: 'password',
+          password: hostMeta.rootPassword || 'root1337',
+          cpuSpec: `${bot.hardware.cpuCores}c @ ${bot.hardware.cpuClock}GHz`
+        });
+      }
 
       if (resultBox) {
         resultBox.style.display = 'block';
@@ -742,12 +779,13 @@ function startCrackerAttack() {
         resultBox.style.color = '#d1fae5';
         resultBox.innerHTML = `
           <div style="font-weight: bold; font-size: 0.95rem; margin-bottom: 0.35rem;">SUCESSO: FIREWALL E HASHES DECIFRADOS!</div>
-          <div>Acesso root obtido na máquina de <strong>${bot.handle}</strong> [${bot.ip}].</div>
-          <div style="color: #f5bd6b; font-size: 0.75rem; margin: 0.5rem 0;">ATENÇÃO: Seu IP foi registrado em /var/log/syslog! Use 'rmlog ${bot.ip}' ou limpe os logs no Browser antes que a IA do bot retalie!</div>
-          <div style="display: flex; gap: 8px; margin-top: 0.5rem;">
-            <button class="btn-submit" style="margin: 0; padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="enslaveBotToC2('${bot.ip}')">Escravizar na Botnet C2</button>
-            <button class="btn-submit" style="margin: 0; padding: 0.35rem 0.75rem; font-size: 0.75rem; background: #12814f;" onclick="drainBotBank('${bot.ip}')">Drenar Saldo ($ ${bot.bankAccount.balance} HC)</button>
-            <button class="btn-submit" style="margin: 0; padding: 0.35rem 0.75rem; font-size: 0.75rem; background: #d0443a;" onclick="wipeBotLogsViaBtn('${bot.ip}')">Apagar Logs Agora</button>
+          <div>Acesso root obtido na máquina de <strong>${bot.handle}</strong> [${bot.ip}] e salvo no <strong>Hacked Database</strong>!</div>
+          <div style="color: #f5bd6b; font-size: 0.75rem; margin: 0.5rem 0;">ATENÇÃO: Seu IP público foi registrado em /var/log/syslog! Apague os logs ou troque seu IP no Provedor ISP antes que a IA retalie!</div>
+          <div style="display: flex; gap: 8px; margin-top: 0.5rem; flex-wrap: wrap;">
+            <button class="btn-submit" style="width: auto; margin: 0; padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="enslaveBotToC2('${bot.ip}')">Escravizar na Botnet C2</button>
+            <button class="btn-submit" style="width: auto; margin: 0; padding: 0.35rem 0.75rem; font-size: 0.75rem; background: #12814f;" onclick="drainBotBank('${bot.ip}')">Drenar Saldo ($ ${bot.bankAccount.balance} HC)</button>
+            <button class="btn-submit" style="width: auto; margin: 0; padding: 0.35rem 0.75rem; font-size: 0.75rem; background: #d0443a;" onclick="wipeBotLogsViaBtn('${bot.ip}')">Apagar Logs Agora</button>
+            <button class="btn-submit" style="width: auto; margin: 0; padding: 0.35rem 0.75rem; font-size: 0.75rem; background: #262c35; border-color: #3a4350;" onclick="window.internetEngine.quickSshConnect('${bot.ip}')">Abrir SSH na Internet</button>
           </div>
         `;
       }

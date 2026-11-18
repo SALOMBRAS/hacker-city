@@ -287,3 +287,34 @@ DROP TRIGGER IF EXISTS trg_sanitize_chat ON public.chat_messages;
 CREATE TRIGGER trg_sanitize_chat
   BEFORE INSERT ON public.chat_messages
   FOR EACH ROW EXECUTE FUNCTION public.sanitize_chat_message();
+
+
+-- ========================================================
+-- 12. BLOCO 1 MMO: IP PÚBLICO ÚNICO, RESET 1X/SEMANA & HACKED DB
+-- (Sincronizado com supabase/migrations/20261118_block1_ip_internet_hacked_db.sql)
+-- ========================================================
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS public_ip TEXT UNIQUE;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS root_password TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS ip_resets_count INT NOT NULL DEFAULT 0;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS last_free_ip_reset_at TIMESTAMPTZ;
+
+CREATE OR REPLACE FUNCTION public.generate_unique_public_ip()
+RETURNS TEXT AS $$
+DECLARE
+  v_o1 INT; v_o2 INT; v_o3 INT; v_o4 INT; v_ip TEXT; v_attempts INT := 0;
+BEGIN
+  LOOP
+    v_attempts := v_attempts + 1;
+    v_o1 := 11 + floor(random() * 212)::int;
+    IF v_o1 IN (10, 127, 169, 172, 192, 198, 203, 71, 33, 77, 133, 185, 109) THEN CONTINUE; END IF;
+    v_o2 := 1 + floor(random() * 253)::int;
+    v_o3 := 1 + floor(random() * 253)::int;
+    v_o4 := 2 + floor(random() * 252)::int;
+    v_ip := v_o1 || '.' || v_o2 || '.' || v_o3 || '.' || v_o4;
+    EXIT WHEN NOT EXISTS (SELECT 1 FROM public.profiles WHERE public_ip = v_ip)
+          AND NOT EXISTS (SELECT 1 FROM public.network_targets WHERE ip_address = v_ip);
+    IF v_attempts > 200 THEN RAISE EXCEPTION 'Falha ao gerar IP único.'; END IF;
+  END LOOP;
+  RETURN v_ip;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
