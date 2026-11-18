@@ -438,7 +438,10 @@
       multCost: 1.25,
       baseMb: 20,
       baseRam: 16,
+      starterOwned: true,
       starterInstalled: true,
+      acquireIp: '33.8.2.71',
+      acquireHint: 'Kit Inicial de Boot / Download Center (33.8.2.71)',
       desc: 'Descriptografa rede e quebra senhas root/bancárias. Exige versão >= Firewall.fwl E >= Hasher.hash do alvo!'
     },
     hasher: {
@@ -449,7 +452,10 @@
       multCost: 1.15,
       baseMb: 18,
       baseRam: 14,
+      starterOwned: true,
       starterInstalled: true,
+      acquireIp: '33.8.2.71',
+      acquireHint: 'Kit Inicial de Boot / Download Center (33.8.2.71)',
       desc: 'Criptografa sua senha root. Bloqueia qualquer ataque força-bruta cujo Cracker.crc seja menor que sua versão.'
     },
     firewall: {
@@ -460,7 +466,10 @@
       multCost: 1.2,
       baseMb: 20,
       baseRam: 18,
+      starterOwned: true,
       starterInstalled: true,
+      acquireIp: '33.8.2.71',
+      acquireHint: 'Kit Inicial de Boot / Download Center (33.8.2.71)',
       desc: 'Barreira de perímetro: bloqueia Exploits, Descriptografia/Força-Bruta e Nmap mais fracos que ele, e mitiga DDoS (Curso #5).'
     },
     portscan: {
@@ -472,7 +481,10 @@
       baseMb: 8,
       baseRam: 8,
       nonResearchable: true,
+      starterOwned: true,
       starterInstalled: true,
+      acquireIp: '33.8.2.71',
+      acquireHint: 'Kit Inicial de Boot / Download Center (33.8.2.71)',
       desc: 'Obrigatório na RAM para varrer portas abertas (21/FTP e 22/SSH) antes de um Ataque Exploit. Não pesquisável.'
     },
     exploit_ftp: {
@@ -483,7 +495,10 @@
       multCost: 1.32,
       baseMb: 16,
       baseRam: 14,
-      starterInstalled: true,
+      starterOwned: false,
+      starterInstalled: false,
+      acquireIp: '109.64.200.35',
+      acquireHint: 'Enigma #3 (109.64.200.35) ou Darknet (185.220.101.9)',
       desc: 'Explora porta 21 se versão >= Firewall.fwl do alvo (concede permissão FTP: Logs + Download/Upload; junto c/ SSH dá ROOT).'
     },
     exploit_ssh: {
@@ -494,7 +509,10 @@
       multCost: 1.4,
       baseMb: 18,
       baseRam: 16,
-      starterInstalled: true,
+      starterOwned: false,
+      starterInstalled: false,
+      acquireIp: '109.64.200.35',
+      acquireHint: 'Enigma #3 (109.64.200.35) ou Darknet (185.220.101.9)',
       desc: 'Explora porta 22 se versão >= Firewall.fwl do alvo (concede permissão SSH: Logs + Executar/Deletar; junto c/ FTP dá ROOT).'
     },
     antivirus: {
@@ -505,7 +523,10 @@
       multCost: 1.05,
       baseMb: 18,
       baseRam: 16,
-      starterInstalled: true,
+      starterOwned: false,
+      starterInstalled: false,
+      acquireIp: '33.8.2.71',
+      acquireHint: 'Download Center (33.8.2.71 — v1.0) ou Enigma #4 (109.64.200.48 — v1.5)',
       desc: 'SÓ remove vírus VISÍVEIS cuja potência seja <= versão do seu Antivirus.av! Vírus mais fortes exigem upgrade ou Formatar HD.'
     },
     collector: {
@@ -516,7 +537,10 @@
       multCost: 1.5,
       baseMb: 14,
       baseRam: 12,
-      starterInstalled: true,
+      starterOwned: false,
+      starterInstalled: false,
+      acquireIp: '109.64.200.10',
+      acquireHint: 'First Puzzle / Enigma #1 (109.64.200.10)',
       desc: 'PRECISA estar ativo na RAM p/ coletar! Cada upgrade aumenta em +36% o lucro extraído dos vírus.'
     },
     torrent: {
@@ -528,7 +552,10 @@
       baseMb: 10,
       baseRam: 8,
       nonResearchable: true,
-      starterInstalled: true,
+      starterOwned: false,
+      starterInstalled: false,
+      acquireIp: '109.64.200.22',
+      acquireHint: 'Enigma #2 (109.64.200.22)',
       desc: 'Obrigatório rodando na sua RAM para que seus vírus Warez.vwarez consigam vender pirataria e gerar dinheiro!'
     },
     ddos_breaker: {
@@ -539,7 +566,10 @@
       multCost: 1.25,
       baseMb: 14,
       baseRam: 12,
+      starterOwned: false,
       starterInstalled: false,
+      acquireIp: '109.64.200.61',
+      acquireHint: 'Enigma #5 (109.64.200.61)',
       desc: 'Necessário ativo na sua RAM (junto aos nós .vddos e Curso #4) para disparar ataques DDoS contra servidores e FBI.'
     },
     nmap: {
@@ -550,7 +580,10 @@
       multCost: 1.15,
       baseMb: 12,
       baseRam: 10,
+      starterOwned: false,
       starterInstalled: false,
+      acquireIp: '109.64.200.35',
+      acquireHint: 'Enigma #3 (109.64.200.35) ou Bots Tier II',
       desc: 'Varre conexões ativas no localhost ou servidor invadido, listando IPs cujo Firewall.fwl seja <= sua versão.'
     },
     analyzer: {
@@ -562,7 +595,10 @@
       baseMb: 12,
       baseRam: 10,
       maxVerInt: 30,
+      starterOwned: false,
       starterInstalled: false,
+      acquireIp: '33.8.2.71',
+      acquireHint: 'Download Center (33.8.2.71 — v1.0) ou Farofa Systems (203.17.88.40 — v2.0)',
       desc: 'Analisa CPU/RAM da vítima e grava no Hacked Database (v1.0 = ~50% precisão, v2.0 = ~80%, v3.0 = 100% exato).'
     },
     webserver: {
@@ -574,11 +610,14 @@
       baseMb: 10,
       baseRam: 10,
       nonResearchable: true,
+      starterOwned: false,
       starterInstalled: false,
+      acquireIp: '33.8.2.71',
+      acquireHint: 'Download Center (33.8.2.71)',
       desc: 'Publica página HTTP customizada no seu IP público e permite alterar/pichar (Deface) páginas de servidores invadidos.'
     },
 
-    // --- 5 Famílias de Vírus (Ocupam HDD no seu PC + HDD e RAM no PC da Vítima!) ---
+    // --- 5 Famílias de Vírus (NÃO vêm prontos nem se compram do nada: baixe os básicos v1.0 nas máquinas de Puzzle!) ---
     vspam: {
       key: 'vspam',
       filename: 'Spam.vspam',
@@ -588,6 +627,9 @@
       multCost: 1.0,
       baseMb: 16,
       baseRam: 10,
+      starterOwned: false,
+      acquireIp: '109.64.200.10',
+      acquireHint: 'First Puzzle / Enigma #1 (109.64.200.10)',
       desc: 'Leve em disco/RAM. Lucro depende da CPU (MHz) do alvo × potência do vírus. Cai se versão <= AV do alvo.'
     },
     vwarez: {
@@ -599,6 +641,9 @@
       multCost: 1.2,
       baseMb: 22,
       baseRam: 14,
+      starterOwned: false,
+      acquireIp: '109.64.200.22',
+      acquireHint: 'Enigma #2 (109.64.200.22)',
       desc: 'Exige Torrent.torrent ativo na SUA RAM! Lucro escala com a Internet (Mbit/s) da vítima × potência.'
     },
     vminer: {
@@ -610,6 +655,9 @@
       multCost: 1.55,
       baseMb: 26,
       baseRam: 18,
+      starterOwned: false,
+      acquireIp: '109.64.200.48',
+      acquireHint: 'Enigma #4 (109.64.200.48)',
       desc: 'Minera satoshis de Bitcoin proporcional à CPU (MHz) da vítima × potência. Exige bom espaço no alvo.'
     },
     vbank: {
@@ -621,6 +669,9 @@
       multCost: 1.85,
       baseMb: 34,
       baseRam: 26,
+      starterOwned: false,
+      acquireIp: '109.64.200.77',
+      acquireHint: 'Enigma #6 (109.64.200.77) ou Cofres Bancários',
       desc: 'Pesado em Disco e RAM no alvo! Rende alto em Bancos/Empresas fortes, mas não cabe em PCs sucata.'
     },
     vddos: {
@@ -632,6 +683,9 @@
       multCost: 1.35,
       baseMb: 20,
       baseRam: 16,
+      starterOwned: false,
+      acquireIp: '109.64.200.61',
+      acquireHint: 'Enigma #5 (109.64.200.61)',
       desc: 'Soma poder DDoS (Gbps) baseado na CPU + Internet da vítima × potência. Exige DDoS_Breaker.vbrk para disparar.'
     }
   };
@@ -655,10 +709,12 @@
     buildStarterInventory() {
       const inv = {};
       for (const [k, def] of Object.entries(SOFTWARE_DEFINITIONS)) {
+        const owned = !!def.starterOwned;
         inv[k] = {
-          versionInt: 10,
-          installed: def.category === 'system' ? !!def.starterInstalled : false,
-          licensed: true
+          owned,
+          versionInt: owned ? 10 : 0,
+          installed: owned && def.category === 'system' ? !!def.starterInstalled : false,
+          licensed: owned
         };
       }
       return inv;
@@ -680,8 +736,20 @@
         for (const [k, defVal] of Object.entries(defaults)) {
           if (!saved.inventory[k]) {
             saved.inventory[k] = { ...defVal };
-          } else if (saved.inventory[k].licensed === undefined) {
-            saved.inventory[k].licensed = true;
+          } else {
+            if (saved.inventory[k].owned === undefined) {
+              // Migração segura: conta nova ou sem upgrade mantém owned só nos starterOwned ou itens já pesquisados (> v1.0)
+              const inferredOwned = !!SOFTWARE_DEFINITIONS[k]?.starterOwned || Number(saved.inventory[k].versionInt || 0) > 10;
+              saved.inventory[k].owned = inferredOwned;
+              if (!inferredOwned) {
+                saved.inventory[k].versionInt = 0;
+                saved.inventory[k].installed = false;
+                saved.inventory[k].licensed = false;
+              }
+            }
+            if (saved.inventory[k].licensed === undefined) {
+              saved.inventory[k].licensed = !!saved.inventory[k].owned;
+            }
           }
         }
         if (!Array.isArray(saved.localHostileInfections)) saved.localHostileInfections = [];
@@ -717,17 +785,24 @@
       return SOFTWARE_DEFINITIONS[softKey] || null;
     }
 
+    isSoftwareOwned(softKey) {
+      this.ensureLoaded();
+      const item = this.state.inventory[softKey];
+      return !!(item && item.owned && item.versionInt > 0);
+    }
+
     getSoftwareVersion(softKey) {
       this.ensureLoaded();
       const item = this.state.inventory[softKey];
-      if (!item) return 0;
+      if (!item || !item.owned || item.versionInt <= 0) return 0;
       if (SOFTWARE_DEFINITIONS[softKey]?.category === 'system' && !item.installed) return 0;
       return item.versionInt / 10;
     }
 
     isSoftwareInstalled(softKey) {
       this.ensureLoaded();
-      return !!(this.state.inventory[softKey] && this.state.inventory[softKey].installed);
+      const item = this.state.inventory[softKey];
+      return !!(item && item.owned && item.installed);
     }
 
     isTorrentActive() {
@@ -783,7 +858,7 @@
       this.ensureLoaded();
       let sum = 0;
       for (const [k, st] of Object.entries(this.state.inventory)) {
-        if (st.installed && SOFTWARE_DEFINITIONS[k]?.category === 'system') {
+        if (st.owned && st.installed && SOFTWARE_DEFINITIONS[k]?.category === 'system') {
           sum += this.getItemRamMb(k, st.versionInt, false);
         }
       }
@@ -795,7 +870,9 @@
       this.ensureLoaded();
       let sum = 0;
       for (const [k, st] of Object.entries(this.state.inventory)) {
-        sum += this.getItemSizeMb(k, st.versionInt);
+        if (st.owned && st.versionInt > 0) {
+          sum += this.getItemSizeMb(k, st.versionInt);
+        }
       }
       sum += (this.state.localHostileInfections || []).reduce((acc, inf) => acc + (inf.hddMb || 18), 0);
       return sum;
@@ -806,7 +883,7 @@
       const def = SOFTWARE_DEFINITIONS[softKey];
       const cur = this.state.inventory[softKey];
       if (!def || !cur) return 500;
-      const v = cur.versionInt / 10;
+      const v = Math.max(1, cur.versionInt / 10);
       return Math.round(220 * Math.pow(v, 2.25) * def.multCost);
     }
 
@@ -819,6 +896,13 @@
       const def = SOFTWARE_DEFINITIONS[softKey];
       const cur = this.state.inventory[softKey];
       if (!def || !cur) return { success: false, message: 'Software inválido.' };
+      if (!cur.owned || cur.versionInt <= 0) {
+        return {
+          success: false,
+          code: 'NOT_OWNED',
+          message: `Você ainda NÃO possui ${def.filename} no seu HD! Você não compra vírus/softwares do nada — baixe primeiro a versão básica em ${def.acquireHint || '109.64.200.10'}!`
+        };
+      }
       if (cur.licensed !== false) return { success: true, message: 'Este software já está licenciado no seu nome!' };
 
       const cost = this.getLicenseCost(softKey);
@@ -845,6 +929,13 @@
       const def = SOFTWARE_DEFINITIONS[softKey];
       const cur = this.state.inventory[softKey];
       if (!def || !cur) return { success: false, message: 'Software inválido.' };
+      if (!cur.owned || cur.versionInt <= 0) {
+        return {
+          success: false,
+          code: 'NOT_OWNED',
+          message: `BLOQUEADO: Você não possui ${def.filename} no seu HD! Não é possível comprar qualquer vírus/ferramenta a qualquer hora — resolva e invada ${def.acquireHint || 'as máquinas de Puzzle (109.64.200.10+)'} para baixar o básico primeiro!`
+        };
+      }
       if (def.nonResearchable) {
         return { success: false, message: `${def.filename} possui versão única e não pode ser pesquisado (conforme manual oficial).` };
       }
@@ -927,6 +1018,11 @@
       const def = SOFTWARE_DEFINITIONS[softKey];
       const cur = this.state.inventory[softKey];
       if (!def || !cur || def.category !== 'system') return { success: false };
+      if (!cur.owned || cur.versionInt <= 0) {
+        const msg = `Você ainda não possui ${def.filename} no seu HD! Baixe-o primeiro em ${def.acquireHint || '109.64.200.10 / 33.8.2.71'}.`;
+        alert(msg);
+        return { success: false, code: 'NOT_OWNED', message: msg };
+      }
 
       if (!cur.installed) {
         const neededRam = this.getItemRamMb(softKey, cur.versionInt, false);
@@ -1005,7 +1101,12 @@
     runLocalAntivirus() {
       this.ensureLoaded();
       const av = this.state.inventory.antivirus;
-      if (!av || !av.installed) {
+      if (!av || !av.owned || av.versionInt <= 0) {
+        const msg = 'Você ainda NÃO possui o Antivirus.av no seu HD! Baixe o Antivirus.av v1.0 grátis no Download Center (33.8.2.71) ou o v1.5 no Enigma #4 (109.64.200.48) — ou use Formatar HD!';
+        alert(msg);
+        return { success: false, code: 'AV_NOT_OWNED', cleaned: 0, remaining: this.state.localHostileInfections.length, message: msg };
+      }
+      if (!av.installed) {
         const msg = 'Seu Antivirus.av está DESATIVADO na RAM! Instale-o na lista de softwares antes de executar a varredura.';
         alert(msg);
         return { success: false, code: 'AV_NOT_INSTALLED', cleaned: 0, remaining: this.state.localHostileInfections.length, message: msg };
@@ -1177,13 +1278,15 @@
       const myNmapVer = nm.versionInt / 10;
       const found = [];
 
-      // Verificar infecções locais e conexões recentes em que o Firewall do invasor <= seu Nmap
+      // Verificar infecções locais e conexões recentes em que o Firewall do invasor <= seu Nmap (somente se o IP real não foi apagado!)
       (this.state.localHostileInfections || []).forEach((inf) => {
-        if (inf.attackerIp && inf.attackerIp !== 'desconhecido') {
-          const h = window.internetEngine ? window.internetEngine.resolveHost(inf.attackerIp) : null;
+        const rawIp = String(inf.attackerIp || '');
+        const isValidIpv4 = /^\d{1,3}(\.\d{1,3}){3}$/.test(rawIp);
+        if (isValidIpv4) {
+          const h = window.internetEngine ? window.internetEngine.resolveHost(rawIp) : null;
           const fwl = (h && h.firewallVer) || 1.0;
-          if (myNmapVer >= fwl) {
-            found.push({ ip: inf.attackerIp, role: `Backdoor ${inf.label}`, fwl });
+          if (myNmapVer >= fwl && !found.some((x) => x.ip === rawIp)) {
+            found.push({ ip: rawIp, role: `Backdoor ${inf.label}`, fwl });
           }
         }
       });
@@ -1300,28 +1403,30 @@
 
     getVirusCatalogOptions(targetHost = null) {
       this.ensureLoaded();
-      return ['vspam', 'vwarez', 'vminer', 'vbank', 'vddos'].map((k) => {
-        const def = SOFTWARE_DEFINITIONS[k];
-        const st = this.state.inventory[k] || { versionInt: 10 };
-        const sizeMb = this.getItemSizeMb(k, st.versionInt);
-        const ramMb = this.getItemRamMb(k, st.versionInt, true);
-        let extra = `Disco:${sizeMb}MB · RAM:${ramMb}MB`;
-        if (targetHost) {
-          const tr = this.calculateUploadTransfer(targetHost, k);
-          const fitTag = (!tr.fitsHdd || !tr.fitsRam) ? ' [NÃO CABE NO ALVO]' : (tr.stealthVsAv ? ' [FUD/INVISÍVEL]' : ` [RISCO AV v${tr.targetAvVer.toFixed(1)}]`);
-          extra = `${sizeMb}MB HDD · ${ramMb}MB RAM · ~${tr.durationSec}s${fitTag}`;
-        }
-        return {
-          key: k,
-          filename: def.filename,
-          versionInt: st.versionInt,
-          versionStr: this.fmtVer(st.versionInt),
-          sizeMb,
-          ramMb,
-          badge: def.badge,
-          extraLabel: extra
-        };
-      });
+      return ['vspam', 'vwarez', 'vminer', 'vbank', 'vddos']
+        .filter((k) => this.isSoftwareOwned(k))
+        .map((k) => {
+          const def = SOFTWARE_DEFINITIONS[k];
+          const st = this.state.inventory[k] || { versionInt: 10 };
+          const sizeMb = this.getItemSizeMb(k, st.versionInt);
+          const ramMb = this.getItemRamMb(k, st.versionInt, true);
+          let extra = `Disco:${sizeMb}MB · RAM:${ramMb}MB`;
+          if (targetHost) {
+            const tr = this.calculateUploadTransfer(targetHost, k);
+            const fitTag = (!tr.fitsHdd || !tr.fitsRam) ? ' [NÃO CABE NO ALVO]' : (tr.stealthVsAv ? ' [FUD/INVISÍVEL]' : ` [RISCO AV v${tr.targetAvVer.toFixed(1)}]`);
+            extra = `${sizeMb}MB HDD · ${ramMb}MB RAM · ~${tr.durationSec}s${fitTag}`;
+          }
+          return {
+            key: k,
+            filename: def.filename,
+            versionInt: st.versionInt,
+            versionStr: this.fmtVer(st.versionInt),
+            sizeMb,
+            ramMb,
+            badge: def.badge,
+            extraLabel: extra
+          };
+        });
     }
 
     getRemoteVirusesOnIp(ip) {
@@ -1340,8 +1445,12 @@
 
       const def = SOFTWARE_DEFINITIONS[virusKey];
       const inv = this.state.inventory[virusKey];
-      if (!def || def.category !== 'virus' || !inv) {
-        return { success: false, message: 'Tipo de vírus não encontrado no seu inventário.' };
+      if (!def || def.category !== 'virus' || !inv || !inv.owned || inv.versionInt <= 0) {
+        return {
+          success: false,
+          code: 'VIRUS_NOT_OWNED',
+          message: `Você ainda NÃO possui ${def ? def.filename : 'este vírus'} no seu HD! Resolva e invada as máquinas de Puzzle (${def?.acquireIp || '109.64.200.10'}) para baixar os vírus básicos primeiro!`
+        };
       }
 
       if (virusKey === 'vminer' && window.bitcoinEngine) {
@@ -1457,11 +1566,20 @@
 
     // Upload assíncrono com barra de progresso real governada pela velocidade da sua Internet vs Internet do alvo!
     uploadVirusWithBandwidth(host, virusKey, onDone) {
+      this.ensureLoaded();
       if (this.activeUploadJob) {
         return { started: false, message: 'Já existe um upload de vírus em andamento na sua conexão!' };
       }
-      const tr = this.calculateUploadTransfer(host, virusKey);
       const def = SOFTWARE_DEFINITIONS[virusKey];
+      const invCheck = this.state.inventory[virusKey];
+      if (!def || !invCheck || !invCheck.owned || invCheck.versionInt <= 0) {
+        return {
+          started: false,
+          code: 'VIRUS_NOT_OWNED',
+          message: `Você ainda NÃO possui ${def ? def.filename : 'este vírus'} no seu HD! Baixe os vírus básicos resolvendo e invadindo as máquinas de Puzzle (${def?.acquireIp || '109.64.200.10'})!`
+        };
+      }
+      const tr = this.calculateUploadTransfer(host, virusKey);
 
       // Validar espaço ANTES de gastar banda subindo o arquivo!
       const existing = this.state.remoteInfections.find((v) => v.targetIp === host.ip && v.virusKey === virusKey);
@@ -1799,21 +1917,22 @@
       const harvest = this.getPendingHarvestSummary();
       const hostiles = this.state.localHostileInfections || [];
 
-      const avItem = this.state.inventory.antivirus || { versionInt: 10, installed: false };
-      const myActiveAvVerInt = avItem.installed ? avItem.versionInt : 0;
+      const avItem = this.state.inventory.antivirus || { owned: false, versionInt: 0, installed: false };
+      const avOwnedAndActive = !!(avItem.owned && avItem.installed && avItem.versionInt > 0);
+      const myActiveAvVerInt = avOwnedAndActive ? avItem.versionInt : 0;
       const mySeekerVer = window.stealthXhdEngine ? window.stealthXhdEngine.getSeekerVer() : 1.0;
       const hasHiddenLocal = hostiles.some((h) => !h.revealed && (h.hiddenWithVer || 0) > 0);
-      const hasUnremovableByCurrentAv = hostiles.some((h) => !avItem.installed || h.versionInt > myActiveAvVerInt || (!h.revealed && (h.hiddenWithVer || 0) > 0));
+      const hasUnremovableByCurrentAv = hostiles.some((h) => !avOwnedAndActive || h.versionInt > myActiveAvVerInt || (!h.revealed && (h.hiddenWithVer || 0) > 0));
 
       const hostileBanner = hostiles.length === 0 ? '' : `
         <div id="localQuarantineBanner" class="hc-card" style="padding:1rem 1.15rem;border-color:var(--hc-danger);background:rgba(208,68,58,0.10);display:flex;flex-direction:column;gap:10px;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
             <div>
               <strong style="color:var(--hc-danger-text);font-size:0.92rem;">
-                ALERTA DE INFECÇÃO LOCAL: ${hostiles.length} malware(s) na sua máquina! (Seu Antivirus.av: ${avItem.installed ? this.fmtVer(avItem.versionInt) : 'DESATIVADO'})
+                ALERTA DE INFECÇÃO LOCAL: ${hostiles.length} malware(s) na sua máquina! (Seu Antivirus.av: ${!avItem.owned ? 'NÃO BAIXADO NO HD' : (avItem.installed ? this.fmtVer(avItem.versionInt) : 'DESATIVADO')})
               </strong>
               <div style="font-size:0.76rem;color:var(--hc-text-2);margin-top:2px;">
-                Regra de Potência: o <code>Antivirus.av</code> <strong>SÓ remove vírus visíveis de versão &lt;= seu Antivírus</strong>! Se o vírus for mais forte, evolua seu <code>Antivirus.av</code> ou use <strong>Formatar HD</strong>.
+                Regra de Potência: o <code>Antivirus.av</code> <strong>SÓ remove vírus visíveis de versão &lt;= seu Antivírus</strong>! ${!avItem.owned ? 'Baixe o Antivirus.av grátis no Download Center (33.8.2.71) ou use <strong>Formatar HD</strong>.' : 'Se o vírus for mais forte, evolua seu <code>Antivirus.av</code> ou use <strong>Formatar HD</strong>.'}
               </div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -1822,8 +1941,13 @@
                      🔍 Revelar Ocultos (Seeker v${mySeekerVer.toFixed(1)})
                    </button>`
                 : ''}
+              ${!avItem.owned
+                ? `<button type="button" class="hc-btn sm" style="border-color:var(--hc-accent);color:var(--hc-accent-text);" onclick="window.internetEngine.openIp('33.8.2.71')">
+                     ⬇ Ir Baixar Antivirus.av (33.8.2.71)
+                   </button>`
+                : ''}
               <button type="button" id="btnRunLocalAv" class="hc-btn primary sm" style="background:var(--hc-danger);border-color:var(--hc-danger);" onclick="window.softwareEngine.runLocalAntivirus()">
-                🛡 Varrer c/ Antivirus.av (${avItem.installed ? this.fmtVer(avItem.versionInt) : 'OFF'})
+                🛡 Varrer c/ Antivirus.av (${avOwnedAndActive ? this.fmtVer(avItem.versionInt) : 'OFF'})
               </button>
               <button type="button" id="btnEmergencyFormatHd" class="hc-btn ghost sm" style="border-color:var(--hc-danger);color:var(--hc-danger-text);" onclick="window.softwareEngine.formatLocalHardDrive(false)">
                 ☢ Formatar HD (Limpeza Total)
@@ -1834,14 +1958,16 @@
           <div style="display:flex;flex-direction:column;gap:6px;">
             ${hostiles.map((h) => {
               const isHidden = !h.revealed && (h.hiddenWithVer || 0) > 0;
-              const canCleanNow = avItem.installed && !isHidden && myActiveAvVerInt >= h.versionInt;
+              const canCleanNow = avOwnedAndActive && !isHidden && myActiveAvVerInt >= h.versionInt;
               const statusBadge = isHidden
                 ? `<span class="hc-badge warn">OCULTO POR HIDER v${Number(h.hiddenWithVer).toFixed(1)} — Exige Seeker.skr &gt;= v${Number(h.hiddenWithVer).toFixed(1)}</span>`
-                : (!avItem.installed
-                    ? `<span class="hc-badge danger">BLOQUEADO: Ative seu Antivirus.av na RAM!</span>`
-                    : (canCleanNow
-                        ? `<span class="hc-badge success">REMOVÍVEL (Seu AV ${this.fmtVer(myActiveAvVerInt)} &gt;= Vírus ${this.fmtVer(h.versionInt)})</span>`
-                        : `<span class="hc-badge danger">BLOQUEADO: Vírus ${this.fmtVer(h.versionInt)} &gt; Seu Antivirus.av ${this.fmtVer(myActiveAvVerInt)} (Exige AV &gt;= ${this.fmtVer(h.versionInt)} ou Formatar HD)</span>`));
+                : (!avItem.owned
+                    ? `<span class="hc-badge danger">BLOQUEADO: Baixe o Antivirus.av em 33.8.2.71 (ou Formate o HD)!</span>`
+                    : (!avItem.installed
+                        ? `<span class="hc-badge danger">BLOQUEADO: Ative seu Antivirus.av na RAM!</span>`
+                        : (canCleanNow
+                            ? `<span class="hc-badge success">REMOVÍVEL (Seu AV ${this.fmtVer(myActiveAvVerInt)} &gt;= Vírus ${this.fmtVer(h.versionInt)})</span>`
+                            : `<span class="hc-badge danger">BLOQUEADO: Vírus ${this.fmtVer(h.versionInt)} &gt; Seu Antivirus.av ${this.fmtVer(myActiveAvVerInt)} (Exige AV &gt;= ${this.fmtVer(h.versionInt)} ou Formatar HD)</span>`)));
               return `
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 10px;background:var(--hc-inset);border:1px solid ${canCleanNow ? 'rgba(53,184,119,0.4)' : 'var(--hc-danger)'};border-radius:7px;font-family:var(--hc-font-mono);font-size:0.77rem;">
                   <div>
@@ -1874,9 +2000,13 @@
         ];
         const virKeys = ['vspam', 'vwarez', 'vminer', 'vbank', 'vddos'];
 
+        const ownedVirKeys = virKeys.filter((k) => this.isSoftwareOwned(k));
+        const ownedSysKeys = sysKeys.filter((k) => this.isSoftwareOwned(k));
+        const unownedAllKeys = [...virKeys, ...sysKeys].filter((k) => !this.isSoftwareOwned(k));
+
         const renderRow = (k) => {
           const def = SOFTWARE_DEFINITIONS[k];
-          const cur = this.state.inventory[k] || { versionInt: 10, installed: false, licensed: true };
+          const cur = this.state.inventory[k] || { owned: true, versionInt: 10, installed: false, licensed: true };
           const stepVer = k === 'analyzer' ? 10 : 5;
           const maxVer = def.maxVerInt || 100;
           const cost = this.getResearchCost(k);
@@ -1933,6 +2063,31 @@
           `;
         };
 
+        const renderUnownedRow = (k) => {
+          const def = SOFTWARE_DEFINITIONS[k];
+          const isVirus = def.category === 'virus';
+          return `
+            <div class="hc-card" style="padding:0.75rem 1rem;display:grid;grid-template-columns:minmax(225px,1.4fr) minmax(190px,1.6fr) auto;gap:12px;align-items:center;opacity:0.78;border-style:dashed;">
+              <div>
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                  <strong style="font-family:var(--hc-font-mono);font-size:0.88rem;color:var(--hc-text-2);">${esc(def.filename)}</strong>
+                  <span class="hc-badge warn">NÃO BAIXADO</span>
+                  <span class="hc-badge ${isVirus ? 'danger' : 'info'}">${isVirus ? 'Vírus Básico em Puzzle' : esc(def.badge)}</span>
+                </div>
+                <div style="font-size:0.72rem;color:var(--hc-accent-text);font-family:var(--hc-font-mono);margin-top:3px;">
+                  Onde obter: ${esc(def.acquireHint || 'Trilha de Enigmas (109.64.200.10)')}
+                </div>
+              </div>
+              <div style="font-size:0.77rem;color:var(--hc-text-3);">${esc(def.desc)}</div>
+              <div style="display:flex;justify-content:flex-end;">
+                <button type="button" id="btnFindSoft_${k}" class="hc-btn ghost sm" style="border-color:var(--hc-border-strong);" onclick="window.internetEngine.openIp('${esc(def.acquireIp || '109.64.200.10')}')">
+                  Buscar em ${esc(def.acquireIp || '109.64.200.10')} →
+                </button>
+              </div>
+            </div>
+          `;
+        };
+
         const nmapPanel = this.lastNmapReport ? `
           <div class="hc-card" style="padding:0.85rem 1.05rem;border-color:rgba(53,184,119,0.35);font-family:var(--hc-font-mono);font-size:0.78rem;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -1957,20 +2112,43 @@
           </div>
         ` : '';
 
+        const emptyVirusesCard = ownedVirKeys.length === 0
+          ? `<div id="noOwnedVirusesBanner" class="hc-card" style="padding:1rem 1.2rem;border-color:var(--hc-warning);background:rgba(216,155,56,0.08);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+               <div>
+                 <strong style="color:var(--hc-warning);font-size:0.9rem;">Nenhum vírus baixado no seu HD ainda (0 / 5 famílias)</strong>
+                 <div style="font-size:0.8rem;color:var(--hc-text-2);margin-top:3px;">
+                   No Hacker City você <strong>não compra qualquer vírus a qualquer hora</strong>! Resolva e invada as máquinas da <strong>Trilha de Enigmas</strong> (começando em <code>109.64.200.10</code>) para baixar os vírus básicos (<code>v1.0</code>) e liberar pesquisa deles!
+                 </div>
+               </div>
+               <button type="button" id="btnGoFirstPuzzleFromSoft" class="hc-btn primary sm" onclick="window.internetEngine.openIp('109.64.200.10')">
+                 Ir p/ First Puzzle (109.64.200.10) →
+               </button>
+             </div>`
+          : `<div style="display:flex;flex-direction:column;gap:8px;">${ownedVirKeys.map(renderRow).join('')}</div>`;
+
         tabContent = `
           <div style="display:flex;flex-direction:column;gap:14px;">
             ${nmapPanel}
             ${webServerPanel}
-            <div class="hc-eyebrow">1. Vírus Ofensivos & Mineradores (Peso em MB + Potência vs Antivírus do Alvo)</div>
-            <div style="display:flex;flex-direction:column;gap:8px;">${virKeys.map(renderRow).join('')}</div>
+            <div class="hc-eyebrow">1. Meus Vírus Baixados no HD (${ownedVirKeys.length} / ${virKeys.length} adquiridos)</div>
+            ${emptyVirusesCard}
 
             <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;flex-wrap:wrap;gap:8px;">
-              <div class="hc-eyebrow">2. Suíte Completa de Ataque, Defesa, Rede & Diagnóstico (Rodando na Sua RAM)</div>
+              <div class="hc-eyebrow">2. Meus Utilitários no HD (${ownedSysKeys.length} / ${sysKeys.length} adquiridos · Rodando na RAM)</div>
               <button type="button" class="hc-btn ghost sm" style="color:var(--hc-danger-text);" onclick="window.softwareEngine.formatLocalHardDrive(false)">
                 ☢ Formatar Meu HD (Reset Limpo)
               </button>
             </div>
-            <div style="display:flex;flex-direction:column;gap:8px;">${sysKeys.map(renderRow).join('')}</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">${ownedSysKeys.map(renderRow).join('')}</div>
+
+            ${unownedAllKeys.length > 0 ? `
+              <div style="margin-top:8px;">
+                <div class="hc-eyebrow" style="margin-bottom:8px;color:var(--hc-warning);">
+                  3. Softwares &amp; Vírus Não Adquiridos (${unownedAllKeys.length} restantes — Baixe nas Máquinas de Puzzle / Download Center)
+                </div>
+                <div style="display:flex;flex-direction:column;gap:7px;">${unownedAllKeys.map(renderUnownedRow).join('')}</div>
+              </div>
+            ` : ''}
           </div>
         `;
       } else if (this.activeTab === 'xhd' && window.stealthXhdEngine) {
