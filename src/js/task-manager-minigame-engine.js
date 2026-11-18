@@ -594,7 +594,9 @@
   }
 
   // =========================================================================
-  // 3. PUZZLE TRAIL ENGINE ("FIRST PUZZLE" 109.64.200.10 -> 6 SERVIDORES EM CADEIA!)
+  // 3. PUZZLE TRAIL ENGINE ("FIRST PUZZLE" 109.64.200.10 -> 7 SERVIDORES EM CADEIA!)
+  // Regra Oficial: Você NÃO nasce com vírus nem compra qualquer vírus do nada!
+  // Os vírus básicos (v1.0) e ferramentas táticas são baixados invadindo as máquinas da Trilha de Enigmas!
   // =========================================================================
   const PUZZLE_CHAIN = [
     {
@@ -606,8 +608,13 @@
       prompt: 'Acenda TODOS os 9 nós da matriz quântica! Clicar em uma célula inverte ela e suas vizinhas ortogonais (ou resolva decodificando a chave secundária).',
       fallbackAnswer: '42',
       nextIp: '109.64.200.22',
-      rewardSoftKey: 'cracker',
-      rewardSoftVer: 15, // Cracker.crc v1.5 grátis p/ download!
+      rewardLabel: 'Spam.vspam v1.0 + Collector.vcol v1.0',
+      rewardSoftwares: [
+        { softKey: 'vspam', versionInt: 10 },
+        { softKey: 'collector', versionInt: 10 }
+      ],
+      rewardSoftKey: 'vspam',
+      rewardSoftVer: 10,
       rewardRep: 45
     },
     {
@@ -620,8 +627,13 @@
       hint: 'São 4 letras (usuário administrador padrão do Unix).',
       expectedAnswer: 'root',
       nextIp: '109.64.200.35',
-      rewardSoftKey: 'hasher',
-      rewardSoftVer: 20, // Hasher.hash v2.0 grátis!
+      rewardLabel: 'Warez.vwarez v1.0 + Torrent.torrent v1.0',
+      rewardSoftwares: [
+        { softKey: 'vwarez', versionInt: 10 },
+        { softKey: 'torrent', versionInt: 10 }
+      ],
+      rewardSoftKey: 'vwarez',
+      rewardSoftVer: 10,
       rewardRep: 55
     },
     {
@@ -634,8 +646,14 @@
       hint: 'Número inteiro de 2 dígitos.',
       expectedAnswer: '22',
       nextIp: '109.64.200.48',
+      rewardLabel: 'FTP_Exploit.exp v1.0 + SSH_Exploit.exp v1.0 + Nmap.nmap v1.0',
+      rewardSoftwares: [
+        { softKey: 'exploit_ftp', versionInt: 10 },
+        { softKey: 'exploit_ssh', versionInt: 10 },
+        { softKey: 'nmap', versionInt: 10 }
+      ],
       rewardSoftKey: 'exploit_ssh',
-      rewardSoftVer: 20, // SSH_Exploit.exp v2.0 grátis!
+      rewardSoftVer: 10,
       rewardRep: 65
     },
     {
@@ -648,8 +666,13 @@
       hint: '16 × 15 + 15 (último octeto de broadcast IPv4).',
       expectedAnswer: '255',
       nextIp: '109.64.200.61',
-      rewardSoftKey: 'firewall',
-      rewardSoftVer: 25, // Firewall.fwl v2.5 grátis!
+      rewardLabel: 'Miner.vminer v1.0 + Antivirus.av v1.5',
+      rewardSoftwares: [
+        { softKey: 'vminer', versionInt: 10 },
+        { softKey: 'antivirus', versionInt: 15 }
+      ],
+      rewardSoftKey: 'vminer',
+      rewardSoftVer: 10,
       rewardRep: 80
     },
     {
@@ -662,23 +685,53 @@
       hint: 'I->H, B->A, D->C...',
       expectedAnswer: 'hacker',
       nextIp: '109.64.200.77',
-      rewardSoftKey: 'hider',
-      rewardSoftVer: 25, // Hider.hdr v2.5 grátis!
+      rewardLabel: 'DDoS_Node.vddos v1.0 + DDoS_Breaker.vbrk v1.0',
+      rewardSoftwares: [
+        { softKey: 'vddos', versionInt: 10 },
+        { softKey: 'ddos_breaker', versionInt: 10 }
+      ],
+      rewardSoftKey: 'vddos',
+      rewardSoftVer: 10,
       rewardRep: 95
     },
     {
       index: 6,
       ip: '109.64.200.77',
-      hostname: 'Sanctum Omega // Enigma Final #6',
+      hostname: 'Enigma Node #6 // Sub-Rede Bancária',
       kind: 'qa',
       title: 'Enigma #6 — Máscara de Sub-Rede (/24)',
       prompt: 'Quantos endereços IPv4 totais (incluindo rede e broadcast) existem em um bloco CIDR /24 (2 elevado a 8)?',
       hint: '2^8.',
       expectedAnswer: '256',
+      nextIp: '109.64.200.88',
+      rewardLabel: 'BankTrojan.vbank v1.0 + Cracker.crc v2.0',
+      rewardSoftwares: [
+        { softKey: 'vbank', versionInt: 10 },
+        { softKey: 'cracker', versionInt: 20 }
+      ],
+      rewardSoftKey: 'vbank',
+      rewardSoftVer: 10,
+      rewardRep: 120
+    },
+    {
+      index: 7,
+      ip: '109.64.200.88',
+      hostname: 'Sanctum Omega // Enigma Final #7',
+      kind: 'qa',
+      title: 'Enigma #7 — Protocolo HyperText (HTTP)',
+      prompt: 'Qual é o número da porta TCP padrão utilizada por servidores Web HTTP não criptografados (WebServer.exe)?',
+      hint: 'Porta clássica de 2 dígitos da World Wide Web.',
+      expectedAnswer: '80',
       nextIp: '71.4.20.1',
-      rewardSoftKey: 'vminer',
-      rewardSoftVer: 30, // Miner.vminer v3.0 grátis!
-      rewardRep: 140
+      rewardLabel: 'Firewall.fwl v2.5 + Hasher.hash v2.5 + Hider.hdr v2.5',
+      rewardSoftwares: [
+        { softKey: 'firewall', versionInt: 25 },
+        { softKey: 'hasher', versionInt: 25 },
+        { softKey: 'hider', versionInt: 25 }
+      ],
+      rewardSoftKey: 'firewall',
+      rewardSoftVer: 25,
+      rewardRep: 150
     }
   ];
 
@@ -830,11 +883,17 @@
              <div>
                <span class="hc-badge success">ENIGMA #${node.index} RESOLVIDO</span>
                <div style="font-size:0.84rem;margin-top:4px;">
-                 Próximo IP da Trilha: <strong style="font-family:var(--hc-font-mono);color:var(--hc-accent-text);">${esc(node.nextIp)}</strong>
-                 · <em>Dica: Invada este servidor na aba <strong>Invadir</strong> para baixar o software de recompensa v${(node.rewardSoftVer / 10).toFixed(1)} grátis!</em>
+                 Destravado no HD deste servidor: <strong style="color:var(--hc-accent-text);">${esc(node.rewardLabel || '')}</strong>
+                 · Próximo IP: <code style="font-family:var(--hc-font-mono);">${esc(node.nextIp)}</code>
+               </div>
+               <div style="font-size:0.78rem;color:var(--hc-text-2);margin-top:2px;">
+                 Invada este servidor na aba <strong>Invadir</strong> → <strong>Vírus, Carteira &amp; Arquivos</strong> para baixar seus vírus/softwares básicos!
                </div>
              </div>
-             <button type="button" id="btnNextPuzzleIp" class="hc-btn primary sm" onclick="window.internetEngine.navigate('${esc(node.nextIp)}')">Ir p/ Próximo IP (${esc(node.nextIp)}) →</button>
+             <div style="display:flex;gap:8px;flex-wrap:wrap;">
+               <button type="button" id="btnInvadeThisPuzzle" class="hc-btn sm" style="border-color:var(--hc-accent);color:var(--hc-accent-text);" onclick="window.internetEngine.switchTab('invadir')">⬇ Invadir p/ Baixar Softwares</button>
+               <button type="button" id="btnNextPuzzleIp" class="hc-btn primary sm" onclick="window.internetEngine.navigate('${esc(node.nextIp)}')">Ir p/ Próximo IP (${esc(node.nextIp)}) →</button>
+             </div>
            </div>`
         : '';
 
@@ -878,9 +937,9 @@
         <div>
           ${solvedBanner}
           <div class="hc-card" style="padding:1.25rem;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:6px;">
               <div class="hc-eyebrow">Trilha Oficial de Enigmas (${this.state.solved.length} / ${PUZZLE_CHAIN.length} resolvidos)</div>
-              <span class="hc-badge info">+${node.rewardRep} REP + Software v${(node.rewardSoftVer / 10).toFixed(1)} no HD</span>
+              <span class="hc-badge info">+${node.rewardRep} REP · Libera no HD: ${esc(node.rewardLabel || '')}</span>
             </div>
             <h3 style="font-size:1.05rem;margin-bottom:6px;">${esc(node.title)}</h3>
             <pre style="white-space:pre-wrap;font-family:var(--hc-font-mono);font-size:0.83rem;background:var(--hc-inset);border:1px solid var(--hc-border);padding:0.85rem;border-radius:7px;color:var(--hc-text);margin:0;">${esc(node.prompt)}</pre>

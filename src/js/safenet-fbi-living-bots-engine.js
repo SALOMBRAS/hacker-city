@@ -515,15 +515,59 @@
       return { fwl, hash };
     }
 
-    hasExposedRemoteTraces() {
+    // Pool realista de farpas / provocações deixadas por invasores que apagam o próprio IP da sua log!
+    buildHackerTaunt(handle, playerFwl, stolenCash, plantedLabel) {
+      const fwlStr = Number(playerFwl || 1.0).toFixed(1);
+      const lootPart = stolenCash > 0 ? `raspei $ ${stolenCash} HC` : 'vasculhei seu HD inteiro';
+      const virPart = plantedLabel ? ` e deixei ${plantedLabel} rodando na sua RAM` : '';
+      const pool = [
+        `[LOG EDITADA POR ${handle}]: "Firewall v${fwlStr}? Papelão demais seu fraco kkk ${lootPart}${virPart} e apaguei meu IP! Melhora essa carroça!"`,
+        `[RECADO DE ${handle}]: "Entrei como root, ${lootPart}${virPart} e zerei meu rastro da sua log. Quando tiver defesa de gente grande tenta me achar noob ;)"`,
+        `[pwned_by_${handle}]: "Que segurança patética hein comédia kkk PC aberto igual peneira! Limpei meu IP, chora mais fraco!"`,
+        `[root@localhost]# echo "Invadido por ${handle} — facil demais fraco, apaguei minha log e saí tomando café kkk" > /var/log/syslog`,
+        `[ASS: ${handle}]: "Obrigado pelo patrocínio! Apaguei meu IP da sua log pra vc nem perder tempo tentando revidar, fraco dms."`,
+        `[FARPA // ${handle}]: "Deixou seu IP dando sopa em log alheia e achou que ninguém ia ver? Passei a limpa e sumi do mapa, aprende a limpar rastro noob!"`,
+        `[${handle} esteve aqui]: "Firewall v${fwlStr} não segura nem script de padaria kkk ${lootPart}${virPart}. Rastro 100% apagado, abraço fraco!"`,
+        `[AVISO DE ${handle}]: "Próxima vez compra um Firewall decente antes de brincar na rede! Limpei meu IP e deixei só minha assinatura pra vc lembrar quem manda."`
+      ];
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    wipeOwnIpFromPlayerLocalLogs(botIp, handle, tauntText) {
+      if (Array.isArray(window.systemLogs) && botIp) {
+        window.systemLogs = window.systemLogs.filter((entry) => !String(entry.msg || '').includes(botIp));
+        const lsKey = typeof window.getSystemLogsStorageKey === 'function' ? window.getSystemLogsStorageKey() : 'HC_SYSTEM_LOGS';
+        try { localStorage.setItem(lsKey, JSON.stringify(window.systemLogs)); } catch (e) {}
+      }
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('FARPA-INVASOR', `${tauntText} (IP de origem apagado pelo invasor)`, 'danger');
+      }
+    }
+
+    // Bots SÓ descobrem o IP do jogador se ele esqueceu o IP gravado dentro do /var/log/syslog de outra máquina/jogador!
+    findPlayerIpInExternalLogs() {
       if (!window.networkIdentity || !window.botAI || !window.botAI.syslogRegistry) return null;
       const myIp = window.networkIdentity.getPublicIp();
+      const exposedList = [];
       for (const [hostIp, lines] of window.botAI.syslogRegistry.entries()) {
-        if ((lines || []).some((l) => l.includes(myIp))) {
-          return hostIp;
+        if (!hostIp || hostIp === myIp || hostIp === 'localhost') continue;
+        const match = (lines || []).find((l) => String(l).includes(myIp));
+        if (match) {
+          const hMeta = window.internetEngine ? window.internetEngine.resolveHost(hostIp) : null;
+          exposedList.push({
+            hostIp,
+            hostName: (hMeta && hMeta.hostname) || 'Servidor Remoto',
+            matchingLine: match
+          });
         }
       }
-      return null;
+      if (exposedList.length === 0) return null;
+      return exposedList[Math.floor(Math.random() * exposedList.length)];
+    }
+
+    hasExposedRemoteTraces() {
+      const found = this.findPlayerIpInExternalLogs();
+      return found ? found.hostIp : null;
     }
 
     simulateBotVsBotEvent() {
@@ -538,8 +582,8 @@
       }
 
       const actions = [
-        { kind: 'virus', msg: `${attacker.handle} [${attacker.ip}] invadiu ${defender.handle} [${defender.ip}] e plantou Miner.vminer v${attacker.tier}.5`, repDelta: 45 },
-        { kind: 'loot', msg: `${attacker.handle} [${attacker.ip}] drenou $ ${320 * attacker.tier} HC do cofre de ${defender.handle} [${defender.ip}]`, repDelta: 65, noisyCrime: 'Dreno bancário entre operadores na sub-rede' },
+        { kind: 'virus', msg: `${attacker.handle} [${attacker.ip}] invadiu ${defender.handle} [${defender.ip}], plantou Miner.vminer v${attacker.tier}.5 e limpou o próprio IP`, repDelta: 45 },
+        { kind: 'loot', msg: `${attacker.handle} [${attacker.ip}] coletou IPs nos logs de 203.17.88.40 e drenou $ ${320 * attacker.tier} HC de ${defender.handle} [${defender.ip}]`, repDelta: 65, noisyCrime: 'Dreno bancário entre operadores na sub-rede' },
         { kind: 'ddos', msg: `${attacker.handle} [${attacker.ip}] disparou rajada DDoS (${(attacker.tier * 2.4).toFixed(1)} Gbps) contra ${defender.handle} [${defender.ip}]`, repDelta: 80, noisyCrime: 'Ataque DDoS autônomo contra VPC rival' }
       ];
       const chosen = actions[Math.floor(Math.random() * actions.length)];
@@ -547,7 +591,7 @@
       attacker.rep += chosen.repDelta;
       attacker.hacks += 1;
       attacker.lastAction = `Atacou ${defender.ip} (${chosen.kind.toUpperCase()})`;
-      defender.lastAction = `Sofreu intrusão de ${attacker.handle} e rotacionou logs`;
+      defender.lastAction = `Sofreu intrusão de ${attacker.handle} e auditou logs`;
 
       this.battleFeed.unshift({
         at: nowTime(),
@@ -573,8 +617,9 @@
       return { attacker, defender, chosen };
     }
 
-    // Bots caçando ativamente o jogador se ele deixar IP exposto, estiver procurado ou tiver alta REP!
-    attemptBotHuntOnPlayer(forceHunt = false) {
+    // REGRA REALISTA DE RASTREAMENTO:
+    // Bots ativos NUNCA adivinham o IP do jogador do nada! Eles SÓ pegam seu IP dentro de logs esquecidos em outras máquinas/jogadores (ou lista pública FBI/Safenet)!
+    attemptBotHuntOnPlayer(forceHunt = false, options = {}) {
       this.ensureInitialized();
       if (!window.currentProfile || !window.networkIdentity) return { triggered: false, reason: 'NO_SESSION' };
 
@@ -584,33 +629,47 @@
       }
 
       const myIp = window.networkIdentity.getPublicIp();
-      const exposedHost = this.hasExposedRemoteTraces();
+      const exposedTrace = this.findPlayerIpInExternalLogs();
       const isWanted = window.safenetFbiEngine && (window.safenetFbiEngine.isIpWantedByFbi(myIp) || window.safenetFbiEngine.isIpOnSafenet(myIp));
 
-      if (!forceHunt && !exposedHost && !isWanted && Math.random() > 0.28) {
-        return { triggered: false, reason: 'STEALTH_OK' };
+      // ZERO RADAR MÁGICO: Sem IP exposto em logs de outras máquinas e sem estar na lista pública Safenet/FBI -> NENHUM bot encontra seu IP!
+      if (!exposedTrace && !isWanted) {
+        if (forceHunt && typeof window.showToast === 'function') {
+          window.showToast(`Stealth 100%: Nenhum bot encontrou seu IP (${myIp}) porque ele não consta na log de nenhuma máquina externa!`);
+        }
+        return {
+          triggered: false,
+          reason: 'NO_EXPOSED_IP_IN_LOGS',
+          myIp,
+          message: `Nenhum bot ativo encontrou seu IP (${myIp}): zero rastros em logs de outras máquinas ou jogadores!`
+        };
       }
 
-      const hunters = Array.from(this.botStats.values()).filter((b) => b.tier >= 2);
-      const hunter = hunters[Math.floor(Math.random() * hunters.length)] || Array.from(this.botStats.values())[0];
+      const allBots = Array.from(this.botStats.values());
+      let pool = allBots.filter((b) => b.tier >= 2);
+      if (options.forceSloppyTier1) {
+        pool = allBots.filter((b) => b.tier === 1);
+      } else if (!forceHunt && Math.random() < 0.25) {
+        pool = allBots;
+      }
+      const hunter = pool[Math.floor(Math.random() * pool.length)] || allBots[0];
       if (!hunter) return { triggered: false };
 
-      const botCrackerVer = hunter.tier === 3 ? 2.5 : 1.5;
-      const botExploitVer = hunter.tier === 3 ? 2.5 : 1.5;
+      const botCrackerVer = hunter.tier === 3 ? 2.5 : (hunter.tier === 2 ? 1.5 : 1.0);
+      const botExploitVer = hunter.tier === 3 ? 2.5 : (hunter.tier === 2 ? 1.5 : 1.0);
       const defs = this.getPlayerDefensesStrict();
-      const triggerCause = isWanted
-        ? 'via Lista Pública da Safenet/FBI'
-        : (exposedHost ? `rastreando seu IP esquecido em ${exposedHost}` : 'em varredura ofensiva de sub-rede');
+      const triggerCause = exposedTrace
+        ? `coletou seu IP [${myIp}] esquecido na log de ${exposedTrace.hostName} [${exposedTrace.hostIp}]`
+        : 'coletou seu IP exposto no mural público da Safenet/FBI';
 
       // PORTÃO ESTRITO: Bot tenta Força-Bruta (exige botCracker >= seu Firewall E >= seu Hasher) OU Exploit (exige botExploit >= seu Firewall)!
-      // Ou seja: se seu Firewall.fwl for mais forte que o Cracker e Exploit do bot, NENHUM método dele entra!
       const canBotBruteforce = botCrackerVer >= defs.fwl && botCrackerVer >= defs.hash;
       const canBotExploit = botExploitVer >= defs.fwl;
 
       if (!canBotBruteforce && !canBotExploit) {
-        // DEFESA DO JOGADOR (FIREWALL / HASHER) BLOQUEOU 100% O BOT CAÇADOR!
+        // Como o bot NÃO conseguiu entrar como root no seu PC, ele NÃO pôde apagar o próprio IP da tentativa falha!
         window.currentProfile.reputation = (window.currentProfile.reputation || 0) + 15;
-        const msg = `Bot caçador ${hunter.handle} [${hunter.ip}] (Cracker/Exploit v${botCrackerVer.toFixed(1)}) tentou invadir seu PC (${triggerCause}), mas sua defesa (Firewall v${defs.fwl.toFixed(1)} · Hasher v${defs.hash.toFixed(1)}) BLOQUEOU 100% a invasão! (+15 REP)`;
+        const msg = `Bot ${hunter.handle} [${hunter.ip}] (v${botCrackerVer.toFixed(1)}) ${triggerCause} e tentou invadir seu PC, mas seu Firewall v${defs.fwl.toFixed(1)} / Hasher v${defs.hash.toFixed(1)} BLOQUEOU 100% a entrada! (+15 REP)`;
         this.battleFeed.unshift({ at: nowTime(), type: 'CAÇADA-BLOQUEADA', text: msg, attackerIp: hunter.ip });
         if (typeof window.addLocalLog === 'function') {
           window.addLocalLog('HUNTER-BLOCKED', msg, 'success');
@@ -622,14 +681,17 @@
         return {
           triggered: true,
           outcome: 'BLOCKED_BY_PLAYER_FIREWALL',
+          leakedFromHost: exposedTrace ? exposedTrace.hostIp : 'SAFENET_PUBLIC',
           hunterIp: hunter.ip,
+          hunterHandle: hunter.handle,
+          wipedOwnLog: false,
           playerFirewall: defs.fwl,
           playerHasher: defs.hash,
           botAttackPower: botCrackerVer
         };
       }
 
-      // BOT CAÇADOR FUROU SUA DEFESA E PLANTOU VÍRUS DA POTÊNCIA REAL DO TIER DELE (v2.0 ou v2.5)!
+      // BOT ENTROU COMO ROOT NO SEU PC!
       const certMitigation = (window.universityEngine && window.universityEngine.hasCert(5)) ? 0.65 : 1.0;
       const curBal = window.currentWallet ? parseFloat(window.currentWallet.balance) : 0;
       const stolenCash = Math.min(450, Math.round(curBal * 0.045 * certMitigation));
@@ -637,39 +699,76 @@
       if (window.currentWallet && stolenCash > 0) {
         window.currentWallet.balance = Math.max(0, +(curBal - stolenCash).toFixed(2));
       }
-      const plantedVerInt = hunter.tier === 3 ? 25 : 20; // v2.5 (Tier 3) ou v2.0 (Tier 2) — derrota Antivirus v1.0!
+      const plantedVerInt = hunter.tier === 3 ? 25 : (hunter.tier === 2 ? 20 : 10);
       const plantedHiddenVer = (hunter.tier === 3 && Math.random() < 0.4) ? 1.5 : 0;
+      const malwareName = `Spyware.${hunter.handle.toLowerCase()}.vbank`;
+
+      // COMPORTAMENTO REALISTA DE JOGADOR HUMANO:
+      // Bots experientes (100% dos Tier 3, ~80% dos Tier 2, ~30% dos Tier 1) APAGAM o próprio IP da sua log antes de sair e deixam só uma FARPA com o nick deles!
+      // Já bots descuidados/iniciantes esquecem o próprio IP gravado na sua log!
+      const wipesOwnLog = options.forceWipeMode === 'wipe'
+        ? true
+        : (options.forceWipeMode === 'sloppy'
+            ? false
+            : (hunter.tier === 3 ? true : (hunter.tier === 2 ? Math.random() < 0.80 : Math.random() < 0.30)));
+
+      const visibleOriginLabel = wipesOwnLog ? `RASTRO APAGADO POR ${hunter.handle}` : hunter.ip;
+
       if (window.softwareEngine) {
         window.softwareEngine.infectLocalPc(
           'hunter_spyware',
-          `Spyware.${hunter.handle.toLowerCase()}.vbank`,
+          malwareName,
           plantedVerInt,
-          hunter.ip,
+          visibleOriginLabel,
           plantedHiddenVer
         );
       }
 
       hunter.rep += 70;
-      hunter.lastAction = `Caçou e infectou ${window.currentProfile.hacker_tag} [${myIp}]`;
+      hunter.lastAction = `Invadiu ${window.currentProfile.hacker_tag} e ${wipesOwnLog ? 'apagou o próprio IP deixando farpa' : 'esqueceu o IP na log'}`;
 
       const methodUsed = canBotExploit ? `Exploit v${botExploitVer.toFixed(1)}` : `Força-Bruta v${botCrackerVer.toFixed(1)}`;
-      const breachMsg = `CAÇADA PvE: Bot ${hunter.handle} [${hunter.ip}] entrou via ${methodUsed} (${triggerCause}, seu FW v${defs.fwl.toFixed(1)} / HASH v${defs.hash.toFixed(1)}), drenou $ ${stolenCash} HC e instalou Spyware v${(plantedVerInt / 10).toFixed(1)}${plantedHiddenVer > 0 ? ` (oculto c/ Hider v${plantedHiddenVer.toFixed(1)})` : ''}!`;
-      this.battleFeed.unshift({ at: nowTime(), type: 'JOGADOR-CAÇADO', text: breachMsg, attackerIp: hunter.ip });
 
-      if (typeof window.addLocalLog === 'function') {
-        window.addLocalLog('BOT-HUNT-BREACH', breachMsg, 'danger');
+      if (wipesOwnLog) {
+        const tauntMsg = this.buildHackerTaunt(
+          hunter.handle,
+          defs.fwl,
+          stolenCash,
+          `${malwareName} v${(plantedVerInt / 10).toFixed(1)}`
+        );
+        this.wipeOwnIpFromPlayerLocalLogs(hunter.ip, hunter.handle, tauntMsg);
+
+        const maskedFeedMsg = `INVASÃO SOFRIDA: ${hunter.handle} [IP APAGADO DA LOG] (${triggerCause}) entrou via ${methodUsed}, drenou $ ${stolenCash} HC, instalou ${malwareName} v${(plantedVerInt / 10).toFixed(1)} e deixou uma farpa na sua log!`;
+        this.battleFeed.unshift({ at: nowTime(), type: 'JOGADOR-CAÇADO', text: maskedFeedMsg, attackerIp: null });
+
+        if (typeof window.showToast === 'function') {
+          window.showToast(`INVADIDO POR ${hunter.handle}! Ele apagou o próprio IP da sua log e deixou uma farpa em Meus Logs!`);
+        }
+      } else {
+        const sloppyMsg = `sshd[root]: ${hunter.ip} (${hunter.handle}) ${triggerCause}, entrou via ${methodUsed}, drenou $ ${stolenCash} HC, instalou ${malwareName} v${(plantedVerInt / 10).toFixed(1)} — MAS ESQUECEU O PRÓPRIO IP NA SUA LOG!`;
+        this.battleFeed.unshift({ at: nowTime(), type: 'JOGADOR-CAÇADO', text: sloppyMsg, attackerIp: hunter.ip });
+        if (typeof window.addLocalLog === 'function') {
+          window.addLocalLog('INTRUSION-IP-EXPOSTO', sloppyMsg, 'danger');
+        }
+        if (typeof window.showToast === 'function') {
+          window.showToast(`ALERTA: ${hunter.handle} [${hunter.ip}] invadiu seu PC mas esqueceu o IP na sua log!`);
+        }
       }
+
       if (window.hackerAudio && typeof window.hackerAudio.playErrorBuzz === 'function') {
         window.hackerAudio.playErrorBuzz();
       }
-      if (typeof window.showToast === 'function') {
-        window.showToast(`ALERTA: Bot ${hunter.handle} [${hunter.ip}] plantou Spyware v${(plantedVerInt / 10).toFixed(1)} no seu PC!`);
-      }
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+      if (window.winManager && window.winManager.current === 'winLogs' && typeof window.renderLogsPage === 'function') {
+        window.renderLogsPage();
+      }
       return {
         triggered: true,
         outcome: 'BREACHED_PLAYER',
-        hunterIp: hunter.ip,
+        leakedFromHost: exposedTrace ? exposedTrace.hostIp : 'SAFENET_PUBLIC',
+        hunterHandle: hunter.handle,
+        hunterIp: wipesOwnLog ? null : hunter.ip,
+        wipedOwnLog: wipesOwnLog,
         stolenCash,
         plantedVerInt,
         playerFirewall: defs.fwl,

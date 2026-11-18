@@ -414,31 +414,45 @@ class BotAIService {
 
     if (window.hackerAudio) window.hackerAudio.playInvasionAlert();
 
+    // Comportamento realista: bots experientes (Tier 3 = 100%, Tier 2 = 80%, Tier 1 = 35%) apagam o próprio IP da sua log e deixam uma farpa!
+    const wipesOwnLog = tier === 3 ? true : (tier === 2 ? Math.random() < 0.80 : Math.random() < 0.35);
+    const originForMalware = wipesOwnLog ? `RASTRO APAGADO POR ${handle}` : botIp;
+
+    const writeBotBreachLog = (stolenVal, malwareLabel) => {
+      if (wipesOwnLog && window.livingBotsEngine) {
+        const taunt = window.livingBotsEngine.buildHackerTaunt(handle, myFwl, stolenVal, malwareLabel);
+        window.livingBotsEngine.wipeOwnIpFromPlayerLocalLogs(botIp, handle, taunt);
+      } else if (typeof window.addLocalLog === 'function') {
+        const extraMal = malwareLabel ? ` e instalou ${malwareLabel}` : '';
+        window.addLocalLog('INTRUSION-IP-EXPOSTO', `${handle} [${botIp}] rastreou seu IP esquecido na log dele, drenou $ ${stolenVal}.00 HC${extraMal} e esqueceu de apagar o próprio IP!`, 'danger');
+      }
+    };
+
     if (type === "light_theft") {
       const stolen = 50;
       if (window.currentWallet) {
         window.currentWallet.balance = Math.max(0, parseFloat(window.currentWallet.balance) - stolen);
         if (typeof updateHudDisplays === 'function') updateHudDisplays();
       }
-      if (typeof window.addLocalLog === 'function') {
-        window.addLocalLog('INTRUSION-IN', `${handle} [${botIp}] rastreou seu IP pelos logs e drenou $ ${stolen}.00 HC`, 'danger');
-      }
-      alert(`[ALERTA DE INVASÃO]\nO bot defensor ${handle} [${botIp}] rastreou seus logs em /var/log/syslog e debitou $ ${stolen}.00 HC da sua conta!`);
+      writeBotBreachLog(stolen, '');
+      alert(wipesOwnLog
+        ? `[INVASÃO & LOG APAGADA]\nO hacker ${handle} encontrou seu IP esquecido na log, debitou $ ${stolen}.00 HC, APAGOU o próprio IP da sua log e deixou uma farpa em Meus Logs!`
+        : `[ALERTA DE INVASÃO]\nO bot defensor ${handle} [${botIp}] rastreou seus logs, debitou $ ${stolen}.00 HC e esqueceu o IP na sua log!`);
     } else if (type === "bank_drain_and_vminer") {
       const stolen = 250;
       if (window.currentWallet) {
         window.currentWallet.balance = Math.max(0, parseFloat(window.currentWallet.balance) - stolen);
         if (typeof updateHudDisplays === 'function') updateHudDisplays();
       }
-      if (typeof window.addLocalLog === 'function') {
-        window.addLocalLog('INTRUSION-IN', `${handle} [${botIp}] drenou $ ${stolen}.00 HC e instalou trojan 'vminer' v2.0`, 'danger');
-      }
+      writeBotBreachLog(stolen, 'Trojan.vminer v2.0');
       if (window.softwareEngine && typeof window.softwareEngine.infectLocalPc === 'function') {
         // Tier 2 planta v2.0 (20) -> exige Antivirus.av >= v2.0 ou Formatar HD!
-        window.softwareEngine.infectLocalPc('vminer_trojan', 'Trojan.vminer', 20, botIp);
+        window.softwareEngine.infectLocalPc('vminer_trojan', 'Trojan.vminer', 20, originForMalware);
       }
       if (window.hackerAudio) window.hackerAudio.playMalwareInstalled();
-      alert(`[INVASÃO CRÍTICA]\n${handle} [${botIp}] invadiu seu sistema, drenou $ ${stolen}.00 HC e instalou 'Trojan.vminer (v2.0)' na sua RAM! (Exige Antivirus.av >= v2.0 ou Formatar HD para remover)`);
+      alert(wipesOwnLog
+        ? `[INVASÃO CRÍTICA — RASTRO APAGADO]\n${handle} invadiu seu PC, drenou $ ${stolen}.00 HC, plantou 'Trojan.vminer (v2.0)', APAGOU o próprio IP da sua log e deixou uma farpa!`
+        : `[INVASÃO CRÍTICA]\n${handle} [${botIp}] invadiu seu sistema, drenou $ ${stolen}.00 HC e instalou 'Trojan.vminer (v2.0)' na sua RAM!`);
     } else {
       // Mitigação DDoS Oficial (ddos.txt): Curso #5 + Firewall.fwl forte reduz ou anula o DDoS!
       if (hasDdosCert && myFwl >= 3.0) {
@@ -454,13 +468,11 @@ class BotAIService {
       const ddosDur = hasDdosCert ? Math.max(4, Math.round(12 - myFwl * 2)) : 12;
       this.startDDoS(ddosDur);
       if (myFwl <= botSoftVer && window.softwareEngine && typeof window.softwareEngine.infectLocalPc === 'function') {
-        window.softwareEngine.infectLocalPc('apt_ransomware', 'APT_Rootkit.vbank', 25, botIp);
+        window.softwareEngine.infectLocalPc('apt_ransomware', 'APT_Rootkit.vbank', 25, originForMalware);
       }
-      if (typeof window.addLocalLog === 'function') {
-        window.addLocalLog('DDOS-ALERT', `${handle} [${botIp}] disparou ataque DDoS de ${ddosDur}s contra ${currentIp || 'seu gateway'}`, 'danger');
-      }
+      writeBotBreachLog(0, myFwl <= botSoftVer ? 'APT_Rootkit.vbank v2.5' : `ataque DDoS (${ddosDur}s)`);
       if (window.hackerAudio) window.hackerAudio.playDDoSAlert();
-      alert(`[ATAQUE DEVASTADOR DDOS]\n${handle} [${botIp}] disparou um ataque DDoS! Conexão instável por ${ddosDur} segundos.`);
+      alert(`[ATAQUE DEVASTADOR DDOS]\n${handle} disparou um ataque DDoS (${ddosDur}s) e limpou o próprio rastro da sua log!`);
     }
     if (typeof window.renderLogsPage === 'function') window.renderLogsPage();
   }

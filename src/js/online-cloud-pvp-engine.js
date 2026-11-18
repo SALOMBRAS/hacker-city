@@ -907,7 +907,7 @@
 
       // VALIDAÇÃO KERNEL LOCAL DO DEFENSOR (Firewall.fwl & Hasher.hash):
       // Se meu Firewall.fwl (ou Hasher.hash) for mais forte que o software usado pelo atacante humano, BLOQUEIA no ato!
-      if (['PVP_INTRUSION', 'PVP_VIRUS_PLANT', 'PVP_DRAIN_WALLET'].includes(pkt.kind) && isForMeByIp && window.softwareEngine) {
+      if (['PVP_INTRUSION', 'PVP_VIRUS_PLANT', 'PVP_DRAIN_WALLET', 'PVP_EDIT_LOG'].includes(pkt.kind) && isForMeByIp && window.softwareEngine) {
         const myFw = window.softwareEngine.getSoftwareVersion('firewall');
         const myHs = window.softwareEngine.getSoftwareVersion('hasher');
         const attCrc = Number(pkt.d?.crcVer || 1.0);
@@ -998,15 +998,51 @@
         window.softwareEngine.handleRemoteVirusPurgedByVictim(victimIp, avVer);
       }
 
-      // 3) Atacante apagou o próprio rastro de IP nos seus logs antes de sair!
-      if (pkt.kind === 'PVP_WIPE_LOG' && isForMeByIp && Array.isArray(window.systemLogs)) {
+      // 3) Atacante apagou o próprio rastro de IP e/ou editou sua /var/log/syslog deixando farpa/recado!
+      if ((pkt.kind === 'PVP_WIPE_LOG' || pkt.kind === 'PVP_EDIT_LOG') && isForMeByIp && Array.isArray(window.systemLogs)) {
         const ipToRemove = pkt.visibleIp;
-        if (ipToRemove) {
+        const wipedOwnIp = pkt.kind === 'PVP_WIPE_LOG' ? true : !!pkt.d?.wipedOwnIp;
+        const fullClear = !!pkt.d?.fullClear;
+        const customLines = Array.isArray(pkt.d?.customLines) ? pkt.d.customLines : [];
+        const attackerLabel = pkt.senderTag || 'INVASOR';
+
+        if (fullClear) {
+          window.systemLogs = [];
+        } else if (wipedOwnIp && ipToRemove) {
           window.systemLogs = window.systemLogs.filter((entry) => !String(entry.msg || '').includes(ipToRemove));
-          try { localStorage.setItem('HC_SYSTEM_LOGS', JSON.stringify(window.systemLogs)); } catch (e) {}
-          if (window.winManager && window.winManager.current === 'winLogs' && typeof window.renderLogsPage === 'function') {
-            window.renderLogsPage();
+        }
+
+        // Se o invasor limpou o próprio IP da sua log, apaga também a pista de IP visível na Quarentena dos malwares dele!
+        if ((fullClear || wipedOwnIp) && window.softwareEngine) {
+          window.softwareEngine.ensureLoaded();
+          (window.softwareEngine.state.localHostileInfections || []).forEach((inf) => {
+            if ((pkt.senderId && inf.attackerUserId === pkt.senderId) || (ipToRemove && inf.attackerIp === ipToRemove)) {
+              inf.attackerIp = `RASTRO APAGADO POR ${attackerLabel}`;
+            }
+          });
+          window.softwareEngine.save();
+          if (window.winManager && window.winManager.current === 'winSoftware') {
+            window.softwareEngine.renderUI();
           }
+        }
+
+        // Injeta qualquer linha editada / farpa escrita pelo invasor na log local da vítima (sem revelar o IP se ele apagou!)
+        if (customLines.length > 0 && typeof window.addLocalLog === 'function') {
+          [...customLines].reverse().forEach((lineText) => {
+            const cleanLine = String(lineText || '').trim().slice(0, 260);
+            if (cleanLine) {
+              window.addLocalLog('FARPA-PVP', cleanLine, 'danger');
+            }
+          });
+          if (!silentReplay && typeof window.showToast === 'function') {
+            window.showToast(`💀 ${attackerLabel} editou sua log local: "${String(customLines[0]).slice(0, 72)}"`);
+          }
+        }
+
+        const lsKey = typeof window.getSystemLogsStorageKey === 'function' ? window.getSystemLogsStorageKey() : 'HC_SYSTEM_LOGS';
+        try { localStorage.setItem(lsKey, JSON.stringify(window.systemLogs)); } catch (e) {}
+        if (window.winManager && window.winManager.current === 'winLogs' && typeof window.renderLogsPage === 'function') {
+          window.renderLogsPage();
         }
       }
 

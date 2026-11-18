@@ -391,7 +391,9 @@
       }
 
       const cur = window.softwareEngine.state.inventory[softKey];
-      if (!cur) return { success: false, message: 'Software não encontrado.' };
+      if (!cur || !cur.owned || cur.versionInt <= 0) {
+        return { success: false, message: 'Você ainda não baixou este software para o seu HD!' };
+      }
 
       const sizeMb = window.softwareEngine.getItemSizeMb(softKey, cur.versionInt);
       const prevSize = this.state.backups[softKey]?.sizeMb || 0;
@@ -425,14 +427,19 @@
       const cur = window.softwareEngine.state.inventory[softKey];
       if (!cur) return { success: false };
 
-      const extraMb = bak.sizeMb - window.softwareEngine.getItemSizeMb(softKey, cur.versionInt);
+      const curDiskMb = cur.owned && cur.versionInt > 0
+        ? window.softwareEngine.getItemSizeMb(softKey, cur.versionInt)
+        : 0;
+      const extraMb = bak.sizeMb - curDiskMb;
       if (window.softwareEngine.getUsedHddMb() + extraMb > window.softwareEngine.getMaxHddMb()) {
         return { success: false, message: 'Seu HD principal está sem espaço livre para restaurar este backup!' };
       }
 
-      cur.versionInt = Math.max(cur.versionInt, bak.versionInt);
+      cur.owned = true;
+      cur.versionInt = Math.max(cur.versionInt || 0, bak.versionInt);
       cur.licensed = true;
       window.softwareEngine.save();
+      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
       window.softwareEngine.renderUI();
       return { success: true, message: `${bak.filename} restaurado para v${(bak.versionInt / 10).toFixed(1)} a partir do HD Externo!` };
     }
@@ -476,19 +483,35 @@
     getStealableSoftwaresOnHost(host) {
       if (!host || host.notFound || host.kind === 'self') return [];
 
-      // 1) Se for servidor da Trilha de Enigmas e o enigma daquele nó já foi resolvido -> dá o software prêmio (licenciado)!
+      // 1) Se for servidor da Trilha de Enigmas e o enigma daquele nó já foi resolvido -> libera todos os vírus/softwares básicos do nó (licenciados)!
       if (window.puzzleTrailEngine) {
         const pNode = window.puzzleTrailEngine.getNodeByIp(host.ip);
         if (pNode) {
           const solved = window.puzzleTrailEngine.isSolved(pNode.index);
           if (!solved) return [];
-          return [{
-            softKey: pNode.rewardSoftKey,
-            filename: SOFT_DISPLAY_NAMES[pNode.rewardSoftKey],
-            versionInt: pNode.rewardSoftVer,
+          const rewards = Array.isArray(pNode.rewardSoftwares) && pNode.rewardSoftwares.length > 0
+            ? pNode.rewardSoftwares
+            : [{ softKey: pNode.rewardSoftKey, versionInt: pNode.rewardSoftVer }];
+          return rewards.map((rw) => ({
+            softKey: rw.softKey,
+            filename: SOFT_DISPLAY_NAMES[rw.softKey] || rw.softKey,
+            versionInt: rw.versionInt,
             sourceBadge: `Recompensa Enigma #${pNode.index}`
-          }];
+          }));
         }
+      }
+
+      // 1b) Download Center (33.8.2.71) — Utilitários Freeware v1.0 (NUNCA vírus — vírus só em Puzzles/Alvos!)
+      if (host.kind === 'download' || host.ip === '33.8.2.71') {
+        return [
+          { softKey: 'antivirus', filename: 'Antivirus.av', versionInt: 10, sourceBadge: 'Freeware Oficial' },
+          { softKey: 'analyzer', filename: 'Analyzer.ana', versionInt: 10, sourceBadge: 'Freeware Oficial' },
+          { softKey: 'webserver', filename: 'WebServer.exe', versionInt: 10, sourceBadge: 'Freeware Oficial' },
+          { softKey: 'cracker', filename: 'Cracker.crc', versionInt: 10, sourceBadge: 'Mirror de Recuperação' },
+          { softKey: 'firewall', filename: 'Firewall.fwl', versionInt: 10, sourceBadge: 'Mirror de Recuperação' },
+          { softKey: 'hasher', filename: 'Hasher.hash', versionInt: 10, sourceBadge: 'Mirror de Recuperação' },
+          { softKey: 'portscan', filename: 'PortScan.scan', versionInt: 10, sourceBadge: 'Mirror de Recuperação' }
+        ];
       }
 
       // 2) Softwares reais instalados em Empresas, Bancos, Bots e VPCs!
@@ -520,14 +543,16 @@
       return list;
     }
 
-    // Inicia ou conclui o Download de um software superior da vítima para o seu PC!
+    // Inicia ou conclui o Download de um software/vírus do alvo (ou Download Center público) para o seu PC!
     downloadRemoteSoftware(host, softKey, remoteVersionInt, instant = false) {
       this.ensureLoaded();
       if (!window.softwareEngine) return { success: false };
       window.softwareEngine.ensureLoaded();
 
-      // Checar permissão de Download caso esteja em sessão limitada SSH-Only Exploit!
-      if (window.internetEngine && typeof window.internetEngine.hasRemotePermission === 'function') {
+      const isPublicDownloadCenter = host && (host.kind === 'download' || host.ip === '33.8.2.71');
+
+      // Checar permissão de Download caso esteja em sessão limitada SSH-Only Exploit (exceto espelho HTTP público do Download Center)!
+      if (!isPublicDownloadCenter && window.internetEngine && typeof window.internetEngine.hasRemotePermission === 'function') {
         if (!window.internetEngine.hasRemotePermission('download')) {
           return {
             success: false,
@@ -539,19 +564,23 @@
 
       const isStealthTool = softKey === 'hider' || softKey === 'seeker';
       const cur = isStealthTool
-        ? { versionInt: softKey === 'hider' ? this.state.hiderVerInt : this.state.seekerVerInt }
+        ? { owned: true, versionInt: softKey === 'hider' ? this.state.hiderVerInt : this.state.seekerVerInt }
         : window.softwareEngine.state.inventory[softKey];
       if (!cur) return { success: false, message: 'Tipo de software incompatível com seu kernel.' };
-      if (cur.versionInt >= remoteVersionInt) {
+
+      const alreadyOwned = isStealthTool ? true : !!(cur.owned && cur.versionInt > 0);
+      if (alreadyOwned && cur.versionInt >= remoteVersionInt) {
         return {
           success: false,
           code: 'ALREADY_HAVE_BETTER',
-          message: `Você já possui ${SOFT_DISPLAY_NAMES[softKey]} em potência igual ou maior (v${(cur.versionInt / 10).toFixed(1)})!`
+          message: `Você já possui ${SOFT_DISPLAY_NAMES[softKey]} no seu HD em potência igual ou maior (v${(cur.versionInt / 10).toFixed(1)})!`
         };
       }
 
       const newSizeMb = isStealthTool ? Math.round(18 * (remoteVersionInt / 10)) : window.softwareEngine.getItemSizeMb(softKey, remoteVersionInt);
-      const oldSizeMb = isStealthTool ? Math.round(18 * (cur.versionInt / 10)) : window.softwareEngine.getItemSizeMb(softKey, cur.versionInt);
+      const oldSizeMb = isStealthTool
+        ? Math.round(18 * (cur.versionInt / 10))
+        : (alreadyOwned ? window.softwareEngine.getItemSizeMb(softKey, cur.versionInt) : 0);
       const extraHdd = isStealthTool ? 0 : (newSizeMb - oldSizeMb);
       const freeHdd = window.softwareEngine.getMaxHddMb() - window.softwareEngine.getUsedHddMb();
 
@@ -571,17 +600,19 @@
           this.state.seekerVerInt = remoteVersionInt;
           this.save();
         } else {
+          cur.owned = true;
           cur.versionInt = remoteVersionInt;
-          // Regra Oficial HE (softwares.txt): binário baixado de outro servidor pode ser usado, mas NÃO vem licenciado p/ pesquisa (exceto recompensa Enigma)!
-          cur.licensed = host.kind === 'puzzle';
+          // Regra Oficial HE (softwares.txt): binário de Puzzle ou Freeware do Download Center vem licenciado; roubado de outros alvos exige comprar Licença p/ evoluir!
+          cur.licensed = host.kind === 'puzzle' || isPublicDownloadCenter;
           window.softwareEngine.save();
+          if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
         }
 
         const route = window.bounceEngine
           ? window.bounceEngine.routeConnectionAndGetVisibleIp(host.ip)
           : { visibleIp: window.networkIdentity.getPublicIp() };
 
-        if (window.internetEngine) {
+        if (!isPublicDownloadCenter && window.internetEngine) {
           window.internetEngine.appendServerLog(
             host.ip,
             `${route.visibleIp} downloaded binary ${SOFT_DISPLAY_NAMES[softKey]} (v${(remoteVersionInt / 10).toFixed(1)}, ${newSizeMb}MB)`
@@ -590,19 +621,22 @@
         if (typeof window.addLocalLog === 'function') {
           window.addLocalLog(
             'DOWNLOAD-OK',
-            `Software baixado de ${host.ip}: ${SOFT_DISPLAY_NAMES[softKey]} atualizado grátis para v${(remoteVersionInt / 10).toFixed(1)}!`,
+            `Software baixado de ${host.ip}: ${SOFT_DISPLAY_NAMES[softKey]} (v${(remoteVersionInt / 10).toFixed(1)}, ${newSizeMb}MB) salvo no seu HD!`,
             'success'
           );
         }
         if (window.currentProfile) {
-          window.currentProfile.reputation = (window.currentProfile.reputation || 0) + 30;
+          window.currentProfile.reputation = (window.currentProfile.reputation || 0) + (alreadyOwned ? 25 : 40);
           if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
         }
         if (window.hackerAudio) window.hackerAudio.playCashChime();
         if (typeof window.showToast === 'function') {
-          window.showToast(`Download concluído: ${SOFT_DISPLAY_NAMES[softKey]} agora é v${(remoteVersionInt / 10).toFixed(1)}!`);
+          window.showToast(`Download concluído: ${SOFT_DISPLAY_NAMES[softKey]} v${(remoteVersionInt / 10).toFixed(1)} desbloqueado no seu HD!`);
         }
         if (window.internetEngine) window.internetEngine.render();
+        if (window.winManager && window.winManager.current === 'winSoftware' && window.softwareEngine) {
+          window.softwareEngine.renderUI();
+        }
       };
 
       if (instant || !window.taskManager) {
@@ -677,23 +711,30 @@
       const xhd = this.getXhdInfo();
       const inv = (window.softwareEngine && window.softwareEngine.ensureLoaded().inventory) || {};
 
-      const backupRows = Object.entries(inv).map(([k, st]) => {
-        const bak = this.state.backups[k];
-        const sizeMb = window.softwareEngine ? window.softwareEngine.getItemSizeMb(k, st.versionInt) : 20;
-        return `
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--hc-border);font-size:0.79rem;gap:8px;flex-wrap:wrap;">
-            <div>
-              <strong style="font-family:var(--hc-font-mono);">${esc(SOFT_DISPLAY_NAMES[k] || k)}</strong>
-              <span class="hc-badge info" style="margin-left:6px;">Local v${(st.versionInt / 10).toFixed(1)} (${sizeMb}MB)</span>
-              ${bak ? `<span class="hc-badge success" style="margin-left:4px;">Backup XHD v${(bak.versionInt / 10).toFixed(1)}</span>` : ''}
+      const backupRows = Object.entries(inv)
+        .filter(([k, st]) => (st && st.owned && st.versionInt > 0) || !!this.state.backups[k])
+        .map(([k, st]) => {
+          const bak = this.state.backups[k];
+          const isOwned = !!(st && st.owned && st.versionInt > 0);
+          const sizeMb = isOwned && window.softwareEngine ? window.softwareEngine.getItemSizeMb(k, st.versionInt) : (bak?.sizeMb || 20);
+          return `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--hc-border);font-size:0.79rem;gap:8px;flex-wrap:wrap;">
+              <div>
+                <strong style="font-family:var(--hc-font-mono);">${esc(SOFT_DISPLAY_NAMES[k] || k)}</strong>
+                ${isOwned
+                  ? `<span class="hc-badge info" style="margin-left:6px;">Local v${(st.versionInt / 10).toFixed(1)} (${sizeMb}MB)</span>`
+                  : `<span class="hc-badge warn" style="margin-left:6px;">Ausente no HD Interno</span>`}
+                ${bak ? `<span class="hc-badge success" style="margin-left:4px;">Backup XHD v${(bak.versionInt / 10).toFixed(1)}</span>` : ''}
+              </div>
+              <div style="display:flex;gap:6px;">
+                ${isOwned
+                  ? `<button type="button" id="btnXhdBackup_${esc(k)}" class="hc-btn ghost sm" ${xhd.capMb <= 0 ? 'disabled' : ''} onclick="window.handleXhdBackup('${esc(k)}')">Salvar no XHD</button>`
+                  : ''}
+                ${bak ? `<button type="button" id="btnXhdRestore_${esc(k)}" class="hc-btn primary sm" onclick="window.handleXhdRestore('${esc(k)}')">Restaurar</button>` : ''}
+              </div>
             </div>
-            <div style="display:flex;gap:6px;">
-              <button type="button" id="btnXhdBackup_${esc(k)}" class="hc-btn ghost sm" ${xhd.capMb <= 0 ? 'disabled' : ''} onclick="window.handleXhdBackup('${esc(k)}')">Salvar no XHD</button>
-              ${bak ? `<button type="button" id="btnXhdRestore_${esc(k)}" class="hc-btn primary sm" onclick="window.handleXhdRestore('${esc(k)}')">Restaurar</button>` : ''}
-            </div>
-          </div>
-        `;
-      }).join('');
+          `;
+        }).join('');
 
       return `
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-top:8px;">

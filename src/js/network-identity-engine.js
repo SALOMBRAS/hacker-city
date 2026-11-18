@@ -1722,11 +1722,35 @@
       }
     }
 
+    applyQuickTauntToRemoteLog() {
+      if (!this.activeSshIp) return;
+      const ta = document.getElementById('remoteSyslogTextarea');
+      if (!ta) return;
+
+      const myReal = window.networkIdentity ? window.networkIdentity.getPublicIp() : '';
+      const usedVisible = (this.lastPvpVisibleIpByTarget && this.lastPvpVisibleIpByTarget[this.activeSshIp]) || myReal;
+      const myTag = (window.currentProfile && window.currentProfile.hacker_tag) || 'Operador';
+      const customInp = document.getElementById('remoteTauntMsgInput');
+      const rawTaunt = customInp && customInp.value.trim()
+        ? customInp.value.trim()
+        : `Firewall de papelão hein fraco kkk passei a limpa e apaguei meu IP! - Ass: ${myTag}`;
+
+      const keptLines = ta.value
+        .split('\n')
+        .map((l) => l.trim())
+        .filter((l) => l.length > 0 && (!myReal || !l.includes(myReal)) && (!usedVisible || !l.includes(usedVisible)));
+
+      keptLines.unshift(`[LOG EDITADA POR ${myTag}]: "${rawTaunt}"`);
+      ta.value = keptLines.join('\n');
+      this.saveEditedRemoteLogs();
+    }
+
     saveEditedRemoteLogs() {
       if (!this.activeSshIp) return;
       const ta = document.getElementById('remoteSyslogTextarea');
       if (!ta) return;
 
+      const prevLines = this.getServerLogs(this.activeSshIp);
       const newLines = ta.value
         .split('\n')
         .map((l) => l.trim())
@@ -1759,20 +1783,32 @@
       if (sshHost && sshHost.isRealHuman && window.onlineEngine) {
         const myReal = window.networkIdentity.getPublicIp();
         const usedVisible = (this.lastPvpVisibleIpByTarget && this.lastPvpVisibleIpByTarget[this.activeSshIp]) || myReal;
-        if (!newLines.some((l) => l.includes(usedVisible))) {
-          window.onlineEngine.sendPvpPacket({
-            kind: 'PVP_WIPE_LOG',
-            visibleIp: usedVisible,
-            targetUserId: sshHost.humanUserId,
-            targetTag: sshHost.humanTag,
-            targetIp: sshHost.ip,
-            d: {}
-          });
-        }
+        const wipedOwnIp = !newLines.some((l) => l.includes(usedVisible) || l.includes(myReal));
+
+        // Captura linhas customizadas / farpas escritas ou editadas pelo invasor para injetar na log da vítima!
+        const customLines = newLines
+          .filter((l) => !prevLines.includes(l) && !l.includes('systemd[1]: sshd.service initialized'))
+          .slice(0, 6)
+          .map((l) => l.slice(0, 260));
+
+        window.onlineEngine.sendPvpPacket({
+          kind: 'PVP_EDIT_LOG',
+          visibleIp: usedVisible,
+          targetUserId: sshHost.humanUserId,
+          targetTag: sshHost.humanTag,
+          targetIp: sshHost.ip,
+          d: {
+            wipedOwnIp,
+            fullClear: newLines.length === 0,
+            customLines,
+            crcVer: this.getPlayerCrackerVer(),
+            expVer: Math.max(this.getPlayerSshExploitVer(), this.getPlayerFtpExploitVer())
+          }
+        });
       }
       if (window.hackerAudio) window.hackerAudio.playKeyClick();
       if (typeof window.showToast === 'function') {
-        window.showToast(`Syslog remoto de ${this.activeSshIp} atualizado! Rastros removidos.`);
+        window.showToast(`Syslog remoto de ${this.activeSshIp} reescrito com sucesso!`);
       }
       this.render();
     }
@@ -2115,22 +2151,36 @@
         `;
       }
 
-      // 4. Download Center (33.8.2.71)
+      // 4. Download Center (33.8.2.71) — Utilitários Freeware Básicos v1.0 (Sem vírus!)
       if (host.kind === 'download') {
+        const dcList = window.stealthXhdEngine ? window.stealthXhdEngine.getStealableSoftwaresOnHost(host) : [];
         return `
           <div class="hc-card" style="padding: 1.15rem;">
-            <div class="hc-eyebrow" style="margin-bottom: 0.4rem;">Espelho Público de Ferramentas v1.0 (Freeware)</div>
-            <p style="font-size: 0.84rem; color: var(--hc-text-2); margin-bottom: 0.9rem;">Pacotes básicos abertos para novos operadores. Versões avançadas exigirão Pesquisa/Universidade (Bloco 2 e 3).</p>
+            <div class="hc-eyebrow" style="margin-bottom: 0.4rem;">Espelho Público Oficial · Utilitários Básicos v1.0 (Freeware)</div>
+            <p style="font-size: 0.84rem; color: var(--hc-text-2); margin-bottom: 0.65rem;">
+              Baixe gratuitamente utilitários básicos de defesa, análise e recuperação (<code>Antivirus.av</code>, <code>Analyzer.ana</code>, <code>WebServer.exe</code>).
+            </p>
+            <div style="margin-bottom: 0.9rem; padding: 0.65rem 0.85rem; background: rgba(216,155,56,0.09); border: 1px solid var(--hc-warning); border-radius: 7px; font-size: 0.79rem; color: var(--hc-warning); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <span><strong>Onde estão os Vírus Básicos?</strong> Vírus (<code>.vspam</code>, <code>.vwarez</code>, <code>.vminer</code>, <code>.vddos</code>, <code>.vbank</code>) não existem em lojas públicas — resolva e invada as máquinas de <strong>Puzzle</strong>!</span>
+              <button type="button" class="hc-btn primary sm" onclick="window.internetEngine.navigate('109.64.200.10')">Ir p/ First Puzzle (109.64.200.10) →</button>
+            </div>
             <div style="display: flex; flex-direction: column; gap: 8px;">
-              ${host.files.map((f) => `
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 0.85rem; background: var(--hc-inset); border: 1px solid var(--hc-border); border-radius: 8px;">
-                  <div>
-                    <strong style="font-family: var(--hc-font-mono); font-size: 0.86rem;">${esc(f.name)}</strong>
-                    <div style="font-size: 0.76rem; color: var(--hc-text-2);">${esc(f.content)} · ${esc(f.size)}</div>
+              ${dcList.map((st) => {
+                const alreadyHas = window.softwareEngine ? window.softwareEngine.isSoftwareOwned(st.softKey) : false;
+                const sizeMb = window.softwareEngine ? window.softwareEngine.getItemSizeMb(st.softKey, st.versionInt) : 16;
+                return `
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.65rem 0.85rem; background: var(--hc-inset); border: 1px solid var(--hc-border); border-radius: 8px; gap: 8px; flex-wrap: wrap;">
+                    <div>
+                      <strong style="font-family: var(--hc-font-mono); font-size: 0.86rem;">${esc(st.filename)}</strong>
+                      <span class="hc-badge info" style="margin-left: 6px;">v${(st.versionInt / 10).toFixed(1)} · ${sizeMb} MB</span>
+                      <span class="hc-badge ${alreadyHas ? 'success' : 'warn'}" style="margin-left: 4px;">${alreadyHas ? 'Já no seu HD' : 'Disponível p/ Download'}</span>
+                    </div>
+                    ${alreadyHas
+                      ? `<span style="font-size: 0.78rem; color: var(--hc-accent-text); font-family: var(--hc-font-mono);">✓ Instalado no Disco</span>`
+                      : `<button type="button" id="btnDcDownload_${esc(st.softKey)}" class="hc-btn primary sm" onclick="window.handleDownloadRemoteSoft('33.8.2.71', '${esc(st.softKey)}', ${st.versionInt})">⬇ Baixar Freeware (${sizeMb} MB)</button>`}
                   </div>
-                  <button type="button" class="hc-btn primary sm" onclick="showToast('Pacote ${esc(f.name)} verificado e pronto no seu sistema!')">Baixar</button>
-                </div>
-              `).join('')}
+                `;
+              }).join('')}
             </div>
           </div>
         `;
@@ -2313,22 +2363,33 @@
 
       let subContent = '';
       if (this.sshSubTab === 'logs') {
+        const myTag = (window.currentProfile && window.currentProfile.hacker_tag) || 'Operador';
+        const defaultTaunt = `Firewall de papelão hein fraco kkk passei a limpa e apaguei meu IP! - Ass: ${myTag}`;
         subContent = `
-          <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
               <div>
                 <strong style="font-size: 0.88rem;">Editor Remoto: <code>${esc(host.ip)}:/var/log/syslog</code></strong>
                 <div style="font-size: 0.78rem; color: ${myIpExposed ? 'var(--hc-danger-text)' : 'var(--hc-text-2)'};">
                   ${myIpExposed
-                    ? `ALERTA: Seu IP real (${esc(myIp)}) consta no log deste servidor! Apague ou troque o IP abaixo e clique em Salvar.`
+                    ? `ALERTA: Seu IP (${esc(myIp)}) consta na log! Se sair sem apagar, bots ativos e jogadores pegarão seu IP daqui!`
                     : `Seguro: seu IP atual (${esc(myIp)}) não aparece neste arquivo de log.`}
                 </div>
               </div>
-              <div style="display: flex; gap: 6px;">
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                 <button type="button" class="hc-btn ghost sm" onclick="document.getElementById('remoteSyslogTextarea').value=''; window.internetEngine.saveEditedRemoteLogs();">Limpar Tudo</button>
                 <button type="button" id="btnSaveRemoteSyslog" class="hc-btn primary sm" onclick="window.internetEngine.saveEditedRemoteLogs()">Salvar / Reescrever Syslog</button>
               </div>
             </div>
+
+            <!-- Barra Rápida: Apagar Próprio IP & Deixar Farpa / Recado para o Alvo! -->
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 10px;background:var(--hc-inset);border:1px solid rgba(216,155,56,0.35);border-radius:7px;">
+              <input type="text" id="remoteTauntMsgInput" class="form-input" style="flex:1;min-width:240px;font-family:var(--hc-font-mono);font-size:0.77rem;" value="${esc(defaultTaunt)}" placeholder="Escreva uma farpa/aviso p/ deixar na log do alvo sem seu IP...">
+              <button type="button" id="btnQuickWipeAndTaunt" class="hc-btn sm" style="border-color:var(--hc-warning);color:var(--hc-warning);" onclick="window.internetEngine.applyQuickTauntToRemoteLog()">
+                🔥 Apagar Meu IP &amp; Deixar Farpa
+              </button>
+            </div>
+
             <textarea id="remoteSyslogTextarea" class="ssh-syslog-editor" spellcheck="false">${esc(logs.join('\n'))}</textarea>
           </div>
         `;
@@ -2407,14 +2468,19 @@
             <!-- Upload SSH de Vírus Governado pela Internet & Espaço em Disco do Alvo -->
             <div class="hc-card" style="padding: 0.95rem 1.1rem; border-color: rgba(53, 184, 119, 0.35);">
               <div class="hc-eyebrow" style="margin-bottom: 6px;">Enviar & Instalar Vírus neste PC (Sua Internet: ${window.softwareEngine ? window.softwareEngine.getPlayerNetMbps() : 1} Mbps · Exige ROOT)</div>
-              <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                <select id="remoteVirusSelect" class="form-input" style="flex: 1; min-width: 260px; font-family: var(--hc-font-mono); font-size: 0.79rem;">
-                  ${virusOpts.map((vo) => `<option value="${vo.key}">${esc(vo.filename)} (${vo.versionStr}) — ${esc(vo.extraLabel)}</option>`).join('')}
-                </select>
-                <button type="button" id="btnDeployRemoteVirus" class="hc-btn primary sm" ${upJob ? 'disabled' : ''} onclick="window.internetEngine.deploySelectedVirusToCurrentHost()">
-                  ${upJob ? 'Enviando Pacote...' : 'Upload & Executar Vírus'}
-                </button>
-              </div>
+              ${virusOpts.length === 0
+                ? `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:0.8rem;color:var(--hc-warning);">
+                     <span>Você ainda não possui nenhum vírus baixado no seu HD! Resolva e invada as máquinas de <strong>Puzzle</strong> (<code>109.64.200.10</code>) para baixar os vírus básicos (<code>v1.0</code>).</span>
+                     <button type="button" class="hc-btn primary sm" onclick="window.internetEngine.navigate('109.64.200.10')">Ir p/ First Puzzle →</button>
+                   </div>`
+                : `<div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                     <select id="remoteVirusSelect" class="form-input" style="flex: 1; min-width: 260px; font-family: var(--hc-font-mono); font-size: 0.79rem;">
+                       ${virusOpts.map((vo) => `<option value="${vo.key}">${esc(vo.filename)} (${vo.versionStr}) — ${esc(vo.extraLabel)}</option>`).join('')}
+                     </select>
+                     <button type="button" id="btnDeployRemoteVirus" class="hc-btn primary sm" ${upJob ? 'disabled' : ''} onclick="window.internetEngine.deploySelectedVirusToCurrentHost()">
+                       ${upJob ? 'Enviando Pacote...' : 'Upload & Executar Vírus'}
+                     </button>
+                   </div>`}
               ${upJob ? `
                 <div style="margin-top:8px;">
                   <div style="display:flex;justify-content:space-between;font-family:var(--hc-font-mono);font-size:0.75rem;margin-bottom:4px;">
@@ -2462,7 +2528,12 @@
                           : `<span class="hc-badge success">Cofre Oculto Extraído</span>`)}
                   </div>
                   ${stealables.length === 0
-                    ? `<div style="font-size:0.77rem;color:var(--hc-text-3);">Nenhum binário superior destravado para download neste host.</div>`
+                    ? (host.kind === 'puzzle'
+                        ? `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:0.79rem;color:var(--hc-warning);">
+                             <span>Resolva primeiro o Enigma na aba <strong>Página</strong> deste servidor para destravar os vírus/softwares básicos aqui no HD!</span>
+                             <button type="button" class="hc-btn primary sm" onclick="window.internetEngine.switchTab('pagina')">Ir Resolver Enigma →</button>
+                           </div>`
+                        : `<div style="font-size:0.77rem;color:var(--hc-text-3);">Nenhum binário superior destravado para download neste host.</div>`)
                     : stealables.map((st) => `
                         <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--hc-inset);border:1px solid var(--hc-border);border-radius:7px;gap:8px;flex-wrap:wrap;font-size:0.8rem;">
                           <div>

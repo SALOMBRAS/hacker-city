@@ -729,19 +729,32 @@
     var pendingVerifyEmail = '';
     let highestZ = 100;
 
-    // 1.5 REGISTRO CENTRAL DE LOGS DE ACESSO (LOCAIS + AUDITORIA REMOTA)
-    window.systemLogs = (function () {
+    // 1.5 REGISTRO CENTRAL DE LOGS DE ACESSO (LOCAIS + AUDITORIA REMOTA — ISOLADO POR OPERADOR)
+    window.getSystemLogsStorageKey = function () {
+      const uid = (window.currentProfile && window.currentProfile.id) || 'guest';
+      return 'HC_SYSTEM_LOGS_' + uid;
+    };
+
+    window.ensureSystemLogsForProfile = function (uidOverride) {
+      const uid = uidOverride || (window.currentProfile && window.currentProfile.id) || 'guest';
+      const key = 'HC_SYSTEM_LOGS_' + uid;
       try {
-        const raw = localStorage.getItem('HC_SYSTEM_LOGS');
+        const raw = localStorage.getItem(key);
         if (raw) {
           const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) return parsed;
+          if (Array.isArray(parsed)) {
+            window.systemLogs = parsed;
+            return window.systemLogs;
+          }
         }
       } catch (e) {}
-      return [
+      window.systemLogs = [
         { id: 1, time: new Date().toLocaleTimeString(), tag: 'BOOT', msg: 'Kernel HackerOS 4.19 inicializado em 192.168.1.104', level: 'info' }
       ];
-    })();
+      return window.systemLogs;
+    };
+
+    window.systemLogs = window.ensureSystemLogsForProfile('guest');
 
     window.addLocalLog = function (tag, msg, level = 'info') {
       const entry = {
@@ -753,7 +766,7 @@
       };
       window.systemLogs.unshift(entry);
       if (window.systemLogs.length > 80) window.systemLogs.length = 80;
-      try { localStorage.setItem('HC_SYSTEM_LOGS', JSON.stringify(window.systemLogs)); } catch (e) {}
+      try { localStorage.setItem(window.getSystemLogsStorageKey(), JSON.stringify(window.systemLogs)); } catch (e) {}
       if (window.winManager && window.winManager.current === 'winLogs') {
         window.renderLogsPage();
       }
@@ -762,16 +775,40 @@
 
     window.deleteLocalLogEntry = function (id) {
       window.systemLogs = window.systemLogs.filter(x => x.id !== id);
-      try { localStorage.setItem('HC_SYSTEM_LOGS', JSON.stringify(window.systemLogs)); } catch (e) {}
+      try { localStorage.setItem(window.getSystemLogsStorageKey(), JSON.stringify(window.systemLogs)); } catch (e) {}
       window.renderLogsPage();
-      showToast('Linha removida de /var/log/auth.log.');
+      showToast('Linha removida de /var/log/syslog.');
     };
 
     window.clearLocalLogs = function () {
       window.systemLogs = [];
-      try { localStorage.setItem('HC_SYSTEM_LOGS', JSON.stringify(window.systemLogs)); } catch (e) {}
+      try { localStorage.setItem(window.getSystemLogsStorageKey(), JSON.stringify(window.systemLogs)); } catch (e) {}
       window.renderLogsPage();
-      showToast('Arquivo /var/log/auth.log truncado com sucesso.');
+      showToast('Arquivo /var/log/syslog local truncado com sucesso.');
+    };
+
+    window.saveEditedLocalLogs = function () {
+      const ta = document.getElementById('localSyslogTextarea');
+      if (!ta) return;
+      const rawLines = ta.value
+        .split('\n')
+        .map((l) => l.trim())
+        .filter((l) => l.length > 0);
+
+      const nowStr = new Date().toLocaleTimeString();
+      window.systemLogs = rawLines.map((line, idx) => {
+        const m = line.match(/^\[([^\]]+)\]\s*\[([^\]]+)\]\s*(.+)$/);
+        if (m) {
+          const tag = m[2].trim();
+          const lvl = (tag.includes('FARPA') || tag.includes('INTRUSION') || tag.includes('ALERT')) ? 'danger' : (tag.includes('OK') || tag.includes('CLEAN') ? 'success' : 'info');
+          return { id: Date.now() + idx, time: m[1].trim(), tag, msg: m[3].trim(), level: lvl };
+        }
+        return { id: Date.now() + idx, time: nowStr, tag: 'EDITADO', msg: line, level: 'info' };
+      });
+      try { localStorage.setItem(window.getSystemLogsStorageKey(), JSON.stringify(window.systemLogs)); } catch (e) {}
+      if (window.hackerAudio) window.hackerAudio.playKeyClick();
+      showToast(`Arquivo local /var/log/syslog salvo (${window.systemLogs.length} linhas)!`);
+      window.renderLogsPage();
     };
 
     window.wipeRemoteLogFromUI = function (ip) {
@@ -846,39 +883,70 @@
         return `<span class="hc-badge ${cls}">${escapeHtml(tag)}</span>`;
       };
 
+      const extractForeignIp = (txt) => {
+        const matches = String(txt || '').match(/\b\d{1,3}(?:\.\d{1,3}){3}\b/g) || [];
+        return matches.find((cand) => cand !== myIp && !cand.startsWith('192.168.') && cand !== '0.0.0.0') || null;
+      };
+
+      const localRawText = window.systemLogs
+        .map((e) => `[${e.time}] [${e.tag}] ${e.msg}`)
+        .join('\n');
+
       const localHtml = window.systemLogs.length === 0
-        ? `<div style="padding: 1.25rem; text-align: center; color: var(--hc-text-3); font-family: var(--hc-font-mono); font-size: 0.82rem;">/var/log/auth.log está vazio (0 bytes).</div>`
-        : window.systemLogs.map(entry => `
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--hc-border); font-size: 0.82rem;">
-              <div style="display: flex; align-items: center; gap: 0.6rem; min-width: 0; flex-wrap: wrap;">
-                <span style="font-family: var(--hc-font-mono); color: var(--hc-text-3); font-size: 0.76rem;">[${escapeHtml(entry.time)}]</span>
-                ${levelBadge(entry.level, entry.tag)}
-                <span style="color: var(--hc-text); font-family: var(--hc-font-mono); word-break: break-word;">${escapeHtml(entry.msg)}</span>
+        ? `<div style="padding: 1.25rem; text-align: center; color: var(--hc-text-3); font-family: var(--hc-font-mono); font-size: 0.82rem;">/var/log/syslog está vazio (0 bytes).</div>`
+        : window.systemLogs.map(entry => {
+            const isTaunt = entry.tag === 'FARPA-INVASOR' || entry.tag === 'FARPA-PVP';
+            const isSloppyIntrusion = entry.tag === 'INTRUSION-IP-EXPOSTO' || entry.tag === 'PVP-INTRUSION' || entry.tag === 'HUNTER-BLOCKED';
+            const foreignIp = isSloppyIntrusion ? extractForeignIp(entry.msg) : null;
+            return `
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--hc-border); font-size: 0.82rem; background: ${isTaunt ? 'rgba(208,68,58,0.11)' : 'transparent'};">
+                <div style="display: flex; align-items: center; gap: 0.6rem; min-width: 0; flex-wrap: wrap;">
+                  <span style="font-family: var(--hc-font-mono); color: var(--hc-text-3); font-size: 0.76rem;">[${escapeHtml(entry.time)}]</span>
+                  ${levelBadge(entry.level, entry.tag)}
+                  ${isTaunt ? `<span class="hc-badge warn">IP APAGADO PELO INVASOR</span>` : ''}
+                  <span style="color: ${isTaunt ? '#f5c26b' : 'var(--hc-text)'}; font-weight: ${isTaunt ? '600' : '400'}; font-family: var(--hc-font-mono); word-break: break-word;">${escapeHtml(entry.msg)}</span>
+                </div>
+                <div style="display:flex;gap:6px;flex-shrink:0;">
+                  ${foreignIp
+                    ? `<button type="button" class="hc-btn primary sm" style="padding:0.2rem 0.55rem;font-size:0.72rem;" onclick="window.internetEngine.openIp('${escapeHtml(foreignIp)}', 'invadir')">Contra-Atacar ${escapeHtml(foreignIp)} →</button>`
+                    : ''}
+                  <button type="button" class="hc-btn ghost sm" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;" onclick="deleteLocalLogEntry(${entry.id})" title="Apagar linha">Apagar</button>
+                </div>
               </div>
-              <button type="button" class="hc-btn ghost sm" style="flex-shrink: 0; padding: 0.2rem 0.5rem; font-size: 0.72rem;" onclick="deleteLocalLogEntry(${entry.id})" title="Apagar linha">Apagar</button>
-            </div>
-          `).join('');
+            `;
+          }).join('');
 
       container.innerHTML = `
         <div style="display: flex; flex-direction: column; gap: 1.25rem;">
           <div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; gap: 0.5rem; flex-wrap: wrap;">
-              <div class="hc-eyebrow">Rastros remotos ativos (/var/log/syslog em alvos invadidos)</div>
-              <span style="font-size: 0.76rem; color: var(--hc-text-2); font-family: var(--hc-font-mono);">Dica: limpe pelo SSH da <code>Internet</code>, use <code>rmlog &lt;ip&gt;</code> ou troque seu IP em <code>71.4.5.1</code></span>
+              <div class="hc-eyebrow">Rastros remotos ativos (/var/log/syslog em outras máquinas — Bots ativos SÓ acham seu IP por aqui!)</div>
+              <span style="font-size: 0.76rem; color: var(--hc-text-2); font-family: var(--hc-font-mono);">Se esquecer seu IP em outra máquina, bots e jogadores vão te rastrear!</span>
             </div>
             ${remoteHtml}
           </div>
 
           <div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; gap: 0.5rem; flex-wrap: wrap;">
-              <div class="hc-eyebrow">Log local do seu PC (${escapeHtml(myIp)}:/var/log/auth.log · ${window.systemLogs.length} registros)</div>
+              <div class="hc-eyebrow">Eventos &amp; Farpas na Log do Seu PC (${escapeHtml(myIp)}:/var/log/syslog · ${window.systemLogs.length} registros)</div>
               <button type="button" class="btn-submit" style="width: auto; margin: 0; padding: 0.32rem 0.8rem; font-size: 0.76rem; background: var(--hc-surface-3); border-color: var(--hc-border-strong);" onclick="clearLocalLogs()">
-                Truncar /var/log/auth.log
+                Zerar /var/log/syslog
               </button>
             </div>
-            <div style="background: var(--hc-inset); border: 1px solid var(--hc-border); border-radius: 8px; overflow: hidden; max-height: 360px; overflow-y: auto;">
+            <div style="background: var(--hc-inset); border: 1px solid var(--hc-border); border-radius: 8px; overflow: hidden; max-height: 280px; overflow-y: auto;">
               ${localHtml}
             </div>
+          </div>
+
+          <div class="hc-card" style="padding: 0.95rem 1.1rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+              <div>
+                <div class="hc-eyebrow">Editor Direto da Sua Log Local (<code>/var/log/syslog</code>)</div>
+                <div style="font-size:0.76rem;color:var(--hc-text-2);">Edite livremente, limpe farpas deixadas por invasores ou escreva suas próprias notas no arquivo bruto:</div>
+              </div>
+              <button type="button" id="btnSaveLocalSyslogRaw" class="hc-btn primary sm" onclick="saveEditedLocalLogs()">Salvar Edição Local</button>
+            </div>
+            <textarea id="localSyslogTextarea" class="ssh-syslog-editor" style="min-height:130px;" spellcheck="false">${escapeHtml(localRawText)}</textarea>
           </div>
         </div>
       `;
@@ -1194,6 +1262,9 @@
       document.getElementById('authOverlay').style.display = 'none';
       document.getElementById('desktopEnvironment').style.display = 'grid';
 
+      if (typeof window.ensureSystemLogsForProfile === 'function') {
+        window.ensureSystemLogsForProfile(uid);
+      }
       if (window.onlineEngine) {
         await window.onlineEngine.hydrateSessionAndConnect(uid, null);
       }
