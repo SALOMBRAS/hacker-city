@@ -1024,6 +1024,17 @@
         host.ip,
         `${visibleIp} uploaded (${newSizeMb}MB) and executed ${def.filename} (${this.fmtVer(inv.versionInt)})`
       );
+      if (host.isRealHuman && window.onlineEngine) {
+        window.onlineEngine.sendPvpPacket({
+          kind: 'PVP_VIRUS_PLANT',
+          visibleIp,
+          targetUserId: host.humanUserId,
+          targetTag: host.humanTag,
+          targetIp: host.ip,
+          d: { fn: def.filename, ver: inv.versionInt }
+        });
+      }
+      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
       if (typeof window.addLocalLog === 'function') {
         window.addLocalLog('VIRUS-DEPLOY', `${def.filename} (${this.fmtVer(inv.versionInt)}, ${newSizeMb}MB) instalado em ${host.hostname} [${host.ip}]`, 'warning');
       }

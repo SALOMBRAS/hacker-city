@@ -275,6 +275,11 @@
       if (window.safenetFbiEngine) {
         window.safenetFbiEngine.onPlayerIpChanged(oldIp, newIp);
       }
+      if (window.onlineEngine) {
+        window.onlineEngine.trackRealtimePresence();
+        window.onlineEngine.publishDirectoryBeacon();
+        window.onlineEngine.scheduleSave(true);
+      }
       if (window.hackerAudio) window.hackerAudio.playCashChime();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       if (window.internetEngine && window.winManager && window.winManager.current === 'winBrowser') {
@@ -1113,7 +1118,50 @@
         }
       }
 
-      // 4. É um jogador real no Supabase ou VPC povoado?
+      // 4. É um jogador humano real descoberto na malha Online / Supabase Realtime?
+      const liveHuman = window.onlineEngine ? window.onlineEngine.getHumanPlayerByIp(ip) : null;
+      if (liveHuman) {
+        const rep = Number(liveHuman.reputation || 100);
+        const hs = Number(liveHuman.hasherVer || 1.0);
+        const fw = Number(liveHuman.firewallVer || 1.0);
+        const av = Number(liveHuman.antivirusVer || 1.0);
+        const cpuMhz = Number(liveHuman.cpuMhz || 1200);
+        const netMbps = Number(liveHuman.netMbps || 10);
+        const hddMb = rep >= 1000 ? 2048 : 640;
+        const ramMb = rep >= 1000 ? 1024 : 384;
+
+        return {
+          ip,
+          hostname: `VPC de ${liveHuman.hackerTag}${liveHuman.clanTag ? ' [' + liveHuman.clanTag + ']' : ''}`,
+          kind: 'player',
+          isRealHuman: true,
+          humanUserId: liveHuman.userId,
+          humanTag: liveHuman.hackerTag,
+          badge: liveHuman.onlineNow ? '🟢 Jogador Humano Online' : 'Jogador Humano (VPC)',
+          online: true,
+          reputation: rep,
+          newbieProtected: rep < 100,
+          tier: rep >= 1000 ? 2 : 1,
+          securityLevel: rep >= 1000 ? 2 : 1,
+          cpuMhz,
+          netMbps,
+          hddTotalMb: hddMb,
+          hddOsBaseMb: Math.round(hddMb * 0.52),
+          ramTotalMb: ramMb,
+          ramOsBaseMb: Math.round(ramMb * 0.50),
+          hasherVer: hs,
+          firewallVer: fw,
+          antivirusVer: av,
+          rootPassword: deterministicPassword(ip + '::' + liveHuman.userId),
+          cpuSpec: `${cpuMhz.toLocaleString('pt-BR')} MHz · ${netMbps} Mbps · FW v${fw.toFixed(1)} · AV v${av.toFixed(1)}`,
+          bankBalance: this.drainedNpcIps.has(ip) ? 0 : Math.min(450, Math.max(85, Math.round(rep * 0.22))),
+          files: [
+            { name: 'operador_profile.dat', size: '14 MB', sizeMb: 14, content: `Operador real ${liveHuman.hackerTag} (${rep} REP · Classe ${(liveHuman.specialty || 'exploiter').toUpperCase()})` }
+          ].filter((f) => !deletedSet.has(f.name))
+        };
+      }
+
+      // 4b. Fallback: cloudPlayersByIp legado
       const cloudPlayer = this.cloudPlayersByIp[ip];
       if (cloudPlayer) {
         const rep = cloudPlayer.reputation || 100;
@@ -1408,11 +1456,23 @@
         });
       }
 
-      // Se for bot, registrar intrusão na IA com o IP visível (se Bounce ativo, registra apenas o último salto!)
+      // Se for bot, registrar intrusão na IA com o IP visível; se for HUMANO REAL, transmitir pacote PvP em Tempo Real!
       if (host.kind === 'bot' && window.botAI) {
         window.botAI.registerIntrusion(host.ip, visibleIp);
       } else {
         this.appendServerLog(host.ip, `INTRUSION src=${visibleIp} dest=${host.ip} method=${method.toUpperCase()} root=GRANTED`);
+      }
+      if (host.isRealHuman && window.onlineEngine) {
+        this.lastPvpVisibleIpByTarget = this.lastPvpVisibleIpByTarget || {};
+        this.lastPvpVisibleIpByTarget[host.ip] = visibleIp;
+        window.onlineEngine.sendPvpPacket({
+          kind: 'PVP_INTRUSION',
+          visibleIp,
+          targetUserId: host.humanUserId,
+          targetTag: host.humanTag,
+          targetIp: host.ip,
+          d: { method }
+        });
       }
 
       if (window.currentProfile) {
@@ -1428,6 +1488,7 @@
       }
 
       // Conectar automaticamente na aba Entrar (SSH Root)
+      this.currentIp = host.ip;
       this.activeSshIp = host.ip;
       this.activeTab = 'entrar';
       this.sshSubTab = 'logs';
@@ -1512,6 +1573,22 @@
       if (window.tutorialEngine) {
         window.tutorialEngine.notifyLogsSaved(this.activeSshIp, newLines);
       }
+      // Se for um jogador humano real e apagamos nosso IP visível do syslog dele, envia PVP_WIPE_LOG p/ limpar lá também!
+      const sshHost = this.resolveHost(this.activeSshIp);
+      if (sshHost && sshHost.isRealHuman && window.onlineEngine) {
+        const myReal = window.networkIdentity.getPublicIp();
+        const usedVisible = (this.lastPvpVisibleIpByTarget && this.lastPvpVisibleIpByTarget[this.activeSshIp]) || myReal;
+        if (!newLines.some((l) => l.includes(usedVisible))) {
+          window.onlineEngine.sendPvpPacket({
+            kind: 'PVP_WIPE_LOG',
+            visibleIp: usedVisible,
+            targetUserId: sshHost.humanUserId,
+            targetTag: sshHost.humanTag,
+            targetIp: sshHost.ip,
+            d: {}
+          });
+        }
+      }
       if (window.hackerAudio) window.hackerAudio.playKeyClick();
       if (typeof window.showToast === 'function') {
         window.showToast(`Syslog remoto de ${this.activeSshIp} atualizado! Rastros removidos.`);
@@ -1548,6 +1625,16 @@
       }
       if (window.missionsEngine) {
         window.missionsEngine.notifyHostDrained(host.ip);
+      }
+      if (host.isRealHuman && window.onlineEngine) {
+        window.onlineEngine.sendPvpPacket({
+          kind: 'PVP_DRAIN_WALLET',
+          visibleIp: route.visibleIp,
+          targetUserId: host.humanUserId,
+          targetTag: host.humanTag,
+          targetIp: host.ip,
+          d: { amt: loot }
+        });
       }
       if (!route.bounced && loot >= 800 && window.safenetFbiEngine) {
         window.safenetFbiEngine.evaluatePlayerCrime(`Transferência ilícita de $ ${loot} HC`, loot, host.ip);
@@ -1717,7 +1804,23 @@
             </div>
 
             <div class="hc-card" style="padding: 1rem;">
-              <div class="hc-eyebrow" style="margin-bottom: 0.5rem;">Diretório de Servidores & Operadores Detectados</div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                <div class="hc-eyebrow">Operadores Humanos na Rede Online</div>
+                <button type="button" class="hc-btn ghost sm" onclick="navTo('winOnline')">Abrir Central Online & PvP →</button>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px; margin-bottom: 10px;">
+                ${((window.onlineEngine ? window.onlineEngine.getAllKnownHumansList() : []).slice(0, 8)).map((hp) => `
+                  <button type="button" class="inet-bm-item" style="background: var(--hc-inset); border-color: ${hp.onlineNow ? 'rgba(53,184,119,0.45)' : 'var(--hc-border)'};" onclick="window.internetEngine.navigate('${esc(hp.publicIp)}')">
+                    <div>
+                      <span class="inet-bm-ip">${esc(hp.publicIp)}</span>
+                      <span class="inet-bm-label">${hp.onlineNow ? '🟢 ' : ''}${esc(hp.hackerTag)} (${hp.reputation || 100} REP)</span>
+                    </div>
+                    <span style="color: var(--hc-accent-text);">→</span>
+                  </button>
+                `).join('') || `<div style="font-size:0.78rem;color:var(--hc-text-3);">Nenhum outro operador humano listado ainda.</div>`}
+              </div>
+
+              <div class="hc-eyebrow" style="margin-bottom: 0.5rem;">Diretório de Servidores & Operadores NPC</div>
               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px;">
                 ${[...IMPORTANT_BOOKMARKS, { ip: '149.56.28.11', label: 'Operador m4riposa (VPC)' }, { ip: '177.84.19.62', label: 'Operador rookie_br (<100 REP)' }].map((b) => `
                   <button type="button" class="inet-bm-item" style="background: var(--hc-inset); border-color: var(--hc-border);" onclick="window.internetEngine.navigate('${b.ip}')">
