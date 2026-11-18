@@ -43,19 +43,19 @@
     {
       id: 2,
       code: 'CERT-102',
-      title: 'Hacking 101: Força-Bruta & Limpeza Forense',
+      title: 'Hacking 101: Força-Bruta, Firewall & Limpeza Forense',
       cost: 0,
       repReward: 100,
-      unlockBadge: '+15% Velocidade Bruteforce',
-      bonusDesc: '+100 REP · +15% potência em Cracker.crc · Libera Invasão Tutorial',
+      unlockBadge: '+20% Velocidade CPU em Quebras',
+      bonusDesc: '+100 REP · +20% velocidade de tempo no Cracker · Libera Invasão Tutorial',
       pages: [
         {
-          heading: 'Módulo 1/3 — Quebrando Senhas Root com Cracker.crc',
-          body: 'Na aba Internet, digite o IP do alvo e abra a guia Invadir. O Ataque Força-Bruta usa seu Cracker.crc para descobrir a senha root e salvá-la automaticamente no seu Hacked Database.'
+          heading: 'Módulo 1/3 — Regra Estrita de Versão (Firewall & Hasher vs Cracker)',
+          body: 'Para invadir por Força-Bruta, seu Cracker.crc precisa estar ATIVO na RAM e ter versão >= Firewall.fwl E >= Hasher.hash da vítima! Ter uma CPU rápida acelera o TEMPO do processo, mas NUNCA substitui a versão do software.'
         },
         {
           heading: 'Módulo 2/3 — Entrando via SSH e Operando Arquivos',
-          body: 'Com a senha salva no Hacked Database, vá à guia Entrar para abrir o shell root@alvo. Lá você acessa arquivos confidenciais, carteiras wallet.dat de Bitcoin e envia seus vírus.'
+          body: 'Com a senha salva no Hacked Database, vá à guia Entrar para abrir o shell root@alvo. Lembre-se: se a vítima evoluir o Firewall ou Hasher depois, você precisará evoluir seu Cracker para continuar entrando!'
         },
         {
           heading: 'Módulo 3/3 — Regra de Ouro: Apague seu IP na Saída',
@@ -66,61 +66,61 @@
     {
       id: 3,
       code: 'CERT-201',
-      title: 'Exploits de Porta & Reconhecimento Nmap',
+      title: 'Exploits FTP/SSH, PortScan & Reconhecimento Nmap',
       cost: 250,
       repReward: 120,
-      unlockBadge: '+0.4x Potência SSH_Exploit.exp',
-      bonusDesc: '+120 REP · Bônus permanente +0.4x em ataques Exploit após Port Scan',
+      unlockBadge: 'Domínio FTP/SSH & Bank Hack',
+      bonusDesc: '+120 REP · Destrava táticas avançadas de Exploit Dual (FTP+SSH = Root) e Contas Bancárias',
       pages: [
         {
-          heading: 'Módulo 1/2 — Mapeamento de Portas (Port Scan)',
-          body: 'Enquanto força-bruta leva tempo na CPU, um ataque Exploit invade instantaneamente sem precisar descobrir a senha. Primeiro execute o Port Scan na aba Invadir para mapear as portas 22/ssh e 21/ftp.'
+          heading: 'Módulo 1/2 — Mapeamento de Portas com PortScan.scan',
+          body: 'Mantenha PortScan.scan ativo na RAM e execute a varredura na aba Invadir para sondar as portas 21/FTP e 22/SSH contra o Firewall.fwl do alvo.'
         },
         {
-          heading: 'Módulo 2/2 — Superando o Firewall do Alvo',
-          body: 'O ataque Exploit compara a potência do seu SSH_Exploit.exp contra o Firewall.fwl da vítima. Com esta certificação, todos os seus exploits ganham +0.4x de potência efetiva.'
+          heading: 'Módulo 2/2 — Permissões FTP vs SSH vs ROOT',
+          body: 'FTP_Exploit.exp >= Firewall libera transferência de arquivos (Download/Upload); SSH_Exploit.exp >= Firewall libera execução/deleção; rodar AMBOS acima do Firewall concede acesso ROOT completo sem precisar da senha!'
         }
       ]
     },
     {
       id: 4,
       code: 'CERT-301',
-      title: 'Engenharia de Vírus, Mineração BTC & Ataque DDoS',
+      title: 'Engenharia de Vírus, Torrent, Mineração BTC & DDoS',
       cost: 800,
       repReward: 150,
       unlockBadge: 'Libera Ataques DDoS & +15% Coletor',
-      bonusDesc: '+150 REP · Destrava Canhão DDoS contra alvos/FBI · +15% no Collector.vcol',
+      bonusDesc: '+150 REP · Destrava Canhão DDoS (com DDoS_Breaker.vbrk) · +15% no Collector.vcol',
       pages: [
         {
-          heading: 'Módulo 1/3 — As 5 Famílias de Vírus e Suas Potências',
-          body: 'Cada vírus tem papel tático: Spam.vspam ($/CPU), Warez.vwarez ($/Banda), Miner.vminer (minera Bitcoin real direto para sua carteira), BankTrojan.vbank (alto $ em bancos/empresas) e DDoS_Node.vddos (soma Gbps de ataque).'
+          heading: 'Módulo 1/3 — As 5 Famílias de Vírus e o Tracker Torrent',
+          body: 'Spam.vspam ($/CPU), Warez.vwarez ($/Banda — exige Torrent.torrent ativo na SUA RAM!), Miner.vminer (BTC/CPU), BankTrojan.vbank ($ alto) e DDoS_Node.vddos (Gbps).'
         },
         {
-          heading: 'Módulo 2/3 — Coletando com Collector.vcol',
-          body: 'Vírus plantados acumulam dólares e satoshis em tempo real. Use o Collector.vcol na aba Software & Vírus para recolher tudo de uma vez com multiplicador de eficiência.'
+          heading: 'Módulo 2/3 — Antivírus vs Vírus & Formatar HD',
+          body: 'Tanto nos alvos quanto no SEU PC, o Antivirus.av SÓ consegue remover vírus visíveis de versão <= Antivírus! Se um inimigo plantar um vírus mais forte que seu Antivírus, evolua seu Antivirus.av ou use Formatar HD (salvando backups no XHD!).'
         },
         {
           heading: 'Módulo 3/3 — Derrubando Procurados do FBI via DDoS',
-          body: 'Plante DDoS_Node.vddos em múltiplos servidores para somar poder em Gbps. Com esta certificação, você pode disparar ataques DDoS em Missões e capturar recompensas milionárias na Lista de Procurados do FBI!'
+          body: 'Ative o DDoS_Breaker.vbrk na sua RAM e plante DDoS_Node.vddos em múltiplos servidores para disparar ataques DDoS em Missões e capturar recompensas na Lista do FBI!'
         }
       ]
     },
     {
       id: 5,
       code: 'CERT-401',
-      title: 'Defesa Cibernética, Mitigação DDoS & Criptografia',
+      title: 'Defesa Cibernética & Mitigação Automática de DDoS',
       cost: 2000,
       repReward: 200,
-      unlockBadge: 'Escudo -35% contra Bots/PvP',
-      bonusDesc: '+200 REP · Medalha [GRADUADO MIT-HC] · Reduz em 35% perdas em invasões hostis',
+      unlockBadge: 'Mitigação DDoS via Firewall.fwl',
+      bonusDesc: '+200 REP · Medalha [GRADUADO MIT-HC] · Seu Firewall.fwl passa a mitigar/anular ataques DDoS!',
       pages: [
         {
-          heading: 'Módulo 1/2 — Protegendo Seu PC de Bots Caçadores',
-          body: 'Bots online de alto nível e outros jogadores caçam operadores expostos ou listados na Safenet/FBI. Mantenha Firewall.fwl, Hasher.hash e Antivirus.av ativos e atualizados na aba Software & Vírus.'
+          heading: 'Módulo 1/2 — Protegendo Seu PC (Firewall + Hasher + Antivirus)',
+          body: 'Bots caçadores e jogadores rivais só conseguem invadir seu PC se os softwares de invasão deles superarem seu Firewall.fwl e Hasher.hash ativos na RAM!'
         },
         {
-          heading: 'Módulo 2/2 — Hardening de Kernel & Mitigação',
-          body: 'Ao concluir esta especialização máxima, seu kernel aplica mitigação automática: bots caçadores precisam de 35% mais poder para furar seu Firewall e qualquer dreno sofrido é reduzido drasticamente.'
+          heading: 'Módulo 2/2 — Mitigação DDoS Automática',
+          body: 'Com esta certificação concluída, seu Firewall.fwl mitiga automaticamente ataques DDoS proporcionalmente à versão dele (podendo anular 100% do ataque em versões altas!).'
         }
       ]
     }
@@ -345,7 +345,7 @@
             <div class="hc-card" style="padding:1rem 1.15rem;">
               <div class="hc-stat-label">Bônus Ativos de Curso</div>
               <div style="font-size:0.8rem;color:var(--hc-text-2);margin-top:4px;font-family:var(--hc-font-mono);">
-                CRC:${this.hasCert(2) ? '+15%' : '0%'} · EXP:${this.hasCert(3) ? '+0.4x' : '0'} · DDoS:${this.hasCert(4) ? 'LIBERADO' : 'LOCK'} · DEF:${this.hasCert(5) ? '-35%' : '0%'}
+                Vel CRC:${this.hasCert(2) ? '+20%' : '0%'} · FTP/SSH+Bank:${this.hasCert(3) ? 'OK' : 'BASE'} · DDoS:${this.hasCert(4) ? 'LIBERADO' : 'LOCK'} · Mitigação DDoS:${this.hasCert(5) ? 'ATIVA' : 'OFF'}
               </div>
             </div>
           </div>
@@ -884,6 +884,14 @@
       this.ensureLoaded();
       const m = this.state.activeMission;
       if (!m || m.type !== 'ddos_takedown') return { success: false, message: 'Nenhum contrato DDoS ativo.' };
+
+      if (window.softwareEngine && !window.softwareEngine.isDdosBreakerActive()) {
+        return {
+          success: false,
+          code: 'NO_DDOS_BREAKER',
+          message: 'Seu DDoS_Breaker.vbrk está DESATIVADO na sua RAM! Instale-o na aba Software & Vírus antes de lançar um ataque DDoS.'
+        };
+      }
 
       const hasCert4 = window.universityEngine ? window.universityEngine.hasCert(4) : false;
       const gbps = window.softwareEngine ? window.softwareEngine.getPendingHarvestSummary().totalGbps : 0;

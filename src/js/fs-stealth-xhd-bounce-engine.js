@@ -251,11 +251,18 @@
 
   const SOFT_DISPLAY_NAMES = {
     cracker: 'Cracker.crc',
+    exploit_ftp: 'FTP_Exploit.exp',
     exploit_ssh: 'SSH_Exploit.exp',
+    portscan: 'PortScan.scan',
     hasher: 'Hasher.hash',
     firewall: 'Firewall.fwl',
     antivirus: 'Antivirus.av',
     collector: 'Collector.vcol',
+    torrent: 'Torrent.torrent',
+    ddos_breaker: 'DDoS_Breaker.vbrk',
+    nmap: 'Nmap.nmap',
+    analyzer: 'Analyzer.ana',
+    webserver: 'WebServer.exe',
     hider: 'Hider.hdr',
     seeker: 'Seeker.skr',
     vspam: 'Spam.vspam',
@@ -424,12 +431,13 @@
       }
 
       cur.versionInt = Math.max(cur.versionInt, bak.versionInt);
+      cur.licensed = true;
       window.softwareEngine.save();
       window.softwareEngine.renderUI();
       return { success: true, message: `${bak.filename} restaurado para v${(bak.versionInt / 10).toFixed(1)} a partir do HD Externo!` };
     }
 
-    // Esconder um vírus remoto com Hider.hdr (aumenta camuflagem contra o Antivirus.av do alvo!)
+    // Esconder um vírus remoto com Hider.hdr (aumenta camuflagem contra o Antivirus.av do alvo e oculta no PvP até Seeker.skr!)
     hideRemoteVirusWithHider(infectionId) {
       this.ensureLoaded();
       if (!window.softwareEngine) return { success: false };
@@ -439,11 +447,27 @@
 
       const hiderVer = this.getHiderVer();
       v.hiddenWithVer = hiderVer;
-      // Ao esconder com Hider forte, eleva a versão efetiva contra varredura de AV!
       if (this.state.hiderVerInt > v.versionInt) {
         v.effectiveStealthInt = this.state.hiderVerInt;
       }
       window.softwareEngine.save();
+
+      // Se o alvo for jogador humano real, envia pacote PVP_VIRUS_HIDE para camuflar o malware no PC dele!
+      const host = window.internetEngine ? window.internetEngine.resolveHost(v.targetIp) : null;
+      if (host && host.isRealHuman && window.onlineEngine) {
+        const visibleIp = window.bounceEngine
+          ? window.bounceEngine.routeConnectionAndGetVisibleIp(host.ip).visibleIp
+          : (window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0');
+        window.onlineEngine.sendPvpPacket({
+          kind: 'PVP_VIRUS_HIDE',
+          visibleIp,
+          targetUserId: host.humanUserId,
+          targetTag: host.humanTag,
+          targetIp: host.ip,
+          d: { fn: v.filename, hiddenWithVer: hiderVer }
+        });
+      }
+
       window.softwareEngine.renderUI();
       return { success: true, message: `${v.filename} camuflado em ${v.targetIp} com Hider.hdr v${hiderVer.toFixed(1)}!` };
     }
@@ -452,7 +476,7 @@
     getStealableSoftwaresOnHost(host) {
       if (!host || host.notFound || host.kind === 'self') return [];
 
-      // 1) Se for servidor da Trilha de Enigmas e o enigma daquele nó já foi resolvido -> dá o software prêmio!
+      // 1) Se for servidor da Trilha de Enigmas e o enigma daquele nó já foi resolvido -> dá o software prêmio (licenciado)!
       if (window.puzzleTrailEngine) {
         const pNode = window.puzzleTrailEngine.getNodeByIp(host.ip);
         if (pNode) {
@@ -471,19 +495,25 @@
       const list = [];
       if (host.ip === '203.17.88.40') {
         list.push({ softKey: 'firewall', filename: 'Firewall.fwl', versionInt: 15, sourceBadge: 'Binário Corporativo' });
+        list.push({ softKey: 'analyzer', filename: 'Analyzer.ana', versionInt: 20, sourceBadge: 'Diagnóstico TI' });
       } else if (host.ip === '185.220.101.9') {
         list.push({ softKey: 'exploit_ssh', filename: 'SSH_Exploit.exp', versionInt: 20, sourceBadge: 'Arsenal Darknet' });
+        list.push({ softKey: 'exploit_ftp', filename: 'FTP_Exploit.exp', versionInt: 20, sourceBadge: 'Arsenal Darknet' });
         list.push({ softKey: 'vwarez', filename: 'Warez.vwarez', versionInt: 20, sourceBadge: 'Arsenal Darknet' });
       } else if (host.kind === 'banco') {
         const bankVer = Math.round((host.hasherVer || 2.0) * 10);
         list.push({ softKey: 'hasher', filename: 'Hasher.hash', versionInt: bankVer, sourceBadge: 'Módulo Bancário' });
+        list.push({ softKey: 'antivirus', filename: 'Antivirus.av', versionInt: Math.min(40, bankVer), sourceBadge: 'Defesa Bancária' });
         list.push({ softKey: 'vbank', filename: 'BankTrojan.vbank', versionInt: Math.min(35, bankVer), sourceBadge: 'Protótipo Interno' });
       } else if (host.kind === 'bot') {
         if (host.tier === 2) {
           list.push({ softKey: 'cracker', filename: 'Cracker.crc', versionInt: 20, sourceBadge: 'Kit do Bot Tier II' });
+          list.push({ softKey: 'nmap', filename: 'Nmap.nmap', versionInt: 20, sourceBadge: 'Kit do Bot Tier II' });
           list.push({ softKey: 'vspam', filename: 'Spam.vspam', versionInt: 20, sourceBadge: 'Kit do Bot Tier II' });
         } else if (host.tier === 3) {
           list.push({ softKey: 'cracker', filename: 'Cracker.crc', versionInt: 30, sourceBadge: 'Arsenal APT Tier III' });
+          list.push({ softKey: 'antivirus', filename: 'Antivirus.av', versionInt: 30, sourceBadge: 'Arsenal APT Tier III' });
+          list.push({ softKey: 'ddos_breaker', filename: 'DDoS_Breaker.vbrk', versionInt: 25, sourceBadge: 'Arsenal APT Tier III' });
           list.push({ softKey: 'vddos', filename: 'DDoS_Node.vddos', versionInt: 25, sourceBadge: 'Arsenal APT Tier III' });
         }
       }
@@ -495,6 +525,17 @@
       this.ensureLoaded();
       if (!window.softwareEngine) return { success: false };
       window.softwareEngine.ensureLoaded();
+
+      // Checar permissão de Download caso esteja em sessão limitada SSH-Only Exploit!
+      if (window.internetEngine && typeof window.internetEngine.hasRemotePermission === 'function') {
+        if (!window.internetEngine.hasRemotePermission('download')) {
+          return {
+            success: false,
+            code: 'NO_FTP_PERMISSION',
+            message: 'PERMISSÃO NEGADA (Sessão SSH-Only)! O Exploit SSH não permite Download/Upload de arquivos — use FTP_Exploit.exp junto (ou Força-Bruta root)!'
+          };
+        }
+      }
 
       const isStealthTool = softKey === 'hider' || softKey === 'seeker';
       const cur = isStealthTool
@@ -531,6 +572,8 @@
           this.save();
         } else {
           cur.versionInt = remoteVersionInt;
+          // Regra Oficial HE (softwares.txt): binário baixado de outro servidor pode ser usado, mas NÃO vem licenciado p/ pesquisa (exceto recompensa Enigma)!
+          cur.licensed = host.kind === 'puzzle';
           window.softwareEngine.save();
         }
 

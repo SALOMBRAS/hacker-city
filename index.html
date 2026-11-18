@@ -6,6 +6,7 @@
   <title>Hacker City — Web Edition (Supabase Online & Multiplayer)</title>
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#0e1115">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2310151c'/%3E%3Ctext x='16' y='22' font-family='monospace' font-weight='700' font-size='15' fill='%2335b877' text-anchor='middle'%3EHC%3C/text%3E%3C/svg%3E">
   <link rel="preload" href="src/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="src/fonts/jetbrains-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="src/css/fonts.css">
@@ -1154,17 +1155,19 @@
       }
     }
 
-    // Modo Entrada Instantânea em 1 Clique (Zero atrito de OTP + persiste no F5!)
+    // Modo Entrada Instantânea em 1 Clique (Zero atrito de OTP + persiste no F5 e suporta múltiplas abas PvP!)
     async function enterInstantOperatorMode(customTag = null) {
       let savedMeta = null;
       try {
-        const raw = localStorage.getItem('HC_ACTIVE_INSTANT_SESSION');
+        const tabRaw = sessionStorage.getItem('HC_TAB_INSTANT_SESSION');
+        const raw = tabRaw || (!customTag ? localStorage.getItem('HC_ACTIVE_INSTANT_SESSION') : null);
         if (raw) savedMeta = JSON.parse(raw);
       } catch (e) {}
 
-      const uid = (savedMeta && savedMeta.id) || ('local-op-' + Math.floor(10000 + Math.random() * 89999));
-      const tag = customTag || (savedMeta && savedMeta.hacker_tag) || ('Operador_' + uid.slice(-4));
-      const acc = (savedMeta && savedMeta.account_number) || ('HC-' + Math.floor(1000 + Math.random() * 8999) + '-77');
+      const reuseSaved = savedMeta && (!customTag || savedMeta.hacker_tag === customTag);
+      const uid = reuseSaved ? savedMeta.id : ('local-op-' + Math.floor(10000 + Math.random() * 89999));
+      const tag = customTag || (reuseSaved && savedMeta.hacker_tag) || ('Operador_' + uid.slice(-4));
+      const acc = (reuseSaved && savedMeta.account_number) || ('HC-' + Math.floor(1000 + Math.random() * 8999) + '-77');
 
       currentProfile = {
         id: uid,
@@ -1183,11 +1186,9 @@
       };
 
       try {
-        localStorage.setItem('HC_ACTIVE_INSTANT_SESSION', JSON.stringify({
-          id: uid,
-          hacker_tag: tag,
-          account_number: acc
-        }));
+        const metaJson = JSON.stringify({ id: uid, hacker_tag: tag, account_number: acc });
+        sessionStorage.setItem('HC_TAB_INSTANT_SESSION', metaJson);
+        localStorage.setItem('HC_ACTIVE_INSTANT_SESSION', metaJson);
       } catch (e) {}
 
       document.getElementById('authOverlay').style.display = 'none';

@@ -112,10 +112,10 @@ class HardwareEngine {
     `;
 
     const titles = {
-      cpu: '1. PROCESSADORES (CPU — Acelera Processos & Ataque)',
+      cpu: '1. PROCESSADORES (CPU — Acelera o TEMPO de Quebra/Logs/Scan; potência depende da versão do Software!)',
       ram: '2. MEMÓRIA RAM (Limite de Softwares Ativos Simultâneos)',
-      hdd: '3. ARMAZENAMENTO HDD / SSD (Espaço p/ Vírus Fortes)',
-      network: '4. VELOCIDADE DE INTERNET (Tempo de Upload SSH de Vírus)'
+      hdd: '3. ARMAZENAMENTO HDD / SSD (Espaço p/ Vírus & Binários Fortes)',
+      network: '4. VELOCIDADE DE INTERNET (Tempo de Download & Upload SSH/FTP)'
     };
 
     ['cpu', 'ram', 'hdd', 'network'].forEach((category) => {

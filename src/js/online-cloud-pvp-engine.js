@@ -107,9 +107,15 @@
     buildMyPublicPeerDescriptor() {
       const p = window.currentProfile || {};
       const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0';
-      const fw = window.softwareEngine ? Math.max(1.0, window.softwareEngine.getSoftwareVersion('firewall')) : 1.0;
-      const hs = window.softwareEngine ? Math.max(1.0, window.softwareEngine.getSoftwareVersion('hasher')) : 1.0;
-      const av = window.softwareEngine ? Math.max(1.0, window.softwareEngine.getSoftwareVersion('antivirus')) : 1.0;
+      const pwdEpoch = (window.networkIdentity && window.networkIdentity.state && window.networkIdentity.state.pwdEpoch) || 1;
+      const fw = window.softwareEngine ? window.softwareEngine.getSoftwareVersion('firewall') : 1.0;
+      const hs = window.softwareEngine ? window.softwareEngine.getSoftwareVersion('hasher') : 1.0;
+      const av = window.softwareEngine ? window.softwareEngine.getSoftwareVersion('antivirus') : 1.0;
+      const hddTotalMb = window.softwareEngine ? window.softwareEngine.getMaxHddMb() : 350;
+      const ramTotalMb = window.softwareEngine ? window.softwareEngine.getMaxRamMb() : 256;
+      const customWebPage = (window.softwareEngine && window.softwareEngine.isSoftwareInstalled('webserver'))
+        ? window.softwareEngine.state.customWebPage
+        : null;
       const bestSoft = window.rankingBadgesEngine ? window.rankingBadgesEngine.getPlayerBestSoftwareVer() : 1.0;
       const ddosGbps = window.softwareEngine ? window.softwareEngine.getPendingHarvestSummary().totalGbps : 0;
       const cpuMhz = window.softwareEngine ? window.softwareEngine.getPlayerCpuMhz() : 800;
@@ -121,11 +127,15 @@
         hackerTag: p.hacker_tag || 'Operador',
         specialty: p.specialty || 'exploiter',
         publicIp: myIp,
+        pwdEpoch,
         reputation: Number(p.reputation || 100),
         heatLevel: Number(p.heat_level || 1),
         firewallVer: fw,
         hasherVer: hs,
         antivirusVer: av,
+        hddTotalMb,
+        ramTotalMb,
+        customWebPage,
         bestSoftVer: bestSoft,
         ddosGbps,
         cpuMhz,
@@ -618,8 +628,8 @@
         }
       } catch (e) {}
 
-      // 2. Se player_cloud_saves existir, enriquecer IPs públicos e defesas exatas de todos os jogadores!
-      if (this.cloudTablesAvailable !== false) {
+      // 2. Se player_cloud_saves existir (em sessão autenticada na nuvem), enriquecer IPs públicos e defesas exatas!
+      if (!isLocalDemo && this.cloudTablesAvailable === true) {
         try {
           const { data: saves, error: sErr } = await window.supabase
             .from('player_cloud_saves')
@@ -860,6 +870,8 @@
     describePacket(pkt) {
       if (pkt.kind === 'PVP_INTRUSION') return `Invasão SSH (${pkt.d?.method || 'ROOT'}) contra ${pkt.targetIp} (origem visível: ${pkt.visibleIp})`;
       if (pkt.kind === 'PVP_VIRUS_PLANT') return `Vírus ${pkt.d?.fn || 'Malware'} v${((pkt.d?.ver || 10) / 10).toFixed(1)} enviado para ${pkt.targetIp}`;
+      if (pkt.kind === 'PVP_VIRUS_HIDE') return `Camuflagem Hider v${Number(pkt.d?.hiddenWithVer || 1).toFixed(1)} aplicada em ${pkt.targetIp}`;
+      if (pkt.kind === 'PVP_AV_PURGED') return `Antivirus.av de ${pkt.d?.victimIp || pkt.visibleIp} expurgou seu vírus (${pkt.d?.fn || 'Malware'})`;
       if (pkt.kind === 'PVP_WIPE_LOG') return `Rastro de ${pkt.visibleIp} limpo em ${pkt.targetIp}:/var/log/syslog`;
       if (pkt.kind === 'PVP_DRAIN_WALLET') return `Drenagem PvP de $ ${pkt.d?.amt || 0} HC em ${pkt.targetIp}`;
       if (pkt.kind === 'P2P_MAIL') return `E-mail criptografado de ${pkt.senderTag} → ${pkt.targetTag}: "${pkt.d?.sub || ''}"`;
@@ -893,12 +905,40 @@
       });
       if (this.livePvpFeed.length > 25) this.livePvpFeed.length = 25;
 
+      // VALIDAÇÃO KERNEL LOCAL DO DEFENSOR (Firewall.fwl & Hasher.hash):
+      // Se meu Firewall.fwl (ou Hasher.hash) for mais forte que o software usado pelo atacante humano, BLOQUEIA no ato!
+      if (['PVP_INTRUSION', 'PVP_VIRUS_PLANT', 'PVP_DRAIN_WALLET'].includes(pkt.kind) && isForMeByIp && window.softwareEngine) {
+        const myFw = window.softwareEngine.getSoftwareVersion('firewall');
+        const myHs = window.softwareEngine.getSoftwareVersion('hasher');
+        const attCrc = Number(pkt.d?.crcVer || 1.0);
+        const attExp = Number(pkt.d?.expVer || 1.0);
+        const method = pkt.d?.method || 'password';
+
+        const blockedByFw = method === 'exploit' ? (myFw > attExp) : (myFw > Math.max(attCrc, attExp));
+        const blockedByHs = method !== 'exploit' && (myHs > attCrc);
+
+        if (blockedByFw || blockedByHs) {
+          const shield = blockedByFw ? `Firewall.fwl v${myFw.toFixed(1)}` : `Hasher.hash v${myHs.toFixed(1)}`;
+          if (typeof window.addLocalLog === 'function') {
+            window.addLocalLog(
+              'FIREWALL-PVP-BLOCK',
+              `Seu ${shield} BLOQUEOU tentativa de invasão/ação PvP de ${pkt.visibleIp}!`,
+              'success'
+            );
+          }
+          if (!silentReplay && typeof window.showToast === 'function') {
+            window.showToast(`Escudo PvP: seu ${shield} bloqueou ataque de ${pkt.visibleIp}!`);
+          }
+          return true;
+        }
+      }
+
       // 1) Invasão PvP Real: grava o IP visível do atacante (ou último salto de Bounce!) nos seus Logs!
       if (pkt.kind === 'PVP_INTRUSION' && isForMeByIp) {
         if (typeof window.addLocalLog === 'function') {
           window.addLocalLog(
             'PVP-INTRUSION',
-            `ALERTA DE INVASÃO HUMANA: ${pkt.visibleIp} acessou root no seu PC (${myIp}) via ${(pkt.d?.method || 'SSH').toUpperCase()}!`,
+            `ALERTA DE INVASÃO HUMANA: ${pkt.visibleIp} acessou ${(pkt.d?.role || 'root').toUpperCase()} no seu PC (${myIp}) via ${(pkt.d?.method || 'SSH').toUpperCase()}!`,
             'danger'
           );
         }
@@ -910,21 +950,52 @@
         }
       }
 
-      // 2) Vírus Hostil Real plantado por outro jogador na sua máquina!
+      // 2) Vírus Hostil Real plantado por outro jogador na sua máquina (respeitando potência v1.0->v10.0 e Hider)!
       if (pkt.kind === 'PVP_VIRUS_PLANT' && isForMeByIp && window.softwareEngine) {
         const fn = pkt.d?.fn || 'Trojan.vspam';
         const verInt = Number(pkt.d?.ver || 15);
-        window.softwareEngine.infectLocalPc('pvp_' + fn, `${fn} (PvP)`, verInt, pkt.visibleIp || 'desconhecido');
+        const hiddenWithVer = Number(pkt.d?.hiddenWithVer || 0);
+        window.softwareEngine.infectLocalPc(
+          'pvp_' + fn,
+          `${fn} (PvP)`,
+          verInt,
+          pkt.visibleIp || 'desconhecido',
+          hiddenWithVer,
+          pkt.senderId || null
+        );
         if (typeof window.addLocalLog === 'function') {
           window.addLocalLog(
             'PVP-MALWARE',
-            `${pkt.visibleIp} instalou ${fn} (v${(verInt / 10).toFixed(1)}) na sua RAM! Rode seu Antivirus.av!`,
+            `${pkt.visibleIp} instalou ${fn} (v${(verInt / 10).toFixed(1)}) na sua RAM! (Exige Antivirus.av >= v${(verInt / 10).toFixed(1)} p/ remover!)`,
             'danger'
           );
         }
         if (!silentReplay && typeof window.showToast === 'function') {
           window.showToast(`PERIGO: Um jogador plantou ${fn} v${(verInt / 10).toFixed(1)} no seu PC!`);
         }
+      }
+
+      // 2b) Atacante camuflou o vírus no seu PC usando Hider.hdr!
+      if (pkt.kind === 'PVP_VIRUS_HIDE' && isForMeByIp && window.softwareEngine) {
+        window.softwareEngine.ensureLoaded();
+        const hVer = Number(pkt.d?.hiddenWithVer || 1.5);
+        const list = window.softwareEngine.state.localHostileInfections || [];
+        const targetInf = list.find((inf) => inf.attackerUserId === pkt.senderId || String(inf.label).includes(pkt.d?.fn || ''));
+        if (targetInf) {
+          targetInf.hiddenWithVer = hVer;
+          targetInf.revealed = false;
+          window.softwareEngine.save();
+          if (window.winManager && window.winManager.current === 'winSoftware') {
+            window.softwareEngine.renderUI();
+          }
+        }
+      }
+
+      // 2c) Vítima limpou nosso vírus com Antivirus.av >= versão do vírus (ou Formatar HD)!
+      if (pkt.kind === 'PVP_AV_PURGED' && (isForMeById || isForMeByIp) && window.softwareEngine) {
+        const victimIp = pkt.d?.victimIp || pkt.visibleIp;
+        const avVer = Number(pkt.d?.avVer || 10);
+        window.softwareEngine.handleRemoteVirusPurgedByVictim(victimIp, avVer);
       }
 
       // 3) Atacante apagou o próprio rastro de IP nos seus logs antes de sair!
