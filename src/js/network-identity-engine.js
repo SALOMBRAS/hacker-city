@@ -556,10 +556,19 @@
       badge: 'Diretório Oficial',
       tier: 1,
       securityLevel: 2,
-      cpuSpec: '8c @ 3.4GHz · 1000Mbps',
+      cpuMhz: 3400,
+      netMbps: 500,
+      hddTotalMb: 1024,
+      hddOsBaseMb: 600,
+      ramTotalMb: 512,
+      ramOsBaseMb: 280,
+      hasherVer: 1.5,
+      firewallVer: 1.5,
+      antivirusVer: 2.0,
+      cpuSpec: '3.400 MHz · 500 Mbps · AV v2.0',
       bankBalance: 0,
       files: [
-        { name: 'backbone_routes.txt', size: '12 KB', content: 'Rotas troncais: ISP 71.4.5.1 | Download 33.8.2.71 | Banco 77.3.9.21 | Safenet 109.64.211.37' }
+        { name: 'backbone_routes.txt', size: '12 MB', sizeMb: 12, content: 'Rotas troncais: ISP 71.4.5.1 | Download 33.8.2.71 | Banco 77.3.9.21 | Safenet 109.64.211.37' }
       ]
     },
     '71.4.5.1': {
@@ -570,10 +579,19 @@
       badge: 'Provedor ISP',
       tier: 2,
       securityLevel: 3,
-      cpuSpec: '16c @ 3.8GHz · 10Gbps',
-      bankBalance: 1450,
+      cpuMhz: 8000,
+      netMbps: 1000,
+      hddTotalMb: 4096,
+      hddOsBaseMb: 2100,
+      ramTotalMb: 2048,
+      ramOsBaseMb: 900,
+      hasherVer: 3.0,
+      firewallVer: 3.0,
+      antivirusVer: 3.0,
+      cpuSpec: '8.000 MHz · 1.000 Mbps · AV v3.0',
+      bankBalance: 480,
       files: [
-        { name: 'dhcp_leases.conf', size: '48 KB', content: 'Política DHCP: 1 renovação gratuita de IPv4 a cada 7 dias corridos por assinante.' }
+        { name: 'dhcp_leases.conf', size: '36 MB', sizeMb: 36, content: 'Política DHCP: 1 renovação gratuita de IPv4 a cada 7 dias (Emergencial: $ 50.000 HC).' }
       ]
     },
     '33.8.2.71': {
@@ -584,12 +602,21 @@
       badge: 'Repositório Público',
       tier: 1,
       securityLevel: 1,
-      cpuSpec: '4c @ 2.8GHz · 500Mbps',
-      bankBalance: 320,
+      cpuMhz: 2400,
+      netMbps: 250,
+      hddTotalMb: 1024,
+      hddOsBaseMb: 520,
+      ramTotalMb: 512,
+      ramOsBaseMb: 240,
+      hasherVer: 1.0,
+      firewallVer: 1.0,
+      antivirusVer: 1.5,
+      cpuSpec: '2.400 MHz · 250 Mbps · AV v1.5',
+      bankBalance: 90,
       files: [
-        { name: 'Cracker.crc (v1.0)', size: '28 MB', content: 'Utilitário padrão de força-bruta SSH v1.0.' },
-        { name: 'PortScan.scan (v1.0)', size: '14 MB', content: 'Scanner rápido de portas TCP/UDP.' },
-        { name: 'LogCleaner.sh (v1.0)', size: '6 MB', content: 'Script auxiliar de truncamento de /var/log/syslog.' }
+        { name: 'Cracker.crc (v1.0)', size: '26 MB', sizeMb: 26, content: 'Utilitário padrão de força-bruta SSH v1.0.' },
+        { name: 'PortScan.scan (v1.0)', size: '14 MB', sizeMb: 14, content: 'Scanner rápido de portas TCP/UDP.' },
+        { name: 'LogCleaner.sh (v1.0)', size: '8 MB', sizeMb: 8, content: 'Script auxiliar de truncamento de /var/log/syslog.' }
       ]
     },
     '203.17.88.40': {
@@ -600,11 +627,20 @@
       badge: 'Empresa',
       tier: 1,
       securityLevel: 1,
-      cpuSpec: '4c @ 2.6GHz · 100Mbps',
-      bankBalance: 850,
+      cpuMhz: 2200,
+      netMbps: 100,
+      hddTotalMb: 380,
+      hddOsBaseMb: 210,
+      ramTotalMb: 256,
+      ramOsBaseMb: 120,
+      hasherVer: 1.0,
+      firewallVer: 1.0,
+      antivirusVer: 1.5,
+      cpuSpec: '2.200 MHz · 100 Mbps · HDD 380MB · AV v1.5',
+      bankBalance: 185,
       files: [
-        { name: 'clientes_b2b.csv', size: '94 KB', content: 'Parceiros ativos: Rádio Pirata (133.70.13.37) e Gateway Safenet (109.64.211.37).' },
-        { name: 'caixa_interno.dat', size: '8 KB', content: 'Reserva operacional disponível para wire transfer.' }
+        { name: 'clientes_b2b.csv', size: '42 MB', sizeMb: 42, content: 'Parceiros ativos: Rádio Pirata (133.70.13.37) e Gateway Safenet (109.64.211.37).' },
+        { name: 'caixa_interno.dat', size: '28 MB', sizeMb: 28, content: 'Reserva operacional disponível para wire transfer.' }
       ]
     },
     '133.70.13.37': {
@@ -615,10 +651,19 @@
       badge: 'Underground',
       tier: 1,
       securityLevel: 1,
-      cpuSpec: '2c @ 2.4GHz · 100Mbps',
-      bankBalance: 620,
+      cpuMhz: 1200,
+      netMbps: 25,
+      hddTotalMb: 190,
+      hddOsBaseMb: 115,
+      ramTotalMb: 128,
+      ramOsBaseMb: 74,
+      hasherVer: 1.0,
+      firewallVer: 1.0,
+      antivirusVer: 1.0,
+      cpuSpec: '1.200 MHz · 25 Mbps · HDD 190MB (Apertado!) · AV v1.0',
+      bankBalance: 110,
       files: [
-        { name: 'frequencias_darknet.txt', size: '4 KB', content: 'Loja Onion: 185.220.101.9 | Provedor ISP p/ trocar IP: 71.4.5.1' }
+        { name: 'acervo_mp3_pirata.tar', size: '40 MB', sizeMb: 40, content: 'Arquivo pesado ocupando quase todo o HD da rádio! Apague p/ liberar espaço p/ vírus.' }
       ]
     },
     '77.3.9.21': {
@@ -629,10 +674,19 @@
       badge: 'Instituição Bancária',
       tier: 3,
       securityLevel: 3,
-      cpuSpec: '16c @ 4.0GHz · 10Gbps',
-      bankBalance: 3200,
+      cpuMhz: 12000,
+      netMbps: 1000,
+      hddTotalMb: 8192,
+      hddOsBaseMb: 3200,
+      ramTotalMb: 4096,
+      ramOsBaseMb: 1600,
+      hasherVer: 2.5,
+      firewallVer: 2.5,
+      antivirusVer: 3.0,
+      cpuSpec: '12.000 MHz · 1.000 Mbps · HDD 8GB · AV v3.0',
+      bankBalance: 1150,
       files: [
-        { name: 'swift_ledger.enc', size: '512 KB', content: ' Ledger interbancário protegido por QuantumGuard.' }
+        { name: 'swift_ledger.enc', size: '120 MB', sizeMb: 120, content: 'Ledger interbancário protegido por criptografia bancária.' }
       ]
     },
     '185.220.101.9': {
@@ -643,10 +697,19 @@
       badge: 'Darknet Market',
       tier: 2,
       securityLevel: 2,
-      cpuSpec: '8c @ 3.2GHz · Tor Relay',
-      bankBalance: 1900,
+      cpuMhz: 4800,
+      netMbps: 250,
+      hddTotalMb: 2048,
+      hddOsBaseMb: 980,
+      ramTotalMb: 1024,
+      ramOsBaseMb: 460,
+      hasherVer: 1.5,
+      firewallVer: 1.5,
+      antivirusVer: 2.0,
+      cpuSpec: '4.800 MHz · 250 Mbps · HDD 2GB · AV v2.0',
+      bankBalance: 420,
       files: [
-        { name: 'catalogo_0day.gpg', size: '32 KB', content: 'Exploits v2 e limpadores de ficha policial.' }
+        { name: 'catalogo_0day.gpg', size: '32 MB', sizeMb: 32, content: 'Exploits v2 e limpadores de ficha policial.' }
       ]
     },
     '109.64.211.37': {
@@ -657,10 +720,19 @@
       badge: 'Autoridade Safenet',
       tier: 3,
       securityLevel: 3,
-      cpuSpec: '32c @ 4.2GHz · Backbone Gov',
-      bankBalance: 2400,
+      cpuMhz: 16000,
+      netMbps: 1000,
+      hddTotalMb: 16384,
+      hddOsBaseMb: 6000,
+      ramTotalMb: 8192,
+      ramOsBaseMb: 3000,
+      hasherVer: 3.5,
+      firewallVer: 3.5,
+      antivirusVer: 4.0,
+      cpuSpec: '16.000 MHz · 1.000 Mbps · AV v4.0',
+      bankBalance: 890,
       files: [
-        { name: 'fwd_to_fbi.log', size: '24 KB', content: 'Monitoramento forense ativo sobre transferências ilícitas e ataques sem bounce.' }
+        { name: 'fwd_to_fbi.log', size: '64 MB', sizeMb: 64, content: 'Monitoramento forense ativo sobre transferências ilícitas e ataques sem bounce.' }
       ]
     },
     '198.51.100.42': {
@@ -671,10 +743,19 @@
       badge: 'Alvo Tutorial',
       tier: 1,
       securityLevel: 1,
-      cpuSpec: '2c @ 1.8GHz · Sandbox 50Mbps',
-      bankBalance: 320,
+      cpuMhz: 1000,
+      netMbps: 20,
+      hddTotalMb: 250,
+      hddOsBaseMb: 130,
+      ramTotalMb: 128,
+      ramOsBaseMb: 64,
+      hasherVer: 1.0,
+      firewallVer: 1.0,
+      antivirusVer: 0,
+      cpuSpec: '1.000 MHz · 20 Mbps · HDD 250MB · Sem Antivírus',
+      bankBalance: 65,
       files: [
-        { name: 'readme_operador.txt', size: '2 KB', content: 'Bem-vindo à prova prática de Ensei Tankado. Extraia o dossiê e limpe seu IP na aba Logs!' }
+        { name: 'readme_operador.txt', size: '8 MB', sizeMb: 8, content: 'Bem-vindo à prova prática de Ensei Tankado. Extraia o dossiê e limpe seu IP na aba Logs!' }
       ]
     }
   };
@@ -689,8 +770,17 @@
       specialty: 'exploiter',
       tier: 2,
       securityLevel: 2,
-      cpuSpec: '8c @ 3.6GHz · 500Mbps',
-      bankBalance: 1340
+      cpuMhz: 4000,
+      netMbps: 150,
+      hddTotalMb: 1024,
+      hddOsBaseMb: 540,
+      ramTotalMb: 512,
+      ramOsBaseMb: 240,
+      hasherVer: 1.5,
+      firewallVer: 1.5,
+      antivirusVer: 2.0,
+      cpuSpec: '4.000 MHz · 150 Mbps · AV v2.0',
+      bankBalance: 340
     },
     '91.134.72.19': {
       ip: '91.134.72.19',
@@ -700,8 +790,17 @@
       specialty: 'botmaster',
       tier: 2,
       securityLevel: 2,
-      cpuSpec: '4c @ 3.0GHz · 250Mbps',
-      bankBalance: 780
+      cpuMhz: 2800,
+      netMbps: 80,
+      hddTotalMb: 640,
+      hddOsBaseMb: 360,
+      ramTotalMb: 384,
+      ramOsBaseMb: 190,
+      hasherVer: 1.5,
+      firewallVer: 1.5,
+      antivirusVer: 1.5,
+      cpuSpec: '2.800 MHz · 80 Mbps · AV v1.5',
+      bankBalance: 210
     },
     '177.84.19.62': {
       ip: '177.84.19.62',
@@ -711,8 +810,17 @@
       specialty: 'sentinel',
       tier: 1,
       securityLevel: 1,
-      cpuSpec: 'Celeron 800MHz · 56kbps',
-      bankBalance: 500
+      cpuMhz: 800,
+      netMbps: 1,
+      hddTotalMb: 350,
+      hddOsBaseMb: 260,
+      ramTotalMb: 256,
+      ramOsBaseMb: 140,
+      hasherVer: 1.0,
+      firewallVer: 1.0,
+      antivirusVer: 1.0,
+      cpuSpec: '800 MHz · 1 Mbps · Protegido (<100 REP)',
+      bankBalance: 95
     }
   };
 
@@ -739,6 +847,8 @@
       this.favorites = new Set(['71.4.5.1', '203.17.88.40']);
       this.portScannedIps = new Set();
       this.drainedNpcIps = new Set();
+      this.deletedHostFiles = new Map(); // ip -> Set(fileName)
+      this.deletedHostFileMb = new Map(); // ip -> number (compatibilidade extra)
       this.activeSshIp = null;
       this.isCracking = false;
       this.crackPct = 0;
@@ -821,6 +931,8 @@
         };
       }
 
+      const deletedSet = this.deletedHostFiles.get(ip) || new Set();
+
       // 2. Servidor NPC Oficial do Mundo?
       if (WORLD_NPC_HOSTS[ip]) {
         const npc = WORLD_NPC_HOSTS[ip];
@@ -828,7 +940,8 @@
           ...npc,
           online: true,
           rootPassword: deterministicPassword(npc.ip),
-          bankBalance: this.drainedNpcIps.has(npc.ip) ? 0 : npc.bankBalance
+          bankBalance: this.drainedNpcIps.has(npc.ip) ? 0 : npc.bankBalance,
+          files: (npc.files || []).filter((f) => !deletedSet.has(f.name))
         };
       }
 
@@ -837,6 +950,15 @@
         const bot = window.botRegistry.getBotByIp(ip);
         if (bot) {
           const online = window.botScheduler ? window.botScheduler.isBotOnline(ip) : true;
+          const cpuMhz = Math.round((bot.hardware.cpuCores || 1) * (bot.hardware.cpuClock || 1.2) * 550);
+          const netMbps = bot.tier === 3 ? 250 : (bot.tier === 2 ? 35 : 3);
+          const hddTotalMb = bot.tier === 3 ? 2048 : (bot.tier === 2 ? 520 : 180);
+          const ramTotalMb = bot.tier === 3 ? 1024 : (bot.tier === 2 ? 384 : 128);
+          const avVer = bot.tier === 3 ? 2.5 : (bot.tier === 2 ? 1.5 : 1.0);
+          const defVer = bot.tier === 3 ? 2.5 : (bot.tier === 2 ? 1.5 : 1.0);
+          const rawBal = bot.bankAccount ? bot.bankAccount.balance : 0;
+          const scaledBal = rawBal > 0 ? Math.max(35, Math.round(rawBal * 0.22)) : 0;
+
           return {
             ip: bot.ip,
             hostname: `${bot.handle} (${bot.tierName})`,
@@ -845,11 +967,22 @@
             online,
             tier: bot.tier,
             securityLevel: bot.tier,
+            cpuMhz,
+            netMbps,
+            hddTotalMb,
+            hddOsBaseMb: Math.round(hddTotalMb * 0.58),
+            ramTotalMb,
+            ramOsBaseMb: Math.round(ramTotalMb * 0.55),
+            hasherVer: defVer,
+            firewallVer: defVer,
+            antivirusVer: avVer,
             rootPassword: deterministicPassword(bot.ip + '::' + bot.handle),
-            cpuSpec: `${bot.hardware.cpuCores}c @ ${bot.hardware.cpuClock}GHz · ${bot.hardware.ramGb}GB RAM`,
-            bankBalance: bot.bankAccount ? bot.bankAccount.balance : 0,
+            cpuSpec: `${cpuMhz} MHz · ${netMbps} Mbps · HDD ${hddTotalMb}MB · AV v${avVer.toFixed(1)}`,
+            bankBalance: scaledBal,
             botRef: bot,
-            files: (bot.vfs || []).map((f) => ({ name: f.name, size: f.size || '16 KB', content: f.desc || 'Arquivo de sistema do operador bot.' }))
+            files: (bot.vfs || [])
+              .filter((f) => !deletedSet.has(f.name))
+              .map((f) => ({ name: f.name, size: '18 MB', sizeMb: 18, content: f.desc || 'Arquivo de sistema do operador bot.' }))
           };
         }
       }
@@ -857,20 +990,31 @@
       // 4. É um jogador real no Supabase ou VPC povoado?
       const cloudPlayer = this.cloudPlayersByIp[ip];
       if (cloudPlayer) {
+        const rep = cloudPlayer.reputation || 100;
+        const isMid = rep >= 500;
         return {
           ip,
           hostname: `VPC de ${cloudPlayer.hacker_tag}`,
           kind: 'player',
           badge: 'Jogador Online',
           online: true,
-          reputation: cloudPlayer.reputation || 100,
-          newbieProtected: (cloudPlayer.reputation || 100) < 100,
-          tier: (cloudPlayer.reputation || 100) >= 500 ? 2 : 1,
-          securityLevel: (cloudPlayer.reputation || 100) >= 500 ? 2 : 1,
+          reputation: rep,
+          newbieProtected: rep < 100,
+          tier: isMid ? 2 : 1,
+          securityLevel: isMid ? 2 : 1,
+          cpuMhz: isMid ? 2800 : 1000,
+          netMbps: isMid ? 50 : 10,
+          hddTotalMb: isMid ? 768 : 350,
+          hddOsBaseMb: isMid ? 420 : 210,
+          ramTotalMb: isMid ? 512 : 256,
+          ramOsBaseMb: isMid ? 260 : 140,
+          hasherVer: isMid ? 1.5 : 1.0,
+          firewallVer: isMid ? 1.5 : 1.0,
+          antivirusVer: isMid ? 1.5 : 1.0,
           rootPassword: deterministicPassword(ip + '::' + cloudPlayer.id),
-          cpuSpec: 'Workstation Operador VPC',
-          bankBalance: 420,
-          files: [{ name: 'wallet_hint.txt', size: '2 KB', content: `Host operado por ${cloudPlayer.hacker_tag}` }]
+          cpuSpec: `${isMid ? '2.800 MHz · 50 Mbps' : '1.000 MHz · 10 Mbps'} · AV v${isMid ? '1.5' : '1.0'}`,
+          bankBalance: this.drainedNpcIps.has(ip) ? 0 : 145,
+          files: [{ name: 'wallet_hint.txt', size: '12 MB', sizeMb: 12, content: `Host operado por ${cloudPlayer.hacker_tag}` }].filter((f) => !deletedSet.has(f.name))
         };
       }
 
@@ -885,8 +1029,8 @@
           rootPassword: deterministicPassword(vp.ip + '::' + vp.hacker_tag),
           bankBalance: this.drainedNpcIps.has(vp.ip) ? 0 : vp.bankBalance,
           files: [
-            { name: 'operador_notes.txt', size: '4 KB', content: `Terminal pessoal de ${vp.hacker_tag} (${vp.reputation} REP).` }
-          ]
+            { name: 'operador_notes.txt', size: '14 MB', sizeMb: 14, content: `Terminal pessoal de ${vp.hacker_tag} (${vp.reputation} REP).` }
+          ].filter((f) => !deletedSet.has(f.name))
         };
       }
 
@@ -1015,11 +1159,21 @@
         return;
       }
 
+      const crcVer = window.softwareEngine ? window.softwareEngine.getSoftwareVersion('cracker') : 1.0;
+      const reqHasher = host.hasherVer || 1.0;
+      if (crcVer <= 0) {
+        alert('Seu Cracker.crc está DESATIVADO na RAM! Ative-o na aba Software & Vírus.');
+        return;
+      }
+      if (crcVer < reqHasher) {
+        alert(`Hasher v${reqHasher.toFixed(1)} do alvo bloqueou sua força-bruta! Seu Cracker.crc atual é v${crcVer.toFixed(1)} — pesquise Cracker.crc >= v${reqHasher.toFixed(1)} na aba Software & Vírus!`);
+        return;
+      }
+
       this.isCracking = true;
       this.crackPct = 0;
       const power = this.getPlayerAttackPower();
-      // Versão baixa nunca bloqueia, só demora um pouco mais (princípio GameDesign HE2)
-      const stepInc = Math.max(8, Math.round((28 * power) / host.securityLevel));
+      const stepInc = Math.max(8, Math.round((26 * power) / Math.max(1, reqHasher)));
       this.render();
 
       const timer = setInterval(() => {
@@ -1051,9 +1205,9 @@
         return;
       }
       const power = this.getPlayerExploitPower();
-      const reqPower = host.securityLevel === 1 ? 1.0 : (host.securityLevel === 2 ? 1.5 : 2.5);
+      const reqPower = host.firewallVer || (host.securityLevel === 1 ? 1.0 : (host.securityLevel === 2 ? 1.5 : 2.5));
       if (power < reqPower) {
-        alert(`Firewall Nível ${host.securityLevel} bloqueou o exploit! Sua potência atual (${power}x) exige ${reqPower}x — melhore seu SSH_Exploit.exp / CPU ou use Ataque Força-Bruta.`);
+        alert(`Firewall v${reqPower.toFixed(1)} bloqueou o exploit! Sua potência atual (${power}x) exige >= ${reqPower.toFixed(1)}x — melhore seu SSH_Exploit.exp / Curso #3 ou use Força-Bruta.`);
         return;
       }
       this.onAttackSucceeded(host, 'exploit', 'EXPLOITED');
@@ -1224,19 +1378,42 @@
     }
 
     deploySelectedVirusToCurrentHost() {
-      if (!this.activeSshIp || !window.softwareEngine) return;
+      if (!this.activeSshIp || !window.softwareEngine) return Promise.resolve(null);
       const host = this.resolveHost(this.activeSshIp);
       const sel = document.getElementById('remoteVirusSelect');
       const virusKey = sel ? sel.value : 'vspam';
-      const res = window.softwareEngine.installVirusOnRemote(host, virusKey);
-      if (!res.success) {
-        alert(res.message);
-        return;
+
+      return new Promise((resolve) => {
+        const up = window.softwareEngine.uploadVirusWithBandwidth(host, virusKey, (res) => {
+          if (res && res.success) {
+            if (window.tutorialEngine) {
+              window.tutorialEngine.onFileReadOrVirusPlanted(host.ip);
+            }
+            if (typeof window.showToast === 'function') window.showToast(res.message);
+          } else if (res) {
+            alert(res.message);
+          }
+          this.render();
+          resolve(res);
+        });
+
+        if (!up.started) {
+          alert(up.message);
+          resolve({ success: false, code: up.code, message: up.message });
+        }
+      });
+    }
+
+    deleteStaticRemoteFile(ip, fileName) {
+      if (!this.deletedHostFiles.has(ip)) {
+        this.deletedHostFiles.set(ip, new Set());
       }
-      if (window.tutorialEngine) {
-        window.tutorialEngine.onFileReadOrVirusPlanted(host.ip);
+      this.deletedHostFiles.get(ip).add(fileName);
+      const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0';
+      this.appendServerLog(ip, `${myIp} deleted file /root/${fileName} (disk space freed)`);
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('RM-REMOTE', `Arquivo ${fileName} removido de ${ip}:/root (espaço em disco liberado no alvo)`, 'info');
       }
-      if (typeof window.showToast === 'function') window.showToast(res.message);
       this.render();
     }
 
@@ -1531,49 +1708,98 @@
           </div>
         `;
       } else if (this.sshSubTab === 'files') {
+        const specs = window.softwareEngine
+          ? window.softwareEngine.inspectRemoteHostResources(host)
+          : { cpuMhz: 1000, netMbps: 10, antivirusVer: 1.0, hddTotalMb: 250, hddUsedMb: 120, hddFreeMb: 130, ramTotalMb: 128, ramUsedMb: 64, ramFreeMb: 64 };
         const dynamicFiles = window.missionsEngine ? window.missionsEngine.getMissionFilesForHost(host.ip) : [];
         const allFiles = [...dynamicFiles, ...(host.files || [])];
-        const filesHtml = allFiles.map((f) => `
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.85rem; background: var(--hc-inset); border: 1px solid ${f.missionId || f.isTutorial ? 'rgba(53,184,119,0.45)' : 'var(--hc-border)'}; border-radius: 7px; gap: 8px; flex-wrap: wrap;">
-            <div>
-              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                <strong style="font-family: var(--hc-font-mono); font-size: 0.84rem;">${esc(f.name)}</strong>
-                ${f.missionId ? `<span class="hc-badge warn">ALVO DE MISSÃO</span>` : (f.isTutorial ? `<span class="hc-badge success">ALVO TUTORIAL</span>` : '')}
+
+        const filesHtml = allFiles.map((f) => {
+          const safeId = esc(f.name.replace(/[^a-zA-Z0-9]/g, '_'));
+          const isStaticDeletable = !f.missionId && !f.isTutorial && (f.sizeMb || 0) > 0;
+          return `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.85rem; background: var(--hc-inset); border: 1px solid ${f.missionId || f.isTutorial ? 'rgba(53,184,119,0.45)' : 'var(--hc-border)'}; border-radius: 7px; gap: 8px; flex-wrap: wrap;">
+              <div>
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                  <strong style="font-family: var(--hc-font-mono); font-size: 0.84rem;">${esc(f.name)}</strong>
+                  ${f.missionId ? `<span class="hc-badge warn">ALVO DE MISSÃO</span>` : (f.isTutorial ? `<span class="hc-badge success">ALVO TUTORIAL</span>` : `<span class="hc-badge info">${esc(f.size)}</span>`)}
+                </div>
+                <div style="font-size: 0.76rem; color: var(--hc-text-2);">${esc(f.content)}</div>
               </div>
-              <div style="font-size: 0.76rem; color: var(--hc-text-2);">${esc(f.content)} (${esc(f.size)})</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button type="button" id="btnReadFile_${safeId}" class="hc-btn ${f.isTutorial || f.canSteal ? 'primary' : 'ghost'} sm" onclick="window.handleRemoteFileAction('${esc(host.ip)}', '${esc(f.name)}', 'read')">Ler / Extrair</button>
+                ${f.canDelete
+                  ? `<button type="button" id="btnDeleteFile_${safeId}" class="hc-btn primary sm" style="background:var(--hc-danger);border-color:var(--hc-danger);" onclick="window.handleRemoteFileAction('${esc(host.ip)}', '${esc(f.name)}', 'delete')">Apagar Arquivo</button>`
+                  : ''}
+                ${isStaticDeletable
+                  ? `<button type="button" id="btnFreeSpace_${safeId}" class="hc-btn ghost sm" style="color:var(--hc-danger-text);" onclick="window.internetEngine.deleteStaticRemoteFile('${esc(host.ip)}', '${esc(f.name)}')">Apagar (Liberar ${f.sizeMb} MB)</button>`
+                  : ''}
+              </div>
             </div>
-            <div style="display:flex;gap:6px;">
-              <button type="button" id="btnReadFile_${esc(f.name.replace(/[^a-zA-Z0-9]/g, '_'))}" class="hc-btn ${f.isTutorial || f.canSteal ? 'primary' : 'ghost'} sm" onclick="window.handleRemoteFileAction('${esc(host.ip)}', '${esc(f.name)}', 'read')">Ler / Extrair</button>
-              ${f.canDelete
-                ? `<button type="button" id="btnDeleteFile_${esc(f.name.replace(/[^a-zA-Z0-9]/g, '_'))}" class="hc-btn primary sm" style="background:var(--hc-danger);border-color:var(--hc-danger);" onclick="window.handleRemoteFileAction('${esc(host.ip)}', '${esc(f.name)}', 'delete')">Apagar Arquivo</button>`
-                : ''}
-            </div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
 
         const remoteBtcSats = window.bitcoinEngine ? window.bitcoinEngine.getRemoteHostWalletSats(host) : 0;
         const remoteBtcStr = (remoteBtcSats / 100000000).toFixed(8);
-        const virusOpts = window.softwareEngine ? window.softwareEngine.getVirusCatalogOptions() : [];
+        const virusOpts = window.softwareEngine ? window.softwareEngine.getVirusCatalogOptions(host) : [];
         const installedOnTarget = window.softwareEngine ? window.softwareEngine.getRemoteVirusesOnIp(host.ip) : [];
+        const upJob = window.softwareEngine && window.softwareEngine.activeUploadJob && window.softwareEngine.activeUploadJob.targetIp === host.ip
+          ? window.softwareEngine.activeUploadJob
+          : null;
 
         subContent = `
-          <div style="display: flex; flex-direction: column; gap: 14px;">
-            <!-- Bloco 2 MMO: Enviar & Instalar Vírus nesta Máquina Invadida -->
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <!-- Painel Físico da Máquina Invadida: CPU, Internet, Armazenamento Livre, RAM Livre & Antivírus -->
+            <div class="hc-card" style="padding: 0.85rem 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 10px; font-family: var(--hc-font-mono); font-size: 0.77rem;">
+              <div>
+                <div style="color:var(--hc-text-3);font-size:0.68rem;">CPU & INTERNET DO ALVO</div>
+                <strong>${specs.cpuMhz.toLocaleString('pt-BR')} MHz · ${specs.netMbps} Mbps</strong>
+              </div>
+              <div>
+                <div style="color:var(--hc-text-3);font-size:0.68rem;">HD LIVRE NO ALVO (CABE VÍRUS?)</div>
+                <strong style="color:${specs.hddFreeMb < 45 ? 'var(--hc-warning)' : 'var(--hc-accent-text)'};">${specs.hddFreeMb} MB livres</strong>
+                <span style="color:var(--hc-text-3);">(${specs.hddUsedMb}/${specs.hddTotalMb}MB)</span>
+              </div>
+              <div>
+                <div style="color:var(--hc-text-3);font-size:0.68rem;">RAM LIVRE NO ALVO</div>
+                <strong style="color:${specs.ramFreeMb < 30 ? 'var(--hc-warning)' : 'var(--hc-accent-text)'};">${specs.ramFreeMb} MB livres</strong>
+                <span style="color:var(--hc-text-3);">(${specs.ramUsedMb}/${specs.ramTotalMb}MB)</span>
+              </div>
+              <div>
+                <div style="color:var(--hc-text-3);font-size:0.68rem;">ANTIVÍRUS DO ALVO</div>
+                <strong style="color:${specs.antivirusVer > 0 ? 'var(--hc-danger-text)' : 'var(--hc-accent-text)'};">
+                  ${specs.antivirusVer > 0 ? `Antivirus.av v${specs.antivirusVer.toFixed(1)}` : 'Sem Antivírus'}
+                </strong>
+              </div>
+            </div>
+
+            <!-- Upload SSH de Vírus Governado pela Internet & Espaço em Disco do Alvo -->
             <div class="hc-card" style="padding: 0.95rem 1.1rem; border-color: rgba(53, 184, 119, 0.35);">
-              <div class="hc-eyebrow" style="margin-bottom: 6px;">Enviar & Executar Vírus neste Servidor (Upload SSH)</div>
+              <div class="hc-eyebrow" style="margin-bottom: 6px;">Enviar & Instalar Vírus neste PC (Sua Internet: ${window.softwareEngine ? window.softwareEngine.getPlayerNetMbps() : 1} Mbps)</div>
               <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                <select id="remoteVirusSelect" class="form-input" style="flex: 1; min-width: 240px; font-family: var(--hc-font-mono); font-size: 0.82rem;">
-                  ${virusOpts.map((vo) => `<option value="${vo.key}">${esc(vo.filename)} (${vo.versionStr}) — ${esc(vo.badge)}</option>`).join('')}
+                <select id="remoteVirusSelect" class="form-input" style="flex: 1; min-width: 260px; font-family: var(--hc-font-mono); font-size: 0.79rem;">
+                  ${virusOpts.map((vo) => `<option value="${vo.key}">${esc(vo.filename)} (${vo.versionStr}) — ${esc(vo.extraLabel)}</option>`).join('')}
                 </select>
-                <button type="button" id="btnDeployRemoteVirus" class="hc-btn primary sm" onclick="window.internetEngine.deploySelectedVirusToCurrentHost()">
-                  Upload & Executar Vírus
+                <button type="button" id="btnDeployRemoteVirus" class="hc-btn primary sm" ${upJob ? 'disabled' : ''} onclick="window.internetEngine.deploySelectedVirusToCurrentHost()">
+                  ${upJob ? 'Enviando Pacote...' : 'Upload & Executar Vírus'}
                 </button>
               </div>
+              ${upJob ? `
+                <div style="margin-top:8px;">
+                  <div style="display:flex;justify-content:space-between;font-family:var(--hc-font-mono);font-size:0.75rem;margin-bottom:4px;">
+                    <span>Transmitindo ${esc(upJob.filename)} pela Internet...</span>
+                    <strong id="sshVirusUploadPctLbl" style="color:var(--hc-accent-text);">${upJob.pct}% (${upJob.sizeMb} MB)</strong>
+                  </div>
+                  <div style="height:8px;background:var(--hc-inset);border-radius:999px;overflow:hidden;">
+                    <div id="sshVirusUploadBarFill" style="height:100%;width:${upJob.pct}%;background:var(--hc-accent);transition:width 0.18s linear;"></div>
+                  </div>
+                </div>
+              ` : ''}
               ${installedOnTarget.length > 0
-                ? `<div style="margin-top: 8px; font-size: 0.78rem; color: var(--hc-accent-text); font-family: var(--hc-font-mono);">
-                     Em execução aqui: ${installedOnTarget.map((iv) => `${esc(iv.filename)} (${window.softwareEngine.fmtVer(iv.versionInt)})`).join(' · ')}
+                ? `<div style="margin-top: 8px; font-size: 0.77rem; color: var(--hc-accent-text); font-family: var(--hc-font-mono);">
+                     Rodando neste alvo: ${installedOnTarget.map((iv) => `${esc(iv.filename)} (${window.softwareEngine.fmtVer(iv.versionInt)}, ${iv.sizeMb || 20}MB)`).join(' · ')}
                    </div>`
-                : `<div style="margin-top: 6px; font-size: 0.75rem; color: var(--hc-text-3);">Atenção: instalar um vírus grava seu IP atual no /var/log/syslog do alvo!</div>`}
+                : `<div style="margin-top: 6px; font-size: 0.74rem; color: var(--hc-text-3);">Dica: Vírus de versão &lt;= Antivirus.av do alvo podem ser expurgados nas varreduras automáticas!</div>`}
             </div>
 
             <!-- Saque de Reserva $ HC & Carteira Bitcoin wallet.dat -->
@@ -1594,11 +1820,15 @@
           </div>
         `;
       } else {
+        const specs = window.softwareEngine ? window.softwareEngine.inspectRemoteHostResources(host) : null;
         subContent = `
-          <div class="hc-card" style="padding: 1rem; font-family: var(--hc-font-mono); font-size: 0.82rem; display: flex; flex-direction: column; gap: 6px;">
+          <div class="hc-card" style="padding: 1.1rem; font-family: var(--hc-font-mono); font-size: 0.82rem; display: flex; flex-direction: column; gap: 7px;">
             <div>HOST: <strong>${esc(host.hostname)}</strong> [${esc(host.ip)}]</div>
-            <div>HARDWARE: ${esc(host.cpuSpec)}</div>
-            <div>SEGURANÇA: Firewall Tier ${host.securityLevel}</div>
+            <div>PROCESSADOR (CPU): <strong>${specs ? specs.cpuMhz.toLocaleString('pt-BR') + ' MHz' : esc(host.cpuSpec)}</strong></div>
+            <div>INTERNET DO ALVO: <strong>${specs ? specs.netMbps + ' Mbit/s' : '10 Mbit/s'}</strong></div>
+            <div>ARMAZENAMENTO (HDD): <strong>${specs ? `${specs.hddUsedMb} / ${specs.hddTotalMb} MB (${specs.hddFreeMb} MB livres)` : 'N/A'}</strong></div>
+            <div>MEMÓRIA RAM: <strong>${specs ? `${specs.ramUsedMb} / ${specs.ramTotalMb} MB (${specs.ramFreeMb} MB livres)` : 'N/A'}</strong></div>
+            <div>DEFESAS ATIVAS: Hasher v${(host.hasherVer || 1.0).toFixed(1)} · Firewall v${(host.firewallVer || 1.0).toFixed(1)} · Antivirus.av ${specs && specs.antivirusVer > 0 ? 'v' + specs.antivirusVer.toFixed(1) : 'Ausente'}</div>
             <div>SENHA ROOT ATUAL: <strong style="color: var(--hc-accent-text);">${esc(host.rootPassword)}</strong></div>
           </div>
         `;
@@ -1629,20 +1859,24 @@
       }
 
       const power = this.getPlayerAttackPower();
+      const crcVer = window.softwareEngine ? window.softwareEngine.getSoftwareVersion('cracker') : 1.0;
+      const expPower = this.getPlayerExploitPower();
+      const reqHasher = host.hasherVer || 1.0;
+      const reqFwl = host.firewallVer || 1.0;
       const scanned = this.portScannedIps.has(host.ip);
       const saved = window.hackedDb ? window.hackedDb.getEntry(host.ip) : null;
 
       return `
         <div>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-            <span style="font-size: 0.86rem; color: var(--hc-text-2);">Escolha seu método de ataque contra <strong>${esc(host.hostname)}</strong>:</span>
+            <span style="font-size: 0.86rem; color: var(--hc-text-2);">Alvo: <strong>${esc(host.hostname)}</strong> · <span style="font-family:var(--hc-font-mono);font-size:0.78rem;">${esc(host.cpuSpec)}</span></span>
             ${saved ? `<span class="hc-badge success">Já consta no seu Hacked Database (${esc(saved.password)})</span>` : ''}
           </div>
 
           ${this.isCracking ? `
             <div class="hc-card" style="padding: 1rem; margin-bottom: 14px; border-color: var(--hc-accent);">
               <div style="display: flex; justify-content: space-between; font-family: var(--hc-font-mono); font-size: 0.82rem; margin-bottom: 6px;">
-                <span>QUEBRANDO HASH ROOT (Cracker.crc · ${power}x)...</span>
+                <span>QUEBRANDO HASH ROOT (Cracker.crc v${crcVer.toFixed(1)} · ${power}x)...</span>
                 <strong id="inetCrackPctLabel" style="color: var(--hc-accent-text);">${this.crackPct}%</strong>
               </div>
               <div style="height: 10px; background: var(--hc-inset); border-radius: 999px; overflow: hidden; border: 1px solid var(--hc-border);">
@@ -1655,7 +1889,12 @@
             <div class="inet-attack-card">
               <div class="inet-attack-icon">${HC.icon('key-round')}</div>
               <strong style="font-size: 0.95rem;">Ataque força-bruta</strong>
-              <div style="font-size: 0.78rem; color: var(--hc-text-2);">Descobre a senha <code>root</code> real e salva no Hacked Database. Potência atual: <code>${power}x</code> vs Nível ${host.securityLevel}.</div>
+              <div style="font-size: 0.78rem; color: var(--hc-text-2);">
+                Seu <code>Cracker.crc v${crcVer.toFixed(1)}</code> vs <code>Hasher v${reqHasher.toFixed(1)}</code> do alvo.
+                <span style="color:${crcVer >= reqHasher ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};display:block;margin-top:2px;">
+                  ${crcVer >= reqHasher ? '● Potência suficiente para quebrar' : `● Exige Cracker.crc >= v${reqHasher.toFixed(1)}`}
+                </span>
+              </div>
               <button type="button" id="btnInetBruteforce" class="hc-btn primary" style="margin-top: 6px; width: 100%; justify-content: center;" onclick="window.internetEngine.startBruteforce()">
                 Iniciar Força-Bruta
               </button>
@@ -1664,7 +1903,12 @@
             <div class="inet-attack-card">
               <div class="inet-attack-icon">${HC.icon('zap')}</div>
               <strong style="font-size: 0.95rem;">Ataque exploit</strong>
-              <div style="font-size: 0.78rem; color: var(--hc-text-2);">Injeta payload direto nas portas 22/SSH ou 21/FTP sem precisar de senha (requer Port Scan prévio).</div>
+              <div style="font-size: 0.78rem; color: var(--hc-text-2);">
+                Sua potência Exploit <code>${expPower}x</code> vs <code>Firewall v${reqFwl.toFixed(1)}</code> (requer Port Scan).
+                <span style="color:${expPower >= reqFwl ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};display:block;margin-top:2px;">
+                  ${expPower >= reqFwl ? '● Capaz de furar o Firewall' : `● Exige Exploit >= ${reqFwl.toFixed(1)}x`}
+                </span>
+              </div>
               <button type="button" id="btnInetExploit" class="hc-btn" style="margin-top: 6px; width: 100%; justify-content: center;" onclick="window.internetEngine.startExploitAttack()">
                 Disparar Exploit SSH
               </button>
@@ -1676,7 +1920,7 @@
               <strong style="font-size: 0.86rem;">Port Scan TCP (${scanned ? 'Concluído' : 'Pendente'})</strong>
               <div style="font-size: 0.78rem; color: var(--hc-text-2); font-family: var(--hc-font-mono); margin-top: 2px;">
                 ${scanned
-                  ? `22/ssh [ABERTA · OpenSSH] · 21/ftp [ABERTA] · 80/http [ABERTA] · Firewall Nível ${host.securityLevel}`
+                  ? `22/ssh [ABERTA] · 21/ftp [ABERTA] · Firewall v${reqFwl.toFixed(1)} · Antivirus.av ${host.antivirusVer > 0 ? 'v' + host.antivirusVer.toFixed(1) : 'Ausente'}`
                   : 'Sonde as portas abertas do alvo para habilitar ataques de exploit.'}
               </div>
             </div>

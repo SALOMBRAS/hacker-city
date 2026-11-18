@@ -482,9 +482,9 @@
         completed: false,
         step: 5,
         badge: 'Tutorial · Etapa 5 de 5 (Recompensa Pronta!)',
-        title: 'Resgate seu Pagamento da Numataka ($ 1.500 HC + 0.01337 BTC)',
-        desc: 'Invasão limpa sem deixar rastros! Clique para receber $ 1.500 HC, +0.01337000 BTC na carteira e liberar o Quadro de Missões.',
-        cta: 'Resgatar $ 1.500 + 0.01337 BTC →',
+        title: 'Resgate seu Pagamento Inicial ($ 350 HC + 0.00200 BTC)',
+        desc: 'Invasão limpa sem deixar rastros! Clique para receber $ 350 HC, +0.00200000 BTC na carteira e liberar o Quadro de Missões.',
+        cta: 'Resgatar $ 350 + 0.00200 BTC →',
         action: () => this.claimFinalReward()
       };
     }
@@ -494,11 +494,11 @@
       if (!this.state.completed && this.state.step === 1 && certId >= 1) {
         this.state.step = 2;
         if (window.currentWallet) {
-          window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + 250).toFixed(2);
+          window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + 80).toFixed(2);
         }
         this.save();
         if (typeof window.showToast === 'function') {
-          window.showToast(`Etapa 1 concluída (+$ 250 HC)! Agora invada ${TUTORIAL_TARGET_IP} na aba Internet.`);
+          window.showToast(`Etapa 1 concluída (+$ 80 HC)! Agora invada ${TUTORIAL_TARGET_IP} na aba Internet.`);
         }
       }
     }
@@ -541,7 +541,7 @@
           this.state.step = 5;
           this.save();
           if (typeof window.showToast === 'function') {
-            window.showToast('Rastro apagado com perfeição! Resgate agora seu prêmio de $ 1.500 HC + 0.01337 BTC!');
+            window.showToast('Rastro apagado com perfeição! Resgate agora seu prêmio de $ 350 HC + 0.00200 BTC!');
           }
           if (typeof window.renderHome === 'function') window.renderHome();
           if (window.missionsEngine) window.missionsEngine.renderUI();
@@ -558,30 +558,30 @@
       this.save();
 
       if (window.currentWallet) {
-        window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + 1500).toFixed(2);
+        window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + 350).toFixed(2);
       }
       if (window.bitcoinEngine) {
-        window.bitcoinEngine.creditSats(1337000, 'TUTORIAL-1337', 'Bônus Ensei Tankado // Conclusão da Invasão Tutorial (+0.01337000 BTC)');
+        window.bitcoinEngine.creditSats(200000, 'TUTORIAL', 'Pagamento inicial Numataka // Conclusão da Invasão Tutorial (+0.00200000 BTC)');
       }
       if (window.currentProfile) {
-        window.currentProfile.reputation = (window.currentProfile.reputation || 0) + 200;
+        window.currentProfile.reputation = (window.currentProfile.reputation || 0) + 120;
       }
 
       if (typeof window.addLocalLog === 'function') {
-        window.addLocalLog('STORY-OK', 'Invasão Tutorial Numataka concluída! Recebido +$ 1.500.00 HC, +0.01337000 BTC e +200 REP.', 'success');
+        window.addLocalLog('STORY-OK', 'Invasão Tutorial Numataka concluída! Recebido +$ 350.00 HC, +0.00200000 BTC e +120 REP.', 'success');
       }
       if (window.hackerAudio) window.hackerAudio.playMoneyCollect();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       if (window.missionsEngine) window.missionsEngine.renderUI();
       if (typeof window.showToast === 'function') {
-        window.showToast('Parabéns! Você recebeu $ 1.500 HC + 0.01337000 BTC e liberou todos os contratos!');
+        window.showToast('Parabéns! Você recebeu $ 350 HC + 0.00200000 BTC e liberou todos os contratos!');
       }
       return { success: true };
     }
   }
 
   // =========================================================================
-  // 3. QUADRO DINÂMICO DE MISSÕES (5 TIPOS REAIS DE CONTRATO)
+  // 3. QUADRO DINÂMICO DE MISSÕES (5 TIPOS REAIS DE CONTRATO — ECONOMIA HARDCORE)
   // =========================================================================
   const HIRERS = [
     'Numataka Corp',
@@ -594,11 +594,11 @@
   ];
 
   const MISSION_TARGETS = [
-    { ip: '203.17.88.40', hostname: 'Farofa Systems S.A.', tier: 1, balanceHint: 850 },
-    { ip: '133.70.13.37', hostname: 'Rádio Pirata 1337 FM', tier: 1, balanceHint: 620 },
-    { ip: '185.220.101.9', hostname: 'Blackmarket Onion', tier: 2, balanceHint: 1900 },
-    { ip: '149.56.28.11', hostname: 'VPC Operador m4riposa', tier: 2, balanceHint: 1340 },
-    { ip: '77.3.9.21', hostname: 'Banco Colchão & Clearing HC', tier: 3, balanceHint: 3200 }
+    { ip: '203.17.88.40', hostname: 'Farofa Systems S.A.', tier: 1, balanceHint: 185 },
+    { ip: '133.70.13.37', hostname: 'Rádio Pirata 1337 FM', tier: 1, balanceHint: 110 },
+    { ip: '185.220.101.9', hostname: 'Blackmarket Onion', tier: 2, balanceHint: 420 },
+    { ip: '149.56.28.11', hostname: 'VPC Operador m4riposa', tier: 2, balanceHint: 340 },
+    { ip: '77.3.9.21', hostname: 'Banco Colchão & Clearing HC', tier: 3, balanceHint: 1150 }
   ];
 
   class MissionsBoardEngine {
@@ -654,9 +654,9 @@
           targetIdx: 0,
           fileName: 'auditoria_secreta_2026.db',
           fileContent: 'Registros fiscais comprometedores solicitados para destruição imediata.',
-          rewardCash: 650,
+          rewardCash: 150,
           rewardSats: 0,
-          repReward: 75,
+          repReward: 50,
           brief: 'Invada o servidor alvo via SSH Root, localize o arquivo confidencial na aba "Vírus, Carteira & Arquivos" e clique em Apagar Arquivo.'
         },
         {
@@ -666,9 +666,9 @@
           targetIdx: 1,
           fileName: 'chaves_transmissao_1337.key',
           fileContent: 'HASH-9941-KESTREL-PAYLOAD-VERIFIED',
-          rewardCash: 820,
+          rewardCash: 195,
           rewardSats: 0,
-          repReward: 90,
+          repReward: 65,
           brief: 'Quebre o acesso root do alvo, extraia o arquivo criptografado na aba de arquivos SSH para transmitir uma cópia ao contratante.'
         },
         {
@@ -676,10 +676,10 @@
           badge: 'Auditar Reserva',
           tier: 2,
           targetIdx: 3,
-          expectedAmount: 1340,
-          rewardCash: 1350,
-          rewardSats: 250000,
-          repReward: 120,
+          expectedAmount: 340,
+          rewardCash: 420,
+          rewardSats: 40000,
+          repReward: 95,
           brief: 'Invada a VPC alvo, verifique na sessão SSH o valor exato em dólares da reserva financeira local e informe abaixo para validar a auditoria.'
         },
         {
@@ -687,9 +687,9 @@
           badge: 'Drenar Conta / Carteira',
           tier: 2,
           targetIdx: 2,
-          rewardCash: 1950,
-          rewardSats: 400000,
-          repReward: 150,
+          rewardCash: 640,
+          rewardSats: 65000,
+          repReward: 120,
           brief: 'Invada o servidor alvo, entre como root e execute "Drenar Reserva Local" ou "Roubar wallet.dat" para esvaziar os fundos ilícitos.'
         },
         {
@@ -698,9 +698,9 @@
           tier: 3,
           targetIdx: 4,
           requiredGbps: 2.5,
-          rewardCash: 4200,
-          rewardSats: 850000,
-          repReward: 240,
+          rewardCash: 1650,
+          rewardSats: 180000,
+          repReward: 190,
           brief: 'Exige Curso #4 (Engenharia de Vírus & DDoS) ou >= 2.5 Gbps de vírus DDoS_Node.vddos ativos. Dispare a sobrecarga DDoS para derrubar o mainframe alvo!'
         }
       ];

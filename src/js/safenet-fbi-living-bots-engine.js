@@ -69,8 +69,8 @@
           handle: b1.handle,
           kind: 'bot',
           crime: 'Dreno recorrente de cofres corporativos & Botnet Spam',
-          bountyCash: 3800,
-          bountySats: 450000, // 0.00450000 BTC
+          bountyCash: 1150,
+          bountySats: 85000, // 0.00085000 BTC
           defenseGbps: 2.2,
           since: nowTime()
         },
@@ -79,14 +79,14 @@
           handle: b2.handle,
           kind: 'bot',
           crime: 'Sabotagem DDoS contra infraestrutura financeira',
-          bountyCash: 9500,
-          bountySats: 1100000, // 0.01100000 BTC
+          bountyCash: 3200,
+          bountySats: 220000, // 0.00220000 BTC
           defenseGbps: 5.5,
           since: nowTime()
         }
       ];
 
-      this.addNews('FBI-ALERT', `Recompensa federal de ${fmtUsd(9500)} aberta pela captura por DDoS de ${b2.handle} [${b2.ip}].`);
+      this.addNews('FBI-ALERT', `Recompensa federal de ${fmtUsd(3200)} aberta pela captura por DDoS de ${b2.handle} [${b2.ip}].`);
       this.addNews('SAFENET', `Monitoramento forense iniciado sobre ${b1.handle} [${b1.ip}] após tráfego suspeito de mineração.`);
     }
 
@@ -145,11 +145,11 @@
       existingSafenet.reason = reason;
 
       let fbiEntry = this.fbiWantedList.find((w) => w.ip === ip);
-      const addedBounty = Math.max(1200, Math.round(amountValue * 0.85));
-      const addedSats = Math.round(addedBounty * 110);
+      const addedBounty = Math.max(550, Math.round(amountValue * 0.42));
+      const addedSats = Math.round(addedBounty * 65);
 
       if (fbiEntry) {
-        fbiEntry.bountyCash = Math.min(100000, fbiEntry.bountyCash + addedBounty);
+        fbiEntry.bountyCash = Math.min(35000, fbiEntry.bountyCash + addedBounty);
         fbiEntry.bountySats += addedSats;
         fbiEntry.crime = reason;
       } else {
@@ -158,7 +158,7 @@
           handle,
           kind,
           crime: reason,
-          bountyCash: Math.max(2500, addedBounty),
+          bountyCash: Math.max(950, addedBounty),
           bountySats: addedSats,
           defenseGbps,
           since: nowTime()
