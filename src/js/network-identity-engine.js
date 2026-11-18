@@ -140,7 +140,9 @@
       const last = this.state.lastFreeResetAt;
       const canResetFree = !last || (now >= last + WEEK_MS);
       const msRemaining = canResetFree ? 0 : Math.max(0, (last + WEEK_MS) - now);
-      const paidCost = Math.min(25000, 500 + (500 * (this.state.resetsCount || 0)));
+      // Taxa emergencial pesada: $ 50.000 HC na 1ª emergência após gastar a semanal grátis, +$ 25.000 por reincidência (teto $ 250.000 HC)
+      const paidCost = Math.min(250000, 50000 + (25000 * Math.max(0, (this.state.resetsCount || 1) - 1)));
+      const paidCostFmt = paidCost.toLocaleString('pt-BR');
 
       return {
         canResetFree,
@@ -148,6 +150,7 @@
         formattedRemaining: this.formatDuration(msRemaining),
         nextFreeDateStr: last ? new Date(last + WEEK_MS).toLocaleString('pt-BR') : 'Disponível agora',
         paidCost,
+        paidCostFmt,
         resetsCount: this.state.resetsCount || 0,
         lastFreeResetAt: last,
         history: this.state.history || []
@@ -176,7 +179,7 @@
           code: 'COOLDOWN_ACTIVE',
           requiredCost: status.paidCost,
           formattedRemaining: status.formattedRemaining,
-          message: `Sua troca gratuita semanal já foi usada! Próxima grátis em ${status.formattedRemaining} (ou pague $ ${status.paidCost} HC para troca emergencial imediata).`
+          message: `Sua troca gratuita semanal já foi usada! Próxima grátis em ${status.formattedRemaining} (ou pague $ ${status.paidCostFmt} HC para troca emergencial imediata).`
         };
       }
 
@@ -185,7 +188,7 @@
           return {
             success: false,
             code: 'INSUFFICIENT_FUNDS',
-            message: `Saldo insuficiente! A troca emergencial antes de 7 dias custa $ ${status.paidCost} HC.`
+            message: `Saldo insuficiente! A troca emergencial antes de 7 dias custa $ ${status.paidCostFmt} HC.`
           };
         }
       }
@@ -337,7 +340,7 @@
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
               ${st.canResetFree
                 ? `<button type="button" class="hc-btn primary sm" onclick="window.handleIpResetAction(false, this)">Trocar IP Agora (Grátis)</button>`
-                : `<button type="button" class="hc-btn sm" style="border-color: var(--hc-warning); color: var(--hc-warning);" onclick="window.handleIpResetAction(true, this)">Troca Emergencial ($ ${st.paidCost} HC)</button>`}
+                : `<button type="button" class="hc-btn sm" style="border-color: var(--hc-warning); color: var(--hc-warning);" onclick="window.handleIpResetAction(true, this)">Troca Emergencial ($ ${st.paidCostFmt} HC)</button>`}
               <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('71.4.5.1')">Abrir Provedor ISP</button>
             </div>
           </div>
@@ -957,10 +960,22 @@
 
     getPlayerAttackPower() {
       const cpuMult = window.terminalTools ? window.terminalTools.getCpuMultiplier() : 1.0;
+      const crcVer = window.softwareEngine ? Math.max(0.5, window.softwareEngine.getSoftwareVersion('cracker')) : 1.0;
       const overclockRank = (window.skillTreeEngine && typeof window.skillTreeEngine.getRank === 'function')
         ? window.skillTreeEngine.getRank('cpu_overclock')
         : 0;
-      return +(cpuMult + overclockRank * 0.25).toFixed(2);
+      return +(cpuMult * crcVer + overclockRank * 0.25).toFixed(2);
+    }
+
+    getPlayerExploitPower() {
+      const cpuMult = window.terminalTools ? window.terminalTools.getCpuMultiplier() : 1.0;
+      const expVer = window.softwareEngine
+        ? Math.max(0.5, window.softwareEngine.getSoftwareVersion('exploit_ssh'), window.softwareEngine.getSoftwareVersion('cracker'))
+        : 1.0;
+      const overclockRank = (window.skillTreeEngine && typeof window.skillTreeEngine.getRank === 'function')
+        ? window.skillTreeEngine.getRank('cpu_overclock')
+        : 0;
+      return +(cpuMult * expVer + overclockRank * 0.25).toFixed(2);
     }
 
     startBruteforce() {
@@ -1015,10 +1030,10 @@
         }
         return;
       }
-      const power = this.getPlayerAttackPower();
+      const power = this.getPlayerExploitPower();
       const reqPower = host.securityLevel === 1 ? 1.0 : (host.securityLevel === 2 ? 1.5 : 2.5);
       if (power < reqPower) {
-        alert(`Firewall Nível ${host.securityLevel} bloqueou o exploit! Sua potência atual (${power}x) exige ${reqPower}x — melhore sua CPU ou use Ataque Força-Bruta.`);
+        alert(`Firewall Nível ${host.securityLevel} bloqueou o exploit! Sua potência atual (${power}x) exige ${reqPower}x — melhore seu SSH_Exploit.exp / CPU ou use Ataque Força-Bruta.`);
         return;
       }
       this.onAttackSucceeded(host, 'exploit', 'EXPLOITED');
@@ -1172,6 +1187,34 @@
       this.render();
     }
 
+    deploySelectedVirusToCurrentHost() {
+      if (!this.activeSshIp || !window.softwareEngine) return;
+      const host = this.resolveHost(this.activeSshIp);
+      const sel = document.getElementById('remoteVirusSelect');
+      const virusKey = sel ? sel.value : 'vspam';
+      const res = window.softwareEngine.installVirusOnRemote(host, virusKey);
+      if (!res.success) {
+        alert(res.message);
+        return;
+      }
+      if (typeof window.showToast === 'function') window.showToast(res.message);
+      this.render();
+    }
+
+    drainCurrentHostBtcWallet() {
+      if (!this.activeSshIp || !window.bitcoinEngine) return;
+      const host = this.resolveHost(this.activeSshIp);
+      const res = window.bitcoinEngine.drainRemoteHostBtc(host);
+      if (!res.success) {
+        alert(res.message);
+        return;
+      }
+      if (typeof window.showToast === 'function') {
+        window.showToast(`+${res.btcStr} BTC roubados de ${host.ip}:/root/wallet.dat! Limpe o syslog!`);
+      }
+      this.render();
+    }
+
     runWhoisLookup() {
       const inp = document.getElementById('whoisQueryInput');
       if (!inp) return;
@@ -1231,7 +1274,7 @@
                     ? `<span class="hc-badge success" style="align-self: flex-start;">Cota Semanal Grátis Liberada</span>
                        <button type="button" id="btnIspFreeReset" class="hc-btn primary" onclick="window.handleIpResetAction(false, this)">Trocar Meu IP Agora (GRÁTIS)</button>`
                     : `<span class="hc-badge warn" style="align-self: flex-start;">Próxima grátis em ${esc(st.formattedRemaining)}</span>
-                       <button type="button" id="btnIspPaidReset" class="hc-btn" style="border-color: var(--hc-warning); color: var(--hc-warning);" onclick="window.handleIpResetAction(true, this)">Troca Emergencial Imediata ($ ${st.paidCost} HC)</button>`}
+                       <button type="button" id="btnIspPaidReset" class="hc-btn" style="border-color: var(--hc-warning); color: var(--hc-warning);" onclick="window.handleIpResetAction(true, this)">Troca Emergencial Imediata ($ ${st.paidCostFmt} HC)</button>`}
                   <button type="button" class="hc-btn ghost sm" onclick="window.handleRootPwdReset()">Rotacionar Senha Root (${esc(myPwd)})</button>
                 </div>
               </div>
@@ -1436,16 +1479,44 @@
           </div>
         `).join('');
 
+        const remoteBtcSats = window.bitcoinEngine ? window.bitcoinEngine.getRemoteHostWalletSats(host) : 0;
+        const remoteBtcStr = (remoteBtcSats / 100000000).toFixed(8);
+        const virusOpts = window.softwareEngine ? window.softwareEngine.getVirusCatalogOptions() : [];
+        const installedOnTarget = window.softwareEngine ? window.softwareEngine.getRemoteVirusesOnIp(host.ip) : [];
+
         subContent = `
-          <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <!-- Bloco 2 MMO: Enviar & Instalar Vírus nesta Máquina Invadida -->
+            <div class="hc-card" style="padding: 0.95rem 1.1rem; border-color: rgba(53, 184, 119, 0.35);">
+              <div class="hc-eyebrow" style="margin-bottom: 6px;">Enviar & Executar Vírus neste Servidor (Upload SSH)</div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                <select id="remoteVirusSelect" class="form-input" style="flex: 1; min-width: 240px; font-family: var(--hc-font-mono); font-size: 0.82rem;">
+                  ${virusOpts.map((vo) => `<option value="${vo.key}">${esc(vo.filename)} (${vo.versionStr}) — ${esc(vo.badge)}</option>`).join('')}
+                </select>
+                <button type="button" id="btnDeployRemoteVirus" class="hc-btn primary sm" onclick="window.internetEngine.deploySelectedVirusToCurrentHost()">
+                  Upload & Executar Vírus
+                </button>
+              </div>
+              ${installedOnTarget.length > 0
+                ? `<div style="margin-top: 8px; font-size: 0.78rem; color: var(--hc-accent-text); font-family: var(--hc-font-mono);">
+                     Em execução aqui: ${installedOnTarget.map((iv) => `${esc(iv.filename)} (${window.softwareEngine.fmtVer(iv.versionInt)})`).join(' · ')}
+                   </div>`
+                : `<div style="margin-top: 6px; font-size: 0.75rem; color: var(--hc-text-3);">Atenção: instalar um vírus grava seu IP atual no /var/log/syslog do alvo!</div>`}
+            </div>
+
+            <!-- Saque de Reserva $ HC & Carteira Bitcoin wallet.dat -->
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button type="button" id="btnDrainRemoteVault" class="hc-btn primary sm" ${host.bankBalance <= 0 ? 'disabled style="opacity:0.45;"' : ''} onclick="window.internetEngine.drainRemoteHostFunds()">
                 Drenar Reserva Local ($ ${host.bankBalance} HC)
+              </button>
+              <button type="button" id="btnDrainRemoteBtc" class="hc-btn sm" style="border-color: var(--hc-warning); color: var(--hc-warning); ${remoteBtcSats <= 0 ? 'opacity:0.4;pointer-events:none;' : ''}" onclick="window.internetEngine.drainCurrentHostBtcWallet()">
+                ${remoteBtcSats > 0 ? `Roubar wallet.dat (+${remoteBtcStr} BTC)` : 'wallet.dat vazia (0 BTC)'}
               </button>
               ${host.kind === 'bot'
                 ? `<button type="button" class="hc-btn sm" onclick="enslaveBotToC2('${esc(host.ip)}')">Anexar Bot na Central Botnet C2</button>`
                 : ''}
             </div>
+
             <div class="hc-eyebrow">Arquivos em /root (${(host.files || []).length})</div>
             <div style="display: flex; flex-direction: column; gap: 8px;">${filesHtml || '<div style="color:var(--hc-text-3);font-size:0.82rem;">Diretório vazio.</div>'}</div>
           </div>
@@ -1470,7 +1541,7 @@
             </div>
             <div style="display: flex; gap: 6px; flex-wrap: wrap;">
               <button type="button" class="hc-btn sm ${this.sshSubTab === 'logs' ? 'primary' : 'ghost'}" onclick="window.internetEngine.sshSubTab='logs'; window.internetEngine.render();">Logs (/var/log/syslog)</button>
-              <button type="button" class="hc-btn sm ${this.sshSubTab === 'files' ? 'primary' : 'ghost'}" onclick="window.internetEngine.sshSubTab='files'; window.internetEngine.render();">Arquivos & Saque</button>
+              <button type="button" id="btnSshSubTabFiles" class="hc-btn sm ${this.sshSubTab === 'files' ? 'primary' : 'ghost'}" onclick="window.internetEngine.sshSubTab='files'; window.internetEngine.render();">Vírus, Carteira & Arquivos</button>
               <button type="button" class="hc-btn sm ${this.sshSubTab === 'hw' ? 'primary' : 'ghost'}" onclick="window.internetEngine.sshSubTab='hw'; window.internetEngine.render();">Hardware</button>
               <button type="button" class="hc-btn ghost sm" style="color: var(--hc-danger-text);" onclick="window.internetEngine.disconnectSsh()">Desconectar</button>
             </div>

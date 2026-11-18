@@ -318,3 +318,43 @@ BEGIN
   RETURN v_ip;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+
+-- ========================================================
+-- 13. BLOCO 2 MMO: SOFTWARES COM POTÊNCIAS, 5 VÍRUS & CARTEIRA BITCOIN
+-- (Sincronizado com supabase/migrations/20261118_block2_viruses_softwares_bitcoin.sql)
+-- ========================================================
+CREATE TABLE IF NOT EXISTS public.btc_wallets (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE UNIQUE NOT NULL,
+  btc_address TEXT UNIQUE NOT NULL,
+  private_key_hash TEXT NOT NULL,
+  balance_sats BIGINT NOT NULL DEFAULT 500000 CHECK (balance_sats >= 0),
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.player_softwares (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  soft_key TEXT NOT NULL,
+  soft_type TEXT NOT NULL,
+  version_int INT NOT NULL DEFAULT 10 CHECK (version_int >= 10 AND version_int <= 200),
+  installed BOOLEAN NOT NULL DEFAULT true,
+  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+  UNIQUE(user_id, soft_key)
+);
+
+CREATE TABLE IF NOT EXISTS public.installed_viruses (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  installer_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  target_ip TEXT NOT NULL,
+  target_hostname TEXT NOT NULL,
+  virus_key TEXT NOT NULL,
+  version_int INT NOT NULL DEFAULT 10,
+  target_tier INT NOT NULL DEFAULT 1,
+  installed_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+  last_collected_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+  active BOOLEAN NOT NULL DEFAULT true,
+  UNIQUE(installer_id, target_ip, virus_key)
+);

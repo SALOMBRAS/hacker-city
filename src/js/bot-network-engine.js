@@ -413,6 +413,9 @@ class BotAIService {
       if (typeof window.addLocalLog === 'function') {
         window.addLocalLog('INTRUSION-IN', `${handle} [${botIp}] drenou $ ${stolen}.00 HC e instalou trojan 'vminer'`, 'danger');
       }
+      if (window.softwareEngine && typeof window.softwareEngine.infectLocalPc === 'function') {
+        window.softwareEngine.infectLocalPc('vminer_trojan', 'Trojan vminer.sys', 10, botIp);
+      }
       if (window.hackerAudio) window.hackerAudio.playMalwareInstalled();
       alert(`[INVASÃO CRÍTICA]\n${handle} [${botIp}] invadiu seu sistema, drenou $ ${stolen}.00 HC e instalou o trojan 'vminer' na sua CPU!`);
     } else {
