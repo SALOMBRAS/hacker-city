@@ -921,6 +921,7 @@
       const colVer = (this.state.inventory.collector && this.state.inventory.collector.versionInt) || 10;
       let mult = 1 + (colVer / 10) * 0.10; // v1.0 = 1.10x, v2.0 = 1.20x, v5.0 = 1.50x
       if (window.currentProfile && window.currentProfile.specialty === 'botmaster') mult *= 1.30;
+      if (window.universityEngine && window.universityEngine.hasCert(4)) mult *= 1.15;
       if (window.skillTreeEngine) {
         const rank = typeof window.skillTreeEngine.getRank === 'function' ? window.skillTreeEngine.getRank('botnet_boost') : 0;
         if (rank > 0) mult *= (1 + rank * 0.15);

@@ -272,6 +272,9 @@
           'success'
         );
       }
+      if (window.safenetFbiEngine) {
+        window.safenetFbiEngine.onPlayerIpChanged(oldIp, newIp);
+      }
       if (window.hackerAudio) window.hackerAudio.playCashChime();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       if (window.internetEngine && window.winManager && window.winManager.current === 'winBrowser') {
@@ -659,6 +662,20 @@
       files: [
         { name: 'fwd_to_fbi.log', size: '24 KB', content: 'Monitoramento forense ativo sobre transferências ilícitas e ataques sem bounce.' }
       ]
+    },
+    '198.51.100.42': {
+      ip: '198.51.100.42',
+      domain: 'numataka-training.hc',
+      hostname: 'Servidor Treinamento Numataka',
+      kind: 'empresa',
+      badge: 'Alvo Tutorial',
+      tier: 1,
+      securityLevel: 1,
+      cpuSpec: '2c @ 1.8GHz · Sandbox 50Mbps',
+      bankBalance: 320,
+      files: [
+        { name: 'readme_operador.txt', size: '2 KB', content: 'Bem-vindo à prova prática de Ensei Tankado. Extraia o dossiê e limpe seu IP na aba Logs!' }
+      ]
     }
   };
 
@@ -700,6 +717,7 @@
   };
 
   const IMPORTANT_BOOKMARKS = [
+    { ip: '198.51.100.42', label: 'Alvo Tutorial Numataka' },
     { ip: '71.4.5.1', label: 'HC Telecom ISP (Trocar IP)' },
     { ip: '71.4.20.1', label: 'First Whois' },
     { ip: '203.17.88.40', label: 'Farofa Systems' },
@@ -961,10 +979,11 @@
     getPlayerAttackPower() {
       const cpuMult = window.terminalTools ? window.terminalTools.getCpuMultiplier() : 1.0;
       const crcVer = window.softwareEngine ? Math.max(0.5, window.softwareEngine.getSoftwareVersion('cracker')) : 1.0;
+      const certMult = (window.universityEngine && window.universityEngine.hasCert(2)) ? 1.15 : 1.0;
       const overclockRank = (window.skillTreeEngine && typeof window.skillTreeEngine.getRank === 'function')
         ? window.skillTreeEngine.getRank('cpu_overclock')
         : 0;
-      return +(cpuMult * crcVer + overclockRank * 0.25).toFixed(2);
+      return +(cpuMult * crcVer * certMult + overclockRank * 0.25).toFixed(2);
     }
 
     getPlayerExploitPower() {
@@ -972,10 +991,11 @@
       const expVer = window.softwareEngine
         ? Math.max(0.5, window.softwareEngine.getSoftwareVersion('exploit_ssh'), window.softwareEngine.getSoftwareVersion('cracker'))
         : 1.0;
+      const certBonus = (window.universityEngine && window.universityEngine.hasCert(3)) ? 0.4 : 0;
       const overclockRank = (window.skillTreeEngine && typeof window.skillTreeEngine.getRank === 'function')
         ? window.skillTreeEngine.getRank('cpu_overclock')
         : 0;
-      return +(cpuMult * expVer + overclockRank * 0.25).toFixed(2);
+      return +(cpuMult * expVer + certBonus + overclockRank * 0.25).toFixed(2);
     }
 
     startBruteforce() {
@@ -1078,6 +1098,9 @@
       this.activeSshIp = host.ip;
       this.activeTab = 'entrar';
       this.sshSubTab = 'logs';
+      if (window.tutorialEngine) {
+        window.tutorialEngine.onHostHackedOrLoggedRoot(host.ip);
+      }
       this.render();
     }
 
@@ -1104,6 +1127,9 @@
       }
       this.appendServerLog(host.ip, `${myIp} logged in as root`);
 
+      if (window.tutorialEngine) {
+        window.tutorialEngine.onHostHackedOrLoggedRoot(host.ip);
+      }
       if (window.hackerAudio) window.hackerAudio.playEnterBeep();
       this.render();
       return true;
@@ -1148,6 +1174,9 @@
         window.currentProfile.reputation = (window.currentProfile.reputation || 0) + 5;
         if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       }
+      if (window.tutorialEngine) {
+        window.tutorialEngine.notifyLogsSaved(this.activeSshIp, newLines);
+      }
       if (window.hackerAudio) window.hackerAudio.playKeyClick();
       if (typeof window.showToast === 'function') {
         window.showToast(`Syslog remoto de ${this.activeSshIp} atualizado! Rastros removidos.`);
@@ -1165,6 +1194,7 @@
 
       if (host.kind === 'bot' && typeof window.drainBotBank === 'function') {
         window.drainBotBank(host.ip);
+        if (window.missionsEngine) window.missionsEngine.notifyHostDrained(host.ip);
         this.render();
         return;
       }
@@ -1178,6 +1208,12 @@
       this.appendServerLog(host.ip, `${myIp} transferred $ ${loot}.00 HC from local_vault`);
       if (typeof window.addLocalLog === 'function') {
         window.addLocalLog('WIRE-LOOT', `Transferência remota de ${host.hostname} [${host.ip}]: +$ ${loot}.00 HC`, 'success');
+      }
+      if (window.missionsEngine) {
+        window.missionsEngine.notifyHostDrained(host.ip);
+      }
+      if (loot >= 800 && window.safenetFbiEngine) {
+        window.safenetFbiEngine.evaluatePlayerCrime(`Transferência ilícita de $ ${loot} HC`, loot, host.ip);
       }
       if (window.hackerAudio) window.hackerAudio.playMoneyCollect();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
@@ -1197,6 +1233,9 @@
         alert(res.message);
         return;
       }
+      if (window.tutorialEngine) {
+        window.tutorialEngine.onFileReadOrVirusPlanted(host.ip);
+      }
       if (typeof window.showToast === 'function') window.showToast(res.message);
       this.render();
     }
@@ -1208,6 +1247,9 @@
       if (!res.success) {
         alert(res.message);
         return;
+      }
+      if (window.missionsEngine) {
+        window.missionsEngine.notifyHostDrained(host.ip);
       }
       if (typeof window.showToast === 'function') {
         window.showToast(`+${res.btcStr} BTC roubados de ${host.ip}:/root/wallet.dat! Limpe o syslog!`);
@@ -1388,6 +1430,26 @@
         `;
       }
 
+      // 6b. Autoridade Safenet & FBI (109.64.211.37)
+      if (host.kind === 'federal' && window.safenetFbiEngine) {
+        window.safenetFbiEngine.ensureSeeded();
+        const wantedCount = window.safenetFbiEngine.fbiWantedList.length;
+        const safeCount = window.safenetFbiEngine.safenetList.length;
+        return `
+          <div class="hc-card" style="padding: 1.2rem; border-color: rgba(208, 68, 58, 0.35);">
+            <div class="hc-eyebrow" style="margin-bottom: 0.4rem;">Portal Federal · Safenet & Lista de Procurados do FBI</div>
+            <h3 style="font-size: 1.05rem; margin-bottom: 0.4rem;">${wantedCount} procurado(s) com recompensa ativa · ${safeCount} IP(s) na Mira da Safenet</h3>
+            <p style="font-size: 0.85rem; color: var(--hc-text-2); margin-bottom: 1rem;">
+              Derrube qualquer servidor da Lista de Procurados do FBI via ataque DDoS para receber 100% da recompensa federal em dólares e Bitcoin.
+            </p>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="hc-btn primary" onclick="navTo('winFbi')">Abrir Painel Polícia, FBI & Bots Vivos →</button>
+              <button type="button" class="hc-btn ghost" onclick="window.internetEngine.switchTab('invadir')">Tentar Invadir Mainframe Safenet</button>
+            </div>
+          </div>
+        `;
+      }
+
       // 7. Empresas, Bots e Jogadores VPC
       return `
         <div class="hc-card" style="padding: 1.2rem;">
@@ -1469,13 +1531,23 @@
           </div>
         `;
       } else if (this.sshSubTab === 'files') {
-        const filesHtml = (host.files || []).map((f) => `
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.85rem; background: var(--hc-inset); border: 1px solid var(--hc-border); border-radius: 7px; gap: 8px;">
+        const dynamicFiles = window.missionsEngine ? window.missionsEngine.getMissionFilesForHost(host.ip) : [];
+        const allFiles = [...dynamicFiles, ...(host.files || [])];
+        const filesHtml = allFiles.map((f) => `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.85rem; background: var(--hc-inset); border: 1px solid ${f.missionId || f.isTutorial ? 'rgba(53,184,119,0.45)' : 'var(--hc-border)'}; border-radius: 7px; gap: 8px; flex-wrap: wrap;">
             <div>
-              <strong style="font-family: var(--hc-font-mono); font-size: 0.84rem;">${esc(f.name)}</strong>
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                <strong style="font-family: var(--hc-font-mono); font-size: 0.84rem;">${esc(f.name)}</strong>
+                ${f.missionId ? `<span class="hc-badge warn">ALVO DE MISSÃO</span>` : (f.isTutorial ? `<span class="hc-badge success">ALVO TUTORIAL</span>` : '')}
+              </div>
               <div style="font-size: 0.76rem; color: var(--hc-text-2);">${esc(f.content)} (${esc(f.size)})</div>
             </div>
-            <button type="button" class="hc-btn ghost sm" onclick="showToast('Arquivo ${esc(f.name)} copiado para sua área de transferência!')">Ler / Baixar</button>
+            <div style="display:flex;gap:6px;">
+              <button type="button" id="btnReadFile_${esc(f.name.replace(/[^a-zA-Z0-9]/g, '_'))}" class="hc-btn ${f.isTutorial || f.canSteal ? 'primary' : 'ghost'} sm" onclick="window.handleRemoteFileAction('${esc(host.ip)}', '${esc(f.name)}', 'read')">Ler / Extrair</button>
+              ${f.canDelete
+                ? `<button type="button" id="btnDeleteFile_${esc(f.name.replace(/[^a-zA-Z0-9]/g, '_'))}" class="hc-btn primary sm" style="background:var(--hc-danger);border-color:var(--hc-danger);" onclick="window.handleRemoteFileAction('${esc(host.ip)}', '${esc(f.name)}', 'delete')">Apagar Arquivo</button>`
+                : ''}
+            </div>
           </div>
         `).join('');
 
@@ -1517,7 +1589,7 @@
                 : ''}
             </div>
 
-            <div class="hc-eyebrow">Arquivos em /root (${(host.files || []).length})</div>
+            <div class="hc-eyebrow">Arquivos em /root (${allFiles.length})</div>
             <div style="display: flex; flex-direction: column; gap: 8px;">${filesHtml || '<div style="color:var(--hc-text-3);font-size:0.82rem;">Diretório vazio.</div>'}</div>
           </div>
         `;
@@ -1759,6 +1831,22 @@
     const newPwd = window.networkIdentity.resetRootPassword();
     if (typeof window.showToast === 'function') {
       window.showToast(`Nova senha root gerada: ${newPwd}`);
+    }
+  };
+
+  window.handleRemoteFileAction = function (ip, fileName, actionKind) {
+    if (window.missionsEngine) {
+      window.missionsEngine.notifyRemoteFileAction(ip, fileName, actionKind);
+    }
+    if (typeof window.showToast === 'function') {
+      window.showToast(
+        actionKind === 'delete'
+          ? `Arquivo ${fileName} deletado de ${ip}! Lembre-se de limpar o syslog!`
+          : `Arquivo ${fileName} extraído de ${ip}! Lembre-se de limpar o syslog!`
+      );
+    }
+    if (window.internetEngine) {
+      window.internetEngine.render();
     }
   };
 
