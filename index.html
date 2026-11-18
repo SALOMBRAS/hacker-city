@@ -35,6 +35,8 @@
   <script src="src/js/skill-tree-engine.js"></script>
   <script src="src/js/network-identity-engine.js"></script>
   <script src="src/js/software-bitcoin-engine.js"></script>
+  <script src="src/js/progression-missions-engine.js"></script>
+  <script src="src/js/safenet-fbi-living-bots-engine.js"></script>
 </head>
 <body>
 
@@ -221,6 +223,8 @@
         <div class="nav-section">Rede</div>
         <button type="button" class="nav-item" data-win="winBrowser" onclick="navTo('winBrowser')"><i data-icon="globe"></i><span>Internet</span></button>
         <button type="button" class="nav-item" data-win="winHackedDb" onclick="navTo('winHackedDb')"><i data-icon="database"></i><span>Hacked Database</span></button>
+        <button type="button" class="nav-item" data-win="winMissions" onclick="navTo('winMissions')"><i data-icon="target"></i><span>Missões</span></button>
+        <button type="button" class="nav-item" data-win="winFbi" onclick="navTo('winFbi')"><i data-icon="shield-alert"></i><span>Polícia & FBI</span></button>
         <button type="button" class="nav-item" data-win="winScanner" onclick="navTo('winScanner')"><i data-icon="radar"></i><span>Scanner de IPs</span></button>
         <button type="button" class="nav-item" data-win="winCracker" onclick="navTo('winCracker')"><i data-icon="zap"></i><span>Cracker</span></button>
         <button type="button" class="nav-item" data-win="winBotnetC2" onclick="navTo('winBotnetC2')"><i data-icon="bot"></i><span>Botnet</span></button>
@@ -231,6 +235,7 @@
         <div class="nav-section">Social</div>
         <button type="button" class="nav-item" data-win="winIrc" onclick="navTo('winIrc')"><i data-icon="message-square"></i><span>Chat</span></button>
         <div class="nav-section">Sistema</div>
+        <button type="button" class="nav-item" data-win="winUniversity" onclick="navTo('winUniversity')"><i data-icon="graduation-cap"></i><span>Universidade</span></button>
         <button type="button" class="nav-item" data-win="winArcade" onclick="navTo('winArcade')"><i data-icon="gamepad-2"></i><span>Arcade</span></button>
         <button type="button" class="nav-item" data-win="winPanic" onclick="navTo('winPanic')"><i data-icon="siren"></i><span>Protocolo 404</span></button>
         <button type="button" class="nav-item" data-win="winProfile" onclick="navTo('winProfile')"><i data-icon="user"></i><span>Minha conta</span></button>
@@ -610,6 +615,39 @@
         </div>
       </div>
       <div class="window-body" id="bitcoinAppBody"></div>
+    </div>
+
+    <!-- JANELA 18: QUADRO DE MISSÕES & TUTORIAL GUIADO -->
+    <div class="window-frame" id="winMissions" style="display: none;">
+      <div class="window-header">
+        <div>
+          <div class="window-title">Missões & Contratos</div>
+          <p class="page-sub">Invasão tutorial guiada (Numataka) e contratos dinâmicos por nível: apagar arquivo, roubar dados, auditar saldo, drenar conta e DDoS.</p>
+        </div>
+      </div>
+      <div class="window-body" id="missionsAppBody"></div>
+    </div>
+
+    <!-- JANELA 19: UNIVERSIDADE & CERTIFICAÇÕES -->
+    <div class="window-frame" id="winUniversity" style="display: none;">
+      <div class="window-header">
+        <div>
+          <div class="window-title">Universidade</div>
+          <p class="page-sub">Trilha sequencial de 5 cursos e certificações que liberam bônus de Cracker, Exploits, Canhão DDoS e Escudo Defensivo.</p>
+        </div>
+      </div>
+      <div class="window-body" id="universityAppBody"></div>
+    </div>
+
+    <!-- JANELA 20: POLÍCIA, SAFENET, PROCURADOS DO FBI & BOTS VIVOS -->
+    <div class="window-frame" id="winFbi" style="display: none;">
+      <div class="window-header">
+        <div>
+          <div class="window-title">Polícia, FBI & Mundo Vivo</div>
+          <p class="page-sub">Mira da Safenet, Lista Pública de Procurados do FBI com recompensas por DDoS e Bots Online jogando e se caçando em tempo real.</p>
+        </div>
+      </div>
+      <div class="window-body" id="fbiAppBody"></div>
     </div>
 
   </div>
@@ -1879,6 +1917,37 @@
           appendCli(`=== CARTEIRA BITCOIN (${window.bitcoinEngine.getAddress()}) ===`, 'var(--hc-warning)');
           appendCli(`  Saldo BTC : ${window.bitcoinEngine.getFormattedBtc()} BTC (~$ ${window.bitcoinEngine.getEstimatedUsdValue().toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} HC @ $ ${window.bitcoinEngine.priceUsd.toLocaleString('pt-BR')}/BTC)`, 'var(--hc-success)');
         }
+      } else if (cmd === 'tutorial') {
+        openWindow('winMissions');
+        if (window.tutorialEngine) {
+          const info = window.tutorialEngine.getCurrentStepInfo();
+          appendCli(`=== INVASÃO TUTORIAL NUMATAKA ===`, 'var(--hc-accent-text)');
+          appendCli(`  Status: ${info.title} — ${info.desc}`, 'var(--hc-success)');
+        }
+      } else if (cmd === 'cursos' || cmd === 'uni' || cmd === 'universidade') {
+        openWindow('winUniversity');
+        if (window.universityEngine) {
+          appendCli(`=== UNIVERSIDADE HACKER CITY ===`, 'var(--hc-accent-text)');
+          appendCli(`  Certificações concluídas: ${window.universityEngine.getCompletedCount()} / 5`, 'var(--hc-success)');
+        }
+      } else if (cmd === 'missoes' || cmd === 'missions') {
+        openWindow('winMissions');
+        appendCli(`Quadro de Missões aberto.`, 'var(--hc-accent-text)');
+      } else if (cmd === 'fbi' || cmd === 'safenet' || cmd === 'policia') {
+        openWindow('winFbi');
+        if (window.safenetFbiEngine) {
+          window.safenetFbiEngine.ensureSeeded();
+          appendCli(`=== SAFENET & LISTA DE PROCURADOS DO FBI ===`, 'var(--hc-danger)');
+          appendCli(`  Procurados com Bounty: ${window.safenetFbiEngine.fbiWantedList.length} | Mira da Safenet: ${window.safenetFbiEngine.safenetList.length}`, 'var(--hc-warning)');
+        }
+      } else if (cmd === 'ddos') {
+        const targetIp = parts[1];
+        if (!targetIp) {
+          appendCli('Uso: ddos <ip_procurado> (derruba alvo da Lista do FBI e captura a recompensa)', 'var(--hc-danger)');
+        } else if (window.safenetFbiEngine) {
+          const res = window.safenetFbiEngine.takedownFbiTarget(targetIp);
+          appendCli(`[DDOS-SWARM] ${res.message}`, res.success ? 'var(--hc-success)' : 'var(--hc-danger)');
+        }
       } else if (cmd === 'panic') {
         openWindow('winPanic');
       } else {
@@ -2315,20 +2384,33 @@
       const pending = window.quitineteEngine ? window.quitineteEngine.getPendingCount() : 0;
       const heat = currentProfile.heat_level || 1;
 
+      const tutInfo = window.tutorialEngine ? window.tutorialEngine.getCurrentStepInfo() : { completed: true };
+      const activeMsn = (window.missionsEngine && window.missionsEngine.ensureLoaded().activeMission) || null;
+
       let step;
-      if (pending > 0) {
+      if (!tutInfo.completed) {
+        step = { tag: tutInfo.badge, title: tutInfo.title, text: tutInfo.desc, cta: tutInfo.cta, customOnclick: 'window.tutorialEngine.getCurrentStepInfo().action()' };
+      } else if (activeMsn) {
+        step = { tag: `Missão · ${activeMsn.badge}`, title: `Contrato de ${activeMsn.hirer} (${activeMsn.targetIp})`, text: activeMsn.brief, cta: 'Abrir Missão', go: 'winMissions' };
+      } else if (pending > 0) {
         step = { tag: 'Sobrevivência', title: pending === 1 ? 'Há 1 conta da Quitinete em atraso' : `Há ${pending} contas da Quitinete em atraso`, text: 'Aluguel, luz e água atrasados geram despejo e corte de energia. Pague antes de planejar o próximo ataque.', cta: 'Abrir Quitinete', go: 'winQuitinete' };
       } else if (sp > 0) {
         step = { tag: 'Progressão', title: `Você tem ${sp} ponto${sp === 1 ? '' : 's'} de habilidade`, text: 'Aprimore passivas ou libere uma subclasse cumprindo uma missão de desbloqueio.', cta: 'Abrir habilidades', go: 'winSkillTree' };
       } else {
-        step = { tag: 'Operação', title: 'Escolha um alvo e invada', text: 'Use o Scanner para achar IPs e o Cracker para quebrar o acesso. Quanto mais Heat, mais perto a polícia chega.', cta: 'Abrir Scanner', go: 'winScanner' };
+        step = { tag: 'Operação', title: 'Aceite um contrato ou cace Procurados do FBI', text: 'Escolha contratos no Quadro de Missões ou derrube IPs na Lista de Procurados do FBI via DDoS.', cta: 'Abrir Missões', go: 'winMissions' };
       }
 
       const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0';
       const ipStatus = window.networkIdentity ? window.networkIdentity.getWeeklyResetStatus() : { canResetFree: true, formattedRemaining: '' };
       const btcStr = window.bitcoinEngine ? window.bitcoinEngine.getFormattedBtc() : '0.00000000';
       const harvest = window.softwareEngine ? window.softwareEngine.getPendingHarvestSummary() : { virusCount: 0, cashReady: 0, btcReadyStr: '0.00000000' };
-      const shortcuts = [['winBrowser','globe','Internet'],['winSoftware','package','Software & Vírus'],['winBitcoin','bitcoin','Bitcoin'],['winHackedDb','database','Hacked DB'],['winLogs','file-text','Logs'],['winSkillTree','network','Habilidades']];
+      const shortcuts = [['winBrowser','globe','Internet'],['winMissions','target','Missões'],['winUniversity','graduation-cap','Universidade'],['winFbi','shield-alert','Polícia & FBI'],['winSoftware','package','Software & Vírus'],['winBitcoin','bitcoin','Bitcoin']];
+
+      if (window.safenetFbiEngine) window.safenetFbiEngine.ensureSeeded();
+      if (window.livingBotsEngine) window.livingBotsEngine.ensureInitialized();
+      const newsItems = (window.safenetFbiEngine ? window.safenetFbiEngine.worldNews : []).slice(0, 3);
+      const fbiItems = (window.safenetFbiEngine ? window.safenetFbiEngine.fbiWantedList : []).slice(0, 2);
+      const safeItems = (window.safenetFbiEngine ? window.safenetFbiEngine.safenetList : []).slice(0, 2);
 
       el.innerHTML = `
         <div class="home-head" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
@@ -2346,7 +2428,13 @@
             <div style="margin-top: 4px; font-family: var(--hc-font-mono); font-size: 0.75rem; color: var(--hc-text-2);">${btcStr} BTC na carteira</div>
           </div>
           <div class="hc-card"><div class="hc-stat-label">Reputação</div><div class="hc-stat-value">${rep.toLocaleString('pt-BR')}</div></div>
-          <div class="hc-card"><div class="hc-stat-label">Procurado</div><div class="hc-stat-value">Nível ${heat}</div></div>
+          <div class="hc-card" style="cursor: pointer;" onclick="navTo('winFbi')" title="Clique para ver Safenet & Procurados do FBI">
+            <div class="hc-stat-label">Procurado / FBI</div>
+            <div class="hc-stat-value">Nível ${heat}</div>
+            <div style="margin-top: 4px; font-size: 0.75rem; color: ${window.safenetFbiEngine && window.safenetFbiEngine.isIpWantedByFbi(myIp) ? 'var(--hc-danger-text)' : 'var(--hc-accent-text)'};">
+              ${window.safenetFbiEngine && window.safenetFbiEngine.isIpWantedByFbi(myIp) ? '● Procurado pelo FBI!' : '● Fora das listas federais'}
+            </div>
+          </div>
           <div class="hc-card" style="cursor: pointer;" onclick="window.internetEngine.openIp('71.4.5.1')" title="Clique para gerenciar ou renovar seu IP no Provedor ISP">
             <div class="hc-stat-label">Seu IP Público</div>
             <div class="hc-stat-value" style="font-family: var(--hc-font-mono); color: var(--hc-accent-text); font-size: 1.25rem;">${escapeHtml(myIp)}</div>
@@ -2369,16 +2457,70 @@
         <div class="hc-eyebrow section-label">Próximo passo</div>
         <div class="hc-card next-step">
           <div>
-            <span class="hc-badge info">${step.tag}</span>
-            <h2>${step.title}</h2>
-            <p>${step.text}</p>
+            <span class="hc-badge info">${escapeHtml(step.tag)}</span>
+            <h2>${escapeHtml(step.title)}</h2>
+            <p>${escapeHtml(step.text)}</p>
           </div>
-          <button type="button" class="hc-btn primary" onclick="navTo('${step.go}')">${step.cta} ${HC.icon('arrow-right')}</button>
+          <button type="button" class="hc-btn primary" onclick="${step.customOnclick ? step.customOnclick : `navTo('${step.go}')`}">${escapeHtml(step.cta)} ${HC.icon('arrow-right')}</button>
         </div>
 
         <div class="hc-eyebrow section-label">Atalhos</div>
         <div class="shortcut-grid">
           ${shortcuts.map(s => `<button type="button" class="hc-card shortcut" onclick="navTo('${s[0]}')">${HC.icon(s[1], 'lg')}<span>${s[2]}</span></button>`).join('')}
+        </div>
+
+        <div class="hc-eyebrow section-label">O Mundo Vivo</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 14px;">
+          <!-- Coluna 1: Notícias & Bots Vivos -->
+          <div class="hc-card" style="padding: 1rem 1.15rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <strong style="font-size: 0.9rem;">Notícias & Bots Online</strong>
+              <button type="button" class="hc-btn ghost sm" style="padding: 2px 6px; font-size: 0.74rem; color: var(--hc-accent-text);" onclick="window.safenetFbiEngine.activeTab='liveworld';navTo('winFbi');">Ver rede viva →</button>
+            </div>
+            ${newsItems.map(n => `
+              <div style="padding: 6px 0; border-bottom: 1px solid var(--hc-border); font-size: 0.78rem; color: var(--hc-text-2);">
+                <span style="font-family: var(--hc-font-mono); color: var(--hc-text-3);">[${escapeHtml(n.at)}]</span> ${escapeHtml(n.headline)}
+              </div>
+            `).join('')}
+          </div>
+
+          <!-- Coluna 2: Procurados do FBI -->
+          <div class="hc-card" style="padding: 1rem 1.15rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <strong style="font-size: 0.9rem;">Procurados do FBI</strong>
+              <button type="button" class="hc-btn ghost sm" style="padding: 2px 6px; font-size: 0.74rem; color: var(--hc-accent-text);" onclick="window.safenetFbiEngine.activeTab='fbi';navTo('winFbi');">Lista completa →</button>
+            </div>
+            ${fbiItems.length === 0
+              ? `<div style="font-size: 0.8rem; color: var(--hc-text-3); padding: 10px 0;">Nenhum procurado ativo neste segundo.</div>`
+              : fbiItems.map(w => `
+                  <div style="padding: 7px 0; border-bottom: 1px solid var(--hc-border); display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 0.8rem;">
+                    <div>
+                      <strong>${escapeHtml(w.handle)}</strong>
+                      <div style="font-family: var(--hc-font-mono); font-size: 0.74rem; color: var(--hc-accent-text);">${escapeHtml(w.ip)}</div>
+                    </div>
+                    <strong style="font-family: var(--hc-font-mono); color: var(--hc-warning);">${fmtMoney(w.bountyCash)}</strong>
+                  </div>
+                `).join('')}
+          </div>
+
+          <!-- Coluna 3: Mira da Safenet -->
+          <div class="hc-card" style="padding: 1rem 1.15rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <strong style="font-size: 0.9rem;">Mira da Safenet</strong>
+              <button type="button" class="hc-btn ghost sm" style="padding: 2px 6px; font-size: 0.74rem; color: var(--hc-accent-text);" onclick="window.safenetFbiEngine.activeTab='safenet';navTo('winFbi');">Abrir Safenet →</button>
+            </div>
+            ${safeItems.length === 0
+              ? `<div style="font-size: 0.8rem; color: var(--hc-text-3); padding: 10px 0;">Ninguém na mira da Safenet agora.</div>`
+              : safeItems.map(s => `
+                  <div style="padding: 7px 0; border-bottom: 1px solid var(--hc-border); font-size: 0.79rem;">
+                    <div style="display: flex; justify-content: space-between;">
+                      <strong>${escapeHtml(s.handle)}</strong>
+                      <code style="color: var(--hc-accent-text);">${escapeHtml(s.ip)}</code>
+                    </div>
+                    <div style="font-size: 0.73rem; color: var(--hc-text-3);">${escapeHtml(s.reason)}</div>
+                  </div>
+                `).join('')}
+          </div>
         </div>`;
     }
 
@@ -2395,6 +2537,15 @@
       }
       if (winId === 'winBitcoin' && window.bitcoinEngine) {
         window.bitcoinEngine.renderUI('bitcoinAppBody');
+      }
+      if (winId === 'winMissions' && window.missionsEngine) {
+        window.missionsEngine.renderUI('missionsAppBody');
+      }
+      if (winId === 'winUniversity' && window.universityEngine) {
+        window.universityEngine.renderUI('universityAppBody');
+      }
+      if (winId === 'winFbi' && window.safenetFbiEngine) {
+        window.safenetFbiEngine.renderUI('fbiAppBody');
       }
       if (winId === 'winProfile' && window.networkIdentity) {
         window.networkIdentity.renderProfileIpCard('profileIpCardMount');

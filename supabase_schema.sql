@@ -358,3 +358,61 @@ CREATE TABLE IF NOT EXISTS public.installed_viruses (
   active BOOLEAN NOT NULL DEFAULT true,
   UNIQUE(installer_id, target_ip, virus_key)
 );
+
+
+-- ========================================================
+-- 14. BLOCOS 3 & 4 MMO: TUTORIAL, UNIVERSIDADE, MISSÕES, SAFENET & FBI
+-- (Sincronizado com supabase/migrations/20261118_block3_4_tutorial_uni_missions_fbi.sql)
+-- ========================================================
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS tutorial_step INT NOT NULL DEFAULT 1;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS tutorial_completed BOOLEAN NOT NULL DEFAULT false;
+
+CREATE TABLE IF NOT EXISTS public.player_certifications (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  cert_id INT NOT NULL CHECK (cert_id >= 1 AND cert_id <= 5),
+  completed_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+  UNIQUE(user_id, cert_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.player_missions (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  mission_code TEXT NOT NULL,
+  mission_type TEXT NOT NULL,
+  tier INT NOT NULL DEFAULT 1 CHECK (tier >= 1 AND tier <= 3),
+  hirer_name TEXT NOT NULL,
+  target_ip TEXT NOT NULL,
+  target_hostname TEXT NOT NULL,
+  reward_cash NUMERIC(14,2) NOT NULL DEFAULT 500,
+  reward_sats BIGINT NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'completed', 'aborted')),
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+  completed_at TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS public.safenet_tracking (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  suspect_ip TEXT UNIQUE NOT NULL,
+  suspect_handle TEXT NOT NULL,
+  suspect_kind TEXT NOT NULL DEFAULT 'bot',
+  reason TEXT NOT NULL,
+  severity INT NOT NULL DEFAULT 1,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.fbi_wanted (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  suspect_ip TEXT UNIQUE NOT NULL,
+  suspect_handle TEXT NOT NULL,
+  suspect_kind TEXT NOT NULL DEFAULT 'bot',
+  crime TEXT NOT NULL,
+  bounty_cash NUMERIC(14,2) NOT NULL CHECK (bounty_cash >= 500),
+  bounty_sats BIGINT NOT NULL DEFAULT 0,
+  defense_gbps NUMERIC(8,2) NOT NULL DEFAULT 4.0,
+  active BOOLEAN NOT NULL DEFAULT true,
+  captured_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
