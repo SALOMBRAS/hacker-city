@@ -752,12 +752,12 @@
       <div class="window-body" id="rankingAppBody"></div>
     </div>
 
-    <!-- JANELA 25: REDE ONLINE, CLOUD SAVE ANTI-F5 & DIRETÓRIO PVP HUMANO -->
+    <!-- JANELA 25: REDE ONLINE, CLOUD SAVE ANTI-F5 & DIRETÓRIO DE JOGADORES -->
     <div class="window-frame" id="winOnline" style="display: none;">
       <div class="window-header">
         <div>
-          <div class="window-title">Rede Online & PvP</div>
-          <p class="page-sub">Sincronização na nuvem (zero perda no F5), radar de operadores humanos online em tempo real (WebSocket) e telemetria de ataques PvP.</p>
+          <div class="window-title">Jogadores Online</div>
+          <p class="page-sub">Save automático completo (zero perda no F5 ou ao fechar a aba), lista de jogadores online agora e histórico de invasões.</p>
         </div>
       </div>
       <div class="window-body" id="onlineAppBody"></div>
@@ -823,6 +823,9 @@
       window.systemLogs.unshift(entry);
       if (window.systemLogs.length > 80) window.systemLogs.length = 80;
       try { localStorage.setItem(window.getSystemLogsStorageKey(), JSON.stringify(window.systemLogs)); } catch (e) {}
+      if (window.onlineEngine && window.currentProfile) {
+        window.onlineEngine.scheduleSave(false);
+      }
       if (window.winManager && window.winManager.current === 'winLogs') {
         window.renderLogsPage();
       }
@@ -832,6 +835,7 @@
     window.deleteLocalLogEntry = function (id) {
       window.systemLogs = window.systemLogs.filter(x => x.id !== id);
       try { localStorage.setItem(window.getSystemLogsStorageKey(), JSON.stringify(window.systemLogs)); } catch (e) {}
+      if (window.onlineEngine && window.currentProfile) window.onlineEngine.scheduleSave(false);
       window.renderLogsPage();
       showToast('Linha removida de /var/log/syslog.');
     };
@@ -839,6 +843,7 @@
     window.clearLocalLogs = function () {
       window.systemLogs = [];
       try { localStorage.setItem(window.getSystemLogsStorageKey(), JSON.stringify(window.systemLogs)); } catch (e) {}
+      if (window.onlineEngine && window.currentProfile) window.onlineEngine.scheduleSave(false);
       window.renderLogsPage();
       showToast('Arquivo /var/log/syslog local truncado com sucesso.');
     };
@@ -862,6 +867,7 @@
         return { id: Date.now() + idx, time: nowStr, tag: 'EDITADO', msg: line, level: 'info' };
       });
       try { localStorage.setItem(window.getSystemLogsStorageKey(), JSON.stringify(window.systemLogs)); } catch (e) {}
+      if (window.onlineEngine && window.currentProfile) window.onlineEngine.scheduleSave(false);
       if (window.hackerAudio) window.hackerAudio.playKeyClick();
       showToast(`Arquivo local /var/log/syslog salvo (${window.systemLogs.length} linhas)!`);
       window.renderLogsPage();
@@ -2773,11 +2779,11 @@
 
         <div class="hc-eyebrow section-label">O Mundo Vivo</div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 14px;">
-          <!-- Coluna 1: Notícias & Bots Vivos -->
+          <!-- Coluna 1: Notícias & Jogadores Online -->
           <div class="hc-card" style="padding: 1rem 1.15rem;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <strong style="font-size: 0.9rem;">Notícias & Bots Online</strong>
-              <button type="button" class="hc-btn ghost sm" style="padding: 2px 6px; font-size: 0.74rem; color: var(--hc-accent-text);" onclick="window.safenetFbiEngine.activeTab='liveworld';navTo('winFbi');">Ver rede viva →</button>
+              <strong style="font-size: 0.9rem;">Notícias &amp; Jogadores Online</strong>
+              <button type="button" class="hc-btn ghost sm" style="padding: 2px 6px; font-size: 0.74rem; color: var(--hc-accent-text);" onclick="navTo('winOnline');">Ver jogadores →</button>
             </div>
             ${newsItems.map(n => `
               <div style="padding: 6px 0; border-bottom: 1px solid var(--hc-border); font-size: 0.78rem; color: var(--hc-text-2);">

@@ -25,6 +25,8 @@
     constructor() {
       this.isActive = false;
       this.stepIndex = 0;
+      this.statusByUid = {};
+      this.rewardedByUid = {};
       this.steps = this.buildSteps();
       this.domReady = false;
       this.trackTimer = null;
@@ -46,11 +48,16 @@
     }
 
     hasCompletedOrSkipped() {
+      const uid = this.currentUid();
+      if (this.statusByUid[uid]) return true;
       try {
-        return !!localStorage.getItem(this.storageKey(this.currentUid()));
-      } catch (e) {
-        return false;
-      }
+        const v = localStorage.getItem(this.storageKey(uid));
+        if (v) {
+          this.statusByUid[uid] = v;
+          return true;
+        }
+      } catch (e) {}
+      return false;
     }
 
     maybeAutoStartForSession() {
@@ -535,9 +542,11 @@
       this.ensureMobileDrawerIfNeeded(false);
 
       if (statusValue) {
+        this.statusByUid[this.currentUid()] = statusValue;
         try {
           localStorage.setItem(this.storageKey(this.currentUid()), statusValue);
         } catch (e) {}
+        if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
       }
     }
 

@@ -171,15 +171,41 @@
         window.addLocalLog('MAIL-OUT', `E-mail criptografado enviado para ${to}: "${subject}"`, 'info');
       }
       if (window.onlineEngine) {
-        const targetPeer = window.onlineEngine.getHumanPlayerByTag(to);
-        window.onlineEngine.sendPvpPacket({
-          kind: 'P2P_MAIL',
-          visibleIp: window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0',
-          targetUserId: targetPeer ? targetPeer.userId : null,
-          targetTag: to,
-          targetIp: targetPeer ? targetPeer.publicIp : null,
-          d: { sub: subject.slice(0, 60), body: body.slice(0, 120) }
-        });
+        const targetPeer = window.onlineEngine.findAnyPlayerByTag
+          ? window.onlineEngine.findAnyPlayerByTag(to)
+          : window.onlineEngine.getHumanPlayerByTag(to);
+
+        if (targetPeer && targetPeer.isAiPlayer) {
+          // Jogador controlado por IA responde igual um jogador real!
+          setTimeout(() => {
+            const replies = [
+              `Salve! Vi tua mensagem aqui. Só aviso logo: se eu achar teu IP dando sopa nas minhas logs vou passar o rodo sem dó hein kkk.`,
+              `Fala! Tô no meio de um contrato agora, mas fica esperto com a Safenet que hoje a rede tá pegando fogo.`,
+              `E aí! Quer parceria ou tá só sondando se eu tô online pra tentar quebrar meu Firewall? 😂`,
+              `Recebido! Se precisar derrubar algum procurado do FBI me dá um toque no chat global.`
+            ];
+            const replyBody = replies[Math.floor(Math.random() * replies.length)];
+            this.pushSystemMail(
+              `${targetPeer.hackerTag} <${targetPeer.hackerTag.toLowerCase()}@operador.hc>`,
+              `Re: ${subject.slice(0, 48)}`,
+              replyBody,
+              'p2p'
+            );
+            if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+            if (typeof window.showToast === 'function') {
+              window.showToast(`📩 ${targetPeer.hackerTag} respondeu sua mensagem!`);
+            }
+          }, 2600);
+        } else {
+          window.onlineEngine.sendPvpPacket({
+            kind: 'P2P_MAIL',
+            visibleIp: window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0',
+            targetUserId: targetPeer ? targetPeer.userId : null,
+            targetTag: to,
+            targetIp: targetPeer ? targetPeer.publicIp : null,
+            d: { sub: subject.slice(0, 60), body: body.slice(0, 120) }
+          });
+        }
         window.onlineEngine.scheduleSave(false);
       }
       if (window.hackerAudio) window.hackerAudio.playKeyClick();
@@ -796,8 +822,11 @@
           </div>
         `;
       } else {
-        // Competidores vivos p/ Reputação, Melhor Software ou Poder DDoS (mesclando jogadores humanos reais da nuvem!)
-        const humanPeers = (window.onlineEngine ? window.onlineEngine.getAllKnownHumansList() : []).map((hp) => ({
+        // Competidores vivos p/ Reputação, Melhor Software ou Poder DDoS (unificando todos os jogadores humanos e IA como Jogadores!)
+        const unifiedPeers = (window.onlineEngine && typeof window.onlineEngine.getUnifiedPlayerDirectory === 'function'
+          ? window.onlineEngine.getUnifiedPlayerDirectory()
+          : (window.onlineEngine ? window.onlineEngine.getAllKnownHumansList() : [])
+        ).slice(0, 18).map((hp) => ({
           tag: hp.hackerTag,
           rep: Number(hp.reputation || 100),
           soft: Number(hp.bestSoftVer || 1.0),
@@ -808,12 +837,9 @@
         }));
 
         const peers = [
-          { tag: 'kr0n0s_apt', rep: 14800, soft: 5.5, gbps: 18.4, isMe: false },
-          { tag: 'm4riposa', rep: 8240, soft: 4.5, gbps: 11.2, isMe: false },
-          { tag: 'v0rtex_root', rep: 5190, soft: 3.5, gbps: 8.6, isMe: false },
-          { tag: 'nyx_0day', rep: 1450, soft: 2.5, gbps: 3.4, isMe: false },
-          { tag: 'cipher_ghost', rep: 680, soft: 1.5, gbps: 1.2, isMe: false },
-          ...humanPeers.filter((hp) => hp.tag.toLowerCase() !== myTag.toLowerCase()),
+          { tag: 'kr0n0s_apt', rep: 14800, soft: 5.5, gbps: 18.4, onlineNow: true, isHuman: true, isMe: false },
+          { tag: 'v0rtex_root', rep: 5190, soft: 3.5, gbps: 8.6, onlineNow: false, isHuman: true, isMe: false },
+          ...unifiedPeers.filter((hp) => !['kr0n0s_apt', 'v0rtex_root', myTag.toLowerCase()].includes(hp.tag.toLowerCase())),
           { tag: myTag, rep: myRep, soft: myBestSoft, gbps: myGbps, onlineNow: true, isHuman: true, isMe: true }
         ];
 

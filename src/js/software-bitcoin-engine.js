@@ -849,11 +849,13 @@
           saved.customWebPage = 'Gateway Operacional Privado // Acesso Restrito SSH Porta 22';
         }
         this.state = saved;
+        this.reconcileSavedTransitions();
       } else {
         this.state = {
           inventory: this.buildStarterInventory(),
           localHostileInfections: [],
           remoteInfections: [],
+          activeTransitions: {},
           customWebPage: 'Gateway Operacional Privado // Acesso Restrito SSH Porta 22'
         };
         this.save();
@@ -861,8 +863,37 @@
       return this.state;
     }
 
+    reconcileSavedTransitions() {
+      if (!this.state) return;
+      const savedTr = this.state.activeTransitions || {};
+      const now = Date.now();
+      this.transitions = {};
+      let mutated = false;
+
+      Object.entries(savedTr).forEach(([k, tr]) => {
+        if (!tr || !tr.endsAt) return;
+        if (tr.endsAt > now) {
+          this.transitions[k] = { ...tr };
+        } else {
+          mutated = true;
+          if (tr.mode === 'booting' || tr.mode === 'swapping') {
+            const cur = this.state.inventory && this.state.inventory[k];
+            if (cur && cur.owned) {
+              cur.installed = true;
+              cur.runningVerInt = tr.toVerInt || cur.versionInt;
+            }
+          }
+        }
+      });
+
+      if (mutated) {
+        this.save();
+      }
+    }
+
     save() {
       if (!this.state) return;
+      this.state.activeTransitions = { ...(this.transitions || {}) };
       try {
         localStorage.setItem(this.storageKey(this.userId), JSON.stringify(this.state));
       } catch (e) {}
@@ -1172,6 +1203,8 @@
         endsAt: now + durMs,
         durationMs: durMs
       };
+      this.save();
+      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
 
       const sec = +(durMs / 1000).toFixed(1);
       if (typeof window.addLocalLog === 'function') {
@@ -1242,6 +1275,8 @@
         endsAt: now + durMs,
         durationMs: durMs
       };
+      this.save();
+      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
 
       const sec = +(durMs / 1000).toFixed(1);
       if (window.taskManager) {
@@ -1305,6 +1340,8 @@
         endsAt: now + durMs,
         durationMs: durMs
       };
+      this.save();
+      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
 
       const sec = +(durMs / 1000).toFixed(1);
       if (window.taskManager) {

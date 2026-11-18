@@ -67,11 +67,23 @@
     }
 
     bindLifecycleHooks() {
-      window.addEventListener('beforeunload', () => {
+      const flushNow = (pushCloud) => {
         if (window.currentProfile && window.currentWallet) {
           this.saveLocalSnapshotImmediate();
+          if (pushCloud) {
+            this.pushSnapshotToCloud();
+          }
+        }
+      };
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+          flushNow(true);
         }
       });
+
+      window.addEventListener('pagehide', () => flushNow(false));
+      window.addEventListener('beforeunload', () => flushNow(false));
     }
 
     initLocalCrossTabBus() {
@@ -218,6 +230,86 @@
       });
     }
 
+    // Operadores de IA marcados e exibidos 100% como Jogadores Reais (com sessões online/offline, clãs, reputação viva e defesas reais!)
+    getSimulatedPlayersList(onlyOnlineNow = false) {
+      if (window.livingBotsEngine) window.livingBotsEngine.ensureInitialized();
+      const clanPool = [null, null, '0DAY', 'ZTRC', 'KRNS', 'VRTX', null];
+      const dayBots = (window.botScheduler && window.botScheduler.getCurrentDayBots()) || [];
+      const list = [];
+
+      dayBots.forEach((b, idx) => {
+        const liveStat = (window.livingBotsEngine && window.livingBotsEngine.botStats)
+          ? window.livingBotsEngine.botStats.get(b.ip)
+          : null;
+        const shiftOnline = window.botScheduler ? window.botScheduler.isBotOnline(b.ip) : true;
+        // Garante um lobby vivo com operadores entrando/saindo igual servidor MMO real (~12 online simultâneos)
+        const onlineNow = shiftOnline || (idx % 3 === 0);
+        if (onlyOnlineNow && !onlineNow) return;
+
+        const defVer = b.tier === 3 ? 2.5 : (b.tier === 2 ? 1.5 : 1.0);
+        const rep = liveStat ? liveStat.rep : (b.tier === 3 ? 3100 : (b.tier === 2 ? 1050 : 240));
+        const clanTag = b.tier >= 2 ? clanPool[idx % clanPool.length] : (idx % 5 === 0 ? '0DAY' : null);
+
+        list.push({
+          userId: 'plr_' + b.id,
+          hackerTag: b.handle,
+          publicIp: b.ip,
+          reputation: rep,
+          firewallVer: defVer,
+          hasherVer: defVer,
+          antivirusVer: defVer,
+          bestSoftVer: +(defVer + 0.5).toFixed(1),
+          ddosGbps: +(b.tier * 1.8 + (idx % 4) * 0.4).toFixed(2),
+          clanTag,
+          lastAction: liveStat ? liveStat.lastAction : 'Navegando na rede',
+          onlineNow,
+          isAiPlayer: true
+        });
+      });
+
+      // Inclui também m4riposa e rookie_br como jogadores registrados na rede
+      const extraPlayers = [
+        { userId: 'plr_m4riposa', hackerTag: 'm4riposa', publicIp: '149.56.28.11', reputation: 8240, firewallVer: 1.5, hasherVer: 1.5, antivirusVer: 1.5, bestSoftVer: 4.5, ddosGbps: 11.2, clanTag: 'KRNS', onlineNow: true, isAiPlayer: true },
+        { userId: 'plr_rookie_br', hackerTag: 'rookie_br', publicIp: '177.84.19.62', reputation: 65, firewallVer: 1.0, hasherVer: 1.0, antivirusVer: 1.0, bestSoftVer: 1.0, ddosGbps: 0, clanTag: null, onlineNow: true, isAiPlayer: true }
+      ];
+      extraPlayers.forEach((ep) => {
+        if (!onlyOnlineNow || ep.onlineNow) list.push(ep);
+      });
+
+      return list;
+    }
+
+    getUnifiedOnlinePlayers() {
+      const myTag = ((window.currentProfile && window.currentProfile.hacker_tag) || '').toLowerCase();
+      const humans = this.getOnlineHumansList();
+      const seenTags = new Set(humans.map((h) => (h.hackerTag || '').toLowerCase()));
+      seenTags.add(myTag);
+
+      const aiOnline = this.getSimulatedPlayersList(true).filter((p) => !seenTags.has((p.hackerTag || '').toLowerCase()));
+      return [...humans, ...aiOnline].sort((a, b) => (b.reputation || 0) - (a.reputation || 0));
+    }
+
+    getUnifiedPlayerDirectory() {
+      const myTag = ((window.currentProfile && window.currentProfile.hacker_tag) || '').toLowerCase();
+      const humans = this.getAllKnownHumansList();
+      const seenTags = new Set(humans.map((h) => (h.hackerTag || '').toLowerCase()));
+      seenTags.add(myTag);
+
+      const aiAll = this.getSimulatedPlayersList(false).filter((p) => !seenTags.has((p.hackerTag || '').toLowerCase()));
+      return [...humans, ...aiAll].sort((a, b) => {
+        if (!!b.onlineNow !== !!a.onlineNow) return b.onlineNow ? 1 : -1;
+        return (b.reputation || 0) - (a.reputation || 0);
+      });
+    }
+
+    findAnyPlayerByTag(tagRaw) {
+      const q = String(tagRaw || '').trim().toLowerCase();
+      if (!q) return null;
+      const human = this.getHumanPlayerByTag(q);
+      if (human) return human;
+      return this.getSimulatedPlayersList(false).find((p) => (p.hackerTag || '').toLowerCase() === q) || null;
+    }
+
     // =========================================================================
     // SNAPSHOT COMPLETO DA CONTA (FIM DO BUG DE PERDER PROGRESSO NO F5!)
     // =========================================================================
@@ -238,6 +330,7 @@
       if (window.clanEngine) window.clanEngine.ensureLoaded();
       if (window.mailEngine) window.mailEngine.ensureLoaded();
 
+      const uid = window.currentProfile.id;
       const billsPaid = {};
       if (window.quitineteEngine && window.quitineteEngine.bills) {
         Object.entries(window.quitineteEngine.bills).forEach(([k, b]) => {
@@ -245,10 +338,48 @@
         });
       }
 
+      // Capturar logs remotos editados/sujos, páginas pichadas, arquivos deletados e favoritos (zero perda no F5!)
+      const modifiedLogs = {};
+      if (window.botAI && window.botAI.syslogRegistry) {
+        for (const [ip, lines] of window.botAI.syslogRegistry.entries()) {
+          if (!Array.isArray(lines)) continue;
+          const isUntouchedDefault = lines.length === 1 && String(lines[0] || '').includes('sshd.service initialized');
+          if (!isUntouchedDefault) {
+            modifiedLogs[ip] = lines.slice(0, 25);
+          }
+        }
+      }
+
+      const defaced = {};
+      const deletedFiles = {};
+      if (window.internetEngine) {
+        if (window.internetEngine.defacedPages) {
+          for (const [ip, html] of window.internetEngine.defacedPages.entries()) {
+            defaced[ip] = html;
+          }
+        }
+        if (window.internetEngine.deletedHostFiles) {
+          for (const [ip, setObj] of window.internetEngine.deletedHostFiles.entries()) {
+            deletedFiles[ip] = Array.from(setObj || []);
+          }
+        }
+      }
+
+      let tourDone = (window.spotlightTour && window.spotlightTour.statusByUid && window.spotlightTour.statusByUid[uid]) || null;
+      let tourRewarded = (window.spotlightTour && window.spotlightTour.rewardedByUid && window.spotlightTour.rewardedByUid[uid]) || null;
+      try {
+        tourDone = tourDone || localStorage.getItem(`HC_SPOTLIGHT_TOUR_DONE_${uid}`);
+        tourRewarded = tourRewarded || localStorage.getItem(`HC_SPOTLIGHT_TOUR_REWARDED_${uid}`);
+      } catch (e) {}
+
+      if (window.softwareEngine && window.softwareEngine.state) {
+        window.softwareEngine.state.activeTransitions = { ...(window.softwareEngine.transitions || {}) };
+      }
+
       return {
-        v: 2,
+        v: 3,
         savedAt: Date.now(),
-        userId: window.currentProfile.id,
+        userId: uid,
         walletBalance: +(Number(window.currentWallet.balance || 0)).toFixed(2),
         lastDbBalance: this.lastDbWalletBalance != null
           ? Number(this.lastDbWalletBalance)
@@ -260,11 +391,16 @@
         soft: window.softwareEngine ? window.softwareEngine.state : null,
         btc: window.bitcoinEngine ? window.bitcoinEngine.state : null,
         xhd: window.stealthXhdEngine ? window.stealthXhdEngine.state : null,
+        stealthLoot: window.stealthXhdEngine ? {
+          revealedHosts: Array.from(window.stealthXhdEngine.revealedHosts || []),
+          claimedHiddenLoot: Array.from(window.stealthXhdEngine.claimedHiddenLoot || [])
+        } : null,
         bounce: window.bounceEngine ? window.bounceEngine.state : null,
         banks: window.multiBankEngine ? window.multiBankEngine.state : null,
         hdb: window.hackedDb ? (window.hackedDb.entries || []).slice(0, 40) : [],
         uni: window.universityEngine ? window.universityEngine.state : null,
         tut: window.tutorialEngine ? window.tutorialEngine.state : null,
+        tour: { done: tourDone, rewarded: tourRewarded },
         msn: window.missionsEngine ? window.missionsEngine.state : null,
         puz: window.puzzleTrailEngine ? window.puzzleTrailEngine.state : null,
         clan: window.clanEngine ? {
@@ -281,6 +417,21 @@
           passiveRanks: window.skillTreeEngine.passiveRanks || {},
           selectedSubclass: window.skillTreeEngine.selectedSubclass || null,
           completedMissions: Array.from(window.skillTreeEngine.completedMissions || [])
+        } : null,
+        sysLogs: Array.isArray(window.systemLogs) ? window.systemLogs.slice(0, 45) : null,
+        netWorld: window.internetEngine ? {
+          modifiedLogs,
+          defaced,
+          deletedFiles,
+          drainedIps: Array.from(window.internetEngine.drainedNpcIps || []),
+          favorites: Array.from(window.internetEngine.favorites || []),
+          recentIps: (window.internetEngine.recentIps || []).slice(0, 8),
+          portScannedIps: Array.from(window.internetEngine.portScannedIps || [])
+        } : null,
+        botnetC2: window.botnetC2 ? {
+          profile: window.botnetC2.profile || 'ghost',
+          accumulatedProfits: +(Number(window.botnetC2.accumulatedProfits || 0)).toFixed(2),
+          slaveIps: (window.botnetC2.slaves || []).map((s) => s.ip)
         } : null,
         billsPaid
       };
@@ -325,6 +476,9 @@
       if (snap.soft && window.softwareEngine) {
         window.softwareEngine.userId = uid;
         window.softwareEngine.state = snap.soft;
+        if (typeof window.softwareEngine.reconcileSavedTransitions === 'function') {
+          window.softwareEngine.reconcileSavedTransitions();
+        }
         window.softwareEngine.save();
       }
 
@@ -421,6 +575,76 @@
         }
       }
 
+      if (snap.stealthLoot && window.stealthXhdEngine) {
+        window.stealthXhdEngine.revealedHosts = new Set(snap.stealthLoot.revealedHosts || []);
+        window.stealthXhdEngine.claimedHiddenLoot = new Set(snap.stealthLoot.claimedHiddenLoot || []);
+      }
+
+      if (snap.tour) {
+        if (window.spotlightTour) {
+          if (snap.tour.done) window.spotlightTour.statusByUid[uid] = snap.tour.done;
+          if (snap.tour.rewarded) window.spotlightTour.rewardedByUid[uid] = snap.tour.rewarded;
+        }
+        try {
+          if (snap.tour.done) localStorage.setItem(`HC_SPOTLIGHT_TOUR_DONE_${uid}`, snap.tour.done);
+          if (snap.tour.rewarded) localStorage.setItem(`HC_SPOTLIGHT_TOUR_REWARDED_${uid}`, snap.tour.rewarded);
+        } catch (e) {}
+      }
+
+      if (Array.isArray(snap.sysLogs) && snap.sysLogs.length > 0) {
+        window.systemLogs = snap.sysLogs;
+        try {
+          localStorage.setItem(`HC_SYSTEM_LOGS_${uid}`, JSON.stringify(window.systemLogs));
+        } catch (e) {}
+      }
+
+      if (snap.netWorld) {
+        if (snap.netWorld.modifiedLogs && window.botAI && window.botAI.syslogRegistry) {
+          Object.entries(snap.netWorld.modifiedLogs).forEach(([ip, lines]) => {
+            if (Array.isArray(lines)) window.botAI.syslogRegistry.set(ip, lines);
+          });
+        }
+        if (window.internetEngine) {
+          if (snap.netWorld.defaced && window.internetEngine.defacedPages) {
+            Object.entries(snap.netWorld.defaced).forEach(([ip, html]) => {
+              window.internetEngine.defacedPages.set(ip, html);
+            });
+          }
+          if (snap.netWorld.deletedFiles && window.internetEngine.deletedHostFiles) {
+            Object.entries(snap.netWorld.deletedFiles).forEach(([ip, arr]) => {
+              window.internetEngine.deletedHostFiles.set(ip, new Set(arr || []));
+            });
+          }
+          if (Array.isArray(snap.netWorld.drainedIps)) {
+            window.internetEngine.drainedNpcIps = new Set(snap.netWorld.drainedIps);
+          }
+          if (Array.isArray(snap.netWorld.favorites)) {
+            window.internetEngine.favorites = new Set(snap.netWorld.favorites);
+          }
+          if (Array.isArray(snap.netWorld.recentIps) && snap.netWorld.recentIps.length > 0) {
+            window.internetEngine.recentIps = snap.netWorld.recentIps;
+          }
+          if (Array.isArray(snap.netWorld.portScannedIps)) {
+            window.internetEngine.portScannedIps = new Set(snap.netWorld.portScannedIps);
+          }
+        }
+      }
+
+      if (snap.botnetC2 && window.botnetC2 && window.botRegistry) {
+        if (snap.botnetC2.profile) window.botnetC2.setProfile(snap.botnetC2.profile);
+        window.botnetC2.slaves = [];
+        (snap.botnetC2.slaveIps || []).forEach((ip) => {
+          const b = window.botRegistry.getBotByIp(ip);
+          if (b && !window.botnetC2.slaves.some((s) => s.ip === b.ip)) {
+            const rate = b.tier === 1 ? 0.35 : (b.tier === 2 ? 1.20 : 3.50);
+            window.botnetC2.slaves.push({ ip: b.ip, handle: b.handle, tier: b.tier, baseRate: rate });
+          }
+        });
+        if (snap.botnetC2.accumulatedProfits != null) {
+          window.botnetC2.accumulatedProfits = Number(snap.botnetC2.accumulatedProfits) || 0;
+        }
+      }
+
       return true;
     }
 
@@ -497,13 +721,25 @@
         } catch (e) {}
       }
 
-      // 2) Fallback nativo universal: Supabase Auth user_metadata (funciona 100% na nuvem SEM exigir SQL extra!)
+      // 2) Fallback nativo universal: Supabase Auth user_metadata + sincronização direta em profiles & wallets!
       try {
         if (window.supabase.auth && typeof window.supabase.auth.updateUser === 'function') {
           const { error: uErr } = await window.supabase.auth.updateUser({
             data: { hc_save_v2: snap }
           });
           if (!uErr) cloudSaved = true;
+        }
+        if (this.cloudTablesAvailable === false) {
+          await Promise.allSettled([
+            window.supabase.from('profiles').update({
+              reputation: snap.reputation,
+              heat_level: snap.heatLevel
+            }).eq('id', snap.userId),
+            window.supabase.from('wallets').update({
+              balance: snap.walletBalance
+            }).eq('user_id', snap.userId)
+          ]);
+          this.lastDbWalletBalance = snap.walletBalance;
         }
       } catch (e) {}
 
@@ -1103,14 +1339,14 @@
       }
       if (!chip) return;
 
-      const onlineCount = 1 + this.getOnlineHumansList().length;
+      const onlineCount = 1 + this.getUnifiedOnlinePlayers().length;
       const dotColor = this.syncStatus === 'syncing'
         ? '#e5b84b'
-        : (this.syncStatus === 'synced' ? '#35b877' : '#60a5fa');
+        : (this.syncStatus === 'synced' ? '#35b877' : '#35b877');
       const label = this.syncStatus === 'syncing'
         ? 'Salvando...'
         : `${onlineCount} Online`;
-      chip.title = `Nuvem (${this.syncStatus}) · Último save: ${this.lastSyncedAt || 'agora'} · Clique p/ abrir Rede Online & PvP`;
+      chip.title = `Save Automático (${this.syncStatus === 'synced' ? 'Nuvem + Local' : 'Instantâneo Anti-F5'}) · Último save: ${this.lastSyncedAt || 'agora'} · Clique p/ ver Jogadores Online`;
       chip.innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:${dotColor};display:inline-block;"></span><span class="val" style="font-size:0.75rem;">${esc(label)}</span>`;
     }
 
@@ -1119,46 +1355,45 @@
       if (!container) return;
 
       const me = this.buildMyPublicPeerDescriptor();
-      const onlineHumans = this.getOnlineHumansList();
-      const allHumans = this.getAllKnownHumansList();
+      const onlinePlayers = this.getUnifiedOnlinePlayers();
+      const allPlayers = this.getUnifiedPlayerDirectory();
 
-      const onlineRows = onlineHumans.length === 0
-        ? `<div style="padding:1rem;color:var(--hc-text-3);font-size:0.82rem;">Nenhum outro operador humano com navegador aberto neste exato segundo (abra outra aba/conta ou convide um amigo para ver o IP dele ao vivo aqui!).</div>`
-        : onlineHumans.map((p) => `
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--hc-border);gap:10px;flex-wrap:wrap;font-size:0.83rem;">
-              <div>
-                <span style="width:8px;height:8px;border-radius:50%;background:var(--hc-accent);display:inline-block;margin-right:6px;"></span>
-                <strong>${esc(p.hackerTag)}</strong>
-                ${p.clanTag ? `<span class="hc-badge info" style="margin-left:6px;">[${esc(p.clanTag)}]</span>` : ''}
-                <code style="color:var(--hc-accent-text);margin-left:8px;">${esc(p.publicIp)}</code>
-                <span style="color:var(--hc-text-3);font-size:0.76rem;margin-left:8px;">${(p.reputation || 100).toLocaleString('pt-BR')} REP · FW v${(p.firewallVer || 1).toFixed(1)}</span>
-              </div>
-              <div style="display:flex;gap:6px;">
-                <button type="button" class="hc-btn primary sm" onclick="window.internetEngine.openIp('${esc(p.publicIp)}', 'invadir')">Invadir IP</button>
-                <button type="button" class="hc-btn ghost sm" onclick="window.mailEngine.activeTab='compose';navTo('winMail');setTimeout(()=>{const el=document.getElementById('mailToInput');if(el)el.value='${esc(p.hackerTag)}';},60);">Enviar Mail</button>
-              </div>
-            </div>
-          `).join('');
+      const onlineRows = onlinePlayers.map((p) => `
+        <div class="online-player-row" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--hc-border);gap:10px;flex-wrap:wrap;font-size:0.83rem;">
+          <div>
+            <span class="hc-badge success" style="margin-right:6px;">● ONLINE · Jogador</span>
+            <strong>${esc(p.hackerTag)}</strong>
+            ${p.clanTag ? `<span class="hc-badge info" style="margin-left:6px;">[${esc(p.clanTag)}]</span>` : ''}
+            <code style="color:var(--hc-accent-text);margin-left:8px;">${esc(p.publicIp)}</code>
+            <span style="color:var(--hc-text-3);font-size:0.76rem;margin-left:8px;">
+              ${(p.reputation || 100).toLocaleString('pt-BR')} REP · ${(p.reputation || 100) < 100 ? 'Iniciante (<100 REP)' : `Escudo v${(p.firewallVer || 1).toFixed(1)}`}
+            </span>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button type="button" class="hc-btn primary sm" onclick="window.internetEngine.openIp('${esc(p.publicIp)}', 'invadir')">Invadir PC</button>
+            <button type="button" class="hc-btn ghost sm" onclick="window.mailEngine.activeTab='compose';navTo('winMail');setTimeout(()=>{const el=document.getElementById('mailToInput');if(el)el.value='${esc(p.hackerTag)}';},60);">Enviar Mensagem</button>
+          </div>
+        </div>
+      `).join('');
 
-      const directoryRows = allHumans.length === 0
-        ? `<div style="padding:1rem;color:var(--hc-text-3);font-size:0.82rem;">Carregando contas reais registradas no PostgreSQL...</div>`
-        : allHumans.slice(0, 20).map((p) => `
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--hc-border);gap:10px;flex-wrap:wrap;font-size:0.82rem;">
-              <div>
-                <span class="hc-badge ${p.onlineNow ? 'success' : ''}" style="margin-right:6px;">${p.onlineNow ? '● ONLINE' : 'VPC ATIVA'}</span>
-                <strong>${esc(p.hackerTag)}</strong>
-                <code style="color:var(--hc-accent-text);margin-left:8px;">${esc(p.publicIp)}</code>
-                <span style="color:var(--hc-text-3);font-size:0.75rem;margin-left:8px;">${(p.reputation || 100).toLocaleString('pt-BR')} REP · ${(p.reputation || 100) < 100 ? 'Protegido (<100 REP)' : `Hasher v${(p.hasherVer || 1).toFixed(1)}`}</span>
-              </div>
-              <div style="display:flex;gap:6px;">
-                <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(p.publicIp)}')">Abrir no Browser</button>
-                <button type="button" class="hc-btn primary sm" onclick="window.internetEngine.openIp('${esc(p.publicIp)}', 'invadir')">Atacar VPC</button>
-              </div>
-            </div>
-          `).join('');
+      const directoryRows = allPlayers.slice(0, 28).map((p) => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--hc-border);gap:10px;flex-wrap:wrap;font-size:0.82rem;">
+          <div>
+            <span class="hc-badge ${p.onlineNow ? 'success' : ''}" style="margin-right:6px;">${p.onlineNow ? '● ONLINE' : '○ OFFLINE'}</span>
+            <strong>${esc(p.hackerTag)}</strong>
+            ${p.clanTag ? `<span class="hc-badge info" style="margin-left:6px;">[${esc(p.clanTag)}]</span>` : ''}
+            <code style="color:var(--hc-accent-text);margin-left:8px;">${esc(p.publicIp)}</code>
+            <span style="color:var(--hc-text-3);font-size:0.75rem;margin-left:8px;">${(p.reputation || 100).toLocaleString('pt-BR')} REP · ${(p.reputation || 100) < 100 ? 'Protegido (<100 REP)' : `Cofre v${(p.hasherVer || 1).toFixed(1)}`}</span>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(p.publicIp)}')">Abrir PC</button>
+            <button type="button" class="hc-btn primary sm" onclick="window.internetEngine.openIp('${esc(p.publicIp)}', 'invadir')">Invadir PC</button>
+          </div>
+        </div>
+      `).join('');
 
       const feedRows = this.livePvpFeed.length === 0
-        ? `<div style="color:var(--hc-text-3);font-size:0.8rem;padding:8px 0;">Nenhuma transmissão PvP registrada nesta sessão ainda.</div>`
+        ? `<div style="color:var(--hc-text-3);font-size:0.8rem;padding:8px 0;">Nenhuma invasão ou mensagem registrada nesta sessão ainda.</div>`
         : this.livePvpFeed.slice(0, 10).map((f) => `
             <div style="padding:6px 0;border-bottom:1px solid var(--hc-border);font-family:var(--hc-font-mono);font-size:0.77rem;">
               <span style="color:var(--hc-text-3);">[${esc(f.at)}]</span>
@@ -1172,44 +1407,44 @@
           <!-- Card de Status Cloud Save + Presença -->
           <div class="hc-card" style="padding:1.15rem;border-color:rgba(53,184,119,0.4);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
             <div>
-              <div class="hc-eyebrow">Cloud Save Anti-F5 & Malha Multiplayer (Supabase Realtime)</div>
+              <div class="hc-eyebrow">Save Automático Anti-F5 &amp; Nuvem (Zero Perda de Dados)</div>
               <h3 style="font-size:1.05rem;margin:4px 0;">
-                Seu Nó Público: <code style="color:var(--hc-accent-text);">${esc(me.publicIp)}</code> ·
-                Estado do Save: <strong style="color:var(--hc-accent-text);">${this.syncStatus === 'synced' ? 'Nuvem + Local Sincronizados' : 'Persistência Local Ativa'}</strong>
+                Seu IP Atual: <code style="color:var(--hc-accent-text);">${esc(me.publicIp)}</code> ·
+                Estado do Save: <strong style="color:var(--hc-accent-text);">${this.syncStatus === 'synced' ? 'Nuvem + Navegador Sincronizados' : 'Salvo Instantaneamente (Anti-F5)'}</strong>
               </h3>
               <div style="font-size:0.8rem;color:var(--hc-text-2);">
-                Suas defesas visíveis p/ outros jogadores: <code>Hasher v${me.hasherVer.toFixed(1)}</code> · <code>Firewall v${me.firewallVer.toFixed(1)}</code> · <code>Antivirus v${me.antivirusVer.toFixed(1)}</code> · Último save: ${esc(this.lastSyncedAt || 'agora')}
+                Tudo salvo em tempo real (dinheiro, BTC, peças, programas ativos, carência, vírus, senhas descobertas, logs/farpas e missões) · Último save: ${esc(this.lastSyncedAt || 'agora')}
               </div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button type="button" id="btnForceCloudSync" class="hc-btn primary sm" onclick="window.onlineEngine.pushSnapshotToCloud().then(()=>showToast('Progresso salvo e sincronizado com sucesso!'))">
-                Sincronizar Agora ↻
+              <button type="button" id="btnForceCloudSync" class="hc-btn primary sm" onclick="window.onlineEngine.pushSnapshotToCloud().then(()=>showToast('Todos os seus dados foram salvos e sincronizados!'))">
+                Salvar Agora ↻
               </button>
-              <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('71.4.5.1')">Trocar Meu IP (ISP)</button>
+              <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('71.4.5.1')">Trocar Meu IP</button>
             </div>
           </div>
 
-          <!-- Operadores Online em Tempo Real -->
-          <div class="hc-card" style="padding:0;overflow:hidden;">
-            <div style="padding:11px 14px;border-bottom:1px solid var(--hc-border);display:flex;justify-content:space-between;align-items:center;">
-              <strong style="font-size:0.9rem;">🟢 Jogadores Humanos Online Agora (${onlineHumans.length + 1} ativos no canal Realtime)</strong>
-              <span class="hc-badge success">WebSocket Ao Vivo</span>
+          <!-- Jogadores Online Agora (Humanos + IA unificados como Jogadores!) -->
+          <div class="hc-card" id="onlinePlayersLiveCard" style="padding:0;overflow:hidden;">
+            <div style="padding:11px 14px;border-bottom:1px solid var(--hc-border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <strong style="font-size:0.9rem;">🟢 Jogadores Online Agora (${onlinePlayers.length + 1} conectados na rede)</strong>
+              <span class="hc-badge success">Servidor Online Ao Vivo</span>
             </div>
             ${onlineRows}
           </div>
 
-          <!-- Todas as Contas Humanas Reais do Servidor -->
-          <div class="hc-card" style="padding:0;overflow:hidden;">
-            <div style="padding:11px 14px;border-bottom:1px solid var(--hc-border);display:flex;justify-content:space-between;align-items:center;">
-              <strong style="font-size:0.9rem;">🌐 Diretório Global de Contas de Jogadores (${allHumans.length} VPCs na Nuvem)</strong>
-              <span style="font-size:0.75rem;color:var(--hc-text-3);font-family:var(--hc-font-mono);">public.profiles + Realtime</span>
+          <!-- Todos os Jogadores do Servidor -->
+          <div class="hc-card" id="onlinePlayersDirectoryCard" style="padding:0;overflow:hidden;">
+            <div style="padding:11px 14px;border-bottom:1px solid var(--hc-border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <strong style="font-size:0.9rem;">🌐 Todos os Jogadores Registrados (${allPlayers.length} operadores)</strong>
+              <span style="font-size:0.75rem;color:var(--hc-text-3);font-family:var(--hc-font-mono);">Online &amp; Offline</span>
             </div>
             ${directoryRows}
           </div>
 
           <!-- Telemetria de Pacotes PvP & Mail -->
           <div class="hc-card" style="padding:1rem 1.15rem;">
-            <div class="hc-eyebrow" style="margin-bottom:6px;">Telemetria de Pacotes PvP, Logs Remotos & Mail P2P</div>
+            <div class="hc-eyebrow" style="margin-bottom:6px;">Histórico de Invasões, Farpas em Logs &amp; Mensagens entre Jogadores</div>
             ${feedRows}
           </div>
         </div>
@@ -1300,8 +1535,21 @@
 
       if (window.softwareEngine) {
         window.softwareEngine.ensureLoaded();
-        Object.values(window.softwareEngine.state.inventory).forEach((s) => {
-          s.versionInt = 10;
+        window.softwareEngine.transitions = {};
+        Object.entries(window.softwareEngine.state.inventory).forEach(([k, s]) => {
+          const def = window.softwareEngine.getDefinition(k);
+          if (def && def.starterOwned) {
+            s.owned = true;
+            s.versionInt = 10;
+            s.runningVerInt = s.installed ? 10 : 0;
+            s.licensed = true;
+          } else {
+            s.owned = false;
+            s.versionInt = 0;
+            s.runningVerInt = 0;
+            s.installed = false;
+            s.licensed = false;
+          }
         });
         window.softwareEngine.state.remoteInfections = [];
         window.softwareEngine.save();
