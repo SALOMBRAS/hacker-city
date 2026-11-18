@@ -170,6 +170,18 @@
       if (typeof window.addLocalLog === 'function') {
         window.addLocalLog('MAIL-OUT', `E-mail criptografado enviado para ${to}: "${subject}"`, 'info');
       }
+      if (window.onlineEngine) {
+        const targetPeer = window.onlineEngine.getHumanPlayerByTag(to);
+        window.onlineEngine.sendPvpPacket({
+          kind: 'P2P_MAIL',
+          visibleIp: window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0',
+          targetUserId: targetPeer ? targetPeer.userId : null,
+          targetTag: to,
+          targetIp: targetPeer ? targetPeer.publicIp : null,
+          d: { sub: subject.slice(0, 60), body: body.slice(0, 120) }
+        });
+        window.onlineEngine.scheduleSave(false);
+      }
       if (window.hackerAudio) window.hackerAudio.playKeyClick();
       this.renderUI();
       return { success: true, message: `Mensagem enviada para ${to}!` };
@@ -420,6 +432,11 @@
         );
       }
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+      if (window.onlineEngine) {
+        window.onlineEngine.trackRealtimePresence();
+        window.onlineEngine.publishDirectoryBeacon();
+        window.onlineEngine.scheduleSave(true);
+      }
       this.renderUI();
       return { success: true, clan: newClan, message: `Clã [${tag}] ${name} fundado! Servidor: ${serverIp}` };
     }
@@ -533,6 +550,14 @@
         );
       }
       if (window.hackerAudio) window.hackerAudio.playCashChime();
+      if (window.onlineEngine) {
+        window.onlineEngine.sendPvpPacket({
+          kind: 'CLAN_WAR_STRIKE',
+          visibleIp: window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0',
+          d: { fromClan: my.tag, toClan: war.enemyTag, pts: ddosPts }
+        });
+        window.onlineEngine.scheduleSave(false);
+      }
       this.renderUI();
       return {
         success: true,
@@ -771,14 +796,25 @@
           </div>
         `;
       } else {
-        // Competidores vivos p/ Reputação, Melhor Software ou Poder DDoS
+        // Competidores vivos p/ Reputação, Melhor Software ou Poder DDoS (mesclando jogadores humanos reais da nuvem!)
+        const humanPeers = (window.onlineEngine ? window.onlineEngine.getAllKnownHumansList() : []).map((hp) => ({
+          tag: hp.hackerTag,
+          rep: Number(hp.reputation || 100),
+          soft: Number(hp.bestSoftVer || 1.0),
+          gbps: Number(hp.ddosGbps || 0),
+          onlineNow: !!hp.onlineNow,
+          isHuman: true,
+          isMe: false
+        }));
+
         const peers = [
           { tag: 'kr0n0s_apt', rep: 14800, soft: 5.5, gbps: 18.4, isMe: false },
           { tag: 'm4riposa', rep: 8240, soft: 4.5, gbps: 11.2, isMe: false },
           { tag: 'v0rtex_root', rep: 5190, soft: 3.5, gbps: 8.6, isMe: false },
           { tag: 'nyx_0day', rep: 1450, soft: 2.5, gbps: 3.4, isMe: false },
           { tag: 'cipher_ghost', rep: 680, soft: 1.5, gbps: 1.2, isMe: false },
-          { tag: myTag, rep: myRep, soft: myBestSoft, gbps: myGbps, isMe: true }
+          ...humanPeers.filter((hp) => hp.tag.toLowerCase() !== myTag.toLowerCase()),
+          { tag: myTag, rep: myRep, soft: myBestSoft, gbps: myGbps, onlineNow: true, isHuman: true, isMe: true }
         ];
 
         const metricKey = this.activeTab === 'software' ? 'soft' : (this.activeTab === 'ddos' ? 'gbps' : 'rep');
@@ -786,7 +822,7 @@
 
         bodyHtml = `
           <div class="hc-card" style="padding:0;overflow:hidden;">
-            ${peers.map((p, idx) => {
+            ${peers.slice(0, 18).map((p, idx) => {
               const valStr = metricKey === 'soft'
                 ? `v${p.soft.toFixed(1)}`
                 : (metricKey === 'gbps' ? `${p.gbps.toFixed(2)} Gbps` : `${p.rep.toLocaleString('pt-BR')} REP`);
@@ -795,7 +831,7 @@
                   <div>
                     <strong style="font-family:var(--hc-font-mono);color:var(--hc-text-3);margin-right:10px;">#${idx + 1}</strong>
                     <strong style="color:${p.isMe ? 'var(--hc-accent-text)' : 'var(--hc-text)'};">${esc(p.tag)}</strong>
-                    ${p.isMe ? `<span class="hc-badge success" style="margin-left:8px;">VOCÊ</span>` : ''}
+                    ${p.isMe ? `<span class="hc-badge success" style="margin-left:8px;">VOCÊ</span>` : (p.onlineNow ? `<span class="hc-badge success" style="margin-left:8px;">● ONLINE</span>` : (p.isHuman ? `<span class="hc-badge info" style="margin-left:8px;">JOGADOR</span>` : ''))}
                   </div>
                   <strong style="font-family:var(--hc-font-mono);color:${p.isMe ? 'var(--hc-accent-text)' : 'var(--hc-warning)'};">${valStr}</strong>
                 </div>

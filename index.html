@@ -41,6 +41,7 @@
   <script src="src/js/fs-stealth-xhd-bounce-engine.js"></script>
   <script src="src/js/multi-banks-account-hack-engine.js"></script>
   <script src="src/js/social-clans-mail-ranking-engine.js"></script>
+  <script src="src/js/online-cloud-pvp-engine.js"></script>
 </head>
 <body>
 
@@ -201,6 +202,13 @@
 
       </form>
 
+      <!-- Entrada Instantânea em 1 Clique (Zero Espera de E-mail / OTP) -->
+      <div style="margin-top: 0.9rem; padding-top: 0.85rem; border-top: 1px solid var(--hc-border); text-align: center;">
+        <button type="button" id="btnInstantPlayMode" class="hc-btn" style="width: 100%; justify-content: center; border-color: rgba(53, 184, 119, 0.45); color: var(--hc-accent-text);" onclick="enterInstantOperatorMode()">
+          ⚡ Testar / Jogar Agora em 1 Clique (Sem E-mail)
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -227,12 +235,10 @@
         <button type="button" class="nav-item" data-win="winSkillTree" onclick="navTo('winSkillTree')"><i data-icon="network"></i><span>Habilidades</span></button>
         <div class="nav-section">Rede</div>
         <button type="button" class="nav-item" data-win="winBrowser" onclick="navTo('winBrowser')"><i data-icon="globe"></i><span>Internet</span></button>
+        <button type="button" class="nav-item" data-win="winOnline" onclick="navTo('winOnline')"><i data-icon="wifi"></i><span>Rede Online & PvP</span></button>
         <button type="button" class="nav-item" data-win="winHackedDb" onclick="navTo('winHackedDb')"><i data-icon="database"></i><span>Hacked Database</span></button>
         <button type="button" class="nav-item" data-win="winMissions" onclick="navTo('winMissions')"><i data-icon="target"></i><span>Missões</span></button>
         <button type="button" class="nav-item" data-win="winFbi" onclick="navTo('winFbi')"><i data-icon="shield-alert"></i><span>Polícia & FBI</span></button>
-        <button type="button" class="nav-item" data-win="winScanner" onclick="navTo('winScanner')"><i data-icon="radar"></i><span>Scanner de IPs</span></button>
-        <button type="button" class="nav-item" data-win="winCracker" onclick="navTo('winCracker')"><i data-icon="zap"></i><span>Cracker</span></button>
-        <button type="button" class="nav-item" data-win="winBotnetC2" onclick="navTo('winBotnetC2')"><i data-icon="bot"></i><span>Botnet</span></button>
         <div class="nav-section">Dinheiro</div>
         <button type="button" class="nav-item" data-win="winBank" onclick="navTo('winBank')"><i data-icon="landmark"></i><span>Banco</span></button>
         <button type="button" class="nav-item" data-win="winBitcoin" onclick="navTo('winBitcoin')"><i data-icon="bitcoin"></i><span>Bitcoin</span></button>
@@ -256,6 +262,7 @@
 
     <header class="topbar">
       <div class="topbar-left">
+        <button type="button" id="btnMobileNavToggle" onclick="document.querySelector('.sidebar')?.classList.toggle('mobile-open')" aria-label="Menu"><i data-icon="menu"></i></button>
         <div class="topbar-title" id="pageTitle">Home</div>
         <div class="topbar-ip-omnibox" title="Ir para qualquer endereço IP (Ctrl+K)">
           <i data-icon="globe"></i>
@@ -443,32 +450,15 @@
       </div>
     </div>
 
-    <!-- JANELA 7: PROTOCOLO 404 (BATIDA POLICIAL) -->
-    <div class="window-frame" id="winPanic" style="width: 580px; height: 420px; top: 120px; left: 220px;">
-      <div class="window-header" onmousedown="dragWindowStart(event, 'winPanic')">
-        <div><div class="window-title">Protocolo 404</div><p class="page-sub">Apague as evidências antes da batida.</p></div>
-        <div class="window-controls">
-          <button class="btn-win btn-win-close" onclick="closeWindow('winPanic')"></button>
+    <!-- JANELA 7: PROTOCOLO 404 (BATIDA POLICIAL EMBUTIDA + PROTEÇÃO XHD/OFFSHORE) -->
+    <div class="window-frame" id="winPanic" style="display: none;">
+      <div class="window-header">
+        <div>
+          <div class="window-title">Protocolo 404</div>
+          <p class="page-sub">Destruição física de emergência (15s) contra mandado policial. Tudo guardado no seu HD Externo (XHD) e Contas Offshore sobrevive a confiscos!</p>
         </div>
       </div>
-      <div class="window-body">
-        <h3 style="color: var(--hc-danger-text); font-family: var(--hc-font-sans); font-size: 1.1rem; margin-bottom: 0.5rem;">SISTEMA DE PÂNICO CONTRA MANDADO POLICIAL</h3>
-        <p style="font-size: 0.85rem; color: var(--hc-text); margin-bottom: 1rem;">
-          Se a polícia invadir ou seu nível de procurado chegar a 5, destrua as provas no HD a tempo ou seja preso.
-        </p>
-
-        <div style="background: rgba(208, 68, 58, 0.08); border: 1px solid var(--hc-danger); border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
-          <strong style="color: var(--hc-danger-text); display: block; margin-bottom: 0.35rem;">REGRA OFICIAL DO PROTOCOLO:</strong>
-          <ul style="font-size: 0.8rem; color: var(--hc-text); padding-left: 1.2rem; line-height: 1.4;">
-            <li><strong>Sucesso na Destruição:</strong> Evidências destruídas. Você é liberado sem provas e recupera seu dinheiro com sua anotação no papel real!</li>
-            <li><strong>Falha / Preso:</strong> A polícia confisca todo seu saldo e máquinas. Você cumpre 6 meses e recomeça do zero apenas com sua <strong>Reputação</strong> e o <strong>Computador Inicial</strong>!</li>
-          </ul>
-        </div>
-
-        <button class="btn-submit" style="background: var(--hc-danger); border-color: var(--hc-danger);" onclick="window.open('panic/index.html', '_blank')">
-          ABRIR SIMULADOR DE BATIDA POLICIAL
-        </button>
-      </div>
+      <div class="window-body" id="panicAppBody"></div>
     </div>
 
     <!-- JANELA 8: MINHA CONTA / PERFIL SUPABASE -->
@@ -703,6 +693,17 @@
         </div>
       </div>
       <div class="window-body" id="rankingAppBody"></div>
+    </div>
+
+    <!-- JANELA 25: REDE ONLINE, CLOUD SAVE ANTI-F5 & DIRETÓRIO PVP HUMANO -->
+    <div class="window-frame" id="winOnline" style="display: none;">
+      <div class="window-header">
+        <div>
+          <div class="window-title">Rede Online & PvP</div>
+          <p class="page-sub">Sincronização na nuvem (zero perda no F5), radar de operadores humanos online em tempo real (WebSocket) e telemetria de ataques PvP.</p>
+        </div>
+      </div>
+      <div class="window-body" id="onlineAppBody"></div>
     </div>
 
   </div>
@@ -1131,6 +1132,11 @@
           window.hackerAudio.playDialupConnect();
         }
 
+        // Hidrata todo o estado salvo (Local + Nuvem Supabase) ANTES de atualizar o HUD! (Fim do bug do F5!)
+        if (window.onlineEngine) {
+          await window.onlineEngine.hydrateSessionAndConnect(userId, wal.balance);
+        }
+
         updateHudDisplays();
         if (window.internetEngine) window.internetEngine.syncCloudPlayers();
         loadBankTransactions();
@@ -1140,12 +1146,61 @@
 
         openWindow('winHome');
         window.addLocalLog('AUTH-LOGIN', `Sessão iniciada por ${currentProfile.hacker_tag} · IP Público: ${window.networkIdentity ? window.networkIdentity.getPublicIp() : 'alocado'}`, 'info');
-        showToast(`Bem-vindo, ${currentProfile.hacker_tag}! Mainframe ativo.`);
+        showToast(`Bem-vindo, ${currentProfile.hacker_tag}! Mainframe sincronizado.`);
 
       } catch (e) {
         console.error('Erro ao carregar sessão:', e);
         showToast('Erro ao sincronizar com o banco de dados.');
       }
+    }
+
+    // Modo Entrada Instantânea em 1 Clique (Zero atrito de OTP + persiste no F5!)
+    async function enterInstantOperatorMode(customTag = null) {
+      let savedMeta = null;
+      try {
+        const raw = localStorage.getItem('HC_ACTIVE_INSTANT_SESSION');
+        if (raw) savedMeta = JSON.parse(raw);
+      } catch (e) {}
+
+      const uid = (savedMeta && savedMeta.id) || ('local-op-' + Math.floor(10000 + Math.random() * 89999));
+      const tag = customTag || (savedMeta && savedMeta.hacker_tag) || ('Operador_' + uid.slice(-4));
+      const acc = (savedMeta && savedMeta.account_number) || ('HC-' + Math.floor(1000 + Math.random() * 8999) + '-77');
+
+      currentProfile = {
+        id: uid,
+        hacker_tag: tag,
+        email: `${tag.toLowerCase()}@local.hc`,
+        specialty: selectedSpecialty || 'exploiter',
+        reputation: 100,
+        heat_level: 1,
+        computer_tier: 'starter_pc'
+      };
+      currentWallet = {
+        id: 'wal-' + uid,
+        user_id: uid,
+        account_number: acc,
+        balance: 500.0
+      };
+
+      try {
+        localStorage.setItem('HC_ACTIVE_INSTANT_SESSION', JSON.stringify({
+          id: uid,
+          hacker_tag: tag,
+          account_number: acc
+        }));
+      } catch (e) {}
+
+      document.getElementById('authOverlay').style.display = 'none';
+      document.getElementById('desktopEnvironment').style.display = 'grid';
+
+      if (window.onlineEngine) {
+        await window.onlineEngine.hydrateSessionAndConnect(uid, null);
+      }
+      updateHudDisplays();
+      initCheckersBoard();
+      openWindow('winHome');
+      window.addLocalLog('INSTANT-BOOT', `Operador rápido ${tag} conectado (${window.networkIdentity ? window.networkIdentity.getPublicIp() : ''})`, 'success');
+      showToast(`Conectado como ${tag}! Seu progresso salva automaticamente.`);
     }
 
     function updateHudDisplays() {
@@ -1201,6 +1256,10 @@
       }
       if (window.multiBankEngine) {
         window.multiBankEngine.renderMultiBankOverview('multiBankMount');
+      }
+      if (window.onlineEngine) {
+        window.onlineEngine.updateHudSyncChip();
+        window.onlineEngine.scheduleSave(false);
       }
       updateSkillTreeDisplay();
     }
@@ -1372,14 +1431,21 @@
         })
         .subscribe();
 
-      // 2. Ouvir novas mensagens no chat IRC
+      // 2. Ouvir novas mensagens no chat IRC (filtrando exclusivamente o canal público 'global' e roteando pacotes 'hc_pvp'!)
       supabase.channel('irc-global-channel')
         .on('postgres_changes', { 
           event: 'INSERT', 
           schema: 'public', 
           table: 'chat_messages' 
         }, (payload) => {
-          appendIrcMessage(payload.new.hacker_tag, payload.new.message, payload.new.created_at);
+          const ch = payload.new.channel || 'global';
+          if (ch === 'global') {
+            appendIrcMessage(payload.new.hacker_tag, payload.new.message, payload.new.created_at);
+          } else if (ch === 'hc_pvp' && window.onlineEngine) {
+            try {
+              window.onlineEngine.handleIncomingPacket(JSON.parse(payload.new.message), false);
+            } catch (e) {}
+          }
         })
         .subscribe();
 
@@ -1428,6 +1494,7 @@
       const { data } = await supabase
         .from('chat_messages')
         .select('*')
+        .eq('channel', 'global')
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -2624,7 +2691,14 @@
     }
 
     function openWindow(winId) { 
+      document.querySelector('.sidebar')?.classList.remove('mobile-open');
       if (window.winManager) window.winManager.open(winId); 
+      if (winId === 'winOnline' && window.onlineEngine) {
+        window.onlineEngine.renderOnlineHubUI('onlineAppBody');
+      }
+      if (winId === 'winPanic' && window.panicRaidEngine) {
+        window.panicRaidEngine.renderUI('panicAppBody');
+      }
       if (winId === 'winBrowser' && window.internetEngine) {
         window.internetEngine.render('internetAppBody');
       }
@@ -2732,7 +2806,13 @@
     }
 
     async function logoutCurrentSession() {
-      await supabase.auth.signOut();
+      if (window.onlineEngine) {
+        window.onlineEngine.saveLocalSnapshotImmediate();
+      }
+      try { localStorage.removeItem('HC_ACTIVE_INSTANT_SESSION'); } catch (e) {}
+      if (supabase && supabase.auth) {
+        try { await supabase.auth.signOut(); } catch (e) {}
+      }
       currentProfile = null;
       currentWallet = null;
       document.getElementById('desktopEnvironment').style.display = 'none';
@@ -2754,9 +2834,11 @@
         });
       }
 
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = supabase && supabase.auth ? await supabase.auth.getSession() : { data: { session: null } };
       if (session) {
         await loadUserSession(session.user.id);
+      } else if (localStorage.getItem('HC_ACTIVE_INSTANT_SESSION')) {
+        await enterInstantOperatorMode();
       } else {
         // Se a URL contiver hash de autenticação, não força a aba de registro
         if (!window.location.hash.includes('access_token') && !window.location.search.includes('code=')) {

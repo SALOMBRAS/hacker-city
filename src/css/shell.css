@@ -200,13 +200,21 @@
   display: none;
 }
 
-/* ---------- Telas estreitas ---------- */
+/* ---------- Telas estreitas & Responsividade Mobile ---------- */
+#btnMobileNavToggle { display: none; }
 @media (max-width: 860px) {
-  #desktopEnvironment { grid-template-columns: 64px minmax(0, 1fr); }
-  .window-frame { left: 64px !important; }
-  .brand-name, .sidebar-brand .hc-badge, .nav-item span, .nav-section, .sidebar-version { display: none; }
-  .nav-item { justify-content: center; padding: 0; }
-  .user-meta, .stat-chip:nth-of-type(n+3) { display: none; }
+  #desktopEnvironment { grid-template-columns: minmax(0, 1fr); width: 100vw; left: 0; right: 0; }
+  .topbar { grid-column: 1; padding: 0 10px; gap: 6px; overflow: hidden; }
+  .topbar-stats { gap: 4px; flex-shrink: 1; min-width: 0; }
+  .window-frame { left: 0 !important; right: 0 !important; grid-column: 1; min-width: 0 !important; }
+  .window-header { padding: 14px 14px 0 !important; }
+  .window-body { padding: 12px 14px 24px !important; }
+  #btnMobileNavToggle { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 7px; border: 1px solid var(--hc-border-strong); background: var(--hc-surface-2); color: var(--hc-text); cursor: pointer; flex-shrink: 0; }
+  .sidebar { display: none; position: fixed; top: 0; bottom: 0; left: 0 !important; width: 245px; z-index: 980; }
+  .sidebar.mobile-open { display: flex; box-shadow: 0 0 48px rgba(0,0,0,0.85); }
+  .topbar-ip-omnibox { display: none !important; }
+  .topbar-kbd, #hudQuitinetePill, #hudBtcChip, #hudCloudSyncBadge, .stat-chip[title="Reputação"], .stat-chip[title="Nível de procurado"], .my-ip-chip .ip-lbl, .my-ip-chip .ip-copy-btn, .user-meta { display: none !important; }
+  .inet-shell { grid-template-columns: 1fr !important; }
 }
 
 /* ---------- Cabeçalho de página ---------- */

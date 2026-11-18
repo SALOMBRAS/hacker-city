@@ -455,3 +455,43 @@ CREATE TABLE IF NOT EXISTS public.hacked_bank_accounts (
   last_known_balance NUMERIC(14,2) NOT NULL DEFAULT 0,
   UNIQUE(hacker_id, account_number)
 );
+
+
+-- ========================================================
+-- 16. ONLINE MULTIPLAYER COMPLETO: CLOUD SAVE, PVP REALTIME & SYNC RPC
+-- (Sincronizado com supabase/migrations/20261118_online_multiplayer_cloud_sync.sql)
+-- ========================================================
+CREATE TABLE IF NOT EXISTS public.player_cloud_saves (
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE PRIMARY KEY,
+  hacker_tag TEXT NOT NULL,
+  public_ip TEXT UNIQUE NOT NULL,
+  specialty TEXT NOT NULL DEFAULT 'exploiter',
+  reputation INT NOT NULL DEFAULT 100,
+  heat_level INT NOT NULL DEFAULT 1,
+  wallet_balance NUMERIC(14,2) NOT NULL DEFAULT 500.00 CHECK (wallet_balance >= 0),
+  best_soft_ver NUMERIC(5,1) NOT NULL DEFAULT 1.0,
+  ddos_gbps NUMERIC(8,2) NOT NULL DEFAULT 0.0,
+  firewall_ver NUMERIC(5,1) NOT NULL DEFAULT 1.0,
+  hasher_ver NUMERIC(5,1) NOT NULL DEFAULT 1.0,
+  antivirus_ver NUMERIC(5,1) NOT NULL DEFAULT 1.0,
+  cpu_mhz INT NOT NULL DEFAULT 800,
+  net_mbps INT NOT NULL DEFAULT 1,
+  clan_tag TEXT,
+  save_payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+  last_seen_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.pvp_network_events (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  sender_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  sender_tag TEXT NOT NULL,
+  sender_visible_ip TEXT NOT NULL,
+  target_user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  target_tag TEXT,
+  target_ip TEXT,
+  event_kind TEXT NOT NULL,
+  payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+  consumed BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
