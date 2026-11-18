@@ -139,10 +139,12 @@ class QuitineteEngine {
     const pending = this.getPendingCount();
     if (pending > 0) {
       pill.className = 'hud-quitinete-pill';
-      pill.innerHTML = `${HC.icon('triangle-alert')}<span>Quitinete: ${pending} ${pending === 1 ? 'conta em atraso' : 'contas em atraso'}</span>`;
+      pill.title = `Quitinete: ${pending} ${pending === 1 ? 'conta em atraso' : 'contas em atraso'}`;
+      pill.innerHTML = `${HC.icon('triangle-alert')}<span>Contas (${pending})</span>`;
     } else {
       pill.className = 'hud-quitinete-pill all-paid';
-      pill.innerHTML = `${HC.icon('circle-check')}<span>Quitinete em dia</span>`;
+      pill.title = 'Quitinete em dia';
+      pill.innerHTML = `${HC.icon('circle-check')}<span>Quitinete OK</span>`;
     }
   }
 

@@ -34,6 +34,7 @@
   <script src="src/js/quitinete-engine.js"></script>
   <script src="src/js/skill-tree-engine.js"></script>
   <script src="src/js/network-identity-engine.js"></script>
+  <script src="src/js/software-bitcoin-engine.js"></script>
 </head>
 <body>
 
@@ -213,6 +214,7 @@
         <div class="nav-section">Meu PC</div>
         <button type="button" class="nav-item" data-win="winHome" onclick="navTo('winHome')"><i data-icon="layout-dashboard"></i><span>Home</span></button>
         <button type="button" class="nav-item" data-win="winTerminal" onclick="navTo('winTerminal')"><i data-icon="terminal"></i><span>Terminal</span></button>
+        <button type="button" class="nav-item" data-win="winSoftware" onclick="navTo('winSoftware')"><i data-icon="package"></i><span>Software & Vírus</span></button>
         <button type="button" class="nav-item" data-win="winLogs" onclick="navTo('winLogs')"><i data-icon="file-text"></i><span>Logs</span></button>
         <button type="button" class="nav-item" data-win="winHardware" onclick="navTo('winHardware')"><i data-icon="cpu"></i><span>Hardware</span></button>
         <button type="button" class="nav-item" data-win="winSkillTree" onclick="navTo('winSkillTree')"><i data-icon="network"></i><span>Habilidades</span></button>
@@ -224,6 +226,7 @@
         <button type="button" class="nav-item" data-win="winBotnetC2" onclick="navTo('winBotnetC2')"><i data-icon="bot"></i><span>Botnet</span></button>
         <div class="nav-section">Dinheiro</div>
         <button type="button" class="nav-item" data-win="winBank" onclick="navTo('winBank')"><i data-icon="landmark"></i><span>Banco</span></button>
+        <button type="button" class="nav-item" data-win="winBitcoin" onclick="navTo('winBitcoin')"><i data-icon="bitcoin"></i><span>Bitcoin</span></button>
         <button type="button" class="nav-item" data-win="winQuitinete" onclick="navTo('winQuitinete')"><i data-icon="house"></i><span>Quitinete</span></button>
         <div class="nav-section">Social</div>
         <button type="button" class="nav-item" data-win="winIrc" onclick="navTo('winIrc')"><i data-icon="message-square"></i><span>Chat</span></button>
@@ -255,6 +258,7 @@
         </div>
         <button type="button" id="hudQuitinetePill" class="hud-quitinete-pill" onclick="openQuitineteWindow()">Quitinete</button>
         <div class="stat-chip" title="Dinheiro"><i data-icon="wallet"></i><span class="val" id="hudWalletMoney">$0</span></div>
+        <div class="stat-chip" id="hudBtcChip" style="cursor:pointer;" onclick="navTo('winBitcoin')" title="Carteira Bitcoin (Clique para abrir)"><i data-icon="bitcoin"></i><span class="val" id="hudBtcBalance">0.0050</span></div>
         <div class="stat-chip" title="Reputação"><i data-icon="trophy"></i><span class="val" id="hudReputation">0</span></div>
         <div class="stat-chip" title="Nível de procurado"><i data-icon="flame"></i><span class="val" id="hudHeatLevel">Nível 1</span></div>
         <div class="user-chip">
@@ -584,6 +588,28 @@
         </div>
       </div>
       <div class="window-body" id="hackedDbBody"></div>
+    </div>
+
+    <!-- JANELA 16: SOFTWARE, VÍRUS COM POTÊNCIAS & COLETOR -->
+    <div class="window-frame" id="winSoftware" style="display: none;">
+      <div class="window-header">
+        <div>
+          <div class="window-title">Software & Vírus</div>
+          <p class="page-sub">Pesquise potências maiores (v1.0 → v10.0), rode Antivírus e colete $ HC e BTC dos seus vírus instalados.</p>
+        </div>
+      </div>
+      <div class="window-body" id="softwareAppBody"></div>
+    </div>
+
+    <!-- JANELA 17: CARTEIRA & CORRETORA BITCOIN -->
+    <div class="window-frame" id="winBitcoin" style="display: none;">
+      <div class="window-header">
+        <div>
+          <div class="window-title">Bitcoin</div>
+          <p class="page-sub">Carteira fria (wallet.dat), cotação simulada em tempo real, câmbio BTC ↔ $ HC e recebimento de mineração .vminer.</p>
+        </div>
+      </div>
+      <div class="window-body" id="bitcoinAppBody"></div>
     </div>
 
   </div>
@@ -1045,6 +1071,10 @@
         document.getElementById('hudSpecialtyBadge').innerText = `[${currentProfile.specialty.toUpperCase()}]`;
       }
       document.getElementById('hudWalletMoney').innerText = fmtMoney(currentWallet.balance);
+      if (window.bitcoinEngine) {
+        const btcEl = document.getElementById('hudBtcBalance');
+        if (btcEl) btcEl.innerText = Number(window.bitcoinEngine.getFormattedBtc()).toFixed(4) + ' BTC';
+      }
       document.getElementById('hudReputation').innerText = Number(currentProfile.reputation || 0).toLocaleString('pt-BR');
       document.getElementById('hudHeatLevel').innerText = `Nível ${currentProfile.heat_level}`;
       document.getElementById('hudAvatar').innerText = (currentProfile.hacker_tag || '?').slice(0, 2).toUpperCase();
@@ -1553,6 +1583,10 @@
         appendCli('  logs [ip]            - Inspeciona logs locais (/var/log/auth.log) ou rastro em alvo remoto', 'var(--hc-accent-text)');
         appendCli('  rmlog <ip>           - Purga seus rastros em /var/log/syslog para cancelar retaliação');
         appendCli('  c2                   - Abre a matriz da Central Botnet Swarm & Mineração');
+        appendCli('  software / virus     - Abre o inventário de Softwares, Potências e Vírus');
+        appendCli('  collect              - Coleta rendimentos ($ HC e BTC) dos vírus instalados');
+        appendCli('  av                   - Varre e expurga trojans hostis com Antivirus.av');
+        appendCli('  btc                  - Abre a Carteira & Câmbio Bitcoin (BTC / wallet.dat)');
         appendCli('  zombies              - Lista dispositivos escravos sob controle da Botnet');
         appendCli('  hashcrack <hash>     - Quebra senhas criptografadas via força bruta');
         appendCli('  botnet               - Painel de comando C2 e nodos zumbi infectados');
@@ -1571,7 +1605,7 @@
           appendCli(`=== IDENTIDADE DE REDE (PROVEDOR HC TELECOM ISP) ===`, 'var(--hc-accent-text)');
           appendCli(`  Seu IP Público Atual : ${myIp}`, 'var(--hc-success)');
           appendCli(`  Senha Root Local     : ${window.networkIdentity.getRootPassword()}`, 'var(--hc-text)');
-          appendCli(`  Troca Grátis Semanal : ${st.canResetFree ? 'DISPONÍVEL AGORA (use resetip ou visite 71.4.5.1)' : 'Próxima grátis em ' + st.formattedRemaining + ' (Emergencial: $ ' + st.paidCost + ' HC)'}`, st.canResetFree ? 'var(--hc-success)' : 'var(--hc-warning)');
+          appendCli(`  Troca Grátis Semanal : ${st.canResetFree ? 'DISPONÍVEL AGORA (use resetip ou visite 71.4.5.1)' : 'Próxima grátis em ' + st.formattedRemaining + ' (Emergencial: $ ' + (st.paidCostFmt || st.paidCost) + ' HC)'}`, st.canResetFree ? 'var(--hc-success)' : 'var(--hc-warning)');
         }
       } else if (cmd === 'resetip') {
         if (window.networkIdentity) {
@@ -1821,6 +1855,29 @@
             appendCli(`${s.ip.padEnd(16)} ${s.handle.padEnd(19)} Tier ${s.tier}       $ ${s.baseRate.toFixed(2)}/s`);
           });
           appendCli("Use 'c2' para abrir o painel gráfico e coletar rendimentos.", 'var(--hc-accent-text)');
+        }
+      } else if (cmd === 'software' || cmd === 'virus' || cmd === 'viruses') {
+        openWindow('winSoftware');
+        if (window.softwareEngine) {
+          const vs = window.softwareEngine.getPendingHarvestSummary();
+          appendCli(`=== INVENTÁRIO DE SOFTWARE & VÍRUS ATIVOS ===`, 'var(--hc-accent-text)');
+          appendCli(`  Vírus Remotos Plantados : ${vs.virusCount} | Prontos: $ ${vs.cashReady.toFixed(2)} HC + ${vs.btcReadyStr} BTC | DDoS: ${vs.totalGbps} Gbps`, 'var(--hc-success)');
+        }
+      } else if (cmd === 'collect') {
+        if (window.softwareEngine) {
+          const res = window.softwareEngine.collectAllViruses();
+          appendCli(`[COLLECTOR.VCOL] ${res.message}`, res.success ? 'var(--hc-success)' : 'var(--hc-warning)');
+        }
+      } else if (cmd === 'av' || cmd === 'antivirus') {
+        if (window.softwareEngine) {
+          const res = window.softwareEngine.runLocalAntivirus();
+          appendCli(`[ANTIVIRUS.AV] Limpos: ${res.cleaned} | Restantes: ${res.remaining}`, res.remaining === 0 ? 'var(--hc-success)' : 'var(--hc-warning)');
+        }
+      } else if (cmd === 'btc' || cmd === 'bitcoin') {
+        openWindow('winBitcoin');
+        if (window.bitcoinEngine) {
+          appendCli(`=== CARTEIRA BITCOIN (${window.bitcoinEngine.getAddress()}) ===`, 'var(--hc-warning)');
+          appendCli(`  Saldo BTC : ${window.bitcoinEngine.getFormattedBtc()} BTC (~$ ${window.bitcoinEngine.getEstimatedUsdValue().toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} HC @ $ ${window.bitcoinEngine.priceUsd.toLocaleString('pt-BR')}/BTC)`, 'var(--hc-success)');
         }
       } else if (cmd === 'panic') {
         openWindow('winPanic');
@@ -2269,7 +2326,9 @@
 
       const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0';
       const ipStatus = window.networkIdentity ? window.networkIdentity.getWeeklyResetStatus() : { canResetFree: true, formattedRemaining: '' };
-      const shortcuts = [['winBrowser','globe','Internet'],['winHackedDb','database','Hacked DB'],['winCracker','zap','Cracker'],['winLogs','file-text','Logs'],['winBotnetC2','bot','Botnet'],['winSkillTree','network','Habilidades']];
+      const btcStr = window.bitcoinEngine ? window.bitcoinEngine.getFormattedBtc() : '0.00000000';
+      const harvest = window.softwareEngine ? window.softwareEngine.getPendingHarvestSummary() : { virusCount: 0, cashReady: 0, btcReadyStr: '0.00000000' };
+      const shortcuts = [['winBrowser','globe','Internet'],['winSoftware','package','Software & Vírus'],['winBitcoin','bitcoin','Bitcoin'],['winHackedDb','database','Hacked DB'],['winLogs','file-text','Logs'],['winSkillTree','network','Habilidades']];
 
       el.innerHTML = `
         <div class="home-head" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
@@ -2281,7 +2340,11 @@
         </div>
 
         <div class="stat-grid">
-          <div class="hc-card"><div class="hc-stat-label">Dinheiro</div><div class="hc-stat-value">${fmtMoney(currentWallet.balance)}</div></div>
+          <div class="hc-card" style="cursor: pointer;" onclick="navTo('winBitcoin')" title="Clique para abrir sua Carteira Bitcoin">
+            <div class="hc-stat-label">Dinheiro & Cripto</div>
+            <div class="hc-stat-value">${fmtMoney(currentWallet.balance)}</div>
+            <div style="margin-top: 4px; font-family: var(--hc-font-mono); font-size: 0.75rem; color: var(--hc-text-2);">${btcStr} BTC na carteira</div>
+          </div>
           <div class="hc-card"><div class="hc-stat-label">Reputação</div><div class="hc-stat-value">${rep.toLocaleString('pt-BR')}</div></div>
           <div class="hc-card"><div class="hc-stat-label">Procurado</div><div class="hc-stat-value">Nível ${heat}</div></div>
           <div class="hc-card" style="cursor: pointer;" onclick="window.internetEngine.openIp('71.4.5.1')" title="Clique para gerenciar ou renovar seu IP no Provedor ISP">
@@ -2292,6 +2355,16 @@
             </div>
           </div>
         </div>
+
+        ${harvest.virusCount > 0 ? `
+          <div class="hc-card" style="margin-top: 14px; padding: 0.9rem 1.15rem; border-color: rgba(53, 184, 119, 0.35); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <div>
+              <span class="hc-badge success">Vírus em Operação (${harvest.virusCount})</span>
+              <span style="margin-left: 8px; font-size: 0.86rem;">Pronto para coletar: <strong style="color: var(--hc-accent-text);">${fmtMoney(harvest.cashReady)}</strong> e <strong style="font-family: var(--hc-font-mono); color: var(--hc-warning);">${harvest.btcReadyStr} BTC</strong></span>
+            </div>
+            <button type="button" class="hc-btn primary sm" onclick="window.handleCollectViruses()">Coletar com Collector.vcol →</button>
+          </div>
+        ` : ''}
 
         <div class="hc-eyebrow section-label">Próximo passo</div>
         <div class="hc-card next-step">
@@ -2316,6 +2389,12 @@
       }
       if (winId === 'winHackedDb' && window.hackedDb) {
         window.hackedDb.renderUI('hackedDbBody');
+      }
+      if (winId === 'winSoftware' && window.softwareEngine) {
+        window.softwareEngine.renderUI('softwareAppBody');
+      }
+      if (winId === 'winBitcoin' && window.bitcoinEngine) {
+        window.bitcoinEngine.renderUI('bitcoinAppBody');
       }
       if (winId === 'winProfile' && window.networkIdentity) {
         window.networkIdentity.renderProfileIpCard('profileIpCardMount');

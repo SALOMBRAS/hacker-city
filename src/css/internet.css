@@ -5,10 +5,11 @@
 
 /* ---------- Topbar: Busca Rápida de IP + Chip SEU IP ---------- */
 .sidebar-nav .nav-section {
-  padding: 11px 10px 4px;
+  padding: 9px 10px 3px;
 }
 .sidebar-nav .nav-item {
-  height: 33px;
+  height: 30px;
+  font-size: 13px;
 }
 
 .topbar {
@@ -36,18 +37,24 @@
   flex: 1;
 }
 
+@media (max-width: 1600px) {
+  .topbar-left .topbar-title {
+    display: none;
+  }
+}
+
 .topbar-ip-omnibox {
   display: flex;
   align-items: center;
   gap: 7px;
   height: 32px;
-  padding: 0 9px;
+  padding: 0 10px;
   background: var(--hc-surface);
   border: 1px solid var(--hc-border);
   border-radius: 8px;
-  width: 172px;
-  min-width: 130px;
-  max-width: 190px;
+  width: 215px;
+  min-width: 155px;
+  max-width: 235px;
   transition: border-color 0.15s ease;
 }
 

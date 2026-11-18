@@ -163,7 +163,8 @@ BEGIN
 
   IF NOT v_is_free THEN
     v_next_free := v_prof.last_free_ip_reset_at + INTERVAL '7 days';
-    v_cost := LEAST(25000, 500 + (500 * v_prof.ip_resets_count));
+    -- Taxa emergencial pesada: $ 50.000 HC na 1ª emergência, +$ 25.000 por reincidência (teto $ 250.000 HC)
+    v_cost := LEAST(250000, 50000 + (25000 * GREATEST(0, v_prof.ip_resets_count - 1)));
 
     IF NOT p_force_paid THEN
       RETURN jsonb_build_object(
