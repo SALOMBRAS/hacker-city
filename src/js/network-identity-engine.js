@@ -493,9 +493,9 @@
       const q = this.searchQuery.trim().toLowerCase();
       const filtered = this.entries.filter((e) => {
         if (this.filterKind !== 'all') {
-          if (this.filterKind === 'npc' && !['empresa', 'banco', 'isp', 'whois', 'download', 'darknet', 'federal', 'underground'].includes(e.kind)) return false;
-          if (this.filterKind === 'bot' && e.kind !== 'bot') return false;
-          if (this.filterKind === 'player' && e.kind !== 'player') return false;
+          const isPlayerKind = e.kind === 'player' || e.kind === 'bot';
+          if (this.filterKind === 'player' && !isPlayerKind) return false;
+          if (this.filterKind === 'npc' && isPlayerKind) return false;
         }
         if (!q) return true;
         return e.ip.toLowerCase().includes(q) || (e.hostname || '').toLowerCase().includes(q) || (e.notes || '').toLowerCase().includes(q);
@@ -503,19 +503,18 @@
 
       const filters = [
         ['all', `Todos (${this.entries.length})`],
-        ['bot', 'Bots'],
-        ['npc', 'Empresas & NPCs'],
-        ['player', 'Jogadores']
+        ['player', 'Jogadores'],
+        ['npc', 'Empresas & Bancos']
       ];
 
       const rowsHtml = filtered.length === 0
         ? `<div class="hc-card" style="padding: 2rem; text-align: center; color: var(--hc-text-2);">
-             <div style="font-weight: 600; color: var(--hc-text); margin-bottom: 0.35rem;">Nenhum servidor salvo neste filtro</div>
-             <div style="font-size: 0.85rem; margin-bottom: 1rem;">Invada servidores pela aba <strong>Internet</strong> ou pelo <strong>Cracker</strong> para armazenar automaticamente IPs e senhas root aqui.</div>
+             <div style="font-weight: 600; color: var(--hc-text); margin-bottom: 0.35rem;">Nenhum PC salvo neste filtro</div>
+             <div style="font-size: 0.85rem; margin-bottom: 1rem;">Invada computadores ou empresas em <strong>Navegar por IPs</strong> para guardar automaticamente os endereços e senhas aqui.</div>
              <button type="button" class="hc-btn primary" onclick="window.internetEngine.openIp('203.17.88.40', 'invadir')">Invadir Farofa Systems (203.17.88.40)</button>
            </div>`
         : filtered.map((e) => {
-            const kindLabel = e.kind === 'bot' ? `Bot Tier ${e.tier || 1}` : (e.kind === 'player' ? 'Jogador VPC' : e.kind.toUpperCase());
+            const kindLabel = (e.kind === 'bot' || e.kind === 'player') ? 'Jogador' : e.kind.toUpperCase();
             return `
               <div class="hdb-row">
                 <div>
@@ -1106,9 +1105,10 @@
 
           return {
             ip: bot.ip,
-            hostname: `${bot.handle} (${bot.tierName})`,
+            hostname: `PC de ${bot.handle}`,
             kind: 'bot',
-            badge: `Bot ${bot.tierName}`,
+            isOperatorPlayer: true,
+            badge: online ? '🟢 Jogador Online' : '○ Jogador Offline',
             online,
             tier: bot.tier,
             securityLevel: bot.tier,
@@ -1147,13 +1147,14 @@
 
         return {
           ip,
-          hostname: `VPC de ${liveHuman.hackerTag}${liveHuman.clanTag ? ' [' + liveHuman.clanTag + ']' : ''}`,
+          hostname: `PC de ${liveHuman.hackerTag}${liveHuman.clanTag ? ' [' + liveHuman.clanTag + ']' : ''}`,
           kind: 'player',
           isRealHuman: true,
+          isOperatorPlayer: true,
           humanUserId: liveHuman.userId,
           humanTag: liveHuman.hackerTag,
           customWebPage: liveHuman.customWebPage || null,
-          badge: liveHuman.onlineNow ? '🟢 Jogador Humano Online' : 'Jogador Humano (VPC)',
+          badge: liveHuman.onlineNow ? '🟢 Jogador Online' : '○ Jogador Offline',
           online: true,
           reputation: rep,
           newbieProtected: rep < 100,
@@ -1212,8 +1213,10 @@
         const vp = SEEDED_PLAYER_VPCS[ip];
         return {
           ...vp,
+          hostname: `PC de ${vp.hacker_tag}`,
           kind: 'player',
-          badge: vp.reputation < 100 ? 'Jogador (Iniciante Protegido)' : 'Jogador VPC',
+          isOperatorPlayer: true,
+          badge: vp.reputation < 100 ? '🟢 Jogador Online (Iniciante)' : '🟢 Jogador Online',
           online: true,
           newbieProtected: vp.reputation < 100,
           rootPassword: deterministicPassword(vp.ip + '::' + vp.hacker_tag),
@@ -1250,6 +1253,7 @@
       const arr = this.getServerLogs(ip);
       arr.unshift(`[${new Date().toLocaleTimeString()}] ${line}`);
       if (arr.length > 50) arr.length = 50;
+      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
     }
 
     navigate(rawQuery, forceTab = null, pushHistory = true) {
@@ -1298,6 +1302,7 @@
         this.favorites.add(this.currentIp);
       }
       if (window.hackedDb) window.hackedDb.toggleFavorite(this.currentIp);
+      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
       this.render();
     }
 
@@ -1807,6 +1812,7 @@
         });
       }
       if (window.hackerAudio) window.hackerAudio.playKeyClick();
+      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
       if (typeof window.showToast === 'function') {
         window.showToast(`Syslog remoto de ${this.activeSshIp} reescrito com sucesso!`);
       }
@@ -2015,6 +2021,7 @@
       if (typeof window.addLocalLog === 'function') {
         window.addLocalLog('WEB-DEFACE', `Página HTTP pública de ${ip} alterada via WebServer.exe!`, 'warning');
       }
+      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
       if (typeof window.showToast === 'function') window.showToast(`Deface HTTP publicado em ${ip}:80!`);
       this.render();
       return { success: true };
@@ -2119,24 +2126,24 @@
 
             <div class="hc-card" style="padding: 1rem;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
-                <div class="hc-eyebrow">Operadores Humanos na Rede Online</div>
-                <button type="button" class="hc-btn ghost sm" onclick="navTo('winOnline')">Abrir Central Online & PvP →</button>
+                <div class="hc-eyebrow">🟢 Jogadores Online na Rede Agora</div>
+                <button type="button" class="hc-btn ghost sm" onclick="navTo('winOnline')">Ver Todos os Jogadores Online →</button>
               </div>
               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px; margin-bottom: 10px;">
-                ${((window.onlineEngine ? window.onlineEngine.getAllKnownHumansList() : []).slice(0, 8)).map((hp) => `
-                  <button type="button" class="inet-bm-item" style="background: var(--hc-inset); border-color: ${hp.onlineNow ? 'rgba(53,184,119,0.45)' : 'var(--hc-border)'};" onclick="window.internetEngine.navigate('${esc(hp.publicIp)}')">
+                ${((window.onlineEngine ? window.onlineEngine.getUnifiedOnlinePlayers() : []).slice(0, 8)).map((hp) => `
+                  <button type="button" class="inet-bm-item" style="background: var(--hc-inset); border-color: rgba(53,184,119,0.45);" onclick="window.internetEngine.navigate('${esc(hp.publicIp)}')">
                     <div>
                       <span class="inet-bm-ip">${esc(hp.publicIp)}</span>
-                      <span class="inet-bm-label">${hp.onlineNow ? '🟢 ' : ''}${esc(hp.hackerTag)} (${hp.reputation || 100} REP)</span>
+                      <span class="inet-bm-label">🟢 ${esc(hp.hackerTag)} (${(hp.reputation || 100).toLocaleString('pt-BR')} REP)</span>
                     </div>
                     <span style="color: var(--hc-accent-text);">→</span>
                   </button>
-                `).join('') || `<div style="font-size:0.78rem;color:var(--hc-text-3);">Nenhum outro operador humano listado ainda.</div>`}
+                `).join('')}
               </div>
 
-              <div class="hc-eyebrow" style="margin-bottom: 0.5rem;">Diretório de Servidores & Operadores NPC</div>
+              <div class="hc-eyebrow" style="margin-bottom: 0.5rem;">Diretório de Empresas, Bancos &amp; Enigmas</div>
               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px;">
-                ${[...IMPORTANT_BOOKMARKS, { ip: '149.56.28.11', label: 'Operador m4riposa (VPC)' }, { ip: '177.84.19.62', label: 'Operador rookie_br (<100 REP)' }].map((b) => `
+                ${IMPORTANT_BOOKMARKS.map((b) => `
                   <button type="button" class="inet-bm-item" style="background: var(--hc-inset); border-color: var(--hc-border);" onclick="window.internetEngine.navigate('${b.ip}')">
                     <div>
                       <span class="inet-bm-ip">${b.ip}</span>

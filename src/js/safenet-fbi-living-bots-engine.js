@@ -667,15 +667,15 @@
       const canBotExploit = botExploitVer >= defs.fwl;
 
       if (!canBotBruteforce && !canBotExploit) {
-        // Como o bot NÃO conseguiu entrar como root no seu PC, ele NÃO pôde apagar o próprio IP da tentativa falha!
+        // Como o invasor NÃO conseguiu entrar como root no seu PC, ele NÃO pôde apagar o próprio IP da tentativa falha!
         window.currentProfile.reputation = (window.currentProfile.reputation || 0) + 15;
-        const msg = `Bot ${hunter.handle} [${hunter.ip}] (v${botCrackerVer.toFixed(1)}) ${triggerCause} e tentou invadir seu PC, mas seu Firewall v${defs.fwl.toFixed(1)} / Hasher v${defs.hash.toFixed(1)} BLOQUEOU 100% a entrada! (+15 REP)`;
-        this.battleFeed.unshift({ at: nowTime(), type: 'CAÇADA-BLOQUEADA', text: msg, attackerIp: hunter.ip });
+        const msg = `Jogador ${hunter.handle} [${hunter.ip}] (v${botCrackerVer.toFixed(1)}) ${triggerCause} e tentou invadir seu PC, mas seu Firewall v${defs.fwl.toFixed(1)} / Hasher v${defs.hash.toFixed(1)} BLOQUEOU 100% a entrada! (+15 REP)`;
+        this.battleFeed.unshift({ at: nowTime(), type: 'INVASÃO-BLOQUEADA', text: msg, attackerIp: hunter.ip });
         if (typeof window.addLocalLog === 'function') {
           window.addLocalLog('HUNTER-BLOCKED', msg, 'success');
         }
         if (typeof window.showToast === 'function') {
-          window.showToast(`Firewall v${defs.fwl.toFixed(1)} bloqueou invasão do bot ${hunter.handle} [${hunter.ip}]!`);
+          window.showToast(`Firewall v${defs.fwl.toFixed(1)} bloqueou invasão do jogador ${hunter.handle} [${hunter.ip}]!`);
         }
         if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
         return {
@@ -800,7 +800,7 @@
         handle: b.handle,
         ip: b.ip,
         isPlayer: false,
-        tierLabel: b.tierName,
+        tierLabel: '● Jogador Online',
         rep: b.rep,
         hacks: b.hacks,
         lastAction: b.lastAction
@@ -840,25 +840,26 @@
           <strong style="font-family:var(--hc-font-mono);color:${r.isPlayer ? 'var(--hc-accent-text)' : 'var(--hc-text-3)'};">#${r.rank}</strong>
           <div>
             <strong>${esc(r.handle)}</strong>
-            <span class="hc-badge ${r.isPlayer ? 'success' : 'info'}" style="margin-left:6px;">${esc(r.tierLabel)}</span>
+            <span class="hc-badge success" style="margin-left:6px;">${esc(r.tierLabel)}</span>
           </div>
           <code style="color:var(--hc-accent-text);cursor:pointer;" onclick="window.internetEngine.openIp('${esc(r.ip)}')">${esc(r.ip)}</code>
           <strong style="font-family:var(--hc-font-mono);">${r.rep.toLocaleString('pt-BR')} REP</strong>
           <div style="text-align:right;">
             ${r.isPlayer
               ? `<span style="font-size:0.75rem;color:var(--hc-accent-text);">Defesa: ${playerDef}x</span>`
-              : `<button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(r.ip)}', 'invadir')">Caçar Bot →</button>`}
+              : `<button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(r.ip)}', 'invadir')">Invadir Jogador →</button>`}
           </div>
         </div>
       `).join('');
 
       const feedRows = this.battleFeed.slice(0, 8).map((f) => {
-        const badgeCls = f.type === 'JOGADOR-CAÇADO' ? 'danger' : (f.type === 'CAÇADA-BLOQUEADA' ? 'success' : 'info');
+        const badgeCls = f.type === 'JOGADOR-CAÇADO' ? 'danger' : (f.type.includes('BLOQUEADA') ? 'success' : 'info');
+        const labelType = f.type === 'BOT-VS-BOT' ? 'REDE AO VIVO' : f.type;
         return `
           <div style="padding:7px 0;border-bottom:1px solid var(--hc-border);font-size:0.8rem;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
             <div>
               <span style="font-family:var(--hc-font-mono);color:var(--hc-text-3);">[${esc(f.at)}]</span>
-              <span class="hc-badge ${badgeCls}" style="margin:0 6px;">${esc(f.type)}</span>
+              <span class="hc-badge ${badgeCls}" style="margin:0 6px;">${esc(labelType)}</span>
               <span style="color:var(--hc-text-2);">${esc(f.text)}</span>
             </div>
             ${f.attackerIp ? `<button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(f.attackerIp)}', 'invadir')">Abrir IP</button>` : ''}
@@ -870,7 +871,7 @@
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:14px;">
           <div class="hc-card" style="padding:1.1rem;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-              <div class="hc-eyebrow">Ranking Vivo da Sub-Rede (Operadores + Bots Online)</div>
+              <div class="hc-eyebrow">Ranking Vivo da Sub-Rede (Jogadores Online Agora)</div>
               <span style="font-size:0.75rem;color:var(--hc-text-2);">Sua Defesa (FWL+HASH): <strong>${playerDef}x</strong></span>
             </div>
             ${rankingRows}
@@ -878,9 +879,9 @@
 
           <div class="hc-card" style="padding:1.1rem;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-              <div class="hc-eyebrow">Telemetria em Tempo Real (Bots vs Bots & Caçadas PvE)</div>
+              <div class="hc-eyebrow">Movimentação em Tempo Real (Invasões &amp; Disputas na Rede)</div>
               <button type="button" id="btnSimulateBotHuntNow" class="hc-btn ghost sm" onclick="window.livingBotsEngine.attemptBotHuntOnPlayer(true);window.safenetFbiEngine.renderUI();">
-                Testar Defesa Contra Caçador
+                Testar Defesa Contra Invasor
               </button>
             </div>
             ${feedRows}
