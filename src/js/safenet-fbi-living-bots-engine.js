@@ -255,6 +255,14 @@
 
       const hasCert4 = window.universityEngine ? window.universityEngine.hasCert(4) : false;
       const virusGbps = window.softwareEngine ? window.softwareEngine.getPendingHarvestSummary().totalGbps : 0;
+      const hasBreaker = window.softwareEngine ? window.softwareEngine.isDdosBreakerActive() : true;
+      if (!hasBreaker) {
+        return {
+          success: false,
+          code: 'NO_DDOS_BREAKER',
+          message: 'Seu DDoS_Breaker.vbrk está DESATIVADO na RAM! Instale-o na aba Software & Vírus para lançar ataques DDoS.'
+        };
+      }
       if (!hasCert4 && virusGbps <= 0) {
         return {
           success: false,
@@ -498,8 +506,13 @@
     getPlayerDefenseScore() {
       const fwl = window.softwareEngine ? window.softwareEngine.getSoftwareVersion('firewall') : 1.0;
       const hash = window.softwareEngine ? window.softwareEngine.getSoftwareVersion('hasher') : 1.0;
-      const certMult = (window.universityEngine && window.universityEngine.hasCert(5)) ? 1.35 : 1.0;
-      return +(((fwl * 0.65) + (hash * 0.45)) * certMult).toFixed(2);
+      return +(Math.max(fwl, Math.min(fwl, hash))).toFixed(1);
+    }
+
+    getPlayerDefensesStrict() {
+      const fwl = window.softwareEngine ? window.softwareEngine.getSoftwareVersion('firewall') : 0;
+      const hash = window.softwareEngine ? window.softwareEngine.getSoftwareVersion('hasher') : 0;
+      return { fwl, hash };
     }
 
     hasExposedRemoteTraces() {
@@ -582,28 +595,41 @@
       const hunter = hunters[Math.floor(Math.random() * hunters.length)] || Array.from(this.botStats.values())[0];
       if (!hunter) return { triggered: false };
 
-      const botAttackPower = +(1.05 + (hunter.tier - 1) * 0.55).toFixed(2);
-      const playerDefense = this.getPlayerDefenseScore();
+      const botCrackerVer = hunter.tier === 3 ? 2.5 : 1.5;
+      const botExploitVer = hunter.tier === 3 ? 2.5 : 1.5;
+      const defs = this.getPlayerDefensesStrict();
       const triggerCause = isWanted
         ? 'via Lista Pública da Safenet/FBI'
         : (exposedHost ? `rastreando seu IP esquecido em ${exposedHost}` : 'em varredura ofensiva de sub-rede');
 
-      if (playerDefense >= botAttackPower) {
-        // DEFESA DO JOGADOR VENCEU O BOT CAÇADOR!
+      // PORTÃO ESTRITO: Bot tenta Força-Bruta (exige botCracker >= seu Firewall E >= seu Hasher) OU Exploit (exige botExploit >= seu Firewall)!
+      // Ou seja: se seu Firewall.fwl for mais forte que o Cracker e Exploit do bot, NENHUM método dele entra!
+      const canBotBruteforce = botCrackerVer >= defs.fwl && botCrackerVer >= defs.hash;
+      const canBotExploit = botExploitVer >= defs.fwl;
+
+      if (!canBotBruteforce && !canBotExploit) {
+        // DEFESA DO JOGADOR (FIREWALL / HASHER) BLOQUEOU 100% O BOT CAÇADOR!
         window.currentProfile.reputation = (window.currentProfile.reputation || 0) + 15;
-        const msg = `Bot caçador ${hunter.handle} [${hunter.ip}] tentou invadir seu PC (${triggerCause}), mas seu Firewall/Hasher (${playerDefense}x vs ${botAttackPower}x) BLOQUEOU o ataque! (+15 REP)`;
+        const msg = `Bot caçador ${hunter.handle} [${hunter.ip}] (Cracker/Exploit v${botCrackerVer.toFixed(1)}) tentou invadir seu PC (${triggerCause}), mas sua defesa (Firewall v${defs.fwl.toFixed(1)} · Hasher v${defs.hash.toFixed(1)}) BLOQUEOU 100% a invasão! (+15 REP)`;
         this.battleFeed.unshift({ at: nowTime(), type: 'CAÇADA-BLOQUEADA', text: msg, attackerIp: hunter.ip });
         if (typeof window.addLocalLog === 'function') {
           window.addLocalLog('HUNTER-BLOCKED', msg, 'success');
         }
         if (typeof window.showToast === 'function') {
-          window.showToast(`Firewall bloqueou invasão do bot ${hunter.handle} [${hunter.ip}]!`);
+          window.showToast(`Firewall v${defs.fwl.toFixed(1)} bloqueou invasão do bot ${hunter.handle} [${hunter.ip}]!`);
         }
         if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
-        return { triggered: true, outcome: 'BLOCKED_BY_PLAYER_FIREWALL', hunterIp: hunter.ip, playerDefense, botAttackPower };
+        return {
+          triggered: true,
+          outcome: 'BLOCKED_BY_PLAYER_FIREWALL',
+          hunterIp: hunter.ip,
+          playerFirewall: defs.fwl,
+          playerHasher: defs.hash,
+          botAttackPower: botCrackerVer
+        };
       }
 
-      // BOT CAÇADOR FUROU A DEFESA DO JOGADOR!
+      // BOT CAÇADOR FUROU SUA DEFESA E PLANTOU VÍRUS DA POTÊNCIA REAL DO TIER DELE (v2.0 ou v2.5)!
       const certMitigation = (window.universityEngine && window.universityEngine.hasCert(5)) ? 0.65 : 1.0;
       const curBal = window.currentWallet ? parseFloat(window.currentWallet.balance) : 0;
       const stolenCash = Math.min(450, Math.round(curBal * 0.045 * certMitigation));
@@ -611,19 +637,23 @@
       if (window.currentWallet && stolenCash > 0) {
         window.currentWallet.balance = Math.max(0, +(curBal - stolenCash).toFixed(2));
       }
+      const plantedVerInt = hunter.tier === 3 ? 25 : 20; // v2.5 (Tier 3) ou v2.0 (Tier 2) — derrota Antivirus v1.0!
+      const plantedHiddenVer = (hunter.tier === 3 && Math.random() < 0.4) ? 1.5 : 0;
       if (window.softwareEngine) {
         window.softwareEngine.infectLocalPc(
           'hunter_spyware',
           `Spyware.${hunter.handle.toLowerCase()}.vbank`,
-          hunter.tier === 3 ? 15 : 10,
-          hunter.ip
+          plantedVerInt,
+          hunter.ip,
+          plantedHiddenVer
         );
       }
 
       hunter.rep += 70;
       hunter.lastAction = `Caçou e infectou ${window.currentProfile.hacker_tag} [${myIp}]`;
 
-      const breachMsg = `CAÇADA PvE: Bot ${hunter.handle} [${hunter.ip}] localizou seu IP ${triggerCause}, furou sua defesa (${playerDefense}x < ${botAttackPower}x), drenou $ ${stolenCash} HC e plantou Spyware! Contra-ataque ${hunter.ip} ou passe o Antivirus.av!`;
+      const methodUsed = canBotExploit ? `Exploit v${botExploitVer.toFixed(1)}` : `Força-Bruta v${botCrackerVer.toFixed(1)}`;
+      const breachMsg = `CAÇADA PvE: Bot ${hunter.handle} [${hunter.ip}] entrou via ${methodUsed} (${triggerCause}, seu FW v${defs.fwl.toFixed(1)} / HASH v${defs.hash.toFixed(1)}), drenou $ ${stolenCash} HC e instalou Spyware v${(plantedVerInt / 10).toFixed(1)}${plantedHiddenVer > 0 ? ` (oculto c/ Hider v${plantedHiddenVer.toFixed(1)})` : ''}!`;
       this.battleFeed.unshift({ at: nowTime(), type: 'JOGADOR-CAÇADO', text: breachMsg, attackerIp: hunter.ip });
 
       if (typeof window.addLocalLog === 'function') {
@@ -633,10 +663,18 @@
         window.hackerAudio.playErrorBuzz();
       }
       if (typeof window.showToast === 'function') {
-        window.showToast(`ALERTA: Bot ${hunter.handle} [${hunter.ip}] invadiu seu PC! Veja Logs / Software.`);
+        window.showToast(`ALERTA: Bot ${hunter.handle} [${hunter.ip}] plantou Spyware v${(plantedVerInt / 10).toFixed(1)} no seu PC!`);
       }
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
-      return { triggered: true, outcome: 'BREACHED_PLAYER', hunterIp: hunter.ip, stolenCash, playerDefense, botAttackPower };
+      return {
+        triggered: true,
+        outcome: 'BREACHED_PLAYER',
+        hunterIp: hunter.ip,
+        stolenCash,
+        plantedVerInt,
+        playerFirewall: defs.fwl,
+        botAttackPower: botCrackerVer
+      };
     }
 
     simulateWorldStep(manualTrigger = false) {

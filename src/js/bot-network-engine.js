@@ -390,9 +390,29 @@ class BotAIService {
       }
     }
 
-    if (window.hackerAudio) window.hackerAudio.playInvasionAlert();
+    // VERIFICAÇÃO ESTRITA DE DEFESA: Firewall.fwl & Hasher.hash do jogador vs Software do Bot!
+    const tier = att ? att.tier : 1;
+    const botSoftVer = tier === 3 ? 2.5 : (tier === 2 ? 1.5 : 1.0);
+    const myFwl = window.softwareEngine ? window.softwareEngine.getSoftwareVersion('firewall') : 1.0;
+    const myHash = window.softwareEngine ? window.softwareEngine.getSoftwareVersion('hasher') : 1.0;
+    const hasDdosCert = window.universityEngine ? window.universityEngine.hasCert(5) : false;
 
     const type = att ? att.attackType : "light_theft";
+
+    // Para ataques de intrusão (Tier 1 e Tier 2), se seu Firewall OU Hasher > software do Bot -> 100% BLOQUEADO!
+    if (type !== "ddos_and_ransomware" && (myFwl > botSoftVer || myHash > botSoftVer)) {
+      const shieldReason = myFwl > botSoftVer ? `Firewall.fwl v${myFwl.toFixed(1)}` : `Hasher.hash v${myHash.toFixed(1)}`;
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('FIREWALL-BLOCK', `${handle} [${botIp}] tentou contra-atacar (v${botSoftVer.toFixed(1)}), mas seu ${shieldReason} BLOQUEOU a invasão!`, 'success');
+      }
+      if (typeof window.showToast === 'function') {
+        window.showToast(`Escudo Ativo: seu ${shieldReason} bloqueou a retaliação de ${handle} [${botIp}]!`);
+      }
+      if (typeof window.renderLogsPage === 'function') window.renderLogsPage();
+      return;
+    }
+
+    if (window.hackerAudio) window.hackerAudio.playInvasionAlert();
 
     if (type === "light_theft") {
       const stolen = 50;
@@ -411,21 +431,36 @@ class BotAIService {
         if (typeof updateHudDisplays === 'function') updateHudDisplays();
       }
       if (typeof window.addLocalLog === 'function') {
-        window.addLocalLog('INTRUSION-IN', `${handle} [${botIp}] drenou $ ${stolen}.00 HC e instalou trojan 'vminer'`, 'danger');
+        window.addLocalLog('INTRUSION-IN', `${handle} [${botIp}] drenou $ ${stolen}.00 HC e instalou trojan 'vminer' v2.0`, 'danger');
       }
       if (window.softwareEngine && typeof window.softwareEngine.infectLocalPc === 'function') {
-        window.softwareEngine.infectLocalPc('vminer_trojan', 'Trojan vminer.sys', 10, botIp);
+        // Tier 2 planta v2.0 (20) -> exige Antivirus.av >= v2.0 ou Formatar HD!
+        window.softwareEngine.infectLocalPc('vminer_trojan', 'Trojan.vminer', 20, botIp);
       }
       if (window.hackerAudio) window.hackerAudio.playMalwareInstalled();
-      alert(`[INVASÃO CRÍTICA]\n${handle} [${botIp}] invadiu seu sistema, drenou $ ${stolen}.00 HC e instalou o trojan 'vminer' na sua CPU!`);
+      alert(`[INVASÃO CRÍTICA]\n${handle} [${botIp}] invadiu seu sistema, drenou $ ${stolen}.00 HC e instalou 'Trojan.vminer (v2.0)' na sua RAM! (Exige Antivirus.av >= v2.0 ou Formatar HD para remover)`);
     } else {
-      // DDoS Swarm
-      this.startDDoS(12);
+      // Mitigação DDoS Oficial (ddos.txt): Curso #5 + Firewall.fwl forte reduz ou anula o DDoS!
+      if (hasDdosCert && myFwl >= 3.0) {
+        if (typeof window.addLocalLog === 'function') {
+          window.addLocalLog('DDOS-MITIGATED', `Seu Firewall.fwl (v${myFwl.toFixed(1)}) + Curso #5 ANULARAM 100% do DDoS de ${handle} [${botIp}]!`, 'success');
+        }
+        if (typeof window.showToast === 'function') {
+          window.showToast(`Mitigação DDoS Ativa: Firewall v${myFwl.toFixed(1)} neutralizou o ataque de ${handle}!`);
+        }
+        if (typeof window.renderLogsPage === 'function') window.renderLogsPage();
+        return;
+      }
+      const ddosDur = hasDdosCert ? Math.max(4, Math.round(12 - myFwl * 2)) : 12;
+      this.startDDoS(ddosDur);
+      if (myFwl <= botSoftVer && window.softwareEngine && typeof window.softwareEngine.infectLocalPc === 'function') {
+        window.softwareEngine.infectLocalPc('apt_ransomware', 'APT_Rootkit.vbank', 25, botIp);
+      }
       if (typeof window.addLocalLog === 'function') {
-        window.addLocalLog('DDOS-ALERT', `${handle} [${botIp}] disparou ataque DDoS de 12s contra ${currentIp || 'seu gateway'}`, 'danger');
+        window.addLocalLog('DDOS-ALERT', `${handle} [${botIp}] disparou ataque DDoS de ${ddosDur}s contra ${currentIp || 'seu gateway'}`, 'danger');
       }
       if (window.hackerAudio) window.hackerAudio.playDDoSAlert();
-      alert(`[ATAQUE DEVASTADOR DDOS]\n${handle} [${botIp}] disparou um ataque maciço DDoS! Sua conexão de rede cairá por 12 segundos.`);
+      alert(`[ATAQUE DEVASTADOR DDOS]\n${handle} [${botIp}] disparou um ataque DDoS! Conexão instável por ${ddosDur} segundos.`);
     }
     if (typeof window.renderLogsPage === 'function') window.renderLogsPage();
   }

@@ -302,10 +302,16 @@
       let nextPwd = randomRootPassword();
       while (nextPwd === oldPwd) nextPwd = randomRootPassword();
       this.state.rootPassword = nextPwd;
+      this.state.pwdEpoch = (this.state.pwdEpoch || 1) + 1;
       this.save();
       if (window.currentProfile) window.currentProfile.root_password = nextPwd;
+      if (window.onlineEngine) {
+        window.onlineEngine.trackRealtimePresence();
+        window.onlineEngine.publishDirectoryBeacon();
+        window.onlineEngine.scheduleSave(true);
+      }
       if (typeof window.addLocalLog === 'function') {
-        window.addLocalLog('PASSWD', `Senha root local rotacionada com sucesso (acessos invasores antigos revogados)`, 'info');
+        window.addLocalLog('PASSWD', `Senha root local rotacionada com sucesso (credenciais antigas em Hacked Databases rivais revogadas!)`, 'info');
       }
       if (window.hackerAudio) window.hackerAudio.playKeyClick();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
@@ -415,8 +421,10 @@
         existing.kind = meta.kind || existing.kind;
         existing.tier = meta.tier || existing.tier;
         existing.accessMethod = meta.accessMethod || existing.accessMethod;
+        existing.sshUser = meta.sshUser || existing.sshUser || 'root';
         if (meta.password) existing.password = meta.password;
         if (meta.cpuSpec) existing.cpuSpec = meta.cpuSpec;
+        if (meta.analyzedHw) existing.analyzedHw = meta.analyzedHw;
         existing.updatedAt = new Date().toLocaleString('pt-BR');
       } else {
         this.entries.unshift({
@@ -425,8 +433,10 @@
           kind: meta.kind || 'bot',
           tier: meta.tier || 1,
           accessMethod: meta.accessMethod || 'password',
+          sshUser: meta.sshUser || 'root',
           password: meta.password || 'EXPLOITED',
-          cpuSpec: meta.cpuSpec || '2c @ 2.4GHz',
+          cpuSpec: meta.cpuSpec || 'Hardware não escaneado (use Analyzer.ana)',
+          analyzedHw: meta.analyzedHw || null,
           notes: meta.notes || '',
           favorite: !!meta.favorite,
           hackedAt: new Date().toLocaleString('pt-BR')
@@ -517,8 +527,9 @@
                 </div>
 
                 <div>
-                  <div style="font-size: 0.7rem; color: var(--hc-text-3); text-transform: uppercase; margin-bottom: 3px;">Credencial Root</div>
-                  <span class="hdb-pwd-chip">root : <strong style="color: var(--hc-accent-text);">${esc(e.password)}</strong></span>
+                  <div style="font-size: 0.7rem; color: var(--hc-text-3); text-transform: uppercase; margin-bottom: 3px;">Credencial Salva</div>
+                  <span class="hdb-pwd-chip">${esc(e.sshUser || 'root')} : <strong style="color: var(--hc-accent-text);">${esc(e.password)}</strong></span>
+                  ${e.analyzedHw ? `<div style="font-size:0.71rem;color:var(--hc-warning);font-family:var(--hc-font-mono);margin-top:3px;">Analyzer: ${esc(e.analyzedHw)}</div>` : ''}
                 </div>
 
                 <div style="display: flex; gap: 6px; align-items: center;">
@@ -879,7 +890,10 @@
       this.drainedNpcIps = new Set();
       this.deletedHostFiles = new Map(); // ip -> Set(fileName)
       this.deletedHostFileMb = new Map(); // ip -> number (compatibilidade extra)
+      this.defacedPages = new Map(); // ip -> string
       this.activeSshIp = null;
+      this.activeSshMethod = 'password'; // 'password' | 'exploit'
+      this.activeSshRole = 'root';       // 'root' | 'ftp' | 'ssh'
       this.isCracking = false;
       this.crackPct = 0;
       this.cloudPlayersByIp = {};
@@ -1127,8 +1141,9 @@
         const av = Number(liveHuman.antivirusVer || 1.0);
         const cpuMhz = Number(liveHuman.cpuMhz || 1200);
         const netMbps = Number(liveHuman.netMbps || 10);
-        const hddMb = rep >= 1000 ? 2048 : 640;
-        const ramMb = rep >= 1000 ? 1024 : 384;
+        const hddMb = Number(liveHuman.hddTotalMb || (rep >= 1000 ? 2048 : 640));
+        const ramMb = Number(liveHuman.ramTotalMb || (rep >= 1000 ? 1024 : 384));
+        const pwdEpoch = Number(liveHuman.pwdEpoch || 1);
 
         return {
           ip,
@@ -1137,6 +1152,7 @@
           isRealHuman: true,
           humanUserId: liveHuman.userId,
           humanTag: liveHuman.hackerTag,
+          customWebPage: liveHuman.customWebPage || null,
           badge: liveHuman.onlineNow ? '🟢 Jogador Humano Online' : 'Jogador Humano (VPC)',
           online: true,
           reputation: rep,
@@ -1152,8 +1168,8 @@
           hasherVer: hs,
           firewallVer: fw,
           antivirusVer: av,
-          rootPassword: deterministicPassword(ip + '::' + liveHuman.userId),
-          cpuSpec: `${cpuMhz.toLocaleString('pt-BR')} MHz · ${netMbps} Mbps · FW v${fw.toFixed(1)} · AV v${av.toFixed(1)}`,
+          rootPassword: deterministicPassword(ip + '::' + liveHuman.userId + (pwdEpoch > 1 ? '::ep' + pwdEpoch : '')),
+          cpuSpec: `${cpuMhz.toLocaleString('pt-BR')} MHz · ${netMbps} Mbps · FW v${fw.toFixed(1)} · HASH v${hs.toFixed(1)} · AV v${av.toFixed(1)}`,
           bankBalance: this.drainedNpcIps.has(ip) ? 0 : Math.min(450, Math.max(85, Math.round(rep * 0.22))),
           files: [
             { name: 'operador_profile.dat', size: '14 MB', sizeMb: 14, content: `Operador real ${liveHuman.hackerTag} (${rep} REP · Classe ${(liveHuman.specialty || 'exploiter').toUpperCase()})` }
@@ -1287,79 +1303,197 @@
 
     runPortScan() {
       const host = this.resolveHost(this.currentIp);
-      if (host.notFound || host.kind === 'self') return;
+      if (host.notFound || host.kind === 'self') return { success: false };
+
+      // Regra Oficial HE (Internet.class.php linha 333): exige PortScan.scan instalado na RAM!
+      if (window.softwareEngine && !window.softwareEngine.isPortScanActive()) {
+        const msg = 'Seu PortScan.scan está DESATIVADO na sua RAM! Instale-o na aba Software & Vírus antes de escanear portas TCP.';
+        alert(msg);
+        return { success: false, code: 'NO_PORTSCAN_SOFT', message: msg };
+      }
+
       this.portScannedIps.add(host.ip);
+      const reqFwl = host.firewallVer || 1.0;
+      const ftpVer = this.getPlayerFtpExploitVer();
+      const sshVer = this.getPlayerSshExploitVer();
+      const ftpVuln = ftpVer > 0 && ftpVer >= reqFwl;
+      const sshVuln = sshVer > 0 && sshVer >= reqFwl;
+
       if (typeof window.addLocalLog === 'function') {
-        window.addLocalLog('PORTSCAN', `Varredura TCP concluída contra ${host.ip} (${host.hostname})`, 'info');
+        window.addLocalLog(
+          'PORTSCAN',
+          `PortScan.scan concluído em ${host.ip} (Firewall v${reqFwl.toFixed(1)}): 21/ftp [${ftpVuln ? 'VULNERÁVEL' : 'BLINDADA'}] · 22/ssh [${sshVuln ? 'VULNERÁVEL' : 'BLINDADA'}]`,
+          'info'
+        );
       }
       if (window.hackerAudio) window.hackerAudio.playKeyClick();
       if (typeof window.showToast === 'function') {
-        window.showToast(`Port scan concluído em ${host.ip}: portas 22/ssh e 21/ftp mapeadas.`);
+        window.showToast(
+          `PortScan em ${host.ip} (Firewall v${reqFwl.toFixed(1)}): 21/ftp ${ftpVuln ? 'VULNERÁVEL' : 'PROTEGIDA'} · 22/ssh ${sshVuln ? 'VULNERÁVEL' : 'PROTEGIDA'}`
+        );
       }
       this.render();
+      return { success: true, ftpVuln, sshVuln, firewallVer: reqFwl };
     }
 
-    getPlayerAttackPower() {
+    // REGRA FUNDAMENTAL: A CPU (MHz) e Certificações NUNCA inflam a versão do software!
+    // CPU acelera SOMENTE o TEMPO dos processos; comparações de invasão usam a versão ESTRITA do software ativo na RAM!
+    getCpuSpeedFactor() {
       const cpuMult = window.terminalTools ? window.terminalTools.getCpuMultiplier() : 1.0;
-      const crcVer = window.softwareEngine ? Math.max(0.5, window.softwareEngine.getSoftwareVersion('cracker')) : 1.0;
-      const certMult = (window.universityEngine && window.universityEngine.hasCert(2)) ? 1.15 : 1.0;
+      const certSpeed = (window.universityEngine && window.universityEngine.hasCert(2)) ? 1.2 : 1.0;
       const overclockRank = (window.skillTreeEngine && typeof window.skillTreeEngine.getRank === 'function')
         ? window.skillTreeEngine.getRank('cpu_overclock')
         : 0;
-      return +(cpuMult * crcVer * certMult + overclockRank * 0.25).toFixed(2);
+      return +(cpuMult * certSpeed * (1 + overclockRank * 0.15)).toFixed(2);
+    }
+
+    getPlayerCrackerVer() {
+      return window.softwareEngine ? window.softwareEngine.getSoftwareVersion('cracker') : 1.0;
+    }
+
+    getPlayerFtpExploitVer() {
+      return window.softwareEngine ? window.softwareEngine.getSoftwareVersion('exploit_ftp') : 1.0;
+    }
+
+    getPlayerSshExploitVer() {
+      return window.softwareEngine ? window.softwareEngine.getSoftwareVersion('exploit_ssh') : 1.0;
+    }
+
+    // Mantido p/ exibição de velocidade de processamento (nunca usado p/ furar Firewall/Hasher!)
+    getPlayerAttackPower() {
+      return this.getPlayerCrackerVer();
     }
 
     getPlayerExploitPower() {
-      const cpuMult = window.terminalTools ? window.terminalTools.getCpuMultiplier() : 1.0;
-      const expVer = window.softwareEngine
-        ? Math.max(0.5, window.softwareEngine.getSoftwareVersion('exploit_ssh'), window.softwareEngine.getSoftwareVersion('cracker'))
-        : 1.0;
-      const certBonus = (window.universityEngine && window.universityEngine.hasCert(3)) ? 0.4 : 0;
-      const overclockRank = (window.skillTreeEngine && typeof window.skillTreeEngine.getRank === 'function')
-        ? window.skillTreeEngine.getRank('cpu_overclock')
-        : 0;
-      return +(cpuMult * expVer + certBonus + overclockRank * 0.25).toFixed(2);
+      return Math.max(this.getPlayerSshExploitVer(), this.getPlayerFtpExploitVer());
+    }
+
+    // Verifica continuamente se o atacante mantém softwares ativos na RAM suficientes p/ furar Firewall & Hasher atuais da vítima!
+    validateRemoteSessionDefenses(host, method) {
+      if (!host || host.notFound) return { ok: false, reason: 'Host inacessível.' };
+      // Download Center público permite download livre; demais servidores exigem software compatível com a defesa!
+      const reqFwl = host.firewallVer || 1.0;
+      const reqHasher = host.hasherVer || 1.0;
+
+      if (method === 'exploit') {
+        const ftpVer = this.getPlayerFtpExploitVer();
+        const sshVer = this.getPlayerSshExploitVer();
+        if (ftpVer <= 0 && sshVer <= 0) {
+          return {
+            ok: false,
+            code: 'NO_EXPLOIT_RUNNING',
+            reason: 'Conexão Exploit encerrada: seus exploits (FTP_Exploit.exp / SSH_Exploit.exp) estão desativados na sua RAM!'
+          };
+        }
+        const canFtp = ftpVer >= reqFwl;
+        const canSsh = sshVer >= reqFwl;
+        if (!canFtp && !canSsh) {
+          return {
+            ok: false,
+            code: 'BLOCKED_BY_FIREWALL',
+            reason: `BLOQUEADO PELO FIREWALL! O Firewall.fwl (v${reqFwl.toFixed(1)}) de ${host.hostname} é mais forte que seus exploits ativos (FTP v${ftpVer.toFixed(1)} / SSH v${sshVer.toFixed(1)}).`
+          };
+        }
+        const role = (canFtp && canSsh) ? 'root' : (canFtp ? 'ftp' : 'ssh');
+        return { ok: true, role };
+      }
+
+      // Método 'password' (Força-Bruta / Login SSH Root): exige Cracker.crc ativo >= Firewall.fwl E >= Hasher.hash!
+      const crcVer = this.getPlayerCrackerVer();
+      if (crcVer <= 0) {
+        return {
+          ok: false,
+          code: 'NO_CRACKER_RUNNING',
+          reason: 'Acesso SSH negado: mantenha seu Cracker.crc ATIVO na RAM para sustentar a descriptografia da sessão remota!'
+        };
+      }
+      if (crcVer < reqFwl) {
+        return {
+          ok: false,
+          code: 'BLOCKED_BY_FIREWALL',
+          reason: `BLOQUEADO PELO FIREWALL! O Firewall.fwl (v${reqFwl.toFixed(1)}) de ${host.hostname} bloqueou seu hash de descriptografia de rede (seu Cracker.crc é v${crcVer.toFixed(1)}). Evolua para >= v${reqFwl.toFixed(1)}!`
+        };
+      }
+      if (crcVer < reqHasher) {
+        return {
+          ok: false,
+          code: 'BLOCKED_BY_HASHER',
+          reason: `BLOQUEADO PELO HASHER! O Hasher.hash (v${reqHasher.toFixed(1)}) de ${host.hostname} supera seu Cracker.crc (v${crcVer.toFixed(1)}). Evolua para >= v${reqHasher.toFixed(1)}!`
+        };
+      }
+      return { ok: true, role: 'root' };
+    }
+
+    // Permissões reais conforme softwares.txt & Internet.class.php:
+    // root -> tudo | ftp -> logs + download + upload | ssh -> logs + install/delete/seek/drain/analyze
+    hasRemotePermission(perm) {
+      if (!this.activeSshIp) return false;
+      const role = this.activeSshRole || 'root';
+      if (role === 'root' || perm === 'logs') return true;
+      if (role === 'ftp') {
+        return perm === 'download' || perm === 'upload';
+      }
+      if (role === 'ssh') {
+        return ['install', 'delete', 'seek', 'drain', 'analyze', 'deface'].includes(perm);
+      }
+      return false;
     }
 
     startBruteforce() {
-      if (this.isCracking) return;
+      if (this.isCracking) return { started: false };
       const host = this.resolveHost(this.currentIp);
-      if (host.notFound) return;
+      if (host.notFound) return { started: false };
       if (host.kind === 'self') {
         alert('Operação bloqueada: você não pode executar força-bruta contra o seu próprio IP público!');
-        return;
+        return { started: false, code: 'SELF_TARGET' };
       }
       if (host.newbieProtected) {
         alert(`Proteção de Iniciante (ISP Sandbox): ${host.hostname} tem menos de 100 REP e ainda não pode sofrer invasão PvP!`);
-        return;
+        return { started: false, code: 'NEWBIE_PROTECTED' };
       }
       if (!host.online) {
         alert('Este host está OFFLINE no turno atual. Aguarde a próxima janela ou escolha um IP online.');
-        return;
+        return { started: false, code: 'HOST_OFFLINE' };
       }
 
-      const crcVer = window.softwareEngine ? window.softwareEngine.getSoftwareVersion('cracker') : 1.0;
+      const crcVer = this.getPlayerCrackerVer();
+      const reqFwl = host.firewallVer || 1.0;
       const reqHasher = host.hasherVer || 1.0;
+
       if (crcVer <= 0) {
-        alert('Seu Cracker.crc está DESATIVADO na RAM! Ative-o na aba Software & Vírus.');
-        return;
+        const msg = 'Seu Cracker.crc está DESATIVADO na RAM! Ative-o na aba Software & Vírus.';
+        alert(msg);
+        return { started: false, code: 'CRACKER_OFF', message: msg };
       }
+
+      // 1) Portão Estrito do Firewall.fwl do Alvo contra Descriptografia de Rede / Força-Bruta!
+      if (crcVer < reqFwl) {
+        const msg = `FIREWALL DO ALVO MAIS FORTE! O Firewall.fwl (v${reqFwl.toFixed(1)}) de ${host.hostname} bloqueou sua descriptografia de rede e pacotes de força-bruta! Seu Cracker.crc atual (v${crcVer.toFixed(1)}) precisa ser evoluído para >= v${reqFwl.toFixed(1)} (CPU rápida NÃO substitui versão!).`;
+        if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+        alert(msg);
+        return { started: false, code: 'BLOCKED_BY_FIREWALL', message: msg };
+      }
+
+      // 2) Portão Estrito do Hasher.hash do Alvo contra Quebra de Senha!
       if (crcVer < reqHasher) {
-        alert(`Hasher v${reqHasher.toFixed(1)} do alvo bloqueou sua força-bruta! Seu Cracker.crc atual é v${crcVer.toFixed(1)} — pesquise Cracker.crc >= v${reqHasher.toFixed(1)} na aba Software & Vírus!`);
-        return;
+        const msg = `HASHER DO ALVO MAIS FORTE! O Hasher.hash (v${reqHasher.toFixed(1)}) de ${host.hostname} bloqueou sua força-bruta! Seu Cracker.crc atual (v${crcVer.toFixed(1)}) precisa ser evoluído para >= v${reqHasher.toFixed(1)}.`;
+        if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+        alert(msg);
+        return { started: false, code: 'BLOCKED_BY_HASHER', message: msg };
       }
 
       this.isCracking = true;
       this.crackPct = 0;
-      const power = this.getPlayerAttackPower();
-      const idealSec = Math.max(1.3, Math.min(8.0, +(1.8 * reqHasher / Math.max(0.8, power * 0.9)).toFixed(1)));
+      const speedFactor = this.getCpuSpeedFactor();
+      const verAdvantage = 1 + Math.max(0, crcVer - Math.max(reqHasher, reqFwl)) * 0.45;
+      const idealSec = Math.max(1.2, Math.min(9.5, +((2.4 * Math.max(reqHasher, reqFwl)) / Math.max(0.6, speedFactor * verAdvantage)).toFixed(1)));
       this.activeCrackPid = null;
 
       if (window.taskManager) {
         const enq = window.taskManager.enqueue({
           dedupeKey: `bf_ssh_${host.ip}`,
           title: `Quebrar senha root (${host.hostname})`,
-          subtitle: `Cracker.crc v${crcVer.toFixed(1)} · ${power}x`,
+          subtitle: `Cracker.crc v${crcVer.toFixed(1)} vs FW v${reqFwl.toFixed(1)} / HASH v${reqHasher.toFixed(1)} · Vel CPU ${speedFactor}x`,
           targetIp: host.ip,
           queueKind: 'cpu',
           category: 'Ataque',
@@ -1368,7 +1502,7 @@
             this.isCracking = false;
             this.activeCrackPid = null;
             this.crackPct = 100;
-            this.onAttackSucceeded(host, 'password', host.rootPassword);
+            this.onAttackSucceeded(host, 'password', host.rootPassword, 'root');
           },
           onCancel: () => {
             this.isCracking = false;
@@ -1393,11 +1527,11 @@
             if (lbl) lbl.textContent = this.crackPct + '%';
           }, 140);
           this.render();
-          return;
+          return { started: true, idealSec, pid: enq.process.pid };
         }
       }
 
-      const stepInc = Math.max(8, Math.round((26 * power) / Math.max(1, reqHasher)));
+      const stepInc = Math.max(8, Math.round((24 * speedFactor) / Math.max(1, reqHasher)));
       this.render();
 
       const timer = setInterval(() => {
@@ -1410,40 +1544,65 @@
         if (this.crackPct >= 100) {
           clearInterval(timer);
           this.isCracking = false;
-          this.onAttackSucceeded(host, 'password', host.rootPassword);
+          this.onAttackSucceeded(host, 'password', host.rootPassword, 'root');
         }
       }, 130);
+      return { started: true, idealSec };
     }
 
     startExploitAttack() {
       const host = this.resolveHost(this.currentIp);
-      if (host.notFound || host.kind === 'self') return;
+      if (host.notFound || host.kind === 'self') return { success: false };
       if (host.newbieProtected) {
-        alert(`Proteção de Iniciante (ISP Sandbox): ${host.hostname} possui menos de 100 REP!`);
-        return;
+        const msg = `Proteção de Iniciante (ISP Sandbox): ${host.hostname} possui menos de 100 REP!`;
+        alert(msg);
+        return { success: false, code: 'NEWBIE_PROTECTED', message: msg };
+      }
+      if (window.softwareEngine && !window.softwareEngine.isPortScanActive()) {
+        const msg = 'Instale/Ative seu PortScan.scan na RAM (aba Software & Vírus) para usar ataques Exploit!';
+        alert(msg);
+        return { success: false, code: 'NO_PORTSCAN_SOFT', message: msg };
       }
       if (!this.portScannedIps.has(host.ip)) {
-        if (typeof window.showToast === 'function') {
-          window.showToast('Execute primeiro o Port Scan abaixo para localizar a porta vulnerável!');
-        }
-        return;
+        const msg = 'Execute primeiro o Port Scan TCP abaixo para mapear as portas 21/FTP e 22/SSH!';
+        if (typeof window.showToast === 'function') window.showToast(msg);
+        else alert(msg);
+        return { success: false, code: 'PORTSCAN_REQUIRED', message: msg };
       }
-      const power = this.getPlayerExploitPower();
-      const reqPower = host.firewallVer || (host.securityLevel === 1 ? 1.0 : (host.securityLevel === 2 ? 1.5 : 2.5));
-      if (power < reqPower) {
-        alert(`Firewall v${reqPower.toFixed(1)} bloqueou o exploit! Sua potência atual (${power}x) exige >= ${reqPower.toFixed(1)}x — melhore seu SSH_Exploit.exp / Curso #3 ou use Força-Bruta.`);
-        return;
+
+      const ftpVer = this.getPlayerFtpExploitVer();
+      const sshVer = this.getPlayerSshExploitVer();
+      if (ftpVer <= 0 && sshVer <= 0) {
+        const msg = 'Nenhum exploit ativo na RAM! Ative FTP_Exploit.exp e/ou SSH_Exploit.exp na aba Software & Vírus.';
+        alert(msg);
+        return { success: false, code: 'NO_EXPLOIT_ACTIVE', message: msg };
       }
-      this.onAttackSucceeded(host, 'exploit', 'EXPLOITED');
+
+      // REGRA ESTRITA DO JOGO DE REFERÊNCIA: versão pura do Exploit >= Firewall.fwl do alvo!
+      const reqFwl = host.firewallVer || (host.securityLevel === 1 ? 1.0 : (host.securityLevel === 2 ? 1.5 : 2.5));
+      const canFtp = ftpVer >= reqFwl;
+      const canSsh = sshVer >= reqFwl;
+
+      if (!canFtp && !canSsh) {
+        const msg = `FIREWALL DO ALVO BLOQUEOU O EXPLOIT! O Firewall.fwl (v${reqFwl.toFixed(1)}) de ${host.hostname} superou seus exploits ativos (FTP v${ftpVer.toFixed(1)} · SSH v${sshVer.toFixed(1)}). Evolua seus Exploits para >= v${reqFwl.toFixed(1)}!`;
+        if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+        alert(msg);
+        return { success: false, code: 'BLOCKED_BY_FIREWALL', message: msg };
+      }
+
+      // FTP + SSH juntos -> root completo; só FTP -> ftp (download/upload); só SSH -> ssh (execução/delete)
+      const grantedRole = (canFtp && canSsh) ? 'root' : (canFtp ? 'ftp' : 'ssh');
+      this.onAttackSucceeded(host, 'exploit', 'EXPLOITED', grantedRole);
+      return { success: true, grantedRole };
     }
 
-    onAttackSucceeded(host, method, pwdOrToken) {
+    onAttackSucceeded(host, method, pwdOrToken, sshRole = 'root') {
       const route = window.bounceEngine
         ? window.bounceEngine.routeConnectionAndGetVisibleIp(host.ip)
         : { visibleIp: window.networkIdentity.getPublicIp(), bounced: false };
       const visibleIp = route.visibleIp;
 
-      // Salvar no Hacked Database
+      // Salvar no Hacked Database com usuário obtido (root, ftp ou ssh)
       if (window.hackedDb) {
         window.hackedDb.upsertHost({
           ip: host.ip,
@@ -1451,16 +1610,16 @@
           kind: host.kind,
           tier: host.tier,
           accessMethod: method,
+          sshUser: sshRole,
           password: pwdOrToken,
           cpuSpec: host.cpuSpec
         });
       }
 
-      // Se for bot, registrar intrusão na IA com o IP visível; se for HUMANO REAL, transmitir pacote PvP em Tempo Real!
       if (host.kind === 'bot' && window.botAI) {
         window.botAI.registerIntrusion(host.ip, visibleIp);
       } else {
-        this.appendServerLog(host.ip, `INTRUSION src=${visibleIp} dest=${host.ip} method=${method.toUpperCase()} root=GRANTED`);
+        this.appendServerLog(host.ip, `INTRUSION src=${visibleIp} dest=${host.ip} method=${method.toUpperCase()} user=${sshRole.toUpperCase()}`);
       }
       if (host.isRealHuman && window.onlineEngine) {
         this.lastPvpVisibleIpByTarget = this.lastPvpVisibleIpByTarget || {};
@@ -1471,7 +1630,12 @@
           targetUserId: host.humanUserId,
           targetTag: host.humanTag,
           targetIp: host.ip,
-          d: { method }
+          d: {
+            method,
+            role: sshRole,
+            crcVer: this.getPlayerCrackerVer(),
+            expVer: Math.max(this.getPlayerSshExploitVer(), this.getPlayerFtpExploitVer())
+          }
         });
       }
 
@@ -1479,17 +1643,18 @@
         window.currentProfile.reputation = (window.currentProfile.reputation || 0) + (15 * host.securityLevel);
       }
       if (typeof window.addLocalLog === 'function') {
-        window.addLocalLog('HACK-OK', `Acesso quebrado em ${host.ip} (${host.hostname}) via ${method} — salvo no Hacked Database`, 'warning');
+        window.addLocalLog('HACK-OK', `Invasão concluída em ${host.ip} (${host.hostname}) via ${method} [permissão: ${sshRole.toUpperCase()}]`, 'warning');
       }
       if (window.hackerAudio) window.hackerAudio.playCashChime();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       if (typeof window.showToast === 'function') {
-        window.showToast(`Senha quebrada em ${host.ip}! Credencial salva no Hacked Database.`);
+        window.showToast(`Invasão bem-sucedida em ${host.ip}! Permissão obtida: ${sshRole.toUpperCase()}.`);
       }
 
-      // Conectar automaticamente na aba Entrar (SSH Root)
       this.currentIp = host.ip;
       this.activeSshIp = host.ip;
+      this.activeSshMethod = method;
+      this.activeSshRole = sshRole;
       this.activeTab = 'entrar';
       this.sshSubTab = 'logs';
       if (window.tutorialEngine) {
@@ -1501,27 +1666,44 @@
     connectSsh(ip, typedPwd, allowExploitBypass = false) {
       const host = this.resolveHost(ip);
       if (host.notFound || host.kind === 'self') return false;
+      if (host.newbieProtected) {
+        alert(`Proteção de Iniciante: ${host.hostname} possui menos de 100 REP!`);
+        return false;
+      }
+
       const saved = window.hackedDb ? window.hackedDb.getEntry(ip) : null;
-      const validByExploit = allowExploitBypass || (saved && saved.accessMethod === 'exploit');
+      const validByExploit = allowExploitBypass || (saved && saved.accessMethod === 'exploit' && !String(typedPwd || '').trim());
       const pwdClean = String(typedPwd || '').trim();
 
       if (!validByExploit && pwdClean !== host.rootPassword) {
         if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
-        alert('Acesso negado: senha root incorreta! Use a aba "Invadir" para quebrar a senha.');
+        alert('Acesso negado: senha root incorreta (ou o alvo rotacionou a senha)! Use a aba "Invadir" para quebrar novamente.');
+        return false;
+      }
+
+      // REVALIDAÇÃO ESTRITA DE DEFESA (Internet.class.php linhas 657-865 & hacking.txt linhas 26-43):
+      // Se o alvo evoluiu o Firewall.fwl ou Hasher.hash depois que você salvou a senha, você NÃO entra!
+      const method = validByExploit ? 'exploit' : 'password';
+      const defCheck = this.validateRemoteSessionDefenses(host, method);
+      if (!defCheck.ok) {
+        if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+        alert(defCheck.reason);
         return false;
       }
 
       const route = window.bounceEngine
         ? window.bounceEngine.routeConnectionAndGetVisibleIp(host.ip)
         : { visibleIp: window.networkIdentity.getPublicIp(), bounced: false };
+      this.currentIp = host.ip;
       this.activeSshIp = host.ip;
+      this.activeSshMethod = method;
+      this.activeSshRole = defCheck.role || 'root';
       this.activeTab = 'entrar';
 
-      // Logs bilaterais (exatamente como HE Legacy Internet::doLogin & Helix writeTraceLogs!)
       if (typeof window.addLocalLog === 'function') {
-        window.addLocalLog('SSH-OUT', `localhost logged in to ${host.ip} as root`, 'info');
+        window.addLocalLog('SSH-OUT', `localhost logged in to ${host.ip} as ${this.activeSshRole}`, 'info');
       }
-      this.appendServerLog(host.ip, `${route.visibleIp} logged in as root`);
+      this.appendServerLog(host.ip, `${route.visibleIp} logged in as ${this.activeSshRole}`);
 
       if (window.tutorialEngine) {
         window.tutorialEngine.onHostHackedOrLoggedRoot(host.ip);
@@ -1533,8 +1715,9 @@
 
     disconnectSsh(silent = false) {
       this.activeSshIp = null;
+      this.activeSshRole = 'root';
       if (!silent) {
-        if (typeof window.showToast === 'function') window.showToast('Sessão SSH remota encerrada.');
+        if (typeof window.showToast === 'function') window.showToast('Sessão remota encerrada.');
         this.render();
       }
     }
@@ -1552,7 +1735,6 @@
       if (window.botAI && window.botAI.syslogRegistry) {
         window.botAI.syslogRegistry.set(this.activeSshIp, newLines);
 
-        // Se o IP público atual do jogador (ou o IP gravado no ataque) não consta mais no syslog, cancela a retaliação!
         const pending = window.botAI.pendingAttacks ? window.botAI.pendingAttacks.get(this.activeSshIp) : null;
         if (pending) {
           const trackedIp = pending.loggedPlayerIp || window.networkIdentity.getPublicIp();
@@ -1573,7 +1755,6 @@
       if (window.tutorialEngine) {
         window.tutorialEngine.notifyLogsSaved(this.activeSshIp, newLines);
       }
-      // Se for um jogador humano real e apagamos nosso IP visível do syslog dele, envia PVP_WIPE_LOG p/ limpar lá também!
       const sshHost = this.resolveHost(this.activeSshIp);
       if (sshHost && sshHost.isRealHuman && window.onlineEngine) {
         const myReal = window.networkIdentity.getPublicIp();
@@ -1598,6 +1779,10 @@
 
     drainRemoteHostFunds() {
       if (!this.activeSshIp) return;
+      if (!this.hasRemotePermission('drain')) {
+        alert('PERMISSÃO INSUFICIENTE (Sessão FTP-Only)! Para executar saques ou comandos no servidor, obtenha acesso SSH ou ROOT!');
+        return;
+      }
       const host = this.resolveHost(this.activeSshIp);
       if (!host || host.bankBalance <= 0) {
         if (typeof window.showToast === 'function') window.showToast('Nenhum saldo líquido disponível neste servidor.');
@@ -1633,7 +1818,11 @@
           targetUserId: host.humanUserId,
           targetTag: host.humanTag,
           targetIp: host.ip,
-          d: { amt: loot }
+          d: {
+            amt: loot,
+            crcVer: this.getPlayerCrackerVer(),
+            expVer: Math.max(this.getPlayerSshExploitVer(), this.getPlayerFtpExploitVer())
+          }
         });
       }
       if (!route.bounced && loot >= 800 && window.safenetFbiEngine) {
@@ -1649,6 +1838,12 @@
 
     deploySelectedVirusToCurrentHost() {
       if (!this.activeSshIp || !window.softwareEngine) return Promise.resolve(null);
+      if (!this.hasRemotePermission('upload') || !this.hasRemotePermission('install')) {
+        const role = (this.activeSshRole || 'root').toUpperCase();
+        const msg = `PERMISSÃO INSUFICIENTE (Sessão ${role})! Enviar E instalar vírus exige tanto Upload (FTP) quanto Execução (SSH) — use ambos os Exploits (FTP + SSH) ou quebre a senha ROOT!`;
+        alert(msg);
+        return Promise.resolve({ success: false, code: 'NO_ROOT_PERMISSION', message: msg });
+      }
       const host = this.resolveHost(this.activeSshIp);
       const sel = document.getElementById('remoteVirusSelect');
       const virusKey = sel ? sel.value : 'vspam';
@@ -1675,6 +1870,10 @@
     }
 
     deleteStaticRemoteFile(ip, fileName) {
+      if (!this.hasRemotePermission('delete')) {
+        alert('PERMISSÃO NEGADA (Sessão FTP-Only)! Deletar arquivos exige permissão SSH ou ROOT.');
+        return;
+      }
       if (!this.deletedHostFiles.has(ip)) {
         this.deletedHostFiles.set(ip, new Set());
       }
@@ -1691,6 +1890,10 @@
 
     drainCurrentHostBtcWallet() {
       if (!this.activeSshIp || !window.bitcoinEngine) return;
+      if (!this.hasRemotePermission('drain')) {
+        alert('PERMISSÃO NEGADA (Sessão FTP-Only)! Extrair chaves privadas exige acesso SSH ou ROOT.');
+        return;
+      }
       const host = this.resolveHost(this.activeSshIp);
       const res = window.bitcoinEngine.drainRemoteHostBtc(host);
       if (!res.success) {
@@ -1704,6 +1907,81 @@
         window.showToast(`+${res.btcStr} BTC roubados de ${host.ip}:/root/wallet.dat! Limpe o syslog!`);
       }
       this.render();
+    }
+
+    // Executa Analyzer.ana no servidor invadido (v1.0 = 50%, v2.0 = 80%, v3.0 = 100% precisão -> grava no Hacked Database!)
+    runRemoteHardwareAnalyzer(ip) {
+      if (!window.softwareEngine) return { success: false };
+      if (!this.hasRemotePermission('analyze')) {
+        const msg = 'PERMISSÃO NEGADA (Sessão FTP-Only)! Executar Analyzer.ana exige acesso SSH ou ROOT.';
+        alert(msg);
+        return { success: false, message: msg };
+      }
+      const anaVer = window.softwareEngine.getSoftwareVersion('analyzer');
+      if (anaVer <= 0) {
+        const msg = 'Instale/Ative primeiro o Analyzer.ana na sua RAM (aba Software & Vírus)!';
+        alert(msg);
+        return { success: false, code: 'ANALYZER_OFF', message: msg };
+      }
+
+      const host = this.resolveHost(ip);
+      const specs = window.softwareEngine.inspectRemoteHostResources(host);
+      const accuracy = anaVer >= 3.0 ? 1.0 : (anaVer >= 2.0 ? 0.8 : 0.5);
+      let hwReport = '';
+      if (accuracy >= 1.0) {
+        hwReport = `${specs.cpuMhz} MHz CPU · ${specs.ramTotalMb} MB RAM · ${specs.hddTotalMb} MB HDD (100% Exato)`;
+      } else {
+        const spanCpu = Math.round(specs.cpuMhz * (1 - accuracy));
+        const spanRam = Math.round(specs.ramTotalMb * (1 - accuracy));
+        hwReport = `~${Math.max(400, specs.cpuMhz - spanCpu)}–${specs.cpuMhz + spanCpu} MHz CPU · ~${Math.max(64, specs.ramTotalMb - spanRam)}–${specs.ramTotalMb + spanRam} MB RAM (Precisão ${Math.round(accuracy * 100)}%)`;
+      }
+
+      if (window.hackedDb) {
+        window.hackedDb.upsertHost({
+          ip: host.ip,
+          hostname: host.hostname,
+          kind: host.kind,
+          analyzedHw: hwReport
+        });
+      }
+      const route = window.bounceEngine
+        ? window.bounceEngine.routeConnectionAndGetVisibleIp(host.ip)
+        : { visibleIp: window.networkIdentity.getPublicIp() };
+      this.appendServerLog(host.ip, `${route.visibleIp} executed Analyzer.ana (v${anaVer.toFixed(1)})`);
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('ANALYZE-HW', `Analyzer.ana (v${anaVer.toFixed(1)}) salvou hardware de ${host.ip} no Hacked Database: ${hwReport}`, 'info');
+      }
+      if (typeof window.showToast === 'function') {
+        window.showToast(`Hardware de ${host.ip} registrado no seu Hacked Database!`);
+      }
+      this.render();
+      return { success: true, hwReport };
+    }
+
+    // Pichar / Alterar página HTTP pública de um servidor invadido usando WebServer.exe!
+    defaceRemoteWebPage(ip, customMsg) {
+      if (!this.hasRemotePermission('deface')) {
+        alert('PERMISSÃO NEGADA (Sessão FTP-Only)! Pichar servidor HTTP exige acesso SSH ou ROOT.');
+        return { success: false };
+      }
+      if (window.softwareEngine && !window.softwareEngine.isSoftwareInstalled('webserver')) {
+        const msg = 'Instale/Ative primeiro o WebServer.exe na sua RAM (aba Software & Vírus) para editar páginas HTTP!';
+        alert(msg);
+        return { success: false, message: msg };
+      }
+      const clean = String(customMsg || '').trim().slice(0, 220);
+      if (!clean) return { success: false };
+      this.defacedPages.set(ip, clean);
+      const route = window.bounceEngine
+        ? window.bounceEngine.routeConnectionAndGetVisibleIp(ip)
+        : { visibleIp: window.networkIdentity.getPublicIp() };
+      this.appendServerLog(ip, `${route.visibleIp} edited /var/www/index.html via WebServer.exe`);
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('WEB-DEFACE', `Página HTTP pública de ${ip} alterada via WebServer.exe!`, 'warning');
+      }
+      if (typeof window.showToast === 'function') window.showToast(`Deface HTTP publicado em ${ip}:80!`);
+      this.render();
+      return { success: true };
     }
 
     runWhoisLookup() {
@@ -1941,18 +2219,25 @@
         `;
       }
 
-      // 7. Empresas, Bots e Jogadores VPC
+      // 7. Empresas, Bots e Jogadores VPC (com suporte a página HTTP customizada / Deface via WebServer.exe!)
+      const customHttp = this.defacedPages.get(host.ip) || host.customWebPage || null;
       return `
         <div class="hc-card" style="padding: 1.2rem;">
           <div class="hc-eyebrow" style="margin-bottom: 0.35rem;">Resposta HTTP Porta 80 · ${esc(host.badge)}</div>
           <h3 style="font-size: 1.05rem; margin-bottom: 0.4rem;">${esc(host.hostname)}</h3>
+          ${customHttp
+            ? `<div style="margin:0.55rem 0 0.85rem;padding:0.75rem 0.95rem;background:var(--hc-inset);border:1px solid var(--hc-accent);border-radius:7px;font-family:var(--hc-font-mono);font-size:0.82rem;color:var(--hc-accent-text);">
+                 [HTTP :80 WebServer.exe]: ${esc(customHttp)}
+               </div>`
+            : ''}
           <p style="font-size: 0.85rem; color: var(--hc-text-2); margin-bottom: 1rem;">
-            Servidor operando em <code>${esc(host.ip)}</code> (${esc(host.cpuSpec)}). Blindagem ativa de Nível ${host.securityLevel}.
+            Servidor operando em <code>${esc(host.ip)}</code> (${esc(host.cpuSpec)}).
+            Defesas ativas: <strong>Firewall.fwl v${(host.firewallVer || 1.0).toFixed(1)}</strong> · <strong>Hasher.hash v${(host.hasherVer || 1.0).toFixed(1)}</strong>.
             ${host.newbieProtected ? '<br><strong style="color: var(--hc-warning);">Este operador está sob Proteção de Iniciante (&lt; 100 REP).</strong>' : ''}
           </p>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <button type="button" class="hc-btn primary" onclick="window.internetEngine.switchTab('invadir')">Ir para Aba Invadir →</button>
-            <button type="button" class="hc-btn ghost" onclick="window.internetEngine.switchTab('entrar')">Login SSH Root</button>
+            <button type="button" class="hc-btn ghost" onclick="window.internetEngine.switchTab('entrar')">Login SSH Remoto</button>
           </div>
         </div>
       `;
@@ -1963,17 +2248,36 @@
         return this.renderPublicPageTab(host);
       }
 
+      // REVALIDAÇÃO CONTÍNUA DE CONEXÃO ATIVA (hacking.txt linhas 26-43):
+      // Se o alvo evoluiu o Firewall/Hasher ou se você desligou seu Cracker/Exploit na RAM, cai ou reduz permissões na hora!
+      let droppedReason = null;
+      if (this.activeSshIp === host.ip) {
+        const liveCheck = this.validateRemoteSessionDefenses(host, this.activeSshMethod || 'password');
+        if (!liveCheck.ok) {
+          this.activeSshIp = null;
+          this.activeSshRole = 'root';
+          droppedReason = liveCheck.reason;
+        } else if (liveCheck.role && liveCheck.role !== this.activeSshRole) {
+          this.activeSshRole = liveCheck.role;
+        }
+      }
+
       const saved = window.hackedDb ? window.hackedDb.getEntry(host.ip) : null;
 
-      // Se AINDA NÃO está conectado via SSH neste IP -> mostra tela de Login Root
+      // Se AINDA NÃO está conectado via SSH neste IP -> mostra tela de Login
       if (this.activeSshIp !== host.ip) {
         const prefillPwd = (saved && saved.accessMethod === 'password') ? saved.password : '';
         return `
-          <div class="hc-card" style="max-width: 460px; margin: 0 auto; padding: 1.35rem;">
-            <div class="hc-eyebrow" style="margin-bottom: 0.35rem;">Terminal de Autenticação Remota (Porta 22/SSH)</div>
-            <h3 style="font-size: 1rem; margin-bottom: 0.75rem;">Entrar como <code>root@${esc(host.ip)}</code></h3>
+          <div class="hc-card" style="max-width: 480px; margin: 0 auto; padding: 1.35rem;">
+            ${droppedReason
+              ? `<div style="margin-bottom:0.85rem;padding:0.7rem 0.85rem;background:rgba(208,68,58,0.12);border:1px solid var(--hc-danger);border-radius:7px;font-size:0.79rem;color:var(--hc-danger-text);">
+                   <strong>CONEXÃO DERRUBADA PELA DEFESA DO ALVO:</strong><br>${esc(droppedReason)}
+                 </div>`
+              : ''}
+            <div class="hc-eyebrow" style="margin-bottom: 0.35rem;">Terminal de Autenticação Remota (Valida Firewall v${(host.firewallVer || 1.0).toFixed(1)} & Hasher v${(host.hasherVer || 1.0).toFixed(1)})</div>
+            <h3 style="font-size: 1rem; margin-bottom: 0.75rem;">Entrar em <code>${esc(host.ip)}</code></h3>
             ${saved
-              ? `<div style="margin-bottom: 0.85rem; font-size: 0.8rem; color: var(--hc-accent-text);">Credencial localizada no seu Hacked Database (${saved.accessMethod === 'exploit' ? 'Acesso via Exploit' : 'Senha preenchida automaticamente'}).</div>`
+              ? `<div style="margin-bottom: 0.85rem; font-size: 0.8rem; color: var(--hc-accent-text);">Credencial no Hacked Database (${saved.accessMethod === 'exploit' ? `Exploit [${esc((saved.sshUser || 'root').toUpperCase())}]` : 'Senha root preenchida'}).</div>`
               : `<div style="margin-bottom: 0.85rem; font-size: 0.8rem; color: var(--hc-text-2);">Não possui a senha? Quebre o acesso na aba <strong>Invadir</strong> primeiro.</div>`}
             <div style="display: flex; flex-direction: column; gap: 0.65rem;">
               <div>
@@ -1985,9 +2289,9 @@
                 <input type="text" id="inetSshPwdInput" class="form-input" style="font-family: var(--hc-font-mono);" placeholder="Digite a senha de 8 caracteres..." value="${esc(prefillPwd)}" onkeydown="if(event.key==='Enter') window.internetEngine.connectSsh('${esc(host.ip)}', this.value)">
               </div>
               <div style="display: flex; gap: 8px; margin-top: 0.35rem;">
-                <button type="button" class="hc-btn primary" style="flex: 1;" onclick="window.internetEngine.connectSsh('${esc(host.ip)}', document.getElementById('inetSshPwdInput').value)">Conectar via SSH</button>
+                <button type="button" id="btnConnectSshPwd" class="hc-btn primary" style="flex: 1;" onclick="window.internetEngine.connectSsh('${esc(host.ip)}', document.getElementById('inetSshPwdInput').value)">Conectar c/ Senha</button>
                 ${saved && saved.accessMethod === 'exploit'
-                  ? `<button type="button" class="hc-btn" onclick="window.internetEngine.connectSsh('${esc(host.ip)}', '', true)">Entrar c/ Exploit</button>`
+                  ? `<button type="button" id="btnConnectSshExploit" class="hc-btn" onclick="window.internetEngine.connectSsh('${esc(host.ip)}', '', true)">Entrar c/ Exploit</button>`
                   : ''}
               </div>
             </div>
@@ -1995,7 +2299,14 @@
         `;
       }
 
-      // CONECTADO COMO ROOT NO SERVIDOR REMOTO!
+      // CONECTADO NO SERVIDOR REMOTO (root, ftp ou ssh)!
+      const role = this.activeSshRole || 'root';
+      const roleBadge = role === 'root'
+        ? `<span class="hc-badge success">ACESSO ROOT COMPLETO</span>`
+        : (role === 'ftp'
+            ? `<span class="hc-badge warn">SESSÃO FTP (Porta 21: Logs + Download/Upload apenas)</span>`
+            : `<span class="hc-badge info">SESSÃO SSH (Porta 22: Logs + Execução/Delete apenas)</span>`);
+
       const logs = this.getServerLogs(host.ip);
       const myIp = window.networkIdentity.getPublicIp();
       const myIpExposed = logs.some((l) => l.includes(myIp));
@@ -2063,7 +2374,13 @@
 
         subContent = `
           <div style="display: flex; flex-direction: column; gap: 12px;">
-            <!-- Painel Físico da Máquina Invadida: CPU, Internet, Armazenamento Livre, RAM Livre & Antivírus -->
+            ${role !== 'root'
+              ? `<div style="padding:0.65rem 0.9rem;background:rgba(216,155,56,0.1);border:1px solid var(--hc-warning);border-radius:7px;font-size:0.78rem;color:var(--hc-warning);">
+                   <strong>Atenção (Permissão Parcial ${role.toUpperCase()}):</strong> ${role === 'ftp' ? 'Exploit FTP permite somente Download/Upload e Logs (não executa vírus nem deleta arquivos).' : 'Exploit SSH permite Execução/Delete e Logs, mas NÃO faz Download/Upload de novos binários.'} Use ambos os Exploits (FTP + SSH &gt;= Firewall) ou Força-Bruta para ter <strong>ROOT</strong>!
+                 </div>`
+              : ''}
+
+            <!-- Painel Físico da Máquina Invadida -->
             <div class="hc-card" style="padding: 0.85rem 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 10px; font-family: var(--hc-font-mono); font-size: 0.77rem;">
               <div>
                 <div style="color:var(--hc-text-3);font-size:0.68rem;">CPU & INTERNET DO ALVO</div>
@@ -2089,7 +2406,7 @@
 
             <!-- Upload SSH de Vírus Governado pela Internet & Espaço em Disco do Alvo -->
             <div class="hc-card" style="padding: 0.95rem 1.1rem; border-color: rgba(53, 184, 119, 0.35);">
-              <div class="hc-eyebrow" style="margin-bottom: 6px;">Enviar & Instalar Vírus neste PC (Sua Internet: ${window.softwareEngine ? window.softwareEngine.getPlayerNetMbps() : 1} Mbps)</div>
+              <div class="hc-eyebrow" style="margin-bottom: 6px;">Enviar & Instalar Vírus neste PC (Sua Internet: ${window.softwareEngine ? window.softwareEngine.getPlayerNetMbps() : 1} Mbps · Exige ROOT)</div>
               <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                 <select id="remoteVirusSelect" class="form-input" style="flex: 1; min-width: 260px; font-family: var(--hc-font-mono); font-size: 0.79rem;">
                   ${virusOpts.map((vo) => `<option value="${vo.key}">${esc(vo.filename)} (${vo.versionStr}) — ${esc(vo.extraLabel)}</option>`).join('')}
@@ -2113,7 +2430,7 @@
                 ? `<div style="margin-top: 8px; font-size: 0.77rem; color: var(--hc-accent-text); font-family: var(--hc-font-mono);">
                      Rodando neste alvo: ${installedOnTarget.map((iv) => `${esc(iv.filename)} (${window.softwareEngine.fmtVer(iv.versionInt)}, ${iv.sizeMb || 20}MB)`).join(' · ')}
                    </div>`
-                : `<div style="margin-top: 6px; font-size: 0.74rem; color: var(--hc-text-3);">Dica: Vírus de versão &lt;= Antivirus.av do alvo podem ser expurgados nas varreduras automáticas!</div>`}
+                : `<div style="margin-top: 6px; font-size: 0.74rem; color: var(--hc-text-3);">Dica: Vírus de versão &lt;= Antivirus.av do alvo são expurgados nas varreduras automáticas!</div>`}
             </div>
 
             <!-- Saque de Reserva $ HC & Carteira Bitcoin wallet.dat -->
@@ -2129,7 +2446,7 @@
                 : ''}
             </div>
 
-            <!-- Softwares no HD do Alvo (Roubo / Download Grátis p/ Seu PC!) & Varredura Seeker.skr -->
+            <!-- Softwares no HD do Alvo & Seeker.skr -->
             ${window.stealthXhdEngine ? (() => {
               const stealables = window.stealthXhdEngine.getStealableSoftwaresOnHost(host);
               const seekerRevealed = window.stealthXhdEngine.revealedHosts.has(host.ip);
@@ -2145,7 +2462,7 @@
                           : `<span class="hc-badge success">Cofre Oculto Extraído</span>`)}
                   </div>
                   ${stealables.length === 0
-                    ? `<div style="font-size:0.77rem;color:var(--hc-text-3);">Nenhum binário superior destravado para download neste host (visite servidores da Trilha de Enigmas, Empresas, Bancos ou Bots Tier II/III!).</div>`
+                    ? `<div style="font-size:0.77rem;color:var(--hc-text-3);">Nenhum binário superior destravado para download neste host.</div>`
                     : stealables.map((st) => `
                         <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--hc-inset);border:1px solid var(--hc-border);border-radius:7px;gap:8px;flex-wrap:wrap;font-size:0.8rem;">
                           <div>
@@ -2169,14 +2486,30 @@
       } else {
         const specs = window.softwareEngine ? window.softwareEngine.inspectRemoteHostResources(host) : null;
         subContent = `
-          <div class="hc-card" style="padding: 1.1rem; font-family: var(--hc-font-mono); font-size: 0.82rem; display: flex; flex-direction: column; gap: 7px;">
-            <div>HOST: <strong>${esc(host.hostname)}</strong> [${esc(host.ip)}]</div>
-            <div>PROCESSADOR (CPU): <strong>${specs ? specs.cpuMhz.toLocaleString('pt-BR') + ' MHz' : esc(host.cpuSpec)}</strong></div>
-            <div>INTERNET DO ALVO: <strong>${specs ? specs.netMbps + ' Mbit/s' : '10 Mbit/s'}</strong></div>
-            <div>ARMAZENAMENTO (HDD): <strong>${specs ? `${specs.hddUsedMb} / ${specs.hddTotalMb} MB (${specs.hddFreeMb} MB livres)` : 'N/A'}</strong></div>
-            <div>MEMÓRIA RAM: <strong>${specs ? `${specs.ramUsedMb} / ${specs.ramTotalMb} MB (${specs.ramFreeMb} MB livres)` : 'N/A'}</strong></div>
-            <div>DEFESAS ATIVAS: Hasher v${(host.hasherVer || 1.0).toFixed(1)} · Firewall v${(host.firewallVer || 1.0).toFixed(1)} · Antivirus.av ${specs && specs.antivirusVer > 0 ? 'v' + specs.antivirusVer.toFixed(1) : 'Ausente'}</div>
-            <div>SENHA ROOT ATUAL: <strong style="color: var(--hc-accent-text);">${esc(host.rootPassword)}</strong></div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div class="hc-card" style="padding: 1.1rem; font-family: var(--hc-font-mono); font-size: 0.82rem; display: flex; flex-direction: column; gap: 7px;">
+              <div>HOST: <strong>${esc(host.hostname)}</strong> [${esc(host.ip)}]</div>
+              <div>PROCESSADOR (CPU): <strong>${specs ? specs.cpuMhz.toLocaleString('pt-BR') + ' MHz' : esc(host.cpuSpec)}</strong></div>
+              <div>INTERNET DO ALVO: <strong>${specs ? specs.netMbps + ' Mbit/s' : '10 Mbit/s'}</strong></div>
+              <div>ARMAZENAMENTO (HDD): <strong>${specs ? `${specs.hddUsedMb} / ${specs.hddTotalMb} MB (${specs.hddFreeMb} MB livres)` : 'N/A'}</strong></div>
+              <div>MEMÓRIA RAM: <strong>${specs ? `${specs.ramUsedMb} / ${specs.ramTotalMb} MB (${specs.ramFreeMb} MB livres)` : 'N/A'}</strong></div>
+              <div>DEFESAS ATIVAS: Firewall.fwl v${(host.firewallVer || 1.0).toFixed(1)} · Hasher.hash v${(host.hasherVer || 1.0).toFixed(1)} · Antivirus.av ${specs && specs.antivirusVer > 0 ? 'v' + specs.antivirusVer.toFixed(1) : 'Ausente'}</div>
+              ${role === 'root' ? `<div>SENHA ROOT: <strong style="color: var(--hc-accent-text);">${esc(host.rootPassword)}</strong></div>` : `<div>SENHA ROOT: <span style="color:var(--hc-warning);">OCULTA (Acesso via Exploit ${role.toUpperCase()})</span></div>`}
+            </div>
+
+            <div class="hc-card" style="padding:0.95rem 1.1rem;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+              <div style="font-size:0.8rem;color:var(--hc-text-2);">
+                Ferramentas Remotas (<code>Analyzer.ana</code> &amp; <code>WebServer.exe</code>):
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button type="button" id="btnRunRemoteAnalyzer" class="hc-btn primary sm" onclick="window.internetEngine.runRemoteHardwareAnalyzer('${esc(host.ip)}')">
+                  🔬 Analisar &amp; Salvar Hardware (Analyzer.ana)
+                </button>
+                <button type="button" id="btnRemoteDefaceHttp" class="hc-btn ghost sm" onclick="const m=prompt('Mensagem de Deface HTTP p/ ${esc(host.ip)}:80:','HACKED BY '+(window.currentProfile?.hacker_tag||'OPERADOR')); if(m) window.internetEngine.defaceRemoteWebPage('${esc(host.ip)}', m);">
+                  🏴 Pichar Página HTTP (WebServer.exe)
+                </button>
+              </div>
+            </div>
           </div>
         `;
       }
@@ -2185,13 +2518,13 @@
         <div>
           <div class="ssh-root-bar">
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-              <span class="hc-badge success">ROOT SHELL ATIVO</span>
-              <span style="font-family: var(--hc-font-mono); font-size: 0.84rem;">root@${esc(host.ip)}:~#</span>
+              ${roleBadge}
+              <span style="font-family: var(--hc-font-mono); font-size: 0.84rem;">${esc(role)}@${esc(host.ip)}:~#</span>
             </div>
             <div style="display: flex; gap: 6px; flex-wrap: wrap;">
               <button type="button" class="hc-btn sm ${this.sshSubTab === 'logs' ? 'primary' : 'ghost'}" onclick="window.internetEngine.sshSubTab='logs'; window.internetEngine.render();">Logs (/var/log/syslog)</button>
               <button type="button" id="btnSshSubTabFiles" class="hc-btn sm ${this.sshSubTab === 'files' ? 'primary' : 'ghost'}" onclick="window.internetEngine.sshSubTab='files'; window.internetEngine.render();">Vírus, Carteira & Arquivos</button>
-              <button type="button" class="hc-btn sm ${this.sshSubTab === 'hw' ? 'primary' : 'ghost'}" onclick="window.internetEngine.sshSubTab='hw'; window.internetEngine.render();">Hardware</button>
+              <button type="button" id="btnSshSubTabHw" class="hc-btn sm ${this.sshSubTab === 'hw' ? 'primary' : 'ghost'}" onclick="window.internetEngine.sshSubTab='hw'; window.internetEngine.render();">Hardware &amp; Analyzer</button>
               <button type="button" class="hc-btn ghost sm" style="color: var(--hc-danger-text);" onclick="window.internetEngine.disconnectSsh()">Desconectar</button>
             </div>
           </div>
@@ -2205,25 +2538,38 @@
         return `<div class="hc-card" style="padding: 1.2rem; color: var(--hc-warning);">Você não pode invadir o seu próprio IP público (${esc(host.ip)}).</div>`;
       }
 
-      const power = this.getPlayerAttackPower();
-      const crcVer = window.softwareEngine ? window.softwareEngine.getSoftwareVersion('cracker') : 1.0;
-      const expPower = this.getPlayerExploitPower();
+      const crcVer = this.getPlayerCrackerVer();
+      const ftpVer = this.getPlayerFtpExploitVer();
+      const sshVer = this.getPlayerSshExploitVer();
+      const speedFactor = this.getCpuSpeedFactor();
+      const portScanActive = window.softwareEngine ? window.softwareEngine.isPortScanActive() : true;
+
       const reqHasher = host.hasherVer || 1.0;
       const reqFwl = host.firewallVer || 1.0;
+      const reqBfMin = Math.max(reqFwl, reqHasher);
+      const canBruteforce = crcVer > 0 && crcVer >= reqFwl && crcVer >= reqHasher;
+
+      const canFtpExp = ftpVer > 0 && ftpVer >= reqFwl;
+      const canSshExp = sshVer > 0 && sshVer >= reqFwl;
+      const canAnyExp = canFtpExp || canSshExp;
+      const predictedExpRole = (canFtpExp && canSshExp) ? 'ROOT Completo (FTP+SSH)' : (canFtpExp ? 'Apenas FTP (Porta 21)' : 'Apenas SSH (Porta 22)');
+
       const scanned = this.portScannedIps.has(host.ip);
       const saved = window.hackedDb ? window.hackedDb.getEntry(host.ip) : null;
 
       return `
         <div>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-            <span style="font-size: 0.86rem; color: var(--hc-text-2);">Alvo: <strong>${esc(host.hostname)}</strong> · <span style="font-family:var(--hc-font-mono);font-size:0.78rem;">${esc(host.cpuSpec)}</span></span>
-            ${saved ? `<span class="hc-badge success">Já consta no seu Hacked Database (${esc(saved.password)})</span>` : ''}
+            <span style="font-size: 0.85rem; color: var(--hc-text-2);">
+              Alvo: <strong>${esc(host.hostname)}</strong> · Blindagem: <code>Firewall v${reqFwl.toFixed(1)}</code> + <code>Hasher v${reqHasher.toFixed(1)}</code>
+            </span>
+            ${saved ? `<span class="hc-badge success">No Hacked DB (${esc(saved.sshUser || 'root')}: ${esc(saved.password)})</span>` : ''}
           </div>
 
           ${this.isCracking ? `
             <div class="hc-card" style="padding: 1rem; margin-bottom: 14px; border-color: var(--hc-accent);">
               <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-family: var(--hc-font-mono); font-size: 0.82rem; margin-bottom: 6px;">
-                <span>QUEBRANDO HASH ROOT (Cracker.crc v${crcVer.toFixed(1)} · ${power}x)...</span>
+                <span>QUEBRANDO HASH ROOT (Cracker.crc v${crcVer.toFixed(1)} · Velocidade CPU ${speedFactor}x)...</span>
                 <div style="display:flex;align-items:center;gap:8px;">
                   <strong id="inetCrackPctLabel" style="color: var(--hc-accent-text);">${this.crackPct}%</strong>
                   ${this.activeCrackPid && window.attackMinigame
@@ -2240,11 +2586,17 @@
           <div class="inet-attack-grid">
             <div class="inet-attack-card">
               <div class="inet-attack-icon">${HC.icon('key-round')}</div>
-              <strong style="font-size: 0.95rem;">Ataque força-bruta</strong>
-              <div style="font-size: 0.78rem; color: var(--hc-text-2);">
-                Seu <code>Cracker.crc v${crcVer.toFixed(1)}</code> vs <code>Hasher v${reqHasher.toFixed(1)}</code> do alvo.
-                <span style="color:${crcVer >= reqHasher ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};display:block;margin-top:2px;">
-                  ${crcVer >= reqHasher ? '● Potência suficiente para quebrar' : `● Exige Cracker.crc >= v${reqHasher.toFixed(1)}`}
+              <strong style="font-size: 0.95rem;">Ataque força-bruta (Root)</strong>
+              <div style="font-size: 0.77rem; color: var(--hc-text-2);">
+                Seu <code>Cracker.crc ${crcVer > 0 ? 'v' + crcVer.toFixed(1) : 'OFF'}</code> precisa superar <strong>AMBOS</strong>: <code>Firewall v${reqFwl.toFixed(1)}</code> e <code>Hasher v${reqHasher.toFixed(1)}</code>.
+                <span style="color:${canBruteforce ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};display:block;margin-top:3px;font-weight:600;">
+                  ${crcVer <= 0
+                    ? '● BLOQUEADO: Cracker.crc desativado na RAM!'
+                    : (crcVer < reqFwl
+                        ? `● BLOQUEADO PELO FIREWALL v${reqFwl.toFixed(1)} (Exige Cracker >= v${reqBfMin.toFixed(1)})`
+                        : (crcVer < reqHasher
+                            ? `● BLOQUEADO PELO HASHER v${reqHasher.toFixed(1)} (Exige Cracker >= v${reqBfMin.toFixed(1)})`
+                            : `● Potência suficiente (Velocidade CPU: ${speedFactor}x)`))}
                 </span>
               </div>
               <button type="button" id="btnInetBruteforce" class="hc-btn primary" style="margin-top: 6px; width: 100%; justify-content: center;" onclick="window.internetEngine.startBruteforce()">
@@ -2254,30 +2606,32 @@
 
             <div class="inet-attack-card">
               <div class="inet-attack-icon">${HC.icon('zap')}</div>
-              <strong style="font-size: 0.95rem;">Ataque exploit</strong>
-              <div style="font-size: 0.78rem; color: var(--hc-text-2);">
-                Sua potência Exploit <code>${expPower}x</code> vs <code>Firewall v${reqFwl.toFixed(1)}</code> (requer Port Scan).
-                <span style="color:${expPower >= reqFwl ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};display:block;margin-top:2px;">
-                  ${expPower >= reqFwl ? '● Capaz de furar o Firewall' : `● Exige Exploit >= ${reqFwl.toFixed(1)}x`}
+              <strong style="font-size: 0.95rem;">Ataque exploit (Portas 21/22)</strong>
+              <div style="font-size: 0.77rem; color: var(--hc-text-2);">
+                Seus Exploits <code>FTP ${ftpVer > 0 ? 'v' + ftpVer.toFixed(1) : 'OFF'}</code> / <code>SSH ${sshVer > 0 ? 'v' + sshVer.toFixed(1) : 'OFF'}</code> vs <code>Firewall v${reqFwl.toFixed(1)}</code>.
+                <span style="color:${canAnyExp ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};display:block;margin-top:3px;font-weight:600;">
+                  ${canAnyExp
+                    ? `● Capaz de furar Firewall → Concede: ${predictedExpRole}`
+                    : `● BLOQUEADO PELO FIREWALL v${reqFwl.toFixed(1)} (Exige Exploit >= v${reqFwl.toFixed(1)})`}
                 </span>
               </div>
               <button type="button" id="btnInetExploit" class="hc-btn" style="margin-top: 6px; width: 100%; justify-content: center;" onclick="window.internetEngine.startExploitAttack()">
-                Disparar Exploit SSH
+                Disparar Exploit (${canFtpExp && canSshExp ? 'FTP+SSH' : (canFtpExp ? 'FTP' : 'SSH')})
               </button>
             </div>
           </div>
 
           <div class="inet-portscan-bar">
             <div>
-              <strong style="font-size: 0.86rem;">Port Scan TCP (${scanned ? 'Concluído' : 'Pendente'})</strong>
-              <div style="font-size: 0.78rem; color: var(--hc-text-2); font-family: var(--hc-font-mono); margin-top: 2px;">
+              <strong style="font-size: 0.86rem;">PortScan.scan (${!portScanActive ? 'DESATIVADO NA RAM' : (scanned ? 'Concluído' : 'Pendente')})</strong>
+              <div style="font-size: 0.77rem; color: var(--hc-text-2); font-family: var(--hc-font-mono); margin-top: 2px;">
                 ${scanned
-                  ? `22/ssh [ABERTA] · 21/ftp [ABERTA] · Firewall v${reqFwl.toFixed(1)} · Antivirus.av ${host.antivirusVer > 0 ? 'v' + host.antivirusVer.toFixed(1) : 'Ausente'}`
-                  : 'Sonde as portas abertas do alvo para habilitar ataques de exploit.'}
+                  ? `21/ftp [${canFtpExp ? 'VULNERÁVEL' : 'BLINDADA FW v' + reqFwl.toFixed(1)}] · 22/ssh [${canSshExp ? 'VULNERÁVEL' : 'BLINDADA FW v' + reqFwl.toFixed(1)}] · AV ${host.antivirusVer > 0 ? 'v' + host.antivirusVer.toFixed(1) : 'Ausente'}`
+                  : 'Execute o PortScan.scan antes do Ataque Exploit para sondar vulnerabilidades nas portas 21 e 22.'}
               </div>
             </div>
             <div style="display: flex; gap: 8px;">
-              <button type="button" id="btnInetPortScan" class="hc-btn sm" onclick="window.internetEngine.runPortScan()">Rodar port scan</button>
+              <button type="button" id="btnInetPortScan" class="hc-btn sm" onclick="window.internetEngine.runPortScan()">Rodar PortScan.scan</button>
               ${host.kind === 'bot'
                 ? `<button type="button" class="hc-btn ghost sm" onclick="openWindow('winCracker'); window.renderCrackerUI('crackerAppBody', '${esc(host.ip)}');">Abrir no HC Cracker Pro</button>`
                 : ''}
