@@ -2101,7 +2101,7 @@
           ctx.fillStyle = '#ffffff';
           ctx.font = 'bold 11px Rajdhani, sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillText(`${sec.hp}%`, 0, 0);
+          ctx.fillText(`${Math.round(sec.hp)}%`, 0, 0);
           ctx.restore();
         }
       });
