@@ -1275,8 +1275,11 @@
       this.sshSubTab = 'logs';   // 'logs' | 'files' | 'hw'
       this.history = ['71.4.20.1'];
       this.historyIdx = 0;
-      this.recentIps = ['71.4.20.1', '203.17.88.40', '77.3.9.21', '33.8.2.71', '133.70.13.37'];
-      this.favorites = new Set(['71.4.20.1', '77.3.9.21', '203.17.88.40', '58.40.12.9']);
+      const nowTs = Date.now();
+      this.recentIps = ['71.4.20.1'];
+      this.recentVisits = [{ ip: '71.4.20.1', ts: nowTs }];
+      this.favorites = new Set(['71.4.20.1', '33.8.2.71', '109.64.200.10', '77.3.9.21', '161.89.1.1']);
+      this.loadBrowserPrefs();
       this.portScannedIps = new Set();
       this.drainedNpcIps = new Set();
       this.deletedHostFiles = new Map();
@@ -1665,6 +1668,46 @@
       if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
     }
 
+    loadBrowserPrefs() {
+      try {
+        const raw = localStorage.getItem('HC_INET_BROWSER_PREFS');
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed.favorites) && parsed.favorites.length > 0) {
+          this.favorites = new Set(parsed.favorites);
+        }
+        if (Array.isArray(parsed.recentVisits) && parsed.recentVisits.length > 0) {
+          this.recentVisits = parsed.recentVisits;
+          this.recentIps = parsed.recentVisits.map((v) => v.ip);
+        }
+      } catch (e) {}
+    }
+
+    saveBrowserPrefs() {
+      try {
+        localStorage.setItem('HC_INET_BROWSER_PREFS', JSON.stringify({
+          favorites: Array.from(this.favorites),
+          recentVisits: (this.recentVisits || []).slice(0, 8)
+        }));
+      } catch (e) {}
+    }
+
+    formatVisitRelativeTime(ts) {
+      const diffSec = Math.max(0, Math.round((Date.now() - Number(ts || Date.now())) / 1000));
+      if (diffSec < 5) return 'agora';
+      if (diffSec < 60) return `${diffSec}s`;
+      const mins = Math.floor(diffSec / 60);
+      if (mins < 60) return `${mins} min`;
+      return `${Math.floor(mins / 60)}h`;
+    }
+
+    clearRecentHistory() {
+      this.recentVisits = [{ ip: this.currentIp, ts: Date.now() }];
+      this.recentIps = [this.currentIp];
+      this.saveBrowserPrefs();
+      this.render();
+    }
+
     navigate(rawQuery, forceTab = null, pushHistory = true) {
       const targetIp = this.normalizeQueryToIp(rawQuery);
       if (this.activeSshIp && this.activeSshIp !== targetIp) {
@@ -1680,7 +1723,12 @@
       }
 
       if (isValidIpv4(targetIp)) {
-        this.recentIps = [targetIp, ...this.recentIps.filter((x) => x !== targetIp)].slice(0, 6);
+        this.recentIps = [targetIp, ...this.recentIps.filter((x) => x !== targetIp)].slice(0, 8);
+        this.recentVisits = [
+          { ip: targetIp, ts: Date.now() },
+          ...(this.recentVisits || []).filter((v) => v.ip !== targetIp)
+        ].slice(0, 8);
+        this.saveBrowserPrefs();
       }
       this.render();
     }
@@ -1720,6 +1768,7 @@
       } else {
         this.favorites.add(ip);
       }
+      this.saveBrowserPrefs();
       if (window.hackedDb) window.hackedDb.toggleFavorite(ip);
       if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
       this.render();
@@ -3744,6 +3793,50 @@
         `;
       };
 
+      const renderHubLine = (item) => {
+        const isFav = this.favorites.has(item.ip);
+        return `
+          <div class="hub-site-line whois-row">
+            <button type="button" class="hub-site-link"
+              data-tip-title="${esc(item.name)}" data-tip-meta="FW v${item.fw.toFixed(1)}" data-tip-desc="${esc(item.useLabel)}"
+              onclick="window.internetEngine.navigate('${esc(item.ip)}', 'pagina')">
+              <span class="hub-site-ip">${esc(item.ip)}</span>
+              <span class="hub-site-sep">-</span>
+              <span class="hub-site-title">${esc(item.name)}</span>
+            </button>
+            <div class="hub-site-mini-acts">
+              <button type="button" class="hub-mini-hack"
+                data-tip-title="Invadir ${esc(item.name)}" data-tip-meta="${esc(item.ip)}" data-tip-desc="Abrir direto a aba Invadir deste endereço IP."
+                onclick="window.internetEngine.navigate('${esc(item.ip)}', 'invadir')">Invadir</button>
+              <button type="button" class="inet-bm-star ${isFav ? 'fav' : ''}"
+                data-tip-title="${isFav ? 'Remover dos Favoritos' : 'Favoritar IP'}" data-tip-meta="${esc(item.ip)}" data-tip-desc="Salva ou remove este IP da sua lista lateral de favoritos."
+                onclick="window.internetEngine.toggleFavoriteIp('${esc(item.ip)}', event)">${isFav ? '★' : '☆'}</button>
+            </div>
+          </div>
+        `;
+      };
+
+      // Links essenciais que já aparecem logo ao entrar no Hub Inicial (Puzzle inicial, Banco, FBI, Safenet, Downloads, ISP, etc.)
+      const essentialHubLinks = [
+        { ip: '33.8.2.71', name: 'Download Center', fw: 1.0, useLabel: 'Baixe gratuitamente utilitários iniciais v1.0 (Antivírus, Analyzer, WebServer).' },
+        { ip: '185.220.101.9', name: 'Torrent & Blackmarket', fw: 1.5, useLabel: 'Mercado clandestino de kits de exploit e limpadores policiais.' },
+        { ip: '109.64.200.10', name: 'First Puzzle (Enigma #1)', fw: 1.0, useLabel: 'Desafio inicial obrigatório para destravar vírus gratuitos e próximos IPs.' },
+        { ip: '77.3.9.21', name: 'First International Bank', fw: 2.5, useLabel: 'Portal bancário central para contas, transferências e invasão de cofres.' },
+        { ip: '109.64.211.37', name: 'Safenet Authority', fw: 3.5, useLabel: 'Órgão de rastreamento de IPs expostos em transferências sem limpeza.' },
+        { ip: '161.89.1.1', name: 'FBI Cybercrime Mainframe', fw: 9.0, useLabel: 'Lista oficial de procurados federais e terminal restrito de mandados.' },
+        { ip: '198.51.100.42', name: 'Treinamento Numataka', fw: 1.0, useLabel: 'Servidor inicial de treinamento prático de invasão e limpeza de logs.' }
+      ];
+
+      const trendingHubLinks = [
+        { ip: '71.4.5.1', name: 'ISP - Provedor de Internet', fw: 3.0, useLabel: 'Gerencie e troque gratuitamente seu endereço IP público (1x por semana).' },
+        { ip: '144.202.44.8', name: 'Bitcoin Market', fw: 3.5, useLabel: 'Câmbio em tempo real para comprar e vender Bitcoins minerados.' },
+        { ip: '203.17.88.40', name: 'Farofa Systems S.A.', fw: 1.0, useLabel: 'Servidor corporativo B2B (alvo frequente de contratos e missões).' },
+        { ip: '133.70.13.37', name: 'Rádio Pirata 1337 FM', fw: 1.0, useLabel: 'Servidor comunitário ideal para testes de upload e missões Nível 1.' },
+        { ip: '58.40.12.9', name: 'Corvo Cinza Logística', fw: 1.5, useLabel: 'Rede empresarial com boa banda para manter vírus gerando renda.' },
+        { ip: '77.3.10.44', name: 'HEBC Clearing Bank', fw: 4.0, useLabel: 'Banco corporativo secundário para contas alternativas.' },
+        { ip: '161.89.2.1', name: 'NSA Signal Intelligence', fw: 9.5, useLabel: 'Agência de inteligência de sinais — defesa máxima da rede.' }
+      ];
+
       let contentBlocks = '';
       if (this.whoisCategory === 'services') {
         const list = publicServices.filter(matchQuery);
@@ -3758,23 +3851,28 @@
         const list = onlinePlayers.filter(matchQuery);
         contentBlocks = `<div class="whois-list">${list.map((i) => renderRow(i, false)).join('') || '<div style="padding:20px;text-align:center;color:var(--hc-text-3);">Nenhum operador encontrado.</div>'}</div>`;
       } else {
-        const srvFiltered = filterByTier(publicServices);
-        const trgFiltered = [...filterByTier(puzzleNodes.slice(0, 2)), ...filterByTier(publicTargets)];
-        contentBlocks = `
-          <div class="whois-section-label">
-            <span class="hc-eyebrow">Serviços públicos — para acessar e usar</span>
-            <span style="font-size: 11.5px; color: var(--hc-text-3);">${srvFiltered.length} servidores</span>
-          </div>
-          <div class="whois-list">
-            ${srvFiltered.map((i) => renderRow(i, true)).join('')}
-          </div>
+        const colLeft = currentTier === 1 && !q
+          ? essentialHubLinks
+          : filterByTier(publicServices);
+        const colRight = currentTier === 1 && !q
+          ? trendingHubLinks
+          : [...filterByTier(puzzleNodes.slice(0, 3)), ...filterByTier(publicTargets)];
 
-          <div class="whois-section-label" style="margin-top: 6px;">
-            <span class="hc-eyebrow">Enigmas &amp; servidores corporativos — para invadir</span>
-            <span style="font-size: 11.5px; color: var(--hc-text-3);">${trgFiltered.length} alvos</span>
-          </div>
-          <div class="whois-list">
-            ${trgFiltered.map((i) => renderRow(i, i.role === 'puzzle')).join('')}
+        contentBlocks = `
+          <div class="hub-two-cols" id="inetHubTwoCols">
+            <div class="hub-col">
+              <div class="hub-col-head">
+                ${HC.icon('globe')} <span>Serviços &amp; Locais Essenciais</span>
+              </div>
+              ${colLeft.map((it) => renderHubLine(it)).join('')}
+            </div>
+
+            <div class="hub-col">
+              <div class="hub-col-head">
+                ${HC.icon('trending-up')} <span>Em Alta &amp; Servidores Públicos</span>
+              </div>
+              ${colRight.map((it) => renderHubLine(it)).join('')}
+            </div>
           </div>
         `;
       }
@@ -3788,7 +3886,15 @@
 
       return `
         <div class="whois-portal">
-          <div class="whois-top-bar">
+          <div class="hub-welcome-banner">
+            <div>
+              <div style="font-size:13.5px;font-weight:700;color:var(--hc-text);">
+                Bem-vindo ao Hub Inicial da Rede (<span style="color:var(--hc-accent-text);">${esc(host.hostname)}</span>)
+              </div>
+              <div style="font-size:12px;color:var(--hc-text-2);margin-top:2px;">
+                Clique em qualquer link essencial abaixo ou digite um IP avulso na barra superior para acessar ou invadir.
+              </div>
+            </div>
             <div class="whois-tier-pills" role="group" aria-label="Diretórios Whois">
               ${whoisTiers.map(([tIp, tNum, tLbl]) => `
                 <button type="button" class="whois-tier-btn ${currentTier === tNum && this.whoisCategory === 'overview' && !q ? 'active' : ''}" onclick="window.internetEngine.whoisCategory='overview'; window.internetEngine.whoisSearch=''; window.internetEngine.navigate('${tIp}', 'pagina');">
@@ -3796,35 +3902,14 @@
                 </button>
               `).join('')}
             </div>
-            <span style="font-size: 12px; color: var(--hc-text-3);">Seu Cracker ativo: <strong class="mono" style="color: var(--hc-accent-text);">${myCrc > 0 ? 'v' + myCrc.toFixed(1) : 'Desligado'}</strong></span>
           </div>
-
-          <div class="whois-search-row">
-            <input type="text" id="whoisQueryInput" class="hc-input" placeholder="Filtrar sites por nome ou consultar qualquer IPv4 (ex: 77.3.9.21, 149.56.28.11)..." value="${esc(this.whoisSearch || (w ? w.ip : ''))}" oninput="window.internetEngine.setWhoisSearch(this.value)" onkeydown="if(event.key==='Enter') window.internetEngine.runWhoisLookup()">
-            <button type="button" class="hc-btn" onclick="window.internetEngine.runWhoisLookup()">Consultar IP</button>
-          </div>
-
-          ${w ? (w.notFound
-            ? `<div class="hc-card" style="padding: 12px 14px; border-color: var(--hc-danger); color: var(--hc-danger-text); font-size: 12.5px;"><strong>${esc(w.ip)}:</strong> ${esc(w.reason)}</div>`
-            : `<div class="hc-card" style="padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
-                 <div style="font-size: 12.5px;">
-                   <span class="mono" style="color: var(--hc-accent-text); font-weight: 600;">${esc(w.ip)}</span> · <strong>${esc(w.hostname)}</strong>
-                   <span class="hc-badge" style="margin-left: 6px;">${esc(w.badge)}</span>
-                   <span class="mono" style="color: var(--hc-text-3); margin-left: 8px;">FW v${(w.firewallVer || 1.0).toFixed(1)}</span>
-                 </div>
-                 <div style="display: flex; gap: 6px;">
-                   <button type="button" class="hc-btn sm" onclick="window.internetEngine.navigate('${esc(w.ip)}', 'pagina')">Acessar</button>
-                   <button type="button" class="hc-btn primary sm" onclick="window.internetEngine.navigate('${esc(w.ip)}', 'invadir')">Invadir</button>
-                 </div>
-               </div>`)
-            : ''}
 
           <div class="hc-tabs">
-            <button type="button" class="hc-tab ${this.whoisCategory === 'overview' ? 'active' : ''}" onclick="window.internetEngine.setWhoisCategory('overview')">Visão Geral</button>
-            <button type="button" class="hc-tab ${this.whoisCategory === 'services' ? 'active' : ''}" onclick="window.internetEngine.setWhoisCategory('services')">Para Acessar &amp; Usar (${publicServices.length})</button>
+            <button type="button" class="hc-tab ${this.whoisCategory === 'overview' ? 'active' : ''}" onclick="window.internetEngine.setWhoisCategory('overview')">Hub Inicial (Resumo)</button>
+            <button type="button" class="hc-tab ${this.whoisCategory === 'services' ? 'active' : ''}" onclick="window.internetEngine.setWhoisCategory('services')">Serviços (${publicServices.length})</button>
             <button type="button" class="hc-tab ${this.whoisCategory === 'targets' ? 'active' : ''}" onclick="window.internetEngine.setWhoisCategory('targets')">Empresas &amp; Alvos (${publicTargets.length})</button>
             <button type="button" class="hc-tab ${this.whoisCategory === 'puzzles' ? 'active' : ''}" onclick="window.internetEngine.setWhoisCategory('puzzles')">Enigmas (${puzzleNodes.length})</button>
-            <button type="button" class="hc-tab ${this.whoisCategory === 'players' ? 'active' : ''}" onclick="window.internetEngine.setWhoisCategory('players')">Operadores Online (${onlinePlayers.length})</button>
+            <button type="button" class="hc-tab ${this.whoisCategory === 'players' ? 'active' : ''}" onclick="window.internetEngine.setWhoisCategory('players')">Jogadores Online (${onlinePlayers.length})</button>
           </div>
 
           ${contentBlocks}
@@ -4039,18 +4124,40 @@
       };
 
       const favList = Array.from(this.favorites);
+      const visits = Array.isArray(this.recentVisits) && this.recentVisits.length > 0
+        ? this.recentVisits
+        : this.recentIps.map((ip) => ({ ip, ts: Date.now() }));
+
+      const renderVisitEntry = (v) => {
+        const h = this.resolveHost(v.ip);
+        const label = h && !h.notFound ? h.hostname : v.ip;
+        const fav = this.favorites.has(v.ip);
+        const isCurrent = v.ip === this.currentIp;
+        const ageStr = this.formatVisitRelativeTime(v.ts);
+        return `
+          <div class="inet-side-row ${isCurrent ? 'current' : ''}">
+            <button type="button" class="inet-bm-item" onclick="window.internetEngine.navigate('${esc(v.ip)}')">
+              <span class="inet-bm-mini-icon">${HC.icon(this.getHostIconName(h))}</span>
+              <span class="inet-bm-text">
+                <span class="inet-bm-ip">${esc(v.ip)}</span>
+                <span class="inet-bm-label">${esc(label)}</span>
+              </span>
+            </button>
+            <span class="inet-visit-age">${esc(ageStr)}</span>
+            <button type="button" class="inet-bm-star ${fav ? 'fav' : ''}" onclick="window.internetEngine.toggleFavoriteIp('${esc(v.ip)}', event)" title="${fav ? 'Remover favorito' : 'Favoritar IP'}">${fav ? '★' : '☆'}</button>
+          </div>
+        `;
+      };
 
       container.innerHTML = `
         <div class="inet-browser-frame">
           <div class="inet-navbar">
             <button type="button" class="inet-nav-btn" ${this.historyIdx <= 0 ? 'disabled' : ''} onclick="window.internetEngine.goBack()" title="Voltar">${HC.icon('arrow-left')}</button>
             <button type="button" class="inet-nav-btn" ${this.historyIdx >= this.history.length - 1 ? 'disabled' : ''} onclick="window.internetEngine.goForward()" title="Avançar">${HC.icon('arrow-right')}</button>
-            <button type="button" class="inet-nav-btn" onclick="window.internetEngine.render()" title="Recarregar">${HC.icon('refresh-cw')}</button>
-            <button type="button" id="btnInetHomeWhois" class="inet-nav-btn ${isAtHome ? 'active-home' : ''}" onclick="window.internetEngine.goHome()" title="Página inicial — Diretório Público First Whois (71.4.20.1)">${HC.icon('house')}</button>
 
             <div class="inet-addr-wrap">
-              ${HC.icon('globe')}
-              <input type="text" id="inetAddressInput" class="inet-addr-input" value="${esc(this.currentIp)}" placeholder="Digite um IP ou domínio (ex: 71.4.20.1, 203.17.88.40)..." onkeydown="if(event.key==='Enter') window.internetEngine.navigate(this.value)">
+              <span class="inet-addr-label">Endereço IP:</span>
+              <input type="text" id="inetAddressInput" class="inet-addr-input" value="${esc(this.currentIp)}" placeholder="Digite um IP avulso (ex: 1.2.3.4, 203.17.88.40)..." onkeydown="if(event.key==='Enter') window.internetEngine.navigate(this.value)">
               ${window.bounceEngine ? `
                 <button type="button" id="btnOpenBounceBuilder" class="inet-route-chip ${routeProtected ? 'protected' : ''}" onclick="window.bounceEngine.openBuilderModal()" title="${routeProtected ? 'Disfarce de IP ativo — clique para ajustar saltos' : 'Conexão direta — clique para configurar disfarce de IP'}">
                   ${HC.icon('shield')}
@@ -4059,7 +4166,12 @@
               ` : ''}
             </div>
 
-            <button type="button" id="btnInetGo" class="inet-go-btn" onclick="window.internetEngine.navigate(document.getElementById('inetAddressInput').value)">Ir</button>
+            <button type="button" id="btnInetGo" class="inet-go-btn" onclick="window.internetEngine.navigate(document.getElementById('inetAddressInput').value)">
+              ${HC.icon('search')} <span>Buscar IP</span>
+            </button>
+            <button type="button" id="btnInetHomeWhois" class="inet-nav-btn ${isAtHome ? 'active-home' : ''}" onclick="window.internetEngine.goHome()" title="Voltar ao Hub Inicial (First Whois)">${HC.icon('house')}</button>
+            <button type="button" class="inet-nav-btn" onclick="window.internetEngine.render()" title="Atualizar página">${HC.icon('refresh-cw')}</button>
+            <button type="button" id="btnTopFavCurrentIp" class="inet-nav-btn ${isFav ? 'active-home' : ''}" onclick="window.internetEngine.toggleFavoriteCurrent()" title="${isFav ? 'Remover IP atual dos Favoritos' : 'Favoritar este IP'}">${HC.icon('star')}</button>
           </div>
 
           <div class="inet-shell">
@@ -4067,22 +4179,32 @@
               ${mainPanelHtml}
             </div>
 
-            <aside class="inet-side" aria-label="Favoritos e histórico">
-              <div>
-                <div class="inet-side-group-title">${HC.icon('star')} <span>Favoritos</span></div>
+            <aside class="inet-side" aria-label="Histórico de IPs e Favoritos">
+              <!-- Card 1: Histórico de IPs Acessados (igual Recently visited da Foto 2) -->
+              <div class="inet-side-card" id="inetRecentHistoryCard">
+                <div class="inet-side-card-head">
+                  <div class="inet-side-group-title" style="padding:0;">${HC.icon('clock')} <span>Histórico de IPs</span></div>
+                  <button type="button" style="background:transparent;border:0;color:var(--hc-text-3);font-size:10.5px;cursor:pointer;" onclick="window.internetEngine.clearRecentHistory()">Limpar</button>
+                </div>
+                ${visits.map((v) => renderVisitEntry(v)).join('')}
+              </div>
+
+              <!-- Card 2: IPs Favoritos & Importantes (igual Important IPs da Foto 2) -->
+              <div class="inet-side-card" id="inetFavoritesCard">
+                <div class="inet-side-card-head">
+                  <div class="inet-side-group-title" style="padding:0;">${HC.icon('star')} <span>Meus Favoritos</span></div>
+                  <span class="inet-side-count-pill">${favList.length}</span>
+                </div>
                 ${favList.length === 0
-                  ? `<div style="font-size: 11.5px; color: var(--hc-text-3); padding: 4px 8px;">Clique na estrela ☆ ao lado de qualquer IP.</div>`
+                  ? `<div style="font-size: 11.5px; color: var(--hc-text-3); padding: 6px 4px;">Clique na estrela ☆ ao lado de qualquer IP para salvar aqui.</div>`
                   : favList.map((fIp) => renderSideEntry(fIp)).join('')}
               </div>
 
-              <div>
-                <div class="inet-side-group-title">${HC.icon('landmark')} <span>IPs Importantes</span></div>
+              <div class="inet-side-card">
+                <div class="inet-side-card-head">
+                  <div class="inet-side-group-title" style="padding:0;">${HC.icon('landmark')} <span>Atalhos do Jogo</span></div>
+                </div>
                 ${IMPORTANT_BOOKMARKS.map((b) => renderSideEntry(b.ip, b.label)).join('')}
-              </div>
-
-              <div>
-                <div class="inet-side-group-title">${HC.icon('clock')} <span>Visitados Recentemente</span></div>
-                ${this.recentIps.map((rIp) => renderSideEntry(rIp)).join('')}
               </div>
             </aside>
           </div>
