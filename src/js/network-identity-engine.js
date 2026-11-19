@@ -485,11 +485,32 @@
       this.renderUI();
     }
 
+    promptNote(ip) {
+      this.ensureLoaded();
+      const entry = this.getEntry(ip);
+      const cur = entry ? (entry.notes || '') : '';
+      const next = window.prompt(`Anotação rápida para ${ip}:`, cur);
+      if (next !== null) {
+        this.saveNote(ip, next);
+        this.renderUI();
+      }
+    }
+
+    copyPassword(pwd) {
+      if (navigator.clipboard && pwd) {
+        navigator.clipboard.writeText(pwd).catch(() => {});
+      }
+      if (typeof window.showToast === 'function') {
+        window.showToast('Senha copiada para a área de transferência!');
+      }
+    }
+
     renderUI(containerId = 'hackedDbBody') {
       const container = document.getElementById(containerId);
       if (!container) return;
       this.ensureLoaded();
 
+      const ic = (n) => (window.HC && window.HC.icon ? window.HC.icon(n) : '');
       const q = this.searchQuery.trim().toLowerCase();
       const filtered = this.entries.filter((e) => {
         if (this.filterKind !== 'all') {
@@ -501,82 +522,163 @@
         return e.ip.toLowerCase().includes(q) || (e.hostname || '').toLowerCase().includes(q) || (e.notes || '').toLowerCase().includes(q);
       });
 
-      const filters = [
-        ['all', `Todos (${this.entries.length})`],
-        ['player', 'Jogadores'],
-        ['npc', 'Empresas & Bancos']
-      ];
-
-      const rowsHtml = filtered.length === 0
-        ? `<div class="hc-card" style="padding: 2rem; text-align: center; color: var(--hc-text-2);">
-             <div style="font-weight: 600; color: var(--hc-text); margin-bottom: 0.35rem;">Nenhum PC salvo neste filtro</div>
-             <div style="font-size: 0.85rem; margin-bottom: 1rem;">Invada computadores ou empresas em <strong>Navegar por IPs</strong> para guardar automaticamente os endereços e senhas aqui.</div>
-             <button type="button" class="hc-btn primary" onclick="window.internetEngine.openIp('203.17.88.40', 'invadir')">Invadir Farofa Systems (203.17.88.40)</button>
-           </div>`
-        : filtered.map((e) => {
-            const kindLabel = (e.kind === 'bot' || e.kind === 'player') ? 'Jogador' : e.kind.toUpperCase();
-            return `
-              <div class="hdb-row">
-                <div>
-                  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                    <button type="button" class="hc-btn ghost sm" style="padding: 0; border: 0; font-family: var(--hc-font-mono); font-size: 0.95rem; font-weight: 700; color: var(--hc-accent-text);" onclick="window.internetEngine.openIp('${esc(e.ip)}')">${esc(e.ip)}</button>
-                    <span class="hc-badge info">${esc(kindLabel)}</span>
-                  </div>
-                  <div style="font-size: 0.82rem; color: var(--hc-text-2); margin-top: 2px;">${esc(e.hostname)} · <span style="color: var(--hc-text-3);">${esc(e.cpuSpec || '')}</span></div>
-                </div>
-
-                <div>
-                  <div style="font-size: 0.7rem; color: var(--hc-text-3); text-transform: uppercase; margin-bottom: 3px;">Credencial Salva</div>
-                  <span class="hdb-pwd-chip">${esc(e.sshUser || 'root')} : <strong style="color: var(--hc-accent-text);">${esc(e.password)}</strong></span>
-                  ${e.analyzedHw ? `<div style="font-size:0.71rem;color:var(--hc-warning);font-family:var(--hc-font-mono);margin-top:3px;">Analyzer: ${esc(e.analyzedHw)}</div>` : ''}
-                </div>
-
-                <div style="display: flex; gap: 6px; align-items: center;">
-                  <input type="text" class="form-input" style="padding: 0.35rem 0.6rem; font-size: 0.78rem;" placeholder="Anotação (ex: tem $850, bom p/ minerar)..." value="${esc(e.notes || '')}" onchange="window.hackedDb.saveNote('${esc(e.ip)}', this.value)">
-                </div>
-
-                <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;">
-                  <button type="button" class="hc-btn primary sm" onclick="window.internetEngine.quickSshConnect('${esc(e.ip)}')">Conectar SSH</button>
-                  <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(e.ip)}')">Abrir</button>
-                  <button type="button" class="hc-btn ghost sm" style="color: var(--hc-danger-text);" onclick="window.hackedDb.removeHost('${esc(e.ip)}')">Remover</button>
-                </div>
-              </div>
-            `;
-          }).join('');
-
       const bankAccCount = window.multiBankEngine
         ? (window.multiBankEngine.ensureLoaded().hackedAccounts || []).length
         : 0;
+      const harvest = window.softwareEngine ? window.softwareEngine.getPendingHarvestSummary() : { virusCount: 0, totalGbps: 0 };
 
-      const sectionTabsHtml = `
-        <div style="display:flex;gap:8px;border-bottom:1px solid var(--hc-border);padding-bottom:10px;margin-bottom:12px;flex-wrap:wrap;">
-          <button type="button" id="tabHdbServers" class="hc-btn sm ${this.activeSection !== 'banks' ? 'primary' : 'ghost'}" onclick="window.hackedDb.activeSection='servers';window.hackedDb.renderUI();">
-            PCs &amp; Senhas Descobertas (${this.entries.length})
-          </button>
-          <button type="button" id="tabHdbBanks" class="hc-btn sm ${this.activeSection === 'banks' ? 'primary' : 'ghost'}" onclick="window.hackedDb.activeSection='banks';window.hackedDb.renderUI();">
-            Contas de Banco Descobertas (${bankAccCount})
-          </button>
-        </div>
-      `;
+      const rootCount = this.entries.filter((e) => (e.sshUser || 'root') === 'root').length;
+      const rootPct = this.entries.length === 0 ? 0 : Math.round((rootCount / this.entries.length) * 100);
+      const r = 46;
+      const c = +(2 * Math.PI * r).toFixed(2);
+      const offset = +(c - (rootPct / 100) * c).toFixed(2);
 
+      let mainContentHtml = '';
       if (this.activeSection === 'banks' && window.multiBankEngine) {
-        container.innerHTML = sectionTabsHtml + window.multiBankEngine.renderHackedBankAccountsHtml();
-        return;
+        mainContentHtml = `<div style="padding:14px;">${window.multiBankEngine.renderHackedBankAccountsHtml()}</div>`;
+      } else {
+        const rowsHtml = filtered.length === 0
+          ? `<tr>
+               <td colspan="5" style="text-align:center;padding:36px 16px;color:var(--hc-text-3);">
+                 Nenhum servidor salvo neste filtro. Invada máquinas na aba <strong>Internet</strong> para registrar automaticamente IPs e senhas aqui.
+               </td>
+             </tr>`
+          : filtered.map((e) => {
+              const isPlayerKind = e.kind === 'bot' || e.kind === 'player';
+              const kindLabel = isPlayerKind ? 'Jogador' : String(e.kind || 'Host').toUpperCase();
+              const iconName = isPlayerKind ? 'user' : (e.kind === 'banco' ? 'landmark' : 'server');
+              const glyphCls = isPlayerKind ? 'attack' : (e.kind === 'banco' ? 'stealth' : 'defense');
+              const tipDesc = [
+                `${e.hostname} (${kindLabel})`,
+                e.analyzedHw ? `Hardware: ${e.analyzedHw}` : (e.cpuSpec || ''),
+                e.notes ? `Nota: "${e.notes}"` : 'Clique no ícone de lápis para adicionar uma nota.'
+              ].filter(Boolean).join(' · ');
+
+              return `
+                <tr>
+                  <td class="soft-col-icon">
+                    <span class="soft-mini-glyph kind-${glyphCls}" data-tip-title="${esc(e.hostname)}" data-tip-meta="${esc(kindLabel)}" data-tip-desc="${esc(tipDesc)}">
+                      ${ic(iconName)}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="soft-name-trigger" style="cursor:pointer;" tabindex="0" onclick="window.internetEngine.openIp('${esc(e.ip)}')"
+                      data-tip-title="${esc(e.hostname)}" data-tip-meta="${esc(e.ip)}" data-tip-desc="${esc(tipDesc)}">
+                      <strong style="color:var(--hc-accent-text);">${esc(e.ip)}</strong>
+                      <span style="color:var(--hc-text-3);font-family:var(--hc-font-sans);font-size:12px;">${esc(e.hostname)}</span>
+                      ${e.notes ? `<span class="hc-badge info">Nota</span>` : ''}
+                    </span>
+                  </td>
+                  <td class="soft-col-ver"><span class="soft-ver-badge v-tier2">${esc(e.sshUser || 'root')}</span></td>
+                  <td class="soft-col-size" style="width:120px;color:var(--hc-text);">${esc(e.password)}</td>
+                  <td class="soft-col-acts">
+                    <div class="soft-icon-actions">
+                      <button type="button" class="soft-icon-act ic-run" aria-label="Conectar SSH em ${esc(e.ip)}"
+                        data-tip-title="Conectar direto via SSH" data-tip-meta="${esc(e.sshUser || 'root')}"
+                        data-tip-desc="Entrar direto no terminal remoto de ${esc(e.ip)} usando a senha salva."
+                        onclick="window.internetEngine.quickSshConnect('${esc(e.ip)}')">${ic('terminal')}</button>
+                      <button type="button" class="soft-icon-act ic-info" aria-label="Abrir ${esc(e.ip)} na Internet"
+                        data-tip-title="Abrir na Internet" data-tip-meta="${esc(e.ip)}"
+                        data-tip-desc="Visitar a página pública de ${esc(e.hostname)} no navegador."
+                        onclick="window.internetEngine.openIp('${esc(e.ip)}')">${ic('globe')}</button>
+                      <button type="button" class="soft-icon-act ic-hide" aria-label="Copiar senha de ${esc(e.ip)}"
+                        data-tip-title="Copiar senha" data-tip-meta="${esc(e.password)}"
+                        data-tip-desc="Copiar a credencial salva para a área de transferência."
+                        onclick="window.hackedDb.copyPassword('${esc(e.password)}')">${ic('copy')}</button>
+                      <button type="button" class="soft-icon-act ic-move" aria-label="Editar nota de ${esc(e.ip)}"
+                        data-tip-title="Anotação rápida" data-tip-meta="${e.notes ? 'Com nota' : 'Vazia'}"
+                        data-tip-desc="${esc(e.notes || 'Registrar lembrete sobre saldo, vírus ou hardware deste IP.')}"
+                        onclick="window.hackedDb.promptNote('${esc(e.ip)}')">${ic('pencil')}</button>
+                      <button type="button" class="soft-icon-act ic-del" aria-label="Remover ${esc(e.ip)} da lista"
+                        data-tip-title="Remover da lista"
+                        data-tip-desc="Excluir ${esc(e.ip)} do seu Hacked Database."
+                        onclick="window.hackedDb.removeHost('${esc(e.ip)}')">${ic('trash-2')}</button>
+                    </div>
+                  </td>
+                </tr>
+              `;
+            }).join('');
+
+        mainContentHtml = `
+          <div class="soft-explorer-shell">
+            <div class="soft-main-col">
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input type="text" class="hc-input" style="height:34px;font-size:12.5px;" placeholder="Pesquisar por IP, nome do servidor ou anotação..." value="${esc(this.searchQuery)}" oninput="window.hackedDb.setSearch(this.value)">
+              </div>
+              <div class="soft-table-wrap" role="region" aria-label="Servidores e senhas descobertas">
+                <table class="soft-table clean-hw-table">
+                  <thead>
+                    <tr>
+                      <th class="soft-col-icon"></th>
+                      <th>IP &amp; Servidor Invadido</th>
+                      <th class="soft-col-ver">Acesso</th>
+                      <th class="soft-col-size" style="width:120px;">Senha</th>
+                      <th class="soft-col-acts">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>${rowsHtml}</tbody>
+                </table>
+              </div>
+            </div>
+
+            <aside class="soft-side-bar">
+              <div class="soft-donut-wrap">
+                <svg class="soft-donut-svg" viewBox="0 0 116 116" aria-label="Acesso Root ${rootPct}%">
+                  <circle cx="58" cy="58" r="${r}" fill="none" stroke="#222832" stroke-width="8"></circle>
+                  <circle cx="58" cy="58" r="${r}" fill="none" stroke="#35b877" stroke-width="8"
+                    stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${offset}" transform="rotate(-90 58 58)"></circle>
+                  <text x="58" y="63" text-anchor="middle" fill="#ebeff4" font-family="var(--hc-font-mono)" font-size="18" font-weight="700">${this.entries.length}</text>
+                </svg>
+                <div class="soft-donut-title">IPs Catalogados</div>
+                <div class="soft-donut-numbers">
+                  <span class="used">${rootCount} Root</span> · <span>${bankAccCount} Contas</span>
+                </div>
+              </div>
+
+              <div class="soft-bays-box">
+                <div class="soft-bay-row"><span>Servidores</span><span style="color:var(--hc-accent-text);">${this.entries.length}</span></div>
+                <div class="soft-bay-row"><span>Contas Banco</span><span>${bankAccCount}</span></div>
+                <div class="soft-bay-row"><span>Vírus Ativos</span><span style="color:var(--hc-accent-text);">${harvest.virusCount}</span></div>
+                <div class="soft-bay-row"><span>Poder DDoS</span><span>${harvest.totalGbps} Gbps</span></div>
+              </div>
+
+              <div class="soft-tool-tiles">
+                <button type="button" class="soft-tool-tile" onclick="navTo('winSoftware');if(window.softwareEngine){window.softwareEngine.activeTab='viruses';window.softwareEngine.renderUI();}">
+                  ${ic('bug')}
+                  <span>Rede de Vírus</span>
+                </button>
+                <button type="button" class="soft-tool-tile" onclick="if(window.bounceEngine) window.bounceEngine.openBuilderModal();">
+                  ${ic('shield')}
+                  <span>Rota Proxy</span>
+                </button>
+              </div>
+            </aside>
+          </div>
+        `;
       }
 
       container.innerHTML = `
-        ${sectionTabsHtml}
-        <div class="hdb-toolbar">
-          <div class="hdb-filters">
-            ${filters.map(([k, lbl]) => `
-              <button type="button" class="hc-btn sm ${this.filterKind === k ? 'primary' : 'ghost'}" onclick="window.hackedDb.setFilter('${k}')">${lbl}</button>
-            `).join('')}
+        <div class="soft-frame" id="hackedDbExplorerMain">
+          <div class="soft-tabs-bar">
+            <div class="soft-tabs-left" role="tablist" aria-label="Categorias do Hacked Database">
+              <button type="button" id="tabHdbServers" class="soft-tab-btn ${this.activeSection !== 'banks' ? 'active' : ''}" onclick="window.hackedDb.activeSection='servers';window.hackedDb.renderUI();">
+                ${ic('database')} <span>IPs &amp; Senhas (${this.entries.length})</span>
+              </button>
+              <button type="button" id="tabHdbBanks" class="soft-tab-btn ${this.activeSection === 'banks' ? 'active' : ''}" onclick="window.hackedDb.activeSection='banks';window.hackedDb.renderUI();">
+                ${ic('landmark')} <span>Contas Bancárias (${bankAccCount})</span>
+              </button>
+            </div>
+
+            ${this.activeSection !== 'banks' ? `
+              <div class="soft-drive-pills" role="group" aria-label="Filtrar tipo de host">
+                <button type="button" class="soft-drive-pill ${this.filterKind === 'all' ? 'active' : ''}" onclick="window.hackedDb.setFilter('all')">Todos</button>
+                <button type="button" class="soft-drive-pill ${this.filterKind === 'player' ? 'active' : ''}" onclick="window.hackedDb.setFilter('player')">Jogadores</button>
+                <button type="button" class="soft-drive-pill ${this.filterKind === 'npc' ? 'active' : ''}" onclick="window.hackedDb.setFilter('npc')">Empresas</button>
+              </div>
+            ` : ''}
           </div>
-          <div style="min-width: 240px;">
-            <input type="text" class="form-input" style="padding: 0.4rem 0.75rem; font-size: 0.82rem;" placeholder="Filtrar por IP, hostname ou nota..." value="${esc(this.searchQuery)}" oninput="window.hackedDb.setSearch(this.value)">
-          </div>
+          ${mainContentHtml}
         </div>
-        <div class="hdb-list">${rowsHtml}</div>
       `;
     }
   }
