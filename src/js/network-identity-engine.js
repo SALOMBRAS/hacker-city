@@ -818,6 +818,239 @@
       files: [
         { name: 'readme_operador.txt', size: '8 MB', sizeMb: 8, content: 'Bem-vindo à prova prática de Ensei Tankado. Extraia o dossiê e limpe seu IP na aba Logs!' }
       ]
+    },
+    '71.4.20.2': {
+      ip: '71.4.20.2',
+      domain: 'whois2.hc',
+      hostname: 'Second Whois — Diretório Regional II',
+      kind: 'whois',
+      whoisTier: 2,
+      badge: 'Diretório II',
+      tier: 2,
+      securityLevel: 2,
+      cpuMhz: 4800,
+      netMbps: 500,
+      hddTotalMb: 2048,
+      hddOsBaseMb: 900,
+      ramTotalMb: 1024,
+      ramOsBaseMb: 440,
+      hasherVer: 2.5,
+      firewallVer: 2.5,
+      antivirusVer: 2.5,
+      cpuSpec: '4.800 MHz · 500 Mbps · AV v2.5',
+      bankBalance: 0,
+      files: [
+        { name: 'tier2_registry.txt', size: '18 MB', sizeMb: 18, content: 'Índice regional II: HEBC Bank 77.3.10.44 | KronoTech 189.40.7.12 | Puzzle #5 109.64.200.22' }
+      ]
+    },
+    '71.4.20.3': {
+      ip: '71.4.20.3',
+      domain: 'whois3.hc',
+      hostname: 'Third Whois — Diretório Internacional III',
+      kind: 'whois',
+      whoisTier: 3,
+      badge: 'Diretório III',
+      tier: 3,
+      securityLevel: 3,
+      cpuMhz: 8400,
+      netMbps: 1000,
+      hddTotalMb: 4096,
+      hddOsBaseMb: 1800,
+      ramTotalMb: 2048,
+      ramOsBaseMb: 900,
+      hasherVer: 4.5,
+      firewallVer: 4.5,
+      antivirusVer: 4.5,
+      cpuSpec: '8.400 MHz · 1.000 Mbps · AV v4.5',
+      bankBalance: 0,
+      files: [
+        { name: 'tier3_registry.txt', size: '24 MB', sizeMb: 24, content: 'Índice III: Bitcoin Market 144.202.44.8 | OmniDyne 192.99.44.80 | Safenet 109.64.211.37' }
+      ]
+    },
+    '71.4.20.4': {
+      ip: '71.4.20.4',
+      domain: 'whois4.hc',
+      hostname: 'Fourth Whois — Backbone Restrito IV',
+      kind: 'whois',
+      whoisTier: 4,
+      badge: 'Diretório IV',
+      tier: 4,
+      securityLevel: 4,
+      cpuMhz: 16000,
+      netMbps: 2500,
+      hddTotalMb: 8192,
+      hddOsBaseMb: 3600,
+      ramTotalMb: 4096,
+      ramOsBaseMb: 1800,
+      hasherVer: 6.5,
+      firewallVer: 6.5,
+      antivirusVer: 6.5,
+      cpuSpec: '16.000 MHz · 2.500 Mbps · AV v6.5',
+      bankBalance: 0,
+      files: [
+        { name: 'tier4_backbone.txt', size: '32 MB', sizeMb: 32, content: 'Índice IV: Swiss Offshore 77.3.12.15 | EvilCorp 209.141.55.10 | FBI 161.89.1.1 | NSA 161.89.2.1' }
+      ]
+    },
+    '144.202.44.8': {
+      ip: '144.202.44.8',
+      domain: 'btc.hc',
+      hostname: 'Bitcoin Market Exchange',
+      kind: 'btc_market',
+      badge: 'Câmbio Cripto',
+      tier: 3,
+      securityLevel: 3,
+      cpuMhz: 9600,
+      netMbps: 1000,
+      hddTotalMb: 4096,
+      hddOsBaseMb: 1900,
+      ramTotalMb: 2048,
+      ramOsBaseMb: 920,
+      hasherVer: 3.5,
+      firewallVer: 3.5,
+      antivirusVer: 4.0,
+      cpuSpec: '9.600 MHz · 1.000 Mbps · AV v4.0',
+      bankBalance: 1650,
+      files: [
+        { name: 'cold_reserve_audit.log', size: '54 MB', sizeMb: 54, content: 'Livro público de liquidez BTC/HC e ordens instantâneas.' }
+      ]
+    },
+    '58.40.12.9': {
+      ip: '58.40.12.9',
+      domain: 'corvocinza.hc',
+      hostname: 'Corvo Cinza Logística',
+      kind: 'empresa',
+      badge: 'Empresa',
+      tier: 1,
+      securityLevel: 1,
+      cpuMhz: 2800,
+      netMbps: 120,
+      hddTotalMb: 640,
+      hddOsBaseMb: 310,
+      ramTotalMb: 512,
+      ramOsBaseMb: 210,
+      hasherVer: 1.5,
+      firewallVer: 1.5,
+      antivirusVer: 1.5,
+      cpuSpec: '2.800 MHz · 120 Mbps · HDD 640MB · AV v1.5',
+      bankBalance: 340,
+      files: [
+        { name: 'rotas_carga_sul.csv', size: '28 MB', sizeMb: 28, content: 'Manifesto de frotas e contratos corporativos de transporte.' }
+      ]
+    },
+    '187.22.5.60': {
+      ip: '187.22.5.60',
+      domain: 'boteco.hc',
+      hostname: 'Boteco h4x0r',
+      kind: 'underground',
+      badge: 'Comunidade',
+      tier: 1,
+      securityLevel: 1,
+      cpuMhz: 2400,
+      netMbps: 100,
+      hddTotalMb: 512,
+      hddOsBaseMb: 240,
+      ramTotalMb: 384,
+      ramOsBaseMb: 180,
+      hasherVer: 1.5,
+      firewallVer: 1.5,
+      antivirusVer: 1.0,
+      cpuSpec: '2.400 MHz · 100 Mbps · HDD 512MB · AV v1.0',
+      bankBalance: 260,
+      files: [
+        { name: 'receitas_underground.txt', size: '14 MB', sizeMb: 14, content: 'Anotações da galera: o Second Whois fica em 71.4.20.2 e a corretora BTC em 144.202.44.8!' }
+      ]
+    },
+    '189.40.7.12': {
+      ip: '189.40.7.12',
+      domain: 'kronotech.hc',
+      hostname: 'KronoTech Sistemas',
+      kind: 'empresa',
+      badge: 'Corporação',
+      tier: 2,
+      securityLevel: 2,
+      cpuMhz: 6400,
+      netMbps: 400,
+      hddTotalMb: 2048,
+      hddOsBaseMb: 920,
+      ramTotalMb: 1024,
+      ramOsBaseMb: 460,
+      hasherVer: 2.5,
+      firewallVer: 2.5,
+      antivirusVer: 2.5,
+      cpuSpec: '6.400 MHz · 400 Mbps · HDD 2GB · AV v2.5',
+      bankBalance: 680,
+      files: [
+        { name: 'folha_executiva.xls', size: '48 MB', sizeMb: 48, content: 'Pagamentos processados via HEBC Clearing Bank (77.3.10.44).' }
+      ]
+    },
+    '192.99.44.80': {
+      ip: '192.99.44.80',
+      domain: 'omnidyne.hc',
+      hostname: 'OmniDyne Defense Systems',
+      kind: 'empresa',
+      badge: 'Defesa Militar',
+      tier: 3,
+      securityLevel: 3,
+      cpuMhz: 12000,
+      netMbps: 1000,
+      hddTotalMb: 8192,
+      hddOsBaseMb: 3600,
+      ramTotalMb: 4096,
+      ramOsBaseMb: 1800,
+      hasherVer: 4.5,
+      firewallVer: 4.5,
+      antivirusVer: 4.5,
+      cpuSpec: '12.000 MHz · 1.000 Mbps · HDD 8GB · AV v4.5',
+      bankBalance: 1450,
+      files: [
+        { name: 'telemetry_sat.bin', size: '96 MB', sizeMb: 96, content: 'Dados criptografados de defesa orbital e contratos governamentais.' }
+      ]
+    },
+    '209.141.55.10': {
+      ip: '209.141.55.10',
+      domain: 'evilcorp.hc',
+      hostname: 'EvilCorp Conglomerate',
+      kind: 'empresa',
+      badge: 'MegaCorp',
+      tier: 4,
+      securityLevel: 4,
+      cpuMhz: 20000,
+      netMbps: 5000,
+      hddTotalMb: 32768,
+      hddOsBaseMb: 14000,
+      ramTotalMb: 8192,
+      ramOsBaseMb: 3800,
+      hasherVer: 7.0,
+      firewallVer: 7.0,
+      antivirusVer: 7.0,
+      cpuSpec: '20.000 MHz · 5.000 Mbps · HDD 32GB · AV v7.0',
+      bankBalance: 4200,
+      files: [
+        { name: 'offshore_accounts.vault', size: '240 MB', sizeMb: 240, content: 'Reservas globais depositadas no Swiss Offshore Vault (77.3.12.15).' }
+      ]
+    },
+    '161.89.2.1': {
+      ip: '161.89.2.1',
+      domain: 'nsa.gov.internal',
+      hostname: 'NSA — National Security Agency',
+      kind: 'federal',
+      badge: 'Agência Sigilosa',
+      tier: 5,
+      securityLevel: 5,
+      cpuMhz: 32000,
+      netMbps: 10000,
+      hddTotalMb: 65536,
+      hddOsBaseMb: 30000,
+      ramTotalMb: 32768,
+      ramOsBaseMb: 14000,
+      hasherVer: 9.5,
+      firewallVer: 9.5,
+      antivirusVer: 9.5,
+      cpuSpec: '32.000 MHz · 10.000 Mbps · FW v9.5 · AV v9.5',
+      bankBalance: 0,
+      files: [
+        { name: 'prism_backbone_tap.dat', size: '640 MB', sizeMb: 640, content: 'Monitoramento global de cabos submarinos e interceptação óptica.' }
+      ]
     }
   };
 
@@ -886,42 +1119,41 @@
   };
 
   const IMPORTANT_BOOKMARKS = [
-    { ip: '198.51.100.42', label: 'Alvo Tutorial Numataka' },
-    { ip: '109.64.200.10', label: 'First Puzzle (Trilha de Enigmas)' },
-    { ip: '71.4.5.1', label: 'HC Telecom ISP (Trocar IP)' },
-    { ip: '71.4.20.1', label: 'First Whois' },
-    { ip: '203.17.88.40', label: 'Farofa Systems' },
+    { ip: '71.4.20.1', label: 'First Whois (Diretório)' },
     { ip: '33.8.2.71', label: 'Download Center' },
-    { ip: '77.3.9.21', label: 'First Bank / Colchão HC' },
-    { ip: '77.3.10.44', label: 'HEBC Clearing Bank' },
-    { ip: '77.3.12.15', label: 'Swiss Offshore Vault' },
-    { ip: '185.220.101.9', label: 'Blackmarket Onion' },
-    { ip: '133.70.13.37', label: 'Rádio Pirata 1337 FM' },
+    { ip: '109.64.200.10', label: 'First Puzzle' },
+    { ip: '71.4.5.1', label: 'HC Telecom ISP' },
+    { ip: '77.3.9.21', label: 'Banco Colchão' },
+    { ip: '144.202.44.8', label: 'Bitcoin Market' },
+    { ip: '203.17.88.40', label: 'Farofa Systems' },
+    { ip: '187.22.5.60', label: 'Boteco h4x0r' },
     { ip: '109.64.211.37', label: 'Safenet Authority' },
-    { ip: '161.89.1.1', label: 'FBI Mainframe Central' }
+    { ip: '161.89.1.1', label: 'FBI Mainframe' }
   ];
 
   class InternetBrowserEngine {
     constructor() {
-      this.currentIp = '203.17.88.40';
+      this.currentIp = '71.4.20.1';
       this.activeTab = 'pagina'; // 'pagina' | 'entrar' | 'invadir'
       this.sshSubTab = 'logs';   // 'logs' | 'files' | 'hw'
-      this.history = ['203.17.88.40'];
+      this.history = ['71.4.20.1'];
       this.historyIdx = 0;
-      this.recentIps = ['203.17.88.40', '71.4.5.1', '71.4.20.1', '33.8.2.71'];
-      this.favorites = new Set(['71.4.5.1', '203.17.88.40']);
+      this.recentIps = ['71.4.20.1', '203.17.88.40', '77.3.9.21', '33.8.2.71', '133.70.13.37'];
+      this.favorites = new Set(['71.4.20.1', '77.3.9.21', '203.17.88.40', '58.40.12.9']);
       this.portScannedIps = new Set();
       this.drainedNpcIps = new Set();
-      this.deletedHostFiles = new Map(); // ip -> Set(fileName)
-      this.deletedHostFileMb = new Map(); // ip -> number (compatibilidade extra)
-      this.defacedPages = new Map(); // ip -> string
+      this.deletedHostFiles = new Map();
+      this.deletedHostFileMb = new Map();
+      this.defacedPages = new Map();
       this.activeSshIp = null;
-      this.activeSshMethod = 'password'; // 'password' | 'exploit'
-      this.activeSshRole = 'root';       // 'root' | 'ftp' | 'ssh'
+      this.activeSshMethod = 'password';
+      this.activeSshRole = 'root';
       this.isCracking = false;
       this.crackPct = 0;
       this.cloudPlayersByIp = {};
       this.whoisQueryResult = null;
+      this.whoisCategory = 'overview'; // 'overview' | 'services' | 'targets' | 'puzzles' | 'players'
+      this.whoisSearch = '';
     }
 
     async syncCloudPlayers() {
@@ -963,7 +1195,11 @@
         if (q === npc.domain || q === npc.ip) return npc.ip;
       }
       if (q === 'isp' || q === 'telecom' || q === 'meuip') return '71.4.5.1';
-      if (q === 'whois') return '71.4.20.1';
+      if (q === 'whois' || q === 'home' || q === 'about:home' || q === '1.2.3.4') return '71.4.20.1';
+      if (q === 'whois2') return '71.4.20.2';
+      if (q === 'whois3') return '71.4.20.3';
+      if (q === 'whois4') return '71.4.20.4';
+      if (q === 'btc' || q === 'bitcoin') return '144.202.44.8';
       if (q === 'download' || q === 'dc') return '33.8.2.71';
       if (q === 'bank' || q === 'banco') return '77.3.9.21';
       if (q === 'hebc' || q === 'hebc.hc') return '77.3.10.44';
