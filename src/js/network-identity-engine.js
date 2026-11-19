@@ -1878,12 +1878,61 @@
       this.render();
     }
 
+    // ETAPA 1 DE 2: Subir o arquivo do vírus para o HD da vítima (Upload!)
+    stageSelectedVirusToCurrentHost() {
+      if (!this.activeSshIp || !window.softwareEngine) return Promise.resolve(null);
+      if (!this.hasRemotePermission('upload')) {
+        const role = (this.activeSshRole || 'ssh').toUpperCase();
+        const msg = `PERMISSÃO INSUFICIENTE (Sessão ${role})! Subir arquivos exige permissão de Upload (FTP ou ROOT)!`;
+        if (typeof window.showToast === 'function') window.showToast(msg);
+        return Promise.resolve({ success: false, code: 'NO_UPLOAD_PERMISSION', message: msg });
+      }
+      const host = this.resolveHost(this.activeSshIp);
+      const sel = document.getElementById('remoteVirusSelect');
+      const virusKey = sel ? sel.value : 'vspam';
+
+      return new Promise((resolve) => {
+        const up = window.softwareEngine.stageUploadVirusToRemote(host, virusKey, (res) => {
+          if (res && res.success) {
+            if (typeof window.showToast === 'function') window.showToast(res.message);
+          } else if (res && typeof window.showToast === 'function') {
+            window.showToast(res.message);
+          }
+          this.render();
+          resolve(res);
+        });
+
+        if (!up.started) {
+          if (typeof window.showToast === 'function') window.showToast(up.message);
+          resolve({ success: false, code: up.code, message: up.message });
+        }
+      });
+    }
+
+    // ETAPA 2 DE 2: Executar na memória do PC da vítima um vírus que já foi subido!
+    executeStagedVirusOnCurrentHost(virusKey) {
+      if (!this.activeSshIp || !window.softwareEngine) return { success: false };
+      if (!this.hasRemotePermission('install')) {
+        const role = (this.activeSshRole || 'ftp').toUpperCase();
+        const msg = `PERMISSÃO INSUFICIENTE (Sessão ${role})! Executar programas no PC da vítima exige permissão SSH ou ROOT!`;
+        if (typeof window.showToast === 'function') window.showToast(msg);
+        return { success: false, code: 'NO_EXEC_PERMISSION', message: msg };
+      }
+      const host = this.resolveHost(this.activeSshIp);
+      const res = window.softwareEngine.executeStagedVirusOnRemote(host, virusKey);
+      if (res && typeof window.showToast === 'function') {
+        window.showToast(res.message);
+      }
+      this.render();
+      return res;
+    }
+
     deploySelectedVirusToCurrentHost() {
       if (!this.activeSshIp || !window.softwareEngine) return Promise.resolve(null);
       if (!this.hasRemotePermission('upload') || !this.hasRemotePermission('install')) {
         const role = (this.activeSshRole || 'root').toUpperCase();
         const msg = `PERMISSÃO INSUFICIENTE (Sessão ${role})! Enviar E instalar vírus exige tanto Upload (FTP) quanto Execução (SSH) — use ambos os Exploits (FTP + SSH) ou quebre a senha ROOT!`;
-        alert(msg);
+        if (typeof window.showToast === 'function') window.showToast(msg);
         return Promise.resolve({ success: false, code: 'NO_ROOT_PERMISSION', message: msg });
       }
       const host = this.resolveHost(this.activeSshIp);
@@ -1897,15 +1946,15 @@
               window.tutorialEngine.onFileReadOrVirusPlanted(host.ip);
             }
             if (typeof window.showToast === 'function') window.showToast(res.message);
-          } else if (res) {
-            alert(res.message);
+          } else if (res && typeof window.showToast === 'function') {
+            window.showToast(res.message);
           }
           this.render();
           resolve(res);
         });
 
         if (!up.started) {
-          alert(up.message);
+          if (typeof window.showToast === 'function') window.showToast(up.message);
           resolve({ success: false, code: up.code, message: up.message });
         }
       });
@@ -2435,6 +2484,7 @@
         const remoteBtcSats = window.bitcoinEngine ? window.bitcoinEngine.getRemoteHostWalletSats(host) : 0;
         const remoteBtcStr = (remoteBtcSats / 100000000).toFixed(8);
         const virusOpts = window.softwareEngine ? window.softwareEngine.getVirusCatalogOptions(host) : [];
+        const stagedOnTarget = window.softwareEngine ? window.softwareEngine.getStagedVirusesOnIp(host.ip) : [];
         const installedOnTarget = window.softwareEngine ? window.softwareEngine.getRemoteVirusesOnIp(host.ip) : [];
         const upJob = window.softwareEngine && window.softwareEngine.activeUploadJob && window.softwareEngine.activeUploadJob.targetIp === host.ip
           ? window.softwareEngine.activeUploadJob
@@ -2449,49 +2499,52 @@
               : ''}
 
             <!-- Painel Físico da Máquina Invadida -->
-            <div class="hc-card" style="padding: 0.85rem 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 10px; font-family: var(--hc-font-mono); font-size: 0.77rem;">
+            <div id="remoteTargetSpecsCard" class="hc-card" style="padding: 0.85rem 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 10px; font-family: var(--hc-font-mono); font-size: 0.77rem;">
               <div>
-                <div style="color:var(--hc-text-3);font-size:0.68rem;">CPU & INTERNET DO ALVO</div>
+                <div style="color:var(--hc-text-3);font-size:0.68rem;">CPU &amp; INTERNET DA VÍTIMA</div>
                 <strong>${specs.cpuMhz.toLocaleString('pt-BR')} MHz · ${specs.netMbps} Mbps</strong>
               </div>
               <div>
-                <div style="color:var(--hc-text-3);font-size:0.68rem;">HD LIVRE NO ALVO (CABE VÍRUS?)</div>
+                <div style="color:var(--hc-text-3);font-size:0.68rem;">HD LIVRE NA VÍTIMA (CABE VÍRUS?)</div>
                 <strong style="color:${specs.hddFreeMb < 45 ? 'var(--hc-warning)' : 'var(--hc-accent-text)'};">${specs.hddFreeMb} MB livres</strong>
                 <span style="color:var(--hc-text-3);">(${specs.hddUsedMb}/${specs.hddTotalMb}MB)</span>
               </div>
               <div>
-                <div style="color:var(--hc-text-3);font-size:0.68rem;">RAM LIVRE NO ALVO</div>
+                <div style="color:var(--hc-text-3);font-size:0.68rem;">RAM LIVRE NA VÍTIMA (RODA?)</div>
                 <strong style="color:${specs.ramFreeMb < 30 ? 'var(--hc-warning)' : 'var(--hc-accent-text)'};">${specs.ramFreeMb} MB livres</strong>
                 <span style="color:var(--hc-text-3);">(${specs.ramUsedMb}/${specs.ramTotalMb}MB)</span>
               </div>
               <div>
-                <div style="color:var(--hc-text-3);font-size:0.68rem;">ANTIVÍRUS DO ALVO</div>
+                <div style="color:var(--hc-text-3);font-size:0.68rem;">ANTIVÍRUS DA VÍTIMA</div>
                 <strong style="color:${specs.antivirusVer > 0 ? 'var(--hc-danger-text)' : 'var(--hc-accent-text)'};">
-                  ${specs.antivirusVer > 0 ? `Antivirus.av v${specs.antivirusVer.toFixed(1)}` : 'Sem Antivírus'}
+                  ${specs.antivirusVer > 0 ? `Antivirus.av v${specs.antivirusVer.toFixed(1)}` : 'Sem Antivírus (Seguro!)'}
                 </strong>
               </div>
             </div>
 
-            <!-- Upload SSH de Vírus Governado pela Internet & Espaço em Disco do Alvo -->
-            <div class="hc-card" style="padding: 0.95rem 1.1rem; border-color: rgba(53, 184, 119, 0.35);">
-              <div class="hc-eyebrow" style="margin-bottom: 6px;">Enviar & Instalar Vírus neste PC (Sua Internet: ${window.softwareEngine ? window.softwareEngine.getPlayerNetMbps() : 1} Mbps · Exige ROOT)</div>
+            <!-- Fluxo Real em 2 Etapas: 1) Subir o Vírus pro HD da Vítima -> 2) Executar o Vírus no PC da Vítima -->
+            <div id="remoteVirusDeployCard" class="hc-card" style="padding: 0.95rem 1.1rem; border-color: rgba(53, 184, 119, 0.38);">
+              <div class="hc-eyebrow" style="margin-bottom: 6px;">1️⃣ Subir Vírus pro PC da Vítima &amp; 2️⃣ Executar na Memória Dela (Sua Internet: ${window.softwareEngine ? window.softwareEngine.getPlayerNetMbps() : 1} Mbps)</div>
               ${virusOpts.length === 0
                 ? `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:0.8rem;color:var(--hc-warning);">
-                     <span>Você ainda não possui nenhum vírus baixado no seu HD! Resolva e invada as máquinas de <strong>Puzzle</strong> (<code>109.64.200.10</code>) para baixar os vírus básicos (<code>v1.0</code>).</span>
+                     <span>Você ainda não possui nenhum vírus baixado no seu HD! Baixe a amostra abaixo (se estiver no treino) ou invada as máquinas de <strong>Puzzle</strong> (<code>109.64.200.10</code>).</span>
                      <button type="button" class="hc-btn primary sm" onclick="window.internetEngine.navigate('109.64.200.10')">Ir p/ First Puzzle →</button>
                    </div>`
                 : `<div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                     <select id="remoteVirusSelect" class="form-input" style="flex: 1; min-width: 260px; font-family: var(--hc-font-mono); font-size: 0.79rem;">
+                     <select id="remoteVirusSelect" class="form-input" style="flex: 1; min-width: 250px; font-family: var(--hc-font-mono); font-size: 0.79rem;">
                        ${virusOpts.map((vo) => `<option value="${vo.key}">${esc(vo.filename)} (${vo.versionStr}) — ${esc(vo.extraLabel)}</option>`).join('')}
                      </select>
-                     <button type="button" id="btnDeployRemoteVirus" class="hc-btn primary sm" ${upJob ? 'disabled' : ''} onclick="window.internetEngine.deploySelectedVirusToCurrentHost()">
-                       ${upJob ? 'Enviando Pacote...' : 'Upload & Executar Vírus'}
+                     <button type="button" id="btnUploadVirusStage" class="hc-btn primary sm" ${upJob ? 'disabled' : ''} onclick="window.internetEngine.stageSelectedVirusToCurrentHost()">
+                       ${upJob ? 'Subindo Arquivo...' : '1️⃣ Subir pro PC da Vítima'}
+                     </button>
+                     <button type="button" id="btnDeployRemoteVirus" class="hc-btn ghost sm" ${upJob ? 'disabled' : ''} onclick="window.internetEngine.deploySelectedVirusToCurrentHost()" title="Atalho: sobe e já executa se tiver ROOT">
+                       Subir + Executar Direto
                      </button>
                    </div>`}
               ${upJob ? `
                 <div style="margin-top:8px;">
                   <div style="display:flex;justify-content:space-between;font-family:var(--hc-font-mono);font-size:0.75rem;margin-bottom:4px;">
-                    <span>Transmitindo ${esc(upJob.filename)} pela Internet...</span>
+                    <span>Subindo ${esc(upJob.filename)} para o disco da vítima...</span>
                     <strong id="sshVirusUploadPctLbl" style="color:var(--hc-accent-text);">${upJob.pct}% (${upJob.sizeMb} MB)</strong>
                   </div>
                   <div style="height:8px;background:var(--hc-inset);border-radius:999px;overflow:hidden;">
@@ -2499,11 +2552,38 @@
                   </div>
                 </div>
               ` : ''}
+
+              ${stagedOnTarget.length > 0 ? `
+                <div id="stagedVirusesBox" style="margin-top:10px;padding:10px 12px;background:rgba(240,168,58,0.11);border:1px solid var(--hc-warning);border-radius:8px;display:flex;flex-direction:column;gap:8px;">
+                  <div style="font-size:0.78rem;color:var(--hc-warning);font-weight:700;">
+                    📦 Arquivo(s) já subido(s) no HD da vítima — clique em EXECUTAR para ativar na memória dela:
+                  </div>
+                  ${stagedOnTarget.map((sv) => `
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:0.8rem;">
+                      <div>
+                        <strong style="font-family:var(--hc-font-mono);color:#fff;">/root/${esc(sv.filename)}</strong>
+                        <span class="hc-badge warn" style="margin-left:6px;">${window.softwareEngine.fmtVer(sv.versionInt)} · ${sv.sizeMb}MB HD · Usa ${sv.ramMb}MB RAM</span>
+                      </div>
+                      <button type="button" id="btnExecStagedVirus_${esc(sv.virusKey)}" class="hc-btn primary sm" onclick="window.internetEngine.executeStagedVirusOnCurrentHost('${esc(sv.virusKey)}')">
+                        2️⃣ ▶ Executar no PC da Vítima
+                      </button>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
+
               ${installedOnTarget.length > 0
-                ? `<div style="margin-top: 8px; font-size: 0.77rem; color: var(--hc-accent-text); font-family: var(--hc-font-mono);">
-                     Rodando neste alvo: ${installedOnTarget.map((iv) => `${esc(iv.filename)} (${window.softwareEngine.fmtVer(iv.versionInt)}, ${iv.sizeMb || 20}MB)`).join(' · ')}
+                ? `<div id="runningVirusesOnTargetBox" style="margin-top: 8px; padding: 8px 10px; background: rgba(53,184,119,0.10); border: 1px solid rgba(53,184,119,0.35); border-radius: 7px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; font-size: 0.78rem;">
+                     <span style="color: var(--hc-accent-text); font-family: var(--hc-font-mono);">
+                       🟢 Rodando e gerando lucro neste PC: <strong>${installedOnTarget.map((iv) => `${esc(iv.filename)} (${window.softwareEngine.fmtVer(iv.versionInt)})`).join(' · ')}</strong>
+                     </span>
+                     ${myIpExposed
+                       ? `<button type="button" class="hc-btn sm" style="border-color:var(--hc-warning);color:var(--hc-warning);" onclick="window.internetEngine.sshSubTab='logs'; window.internetEngine.render();">
+                            ⚠️ Apagar Meu IP da Log Antes de Sair →
+                          </button>`
+                       : `<span class="hc-badge success">✓ Seu IP já está limpo da log!</span>`}
                    </div>`
-                : `<div style="margin-top: 6px; font-size: 0.74rem; color: var(--hc-text-3);">Dica: Vírus de versão &lt;= Antivirus.av do alvo são expurgados nas varreduras automáticas!</div>`}
+                : `<div style="margin-top: 6px; font-size: 0.74rem; color: var(--hc-text-3);">Regra: Seu vírus precisa ser mais forte (&gt;) que o Antivírus da vítima para não ser apagado!</div>`}
             </div>
 
             <!-- Saque de Reserva $ HC & Carteira Bitcoin wallet.dat -->
@@ -2600,8 +2680,8 @@
               <span style="font-family: var(--hc-font-mono); font-size: 0.84rem;">${esc(role)}@${esc(host.ip)}:~#</span>
             </div>
             <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-              <button type="button" class="hc-btn sm ${this.sshSubTab === 'logs' ? 'primary' : 'ghost'}" onclick="window.internetEngine.sshSubTab='logs'; window.internetEngine.render();">Logs (/var/log/syslog)</button>
-              <button type="button" id="btnSshSubTabFiles" class="hc-btn sm ${this.sshSubTab === 'files' ? 'primary' : 'ghost'}" onclick="window.internetEngine.sshSubTab='files'; window.internetEngine.render();">Vírus, Carteira & Arquivos</button>
+              <button type="button" id="btnSshSubTabLogs" class="hc-btn sm ${this.sshSubTab === 'logs' ? 'primary' : 'ghost'}" onclick="window.internetEngine.sshSubTab='logs'; window.internetEngine.render();">Logs (/var/log/syslog)${myIpExposed ? ' ⚠️' : ''}</button>
+              <button type="button" id="btnSshSubTabFiles" class="hc-btn sm ${this.sshSubTab === 'files' ? 'primary' : 'ghost'}" onclick="window.internetEngine.sshSubTab='files'; window.internetEngine.render();">Vírus, Carteira &amp; Arquivos</button>
               <button type="button" id="btnSshSubTabHw" class="hc-btn sm ${this.sshSubTab === 'hw' ? 'primary' : 'ghost'}" onclick="window.internetEngine.sshSubTab='hw'; window.internetEngine.render();">Hardware &amp; Analyzer</button>
               <button type="button" class="hc-btn ghost sm" style="color: var(--hc-danger-text);" onclick="window.internetEngine.disconnectSsh()">Desconectar</button>
             </div>
@@ -2634,14 +2714,50 @@
 
       const scanned = this.portScannedIps.has(host.ip);
       const saved = window.hackedDb ? window.hackedDb.getEntry(host.ip) : null;
+      const targetAv = host.antivirusVer !== undefined ? host.antivirusVer : 0;
+      const myBestVirusVer = window.softwareEngine
+        ? Math.max(0, ...['vspam', 'vwarez', 'vminer', 'vbank', 'vddos'].map((vk) => {
+            const st = window.softwareEngine.ensureLoaded().inventory[vk];
+            return st && st.owned ? (st.versionInt || 0) / 10 : 0;
+          }))
+        : 0;
+      const canEnterSomehow = canBruteforce || canAnyExp;
 
       return `
         <div>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-            <span style="font-size: 0.85rem; color: var(--hc-text-2);">
-              Alvo: <strong>${esc(host.hostname)}</strong> · Blindagem: <code>Firewall v${reqFwl.toFixed(1)}</code> + <code>Hasher v${reqHasher.toFixed(1)}</code>
-            </span>
-            ${saved ? `<span class="hc-badge success">No Hacked DB (${esc(saved.sshUser || 'root')}: ${esc(saved.password)})</span>` : ''}
+          <!-- Painel Didático: Comparação Direta Seus Programas vs Programas da Vítima -->
+          <div id="inetHostDefenseCompareBox" class="hc-card" style="padding: 0.9rem 1.05rem; margin-bottom: 12px; border-color: ${canEnterSomehow ? 'rgba(53,184,119,0.45)' : 'rgba(208,68,58,0.5)'}; background: ${canEnterSomehow ? 'rgba(53,184,119,0.06)' : 'rgba(208,68,58,0.07)'};">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
+              <strong style="font-size: 0.86rem;">
+                🔍 Comparação de Força: Seus Aplicativos vs Proteção de ${esc(host.hostname)}
+              </strong>
+              ${saved
+                ? `<span class="hc-badge success">✓ Senha já descoberta (${esc(saved.sshUser || 'root')}: ${esc(saved.password)})</span>`
+                : `<span class="hc-badge ${canEnterSomehow ? 'success' : 'danger'}">${canEnterSomehow ? '✅ VOCÊ CONSEGUE INVADIR!' : '❌ PROTEÇÃO DELE É MAIS FORTE QUE SEU ATAQUE!'}</span>`}
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 8px; font-size: 0.77rem;">
+              <div style="background: var(--hc-inset); padding: 7px 10px; border-radius: 7px; border: 1px solid var(--hc-border);">
+                <div style="color: var(--hc-text-3); font-size: 0.69rem;">1. SEU QUEBRADOR vs ESCUDO &amp; COFRE DELE</div>
+                <div style="margin-top: 2px;">
+                  Seu: <strong style="color:${canBruteforce ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};">${crcVer > 0 ? 'v' + crcVer.toFixed(1) : 'Desligado'}</strong>
+                  · Dele: <strong>Escudo v${reqFwl.toFixed(1)}</strong> + <strong>Cofre v${reqHasher.toFixed(1)}</strong>
+                </div>
+              </div>
+              <div style="background: var(--hc-inset); padding: 7px 10px; border-radius: 7px; border: 1px solid var(--hc-border);">
+                <div style="color: var(--hc-text-3); font-size: 0.69rem;">2. SUAS CHAVES SEM SENHA vs ESCUDO DELE</div>
+                <div style="margin-top: 2px;">
+                  Suas: <strong style="color:${canAnyExp ? 'var(--hc-accent-text)' : 'var(--hc-text-2)'};">FTP ${ftpVer > 0 ? 'v' + ftpVer.toFixed(1) : 'OFF'} / SSH ${sshVer > 0 ? 'v' + sshVer.toFixed(1) : 'OFF'}</strong>
+                  · Dele: <strong>v${reqFwl.toFixed(1)}</strong>
+                </div>
+              </div>
+              <div style="background: var(--hc-inset); padding: 7px 10px; border-radius: 7px; border: 1px solid var(--hc-border);">
+                <div style="color: var(--hc-text-3); font-size: 0.69rem;">3. SEU VÍRUS vs ANTIVÍRUS DELE</div>
+                <div style="margin-top: 2px;">
+                  Seu Vírus: <strong>${myBestVirusVer > 0 ? 'v' + myBestVirusVer.toFixed(1) : 'Nenhum ainda'}</strong>
+                  · Antivírus dele: <strong style="color:${targetAv <= 0 ? 'var(--hc-accent-text)' : 'var(--hc-warning)'};">${targetAv > 0 ? 'v' + targetAv.toFixed(1) : 'Sem Antivírus'}</strong>
+                </div>
+              </div>
+            </div>
           </div>
 
           ${this.isCracking ? `

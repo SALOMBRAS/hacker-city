@@ -521,7 +521,10 @@
 
       // 2) Softwares reais instalados em Empresas, Bancos, Bots e VPCs!
       const list = [];
-      if (host.ip === '203.17.88.40') {
+      if (host.ip === '198.51.100.42') {
+        list.push({ softKey: 'vspam', filename: 'Spam.vspam', versionInt: 10, sourceBadge: 'Amostra de Treino (Numataka)' });
+        list.push({ softKey: 'collector', filename: 'Collector.vcol', versionInt: 10, sourceBadge: 'Kit de Treino (Numataka)' });
+      } else if (host.ip === '203.17.88.40') {
         list.push({ softKey: 'firewall', filename: 'Firewall.fwl', versionInt: 15, sourceBadge: 'Binário Corporativo' });
         list.push({ softKey: 'analyzer', filename: 'Analyzer.ana', versionInt: 20, sourceBadge: 'Diagnóstico TI' });
       } else if (host.ip === '185.220.101.9') {
@@ -613,7 +616,7 @@
           cur.owned = true;
           cur.versionInt = remoteVersionInt;
           // Regra Oficial HE (softwares.txt): binário de Puzzle ou Freeware do Download Center vem licenciado; roubado de outros alvos exige comprar Licença p/ evoluir!
-          cur.licensed = host.kind === 'puzzle' || isPublicDownloadCenter;
+          cur.licensed = host.kind === 'puzzle' || isPublicDownloadCenter || host.ip === '198.51.100.42';
           window.softwareEngine.save();
           if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
         }

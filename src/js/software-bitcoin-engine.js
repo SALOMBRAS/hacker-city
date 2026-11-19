@@ -845,6 +845,9 @@
         }
         if (!Array.isArray(saved.localHostileInfections)) saved.localHostileInfections = [];
         if (!Array.isArray(saved.remoteInfections)) saved.remoteInfections = [];
+        if (!saved.stagedRemoteViruses || typeof saved.stagedRemoteViruses !== 'object') {
+          saved.stagedRemoteViruses = {};
+        }
         if (typeof saved.customWebPage !== 'string') {
           saved.customWebPage = 'Gateway Operacional Privado // Acesso Restrito SSH Porta 22';
         }
@@ -855,6 +858,7 @@
           inventory: this.buildStarterInventory(),
           localHostileInfections: [],
           remoteInfections: [],
+          stagedRemoteViruses: {},
           activeTransitions: {},
           customWebPage: 'Gateway Operacional Privado // Acesso Restrito SSH Porta 22'
         };
@@ -1687,7 +1691,10 @@
       const filesMb = Math.max(0, ((host.files || []).reduce((s, f) => s + (f.sizeMb || 18), 0)) - deletedBytesBonusMb);
 
       const virusesHere = this.getRemoteVirusesOnIp(host.ip);
-      const virusesHddMb = virusesHere.reduce((s, v) => s + this.getItemSizeMb(v.virusKey, v.versionInt), 0);
+      const activeKeys = new Set(virusesHere.map((v) => v.virusKey));
+      const stagedHere = this.getStagedVirusesOnIp(host.ip).filter((sv) => !activeKeys.has(sv.virusKey));
+      const virusesHddMb = virusesHere.reduce((s, v) => s + this.getItemSizeMb(v.virusKey, v.versionInt), 0)
+        + stagedHere.reduce((s, sv) => s + (sv.sizeMb || this.getItemSizeMb(sv.virusKey, sv.versionInt)), 0);
       const virusesRamMb = virusesHere.reduce((s, v) => s + this.getItemRamMb(v.virusKey, v.versionInt, true), 0);
 
       const hddUsedMb = Math.min(hddTotalMb, osBaseHdd + filesMb + virusesHddMb);
@@ -1771,18 +1778,55 @@
       return (this.state.remoteInfections || []).filter((v) => v.targetIp === ip);
     }
 
-    installVirusOnRemote(host, virusKey) {
+    getStagedVirusesOnIp(ip) {
+      this.ensureLoaded();
+      if (!this.state.stagedRemoteViruses) this.state.stagedRemoteViruses = {};
+      return Array.isArray(this.state.stagedRemoteViruses[ip]) ? this.state.stagedRemoteViruses[ip] : [];
+    }
+
+    // Amostra básica liberada no 1º Tutorial (Ensei Tankado) para treinar Upload -> Executar -> Apagar Log!
+    grantTutorialStarterSample() {
+      this.ensureLoaded();
+      let granted = false;
+      ['vspam', 'collector'].forEach((k) => {
+        const cur = this.state.inventory[k];
+        if (cur && (!cur.owned || cur.versionInt <= 0)) {
+          cur.owned = true;
+          cur.versionInt = 10;
+          cur.licensed = true;
+          if (k === 'collector') {
+            cur.installed = true;
+            cur.runningVerInt = 10;
+          }
+          granted = true;
+        }
+      });
+      if (granted) {
+        this.save();
+        if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+        if (typeof window.addLocalLog === 'function') {
+          window.addLocalLog('TUTORIAL-KIT', 'Mestre Tankado liberou amostra básica Spam.vspam v1.0 + Recolhedor v1.0 para o seu treinamento!', 'success');
+        }
+      }
+      return granted;
+    }
+
+    installVirusOnRemote(host, virusKey, opts = {}) {
       this.ensureLoaded();
       if (!host || host.notFound || host.kind === 'self') {
         return { success: false, message: 'Alvo inválido para instalação de vírus.' };
       }
       if (!window.internetEngine || window.internetEngine.activeSshIp !== host.ip) {
-        return { success: false, message: 'Conecte-se como root via SSH antes de enviar e executar um vírus!' };
+        return { success: false, message: 'Conecte-se ao PC alvo antes de executar um vírus!' };
       }
 
       const def = SOFTWARE_DEFINITIONS[virusKey];
       const inv = this.state.inventory[virusKey];
-      if (!def || def.category !== 'virus' || !inv || !inv.owned || inv.versionInt <= 0) {
+      const stagedList = this.getStagedVirusesOnIp(host.ip);
+      const stagedItem = stagedList.find((sv) => sv.virusKey === virusKey);
+      const targetVerInt = stagedItem ? stagedItem.versionInt : (inv ? inv.versionInt : 0);
+
+      if (!def || def.category !== 'virus' || targetVerInt <= 0 || (!stagedItem && (!inv || !inv.owned))) {
         return {
           success: false,
           code: 'VIRUS_NOT_OWNED',
@@ -1796,13 +1840,16 @@
 
       const existing = this.state.remoteInfections.find((v) => v.targetIp === host.ip && v.virusKey === virusKey);
       const specs = this.inspectRemoteHostResources(host);
-      const newSizeMb = this.getItemSizeMb(virusKey, inv.versionInt);
-      const newRamMb = this.getItemRamMb(virusKey, inv.versionInt, true);
+      const newSizeMb = this.getItemSizeMb(virusKey, targetVerInt);
+      const newRamMb = this.getItemRamMb(virusKey, targetVerInt, true);
 
-      const oldSizeMb = existing ? this.getItemSizeMb(virusKey, existing.versionInt) : 0;
+      // Se o arquivo já estava subido (staged) no disco da vítima, o espaço dele já está contabilizado em specs.hddUsedMb!
+      const alreadyCountedHddMb = existing
+        ? this.getItemSizeMb(virusKey, existing.versionInt)
+        : (stagedItem ? (stagedItem.sizeMb || newSizeMb) : 0);
       const oldRamMb = existing ? this.getItemRamMb(virusKey, existing.versionInt, true) : 0;
 
-      if (existing && existing.versionInt >= inv.versionInt) {
+      if (existing && existing.versionInt >= targetVerInt) {
         return {
           success: false,
           code: 'ALREADY_INSTALLED',
@@ -1811,11 +1858,11 @@
       }
 
       // 1) Checagem Física de Armazenamento (HDD) no PC da Vítima!
-      if (newSizeMb - oldSizeMb > specs.hddFreeMb) {
+      if (newSizeMb - alreadyCountedHddMb > specs.hddFreeMb) {
         return {
           success: false,
           code: 'TARGET_HDD_FULL',
-          message: `ARMAZENAMENTO INSUFICIENTE NO ALVO! Seu ${def.filename} (${this.fmtVer(inv.versionInt)}) ocupa ${newSizeMb} MB, mas ${host.hostname} [${host.ip}] só tem ${specs.hddFreeMb + oldSizeMb} MB livres em disco! Apague arquivos em /root do alvo ou invada um servidor com HD maior.`
+          message: `ARMAZENAMENTO INSUFICIENTE NO ALVO! Seu ${def.filename} (${this.fmtVer(targetVerInt)}) ocupa ${newSizeMb} MB, mas ${host.hostname} [${host.ip}] só tem ${specs.hddFreeMb + alreadyCountedHddMb} MB livres em disco!`
         };
       }
 
@@ -1824,12 +1871,12 @@
         return {
           success: false,
           code: 'TARGET_RAM_FULL',
-          message: `MEMÓRIA RAM INSUFICIENTE NO ALVO! Seu ${def.filename} (${this.fmtVer(inv.versionInt)}) exige ${newRamMb} MB de RAM, mas ${host.ip} só tem ${specs.ramFreeMb + oldRamMb} MB livres (${specs.ramUsedMb}/${specs.ramTotalMb} MB em uso)!`
+          message: `MEMÓRIA RAM INSUFICIENTE NO ALVO! Seu ${def.filename} (${this.fmtVer(targetVerInt)}) exige ${newRamMb} MB de RAM, mas ${host.ip} só tem ${specs.ramFreeMb + oldRamMb} MB livres (${specs.ramUsedMb}/${specs.ramTotalMb} MB em uso)!`
         };
       }
 
       if (existing) {
-        existing.versionInt = inv.versionInt;
+        existing.versionInt = targetVerInt;
         existing.sizeMb = newSizeMb;
         existing.ramMb = newRamMb;
       } else {
@@ -1844,13 +1891,18 @@
           targetAvVer: specs.antivirusVer,
           virusKey,
           filename: def.filename,
-          versionInt: inv.versionInt,
+          versionInt: targetVerInt,
           sizeMb: newSizeMb,
           ramMb: newRamMb,
           installedAt: new Date().toLocaleString('pt-BR'),
           accumulatedCash: 0,
           accumulatedSats: 0
         });
+      }
+
+      // Remove da lista de "aguardando executar" já que agora entrou em execução na RAM da vítima!
+      if (this.state.stagedRemoteViruses && Array.isArray(this.state.stagedRemoteViruses[host.ip])) {
+        this.state.stagedRemoteViruses[host.ip] = this.state.stagedRemoteViruses[host.ip].filter((sv) => sv.virusKey !== virusKey);
       }
       this.save();
 
@@ -1859,7 +1911,9 @@
         : (window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0');
       window.internetEngine.appendServerLog(
         host.ip,
-        `${visibleIp} uploaded (${newSizeMb}MB) and executed ${def.filename} (${this.fmtVer(inv.versionInt)})`
+        opts.fromStaged
+          ? `${visibleIp} executed virus /root/${def.filename} (${this.fmtVer(targetVerInt)}, ${newRamMb}MB RAM)`
+          : `${visibleIp} uploaded (${newSizeMb}MB) and executed ${def.filename} (${this.fmtVer(targetVerInt)})`
       );
       if (host.isRealHuman && window.onlineEngine) {
         const myCrc = this.getSoftwareVersion('cracker');
@@ -1872,7 +1926,7 @@
           targetIp: host.ip,
           d: {
             fn: def.filename,
-            ver: inv.versionInt,
+            ver: targetVerInt,
             hiddenWithVer: 0,
             crcVer: myCrc,
             expVer: myExp
@@ -1881,7 +1935,7 @@
       }
       if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
       if (typeof window.addLocalLog === 'function') {
-        window.addLocalLog('VIRUS-DEPLOY', `${def.filename} (${this.fmtVer(inv.versionInt)}, ${newSizeMb}MB) instalado em ${host.hostname} [${host.ip}]`, 'warning');
+        window.addLocalLog('VIRUS-EXEC', `${def.filename} (${this.fmtVer(targetVerInt)}, ${newSizeMb}MB) EXECUTADO na memória de ${host.hostname} [${host.ip}]`, 'warning');
       }
       if (window.currentProfile) {
         window.currentProfile.reputation = (window.currentProfile.reputation || 0) + 12;
@@ -1889,7 +1943,7 @@
       }
       if (window.hackerAudio) window.hackerAudio.playMalwareInstalled();
 
-      const avWarn = specs.antivirusVer > 0 && (inv.versionInt / 10) <= specs.antivirusVer
+      const avWarn = specs.antivirusVer > 0 && (targetVerInt / 10) <= specs.antivirusVer
         ? ` CUIDADO: O alvo possui Antivirus.av v${specs.antivirusVer.toFixed(1)} e pode expurgar este vírus na próxima varredura!`
         : '';
 
@@ -1897,13 +1951,34 @@
         success: true,
         sizeMb: newSizeMb,
         ramMb: newRamMb,
-        message: `${def.filename} (${this.fmtVer(inv.versionInt)}) ativo em ${host.ip}!${avWarn}`
+        message: `✅ ${def.filename} (${this.fmtVer(targetVerInt)}) EXECUTADO em ${host.ip}! Lembre-se de apagar seu IP na aba Logs antes de sair!${avWarn}`
       };
     }
 
-    // Upload assíncrono com barra de progresso real governada pela velocidade da sua Internet vs Internet do alvo!
-    uploadVirusWithBandwidth(host, virusKey, onDone) {
+    // ETAPA 1 DE 2: Apenas SUBIR (Upload) o arquivo do vírus para o HD da vítima (ainda sem executar!)
+    stageUploadVirusToRemote(host, virusKey, onDone) {
+      return this.uploadVirusWithBandwidth(host, virusKey, onDone, { stageOnly: true });
+    }
+
+    // ETAPA 2 DE 2: EXECUTAR o vírus que já foi subido para o HD da vítima!
+    executeStagedVirusOnRemote(host, virusKey) {
       this.ensureLoaded();
+      const staged = this.getStagedVirusesOnIp(host.ip).find((sv) => sv.virusKey === virusKey);
+      if (!staged) {
+        return { success: false, code: 'NOT_STAGED', message: 'Suba primeiro o arquivo do vírus para o HD da vítima antes de executar!' };
+      }
+      const res = this.installVirusOnRemote(host, virusKey, { fromStaged: true });
+      if (window.tutorialEngine && res.success) {
+        window.tutorialEngine.onFileReadOrVirusPlanted(host.ip);
+      }
+      if (window.internetEngine) window.internetEngine.render();
+      return res;
+    }
+
+    // Upload assíncrono com barra de progresso real governada pela velocidade da sua Internet vs Internet do alvo!
+    uploadVirusWithBandwidth(host, virusKey, onDone, opts = {}) {
+      this.ensureLoaded();
+      const stageOnly = !!opts.stageOnly;
       if (this.activeUploadJob) {
         return { started: false, message: 'Já existe um upload de vírus em andamento na sua conexão!' };
       }
@@ -1920,10 +1995,17 @@
 
       // Validar espaço ANTES de gastar banda subindo o arquivo!
       const existing = this.state.remoteInfections.find((v) => v.targetIp === host.ip && v.virusKey === virusKey);
-      const oldSize = existing ? this.getItemSizeMb(virusKey, existing.versionInt) : 0;
+      const alreadyStaged = this.getStagedVirusesOnIp(host.ip).find((sv) => sv.virusKey === virusKey);
+      const oldSize = existing
+        ? this.getItemSizeMb(virusKey, existing.versionInt)
+        : (alreadyStaged ? (alreadyStaged.sizeMb || 0) : 0);
       const oldRam = existing ? this.getItemRamMb(virusKey, existing.versionInt, true) : 0;
-      if (existing && existing.versionInt >= (this.state.inventory[virusKey]?.versionInt || 10)) {
-        return { started: false, message: `${def.filename} já está instalado nesta potência em ${host.ip}!` };
+
+      if (existing && existing.versionInt >= invCheck.versionInt) {
+        return { started: false, message: `${def.filename} já está rodando nesta potência em ${host.ip}!` };
+      }
+      if (stageOnly && alreadyStaged && alreadyStaged.versionInt >= invCheck.versionInt) {
+        return { started: false, code: 'ALREADY_STAGED', message: `${def.filename} já foi subido para o HD de ${host.ip}! Clique em "▶ Executar no PC da Vítima".` };
       }
       if (tr.sizeMb - oldSize > tr.specs.hddFreeMb) {
         return {
@@ -1932,7 +2014,7 @@
           message: `Não cabe no HD de ${host.ip}! Precisa de ${tr.sizeMb} MB, livre: ${tr.specs.hddFreeMb + oldSize} MB (apague arquivos em /root do alvo ou escolha máquina maior).`
         };
       }
-      if (tr.ramNeededMb - oldRam > tr.specs.ramFreeMb) {
+      if (!stageOnly && tr.ramNeededMb - oldRam > tr.specs.ramFreeMb) {
         return {
           started: false,
           code: 'TARGET_RAM_FULL',
@@ -1950,16 +2032,16 @@
         myMbps: tr.myMbps,
         targetMbps: tr.targetMbps,
         durationSec: tr.durationSec,
-        pct: 5
+        stageOnly,
+        pct: 8
       };
       if (window.internetEngine) window.internetEngine.render();
 
       const timer = setInterval(() => {
-        // Se desconectou do SSH no meio do upload, aborta a transferência!
         if (!window.internetEngine || window.internetEngine.activeSshIp !== host.ip) {
           clearInterval(timer);
           this.activeUploadJob = null;
-          if (typeof window.showToast === 'function') window.showToast('Upload abortado: conexão SSH encerrada antes do término!');
+          if (typeof window.showToast === 'function') window.showToast('Upload abortado: conexão encerrada antes do término!');
           return;
         }
         curStep++;
@@ -1973,6 +2055,47 @@
         if (pct >= 100) {
           clearInterval(timer);
           this.activeUploadJob = null;
+
+          if (stageOnly) {
+            if (!this.state.stagedRemoteViruses) this.state.stagedRemoteViruses = {};
+            const curList = (this.state.stagedRemoteViruses[host.ip] || []).filter((sv) => sv.virusKey !== virusKey);
+            curList.unshift({
+              virusKey,
+              filename: def.filename,
+              friendlyTitle: def.friendlyTitle || def.filename,
+              versionInt: invCheck.versionInt,
+              sizeMb: tr.sizeMb,
+              ramMb: tr.ramNeededMb,
+              uploadedAt: new Date().toLocaleTimeString()
+            });
+            this.state.stagedRemoteViruses[host.ip] = curList;
+            this.save();
+
+            const visibleIp = window.bounceEngine
+              ? window.bounceEngine.routeConnectionAndGetVisibleIp(host.ip).visibleIp
+              : (window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0');
+            if (window.internetEngine) {
+              window.internetEngine.appendServerLog(
+                host.ip,
+                `${visibleIp} uploaded file /root/${def.filename} (${this.fmtVer(invCheck.versionInt)}, ${tr.sizeMb}MB)`
+              );
+            }
+            if (typeof window.addLocalLog === 'function') {
+              window.addLocalLog('VIRUS-UPLOAD', `Arquivo ${def.filename} (${this.fmtVer(invCheck.versionInt)}, ${tr.sizeMb}MB) subido p/ ${host.ip}:/root (aguardando executar!)`, 'info');
+            }
+            if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+            const stageRes = {
+              success: true,
+              stagedOnly: true,
+              virusKey,
+              sizeMb: tr.sizeMb,
+              message: `📦 1/2 ${def.filename} subido pro disco de ${host.ip}! Agora clique em "▶ Executar no PC da Vítima"!`
+            };
+            if (typeof onDone === 'function') onDone(stageRes);
+            if (window.internetEngine) window.internetEngine.render();
+            return;
+          }
+
           const res = this.installVirusOnRemote(host, virusKey);
           if (typeof onDone === 'function') onDone(res);
           if (window.internetEngine) window.internetEngine.render();
