@@ -47,23 +47,23 @@ fs.mkdirSync(OUT_DIR, { recursive: true });
   await new Promise((r) => setTimeout(r, 350));
 
   const softCheck = await page.evaluate(() => {
+    const root = document.getElementById('softwareExplorerMain');
     const rows = document.querySelectorAll('#softwareExplorerMain .soft-table tbody tr');
     const donut = document.querySelector('#softwareExplorerMain .soft-donut-svg');
-    const txt = document.getElementById('softwareExplorerMain')?.innerText || '';
     return {
       rowsCount: rows.length,
       hasDonut: !!donut,
-      hasEsconder: txt.includes('Esconder'),
-      hasMover: txt.includes('Mover'),
-      hasApagar: txt.includes('Apagar'),
-      hasRodar: txt.includes('Rodar'),
+      hasEsconder: !!root?.querySelector('.soft-icon-act[data-tip-title*="Esconder"]'),
+      hasMover: !!root?.querySelector('.soft-icon-act[data-tip-title*="Mover"]'),
+      hasApagar: !!root?.querySelector('.soft-icon-act[data-tip-title*="Excluir"]'),
+      hasRodar: !!root?.querySelector('.soft-icon-act[data-tip-title*="Rodar"]'),
       crackerVer: window.softwareEngine.getSoftwareVersion('cracker')
     };
   });
   console.log('Meus Programas:', softCheck);
   assert(softCheck.rowsCount >= 6, 'Deve listar programas iniciais no disco');
   assert(softCheck.hasDonut, 'Deve exibir gráfico circular de Uso do Disco');
-  assert(softCheck.hasEsconder && softCheck.hasMover && softCheck.hasApagar && softCheck.hasRodar, 'Deve ter botões Rodar, Esconder, Mover e Apagar');
+  assert(softCheck.hasEsconder && softCheck.hasMover && softCheck.hasApagar && softCheck.hasRodar, 'Deve ter ícones compactos Rodar, Esconder, Mover e Excluir');
   assert.strictEqual(softCheck.crackerVer, 1.0, 'Cracker v1.0 deve estar disponível sob demanda sem precisar ligar na RAM');
 
   await page.screenshot({ path: path.join(OUT_DIR, '01_meus_programas_estilo_limpo.png') });
@@ -168,13 +168,13 @@ fs.mkdirSync(OUT_DIR, { recursive: true });
   await new Promise((r) => setTimeout(r, 300));
 
   const remoteSoftCheck = await page.evaluate(() => {
-    const txt = document.getElementById('remoteTargetSpecsCard')?.innerText || '';
+    const root = document.getElementById('remoteTargetSpecsCard');
     return {
-      hasDownloadBtn: txt.includes('Download'),
+      hasDownloadBtn: !!root?.querySelector('.soft-icon-act[data-tip-title*="Download"]'),
       hasDonut: !!document.querySelector('#remoteTargetSpecsCard .soft-donut-svg')
     };
   });
-  assert(remoteSoftCheck.hasDownloadBtn && remoteSoftCheck.hasDonut, 'PC invadido deve exibir tabela de programas com botão Download e Donut de disco');
+  assert(remoteSoftCheck.hasDownloadBtn && remoteSoftCheck.hasDonut, 'PC invadido deve exibir tabela de programas com ícone de Download e Donut de disco');
 
   await page.screenshot({ path: path.join(OUT_DIR, '06_pc_invadido_programas_e_download.png') });
   console.log('📸 06_pc_invadido_programas_e_download.png');

@@ -668,9 +668,11 @@
       const myMbps = window.softwareEngine.getPlayerNetMbps();
       const idealSec = Math.max(2.0, Math.min(14.0, +(newSizeMb / Math.max(0.8, myMbps * 0.45)).toFixed(1)));
 
+      const verNumStr = (remoteVersionInt / 10).toFixed(1);
       const enq = window.taskManager.enqueue({
         dedupeKey: `dl_${host.ip}_${softKey}_${remoteVersionInt}`,
-        title: `Download ${SOFT_DISPLAY_NAMES[softKey]} (v${(remoteVersionInt / 10).toFixed(1)})`,
+        title: `Download ${SOFT_DISPLAY_NAMES[softKey]} (${verNumStr})`,
+        labelHtml: `Download de <strong>${esc(SOFT_DISPLAY_NAMES[softKey])}</strong> (${verNumStr}) de ${esc(host.ip)}`,
         subtitle: `Rede · ${newSizeMb} MB de ${host.ip}`,
         targetIp: host.ip,
         queueKind: 'net',
@@ -680,10 +682,11 @@
       });
 
       if (!enq.started) return { success: false, message: enq.message };
+      if (window.internetEngine) window.internetEngine.render();
       if (typeof window.showToast === 'function') {
-        window.showToast(`Download iniciado no Task Manager (${newSizeMb} MB)!`);
+        window.showToast(`Download iniciado na Fila de Ações (${newSizeMb} MB)!`);
       }
-      return { success: true, queued: true, pid: enq.process.pid, message: 'Download adicionado ao Task Manager!' };
+      return { success: true, queued: true, pid: enq.process.pid, message: 'Download adicionado à Fila de Ações!' };
     }
 
     // Executar Seeker.skr no servidor invadido para revelar arquivos ocultos com Hider!
