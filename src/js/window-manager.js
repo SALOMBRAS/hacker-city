@@ -125,25 +125,19 @@ class WindowManager {
     const bar = document.getElementById('hcFloatingTasksBar');
     if (!pill || !txt || !bar) return;
 
-    const tme = window.taskManagerEngine;
-    const list = (tme && Array.isArray(tme.tasks)) ? tme.tasks : [];
-    const count = list.length;
+    const running = (window.taskManager && typeof window.taskManager.getRunningAll === 'function')
+      ? window.taskManager.getRunningAll()
+      : [];
+    const count = running.length;
 
     txt.textContent = count === 1 ? '1 processo' : `${count} processos`;
     if (count === 0) {
       bar.style.width = '0%';
     } else {
       let sum = 0;
-      const now = Date.now();
-      list.forEach((t) => {
-        if (typeof t.progress === 'number') {
-          sum += Math.min(100, Math.max(0, t.progress));
-        } else if (t.startedAt && t.durationMs) {
-          const pct = ((now - t.startedAt) / Math.max(1, t.durationMs)) * 100;
-          sum += Math.min(100, Math.max(5, pct));
-        } else {
-          sum += 45;
-        }
+      running.forEach((p) => {
+        const pct = (Number(p.workDone || 0) / Math.max(0.1, Number(p.workTotal || 1))) * 100;
+        sum += Math.min(99.9, Math.max(1, pct));
       });
       bar.style.width = `${Math.round(sum / count)}%`;
     }

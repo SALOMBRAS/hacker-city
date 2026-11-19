@@ -265,55 +265,9 @@
         navBadge.textContent = String(running.length);
         navBadge.style.display = running.length > 0 ? 'inline-flex' : 'none';
       }
-
-      let pill = document.getElementById('floatingProcessWidget');
-      if (!pill && document.getElementById('desktopEnvironment')) {
-        pill = document.createElement('div');
-        pill.id = 'floatingProcessWidget';
-        pill.style.cssText = 'position:fixed;right:20px;bottom:16px;z-index:850;display:none;';
-        document.body.appendChild(pill);
+      if (window.winManager && typeof window.winManager.refreshFloatingTasksPill === 'function') {
+        window.winManager.refreshFloatingTasksPill();
       }
-      if (!pill) return;
-
-      const desk = document.getElementById('desktopEnvironment');
-      const isLogged = desk && desk.style.display !== 'none';
-      if (!isLogged || running.length === 0) {
-        pill.style.display = 'none';
-        return;
-      }
-
-      pill.style.display = 'block';
-      const drawerRows = this.drawerOpen
-        ? `<div style="background:var(--hc-surface);border:1px solid var(--hc-border-strong);border-radius:10px;padding:10px 12px;margin-bottom:8px;width:360px;box-shadow:0 12px 32px rgba(0,0,0,0.5);">
-             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-               <strong style="font-size:12.5px;">Ações Acontecendo (${running.length})</strong>
-               <button type="button" class="hc-btn ghost sm" style="height:24px;padding:0 8px;font-size:11.5px;" onclick="navTo('winTaskManager')">Ver Fila de Ações →</button>
-             </div>
-             ${running.slice(0, 4).map((p) => {
-               const t = this.getProcessTelemetry(p);
-               return `
-                 <div style="padding:6px 0;border-bottom:1px solid var(--hc-border);font-size:12px;">
-                   <div style="display:flex;justify-content:space-between;margin-bottom:3px;gap:8px;">
-                     <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:225px;">${esc(p.title)}</span>
-                     <span class="mono" style="color:var(--hc-text-2);font-size:11px;">${t.pctDecStr} · ${fmtEta(t.etaSec)}</span>
-                   </div>
-                   <div class="tm-bar-track" style="height:7px;">
-                     <div class="tm-bar-fill ${p.queueKind === 'net' ? 'is-net' : ''}" style="width:${t.pctDecStr};"></div>
-                   </div>
-                 </div>
-               `;
-             }).join('')}
-           </div>`
-        : '';
-
-      pill.innerHTML = `
-        ${drawerRows}
-        <button type="button" id="btnFloatingProcessPill" onclick="window.taskManager.drawerOpen=!window.taskManager.drawerOpen;window.taskManager.syncWidgets();" style="margin-left:auto;display:flex;align-items:center;gap:9px;background:var(--hc-surface-2);border:1px solid rgba(53,184,119,0.45);color:var(--hc-text);padding:8px 14px;border-radius:999px;cursor:pointer;font-size:12.5px;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,0.4);">
-          <span style="width:8px;height:8px;border-radius:50%;background:var(--hc-accent);display:inline-block;"></span>
-          <span>${running.length} processo${running.length === 1 ? '' : 's'}</span>
-          <span style="color:var(--hc-text-3);font-size:11.5px;">${this.drawerOpen ? '▾' : '▴'}</span>
-        </button>
-      `;
     }
 
     renderRunningSoftwareTabHtml() {
