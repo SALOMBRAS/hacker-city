@@ -1,35 +1,35 @@
 /**
- * Hacker City // Catálogo de Hardware, Armazenamento (HDD/SSD) & Velocidade de Internet
- * Define especificações físicas reais (CPU MHz, RAM MB, HDD MB, NET Mbit/s) e preços difíceis de progressão MMO
+ * Hacker City // Catálogo de Hardware, VPS Multi-Máquinas, Potencial Total, Consumo (W) & Gasto ($/dia)
+ * Suporta PC Principal + Múltiplas VPS/Servidores com visão consolidada (Potencial Total) e individual por máquina.
  */
 const HARDWARE_CATALOG = {
   cpu: [
-    { id: 'celeron_800', name: 'Intel Celeron 800MHz (Sucata)', mhz: 800, price: 0, cooldown_ms: 4000, desc: '800 MHz · Processador básico de sucata. Cooldown 4.0s.' },
-    { id: 'pentium_4', name: 'Intel Pentium 4 2.0GHz', mhz: 2000, price: 950, cooldown_ms: 3200, desc: '2.000 MHz · Acelera compilação, quebra e processos locais.' },
-    { id: 'core_2_quad', name: 'Intel Core 2 Quad 4.0GHz', mhz: 4000, price: 3400, cooldown_ms: 2400, desc: '4.000 MHz · 4 núcleos reais para operações pesadas.' },
-    { id: 'xeon_server', name: 'Dual Xeon E5 Rack 8.0GHz', mhz: 8000, price: 12500, cooldown_ms: 1600, desc: '8.000 MHz · Servidor empresarial de alta densidade.' },
-    { id: 'quantum_core', name: 'Quantum Core QX-99 (16.0GHz)', mhz: 16000, price: 42000, cooldown_ms: 1000, desc: '16.000 MHz · Topo absoluto de processamento clandestino.' }
+    { id: 'celeron_800', name: 'Intel Celeron 800MHz (Sucata)', mhz: 800, watts: 55, dailyCost: 7, price: 0, cooldown_ms: 4000, desc: '800 MHz · Consumo 55W · Processador básico inicial.' },
+    { id: 'pentium_4', name: 'Intel Pentium 4 2.0GHz', mhz: 2000, watts: 85, dailyCost: 11, price: 950, cooldown_ms: 3200, desc: '2.000 MHz · Consumo 85W · Acelera compilação, quebra e processos.' },
+    { id: 'core_2_quad', name: 'Intel Core 2 Quad 4.0GHz', mhz: 4000, watts: 125, dailyCost: 16, price: 3400, cooldown_ms: 2400, desc: '4.000 MHz · Consumo 125W · 4 núcleos reais para operações pesadas.' },
+    { id: 'xeon_server', name: 'Dual Xeon E5 Rack 8.0GHz', mhz: 8000, watts: 210, dailyCost: 27, price: 12500, cooldown_ms: 1600, desc: '8.000 MHz · Consumo 210W · Servidor empresarial de alta densidade.' },
+    { id: 'quantum_core', name: 'Quantum Core QX-99 (16.0GHz)', mhz: 16000, watts: 340, dailyCost: 44, price: 42000, cooldown_ms: 1000, desc: '16.000 MHz · Consumo 340W · Topo absoluto de processamento.' }
   ],
   ram: [
-    { id: 'ram_256mb', name: '256 MB SDRAM PC133', ramMb: 256, price: 0, desc: '256 MB · Memória apertada: softwares v2.0+ ou malwares lotam rápido.' },
-    { id: 'ram_1gb', name: '1.024 MB (1 GB) DDR', ramMb: 1024, price: 850, desc: '1.024 MB · Espaço para rodar Cracker, Firewall, AV e Collector juntos.' },
-    { id: 'ram_4gb', name: '4.096 MB (4 GB) Dual Channel', ramMb: 4096, price: 3200, desc: '4.096 MB · Suporta utilitários pesquisados até v5.0+.' },
-    { id: 'ram_16gb', name: '16.384 MB (16 GB) DDR4', ramMb: 16384, price: 11000, desc: '16.384 MB · Folga ampla para suíte completa de alta potência.' },
-    { id: 'ram_64gb', name: '65.536 MB (64 GB) ECC Server', ramMb: 65536, price: 36000, desc: '65.536 MB · Memória registrada de servidor enterprise.' }
+    { id: 'ram_256mb', name: '256 MB SDRAM PC133', ramMb: 256, watts: 6, dailyCost: 1, price: 0, desc: '256 MB · Consumo 6W · Memória inicial para programas básicos.' },
+    { id: 'ram_1gb', name: '1.024 MB (1 GB) DDR', ramMb: 1024, watts: 10, dailyCost: 2, price: 850, desc: '1.024 MB · Consumo 10W · Espaço para rodar Cracker, Firewall e AV juntos.' },
+    { id: 'ram_4gb', name: '4.096 MB (4 GB) Dual Channel', ramMb: 4096, watts: 16, dailyCost: 3, price: 3200, desc: '4.096 MB · Consumo 16W · Suporta utilitários pesquisados até v5.0+.' },
+    { id: 'ram_16gb', name: '16.384 MB (16 GB) DDR4', ramMb: 16384, watts: 26, dailyCost: 5, price: 11000, desc: '16.384 MB · Consumo 26W · Folga ampla para suíte completa de alta potência.' },
+    { id: 'ram_64gb', name: '65.536 MB (64 GB) ECC Server', ramMb: 65536, watts: 42, dailyCost: 9, price: 36000, desc: '65.536 MB · Consumo 42W · Memória registrada de servidor enterprise.' }
   ],
   hdd: [
-    { id: 'hdd_350mb', name: 'HD IDE 350 MB (Sucata)', hddMb: 350, price: 0, desc: '350 MB · Disco quase cheio (~288 MB ocupados pelos programas iniciais).' },
-    { id: 'hdd_1gb', name: 'HD SATA 1.024 MB (1 GB)', hddMb: 1024, price: 750, desc: '1.024 MB · Permite compilar vírus e softwares de média potência.' },
-    { id: 'hdd_4gb', name: 'SSD 4.096 MB (4 GB)', hddMb: 4096, price: 2800, desc: '4.096 MB · Armazena famílias completas de vírus pesados.' },
-    { id: 'hdd_16gb', name: 'NVMe M.2 16.384 MB (16 GB)', hddMb: 16384, price: 9800, desc: '16.384 MB · Capacidade industrial para payloads até v8.0.' },
-    { id: 'hdd_64gb', name: 'RAID Storage 65.536 MB (64 GB)', hddMb: 65536, price: 32000, desc: '65.536 MB · Cofre massivo para todas as versões máximas v10.0.' }
+    { id: 'hdd_350mb', name: 'HD IDE 350 MB (Sucata)', hddMb: 350, watts: 9, dailyCost: 2, price: 0, desc: '350 MB · Consumo 9W · Disco mecânico inicial.' },
+    { id: 'hdd_1gb', name: 'HD SATA 1.024 MB (1 GB)', hddMb: 1024, watts: 12, dailyCost: 3, price: 750, desc: '1.024 MB · Consumo 12W · Permite guardar softwares e hashes de média potência.' },
+    { id: 'hdd_4gb', name: 'SSD 4.096 MB (4 GB)', hddMb: 4096, watts: 8, dailyCost: 4, price: 2800, desc: '4.096 MB · Consumo 8W (SSD econômico) · Leitura veloz de hashes.' },
+    { id: 'hdd_16gb', name: 'NVMe M.2 16.384 MB (16 GB)', hddMb: 16384, watts: 14, dailyCost: 7, price: 9800, desc: '16.384 MB · Consumo 14W · Capacidade industrial NVMe.' },
+    { id: 'hdd_64gb', name: 'RAID Storage 65.536 MB (64 GB)', hddMb: 65536, watts: 38, dailyCost: 14, price: 32000, desc: '65.536 MB · Consumo 38W · Cofre massivo para versões máximas v10.0.' }
   ],
   network: [
-    { id: 'net_56k', name: 'Link Discado / Rádio 1 Mbit/s', mbps: 1, price: 0, desc: '1 Mbit/s (~0.15 MB/s) · Upload lento de vírus grandes via SSH.' },
-    { id: 'net_fast_10', name: 'ADSL Cabo 10 Mbit/s', mbps: 10, price: 650, desc: '10 Mbit/s (~1.25 MB/s) · Reduz bastante o tempo de upload de vírus.' },
-    { id: 'net_fast_100', name: 'Fibra Óptica 100 Mbit/s', mbps: 100, price: 2900, desc: '100 Mbit/s (~12.5 MB/s) · Upload ágil de payloads pesados.' },
-    { id: 'net_gigabit', name: 'Link Dedicado 500 Mbit/s', mbps: 500, price: 11500, desc: '500 Mbit/s (~62 MB/s) · Transferência corporativa de alta banda.' },
-    { id: 'net_fiber_10g', name: 'Backbone Gigabit 1.000 Mbit/s', mbps: 1000, price: 38000, desc: '1.000 Mbit/s (~125 MB/s) · Envio quase instantâneo na sub-rede.' }
+    { id: 'net_56k', name: 'NET1 · Link Rádio 1 Mbit/s', mbps: 1, watts: 5, dailyCost: 4, price: 0, desc: '1 Mbit/s (~0.15 MB/s) · Gasto $4/dia · Link inicial básico.' },
+    { id: 'net_fast_10', name: 'MEGA10 · Cabo 10 Mbit/s', mbps: 10, watts: 8, dailyCost: 9, price: 650, desc: '10 Mbit/s (~1.25 MB/s) · Gasto $9/dia · Reduz bastante o tempo de upload.' },
+    { id: 'net_fast_100', name: 'BROAD100 · Fibra 100 Mbit/s', mbps: 100, watts: 12, dailyCost: 18, price: 2900, desc: '100 Mbit/s (~12.5 MB/s) · Gasto $18/dia · Upload ágil de payloads pesados.' },
+    { id: 'net_gigabit', name: 'ULTRA500 · Link 500 Mbit/s', mbps: 500, watts: 18, dailyCost: 38, price: 11500, desc: '500 Mbit/s (~62 MB/s) · Gasto $38/dia · Transferência corporativa dedicada.' },
+    { id: 'net_fiber_10g', name: 'ULTRA1000 · Backbone 1.000 Mbit/s', mbps: 1000, watts: 25, dailyCost: 75, price: 38000, desc: '1.000 Mbit/s (~125 MB/s) · Gasto $75/dia · Envio quase instantâneo.' }
   ]
 };
 
@@ -37,6 +37,10 @@ class HardwareEngine {
   constructor() {
     this.catalog = HARDWARE_CATALOG;
     this.userId = null;
+    this.activeTab = 'overview';       // 'overview' | 'upgrade' | 'buy_vps' | 'network' | 'xhd'
+    this.selectedScope = 'all';        // 'all' (Potencial Total) | 'pc_main' | 'srv_...'
+    this.upgradeTargetId = 'pc_main';  // Máquina selecionada na aba Melhorar Máquina / Internet
+    this.upgradePartCat = 'cpu';       // 'cpu' | 'hdd' | 'ram'
     this.current = this.loadRig();
   }
 
@@ -81,6 +85,9 @@ class HardwareEngine {
     try {
       localStorage.setItem(this.storageKey(), JSON.stringify(this.current));
     } catch (e) {}
+    if (window.lanServersEngine && typeof window.lanServersEngine.ensureSyncedWithProfile === 'function') {
+      window.lanServersEngine.ensureSyncedWithProfile();
+    }
   }
 
   getHealthPct() {
@@ -188,18 +195,292 @@ class HardwareEngine {
   }
 
   getBannerText() {
-    const cpu = this.getCpu();
     const ram = this.getRam();
     const hdd = this.getHdd();
-    const net = this.getNetwork();
     const health = this.getHealthPct();
     return `${this.getEffectiveCpuMhz()}MHz CPU${health < 100 ? ` (${health}% SAÚDE!)` : ''} // ${ram.ramMb}MB RAM // ${hdd.hddMb}MB HDD // NET ${this.getEffectiveNetMbps()}Mbps`;
   }
 
+  formatStorage(mb) {
+    const n = Number(mb || 0);
+    if (n >= 1024) {
+      const gb = n / 1024;
+      return `${Number.isInteger(gb) ? gb : gb.toFixed(1)} GB`;
+    }
+    return `${Math.round(n)} MB`;
+  }
+
+  formatCpu(mhz) {
+    const n = Number(mhz || 0);
+    if (n >= 10000) {
+      return `${(n / 1000).toFixed(1).replace('.0', '')} GHz`;
+    }
+    return `${Math.round(n).toLocaleString('pt-BR')} MHz`;
+  }
+
+  // Retorna toda a frota de máquinas do jogador (PC Principal #1 + todas as VPS / Servidores secundários)
+  // com Potência, Consumo (Watts + uso) e Gasto ($/dia e $/mês) calculados individualmente!
+  getMachinesFleet() {
+    this.ensureForProfile();
+    if (window.lanServersEngine && typeof window.lanServersEngine.ensureSyncedWithProfile === 'function') {
+      window.lanServersEngine.ensureSyncedWithProfile();
+    }
+
+    const cpu = this.getCpu();
+    const ram = this.getRam();
+    const hdd = this.getHdd();
+    const net = this.getNetwork();
+    const healthPct = this.getHealthPct();
+    const effCpu = this.getEffectiveCpuMhz();
+    const effNet = this.getEffectiveNetMbps();
+    const usedHdd = window.softwareEngine ? window.softwareEngine.getUsedHddMb() : 0;
+    const usedRam = window.softwareEngine ? window.softwareEngine.getUsedRamMb() : 0;
+
+    // Consumo elétrico do PC Principal: placa-mãe/fonte (28W) + peças + carga dinâmica da RAM
+    const activeLoadW = ram.ramMb > 0 ? Math.round((usedRam / ram.ramMb) * 18) : 0;
+    const pcWatts = 28 + (cpu.watts || 55) + (ram.watts || 6) + (hdd.watts || 9) + (net.watts || 5) + activeLoadW;
+    const pcPowerDaily = Math.max(4, Math.round(pcWatts * 0.11));
+    const pcNetDaily = net.dailyCost || 4;
+    const pcDailyCost = pcPowerDaily + pcNetDaily;
+    const pcLoadPct = Math.min(100, Math.max(8, Math.round(((usedRam / Math.max(1, ram.ramMb)) * 60) + ((usedHdd / Math.max(1, hdd.hddMb)) * 40))));
+    const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0';
+
+    const fleet = [
+      {
+        id: 'pc_main',
+        isPrimaryPc: true,
+        kind: 'pc',
+        name: 'PC Principal #1',
+        roleTag: 'Seu PC Local',
+        ip: myIp,
+        healthPct,
+        cpuMhz: effCpu,
+        hddMb: hdd.hddMb,
+        ramMb: ram.ramMb,
+        netMbps: effNet,
+        usedHddMb: usedHdd,
+        usedRamMb: usedRam,
+        loadPct: pcLoadPct,
+        watts: pcWatts,
+        dailyCost: pcDailyCost,
+        monthlyCost: pcDailyCost * 30,
+        costBreakdown: `Energia elétrica ($${pcPowerDaily}/dia · ${pcWatts}W) + Link Internet ($${pcNetDaily}/dia)`
+      }
+    ];
+
+    const extraServers = (window.lanServersEngine && Array.isArray(window.lanServersEngine.servers))
+      ? window.lanServersEngine.servers.filter((s) => s.id !== 'srv_gateway_01')
+      : [];
+
+    extraServers.forEach((s, idx) => {
+      const sp = s.specs || { cpuMhz: 1800, netMbps: 50, hddMb: 512, ramMb: 256 };
+      const cpuM = Number(sp.cpuMhz || 1600);
+      const ramM = Number(sp.ramMb || 256);
+      const hddM = Number(sp.hddMb || 512);
+      const netM = Number(sp.netMbps || 50);
+
+      const vpsWatts = Math.max(45, Math.round(24 + (cpuM / 1000) * 28 + (ramM / 1024) * 8 + (hddM / 1024) * 3 + netM * 0.02));
+      const baseCloud = s.type === 'mainframe' ? 260 : (s.type === 'dedicated' ? 95 : 10);
+      const vpsDailyCost = Math.max(14, Math.round(baseCloud + vpsWatts * 0.16 + netM * 0.03));
+      const simUsedRam = Math.min(ramM, Math.round(ramM * (s.isHoneypot ? 0.34 : 0.22)));
+      const simUsedHdd = Math.min(hddM, Math.round(hddM * (s.isHoneypot ? 0.28 : 0.18)));
+      const vpsLoadPct = Math.round(((simUsedRam / Math.max(1, ramM)) * 60) + ((simUsedHdd / Math.max(1, hddM)) * 40));
+
+      const cleanLabel = s.label && s.label.toLowerCase().includes('vps')
+        ? s.label
+        : `VPS #${idx + 1} · ${s.label || 'Cloud'}`;
+
+      fleet.push({
+        id: s.id,
+        isPrimaryPc: false,
+        kind: s.type || 'vps',
+        name: cleanLabel,
+        roleTag: s.isHoneypot ? 'VPS · Honeypot' : (s.isGateway ? 'VPS · Gateway' : (s.type === 'dedicated' ? 'Dedicado Rack' : 'VPS Cloud')),
+        ip: s.ip || '185.220.11.10',
+        healthPct: 100,
+        cpuMhz: cpuM,
+        hddMb: hddM,
+        ramMb: ramM,
+        netMbps: netM,
+        usedHddMb: simUsedHdd,
+        usedRamMb: simUsedRam,
+        loadPct: vpsLoadPct,
+        watts: vpsWatts,
+        dailyCost: vpsDailyCost,
+        monthlyCost: vpsDailyCost * 30,
+        rawServer: s,
+        costBreakdown: `Mensalidade Cloud/Datacenter + Energia (${vpsWatts}W · $${vpsDailyCost}/dia)`
+      });
+    });
+
+    return fleet;
+  }
+
+  getFleetSummary(fleet = null) {
+    const list = fleet || this.getMachinesFleet();
+    return list.reduce(
+      (acc, m) => {
+        acc.count += 1;
+        if (!m.isPrimaryPc) acc.vpsCount += 1;
+        acc.cpuMhz += m.cpuMhz;
+        acc.hddMb += m.hddMb;
+        acc.ramMb += m.ramMb;
+        acc.netMbps = +(acc.netMbps + m.netMbps).toFixed(1);
+        acc.usedHddMb += m.usedHddMb;
+        acc.usedRamMb += m.usedRamMb;
+        acc.watts += m.watts;
+        acc.dailyCost += m.dailyCost;
+        acc.monthlyCost += m.monthlyCost;
+        return acc;
+      },
+      { count: 0, vpsCount: 0, cpuMhz: 0, hddMb: 0, ramMb: 0, netMbps: 0, usedHddMb: 0, usedRamMb: 0, watts: 0, dailyCost: 0, monthlyCost: 0 }
+    );
+  }
+
+  selectScope(scopeId) {
+    this.selectedScope = scopeId || 'all';
+    if (scopeId && scopeId !== 'all') {
+      this.upgradeTargetId = scopeId;
+    }
+    this.rerender();
+  }
+
+  openUpgradeForMachine(machineId, partCat = 'cpu') {
+    this.upgradeTargetId = machineId || 'pc_main';
+    this.selectedScope = machineId || 'all';
+    if (partCat === 'network') {
+      this.activeTab = 'network';
+    } else {
+      this.activeTab = 'upgrade';
+      this.upgradePartCat = partCat || 'cpu';
+    }
+    this.rerender();
+  }
+
+  setUpgradeTarget(machineId) {
+    this.upgradeTargetId = machineId || 'pc_main';
+    this.rerender();
+  }
+
+  setUpgradePartCat(partCat) {
+    this.upgradePartCat = partCat || 'cpu';
+    this.rerender();
+  }
+
   setTab(tabKey) {
-    this.activeTab = tabKey || 'overview';
+    // Compatibilidade com chamadas diretas setTab('cpu' | 'ram' | 'hdd')
+    if (tabKey === 'cpu' || tabKey === 'ram' || tabKey === 'hdd') {
+      this.activeTab = 'upgrade';
+      this.upgradePartCat = tabKey;
+    } else {
+      this.activeTab = tabKey || 'overview';
+    }
+    this.rerender();
+  }
+
+  rerender() {
     const bal = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
     this.renderWorkbench('hardwareWorkbenchBody', bal);
+  }
+
+  getMachineCurrentSpecVal(machine, category) {
+    if (!machine) return 0;
+    if (category === 'cpu') return machine.cpuMhz;
+    if (category === 'ram') return machine.ramMb;
+    if (category === 'hdd') return machine.hddMb;
+    if (category === 'network') return machine.netMbps;
+    return 0;
+  }
+
+  getItemSpecVal(category, item) {
+    if (category === 'cpu') return item.mhz;
+    if (category === 'ram') return item.ramMb;
+    if (category === 'hdd') return item.hddMb;
+    if (category === 'network') return item.mbps;
+    return 0;
+  }
+
+  renderCatalogTableHtml(cat, targetMachine, currentBalance, esc, ic) {
+    const catMeta = {
+      cpu:     { label: 'Processador (CPU)', icon: 'cpu', glyph: 'attack', specFn: (i) => `${i.mhz.toLocaleString('pt-BR')} MHz` },
+      hdd:     { label: 'Armazenamento (Disco)', icon: 'hard-drive', glyph: 'stealth', specFn: (i) => this.formatStorage(i.hddMb) },
+      ram:     { label: 'Memória RAM', icon: 'layers', glyph: 'defense', specFn: (i) => this.formatStorage(i.ramMb) },
+      network: { label: 'Conexão de Internet', icon: 'wifi', glyph: 'defense', specFn: (i) => `${i.mbps} Mbit/s` }
+    };
+    const m = catMeta[cat] || catMeta.cpu;
+    const list = this.catalog[cat] || [];
+    const curVal = targetMachine.isPrimaryPc && cat === 'cpu'
+      ? this.getCpu().mhz
+      : (targetMachine.isPrimaryPc && cat === 'network'
+          ? this.getNetwork().mbps
+          : this.getMachineCurrentSpecVal(targetMachine, cat));
+
+    const rows = list.map((item) => {
+      const itemVal = this.getItemSpecVal(cat, item);
+      const isCurrent = targetMachine.isPrimaryPc
+        ? this.current[cat] === item.id
+        : itemVal === curVal;
+      const isLower = !isCurrent && itemVal <= curVal;
+      const canBuy = !isCurrent && !isLower && currentBalance >= item.price;
+      const priceStr = item.price === 0 ? 'Inicial' : `$ ${item.price.toLocaleString('pt-BR')}`;
+
+      return `
+        <tr class="${isCurrent ? 'row-running' : ''} ${isLower ? 'row-hidden' : ''}">
+          <td class="soft-col-icon">
+            <span class="soft-mini-glyph kind-${m.glyph}" data-tip-title="${esc(item.name)}" data-tip-meta="${esc(priceStr)}" data-tip-desc="${esc(item.desc)}">
+              ${ic(m.icon)}
+            </span>
+          </td>
+          <td>
+            <span class="soft-name-trigger" tabindex="0" data-tip-title="${esc(item.name)}" data-tip-meta="${esc(m.specFn(item))}" data-tip-desc="${esc(item.desc)}">
+              ${isCurrent ? '<span class="soft-run-dot"></span>' : ''}
+              <span>${esc(item.name)}</span>
+            </span>
+          </td>
+          <td class="soft-col-size" style="width:115px;">${esc(m.specFn(item))}</td>
+          <td class="soft-col-size" style="width:92px;color:#f5ba66;">${item.watts || 10} W</td>
+          <td class="soft-col-size" style="width:92px;color:#ff8e88;">$${item.dailyCost || 2}/dia</td>
+          <td class="soft-col-size" style="width:110px;color:${item.price === 0 ? 'var(--hc-text-3)' : 'var(--hc-accent-text)'};white-space:nowrap;">${esc(priceStr)}</td>
+          <td class="soft-col-acts">
+            ${isCurrent
+              ? `<span class="hc-badge success">Instalado</span>`
+              : (isLower
+                  ? `<span style="font-size:11.5px;color:var(--hc-text-3);">Superado</span>`
+                  : `<div class="soft-icon-actions">
+                       <button type="button" class="soft-icon-act ic-info" aria-label="Detalhes de ${esc(item.name)}"
+                         data-tip-title="${esc(item.name)}" data-tip-meta="${item.watts}W · $${item.dailyCost}/dia" data-tip-desc="${esc(item.desc)}">
+                         ${ic('info')}
+                       </button>
+                       <button type="button" class="soft-icon-act ic-run" ${!canBuy ? 'disabled' : ''} aria-label="Instalar ${esc(item.name)} em ${esc(targetMachine.name)}"
+                         data-tip-title="${canBuy ? `Instalar em ${esc(targetMachine.name)}` : `Saldo insuficiente (faltam $ ${Math.ceil(item.price - currentBalance).toLocaleString('pt-BR')})`}"
+                         data-tip-meta="${esc(priceStr)}" data-tip-desc="Aumenta ${esc(m.label)} para ${esc(m.specFn(item))} (Consumo ${item.watts}W · Gasto $${item.dailyCost}/dia)."
+                         onclick="buyHardwareUpgrade('${cat}', '${item.id}', ${item.price}, '${esc(targetMachine.id)}')">
+                         ${ic('shopping-cart')}
+                       </button>
+                     </div>`)}
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    return `
+      <div class="soft-table-wrap" role="region" aria-label="Catálogo de ${esc(m.label)} para ${esc(targetMachine.name)}">
+        <table class="soft-table clean-hw-table">
+          <thead>
+            <tr>
+              <th class="soft-col-icon"></th>
+              <th>Peça · ${esc(m.label)} (${esc(targetMachine.name)})</th>
+              <th class="soft-col-size" style="width:115px;">Potência</th>
+              <th class="soft-col-size" style="width:92px;">Consumo</th>
+              <th class="soft-col-size" style="width:92px;">Gasto</th>
+              <th class="soft-col-size" style="width:110px;">Preço</th>
+              <th class="soft-col-acts">Ações</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    `;
   }
 
   renderWorkbench(containerId, currentBalance) {
@@ -211,73 +492,285 @@ class HardwareEngine {
     const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     const ic = (n) => (window.HC && window.HC.icon ? window.HC.icon(n) : '');
 
-    const cpu = this.getCpu();
-    const ram = this.getRam();
-    const hdd = this.getHdd();
-    const net = this.getNetwork();
+    const fleet = this.getMachinesFleet();
+    const totals = this.getFleetSummary(fleet);
+
+    // Garante que o escopo e o alvo de upgrade existam na frota atual
+    if (this.selectedScope !== 'all' && !fleet.some((m) => m.id === this.selectedScope)) {
+      this.selectedScope = 'all';
+    }
+    const targetMachine = fleet.find((m) => m.id === this.upgradeTargetId) || fleet[0];
+    const scopedMachine = this.selectedScope === 'all' ? null : fleet.find((m) => m.id === this.selectedScope);
+    const activeMetrics = scopedMachine || totals;
+
     const healthPct = this.getHealthPct();
-    const effCpu = this.getEffectiveCpuMhz();
-    const effNet = this.getEffectiveNetMbps();
     const repairCost = this.getRepairCost();
     const canRepair = healthPct < 100 && currentBalance >= repairCost;
-    const usedHdd = window.softwareEngine ? window.softwareEngine.getUsedHddMb() : 0;
-    const usedRam = window.softwareEngine ? window.softwareEngine.getUsedRamMb() : 0;
-
-    // Donut SVG de Integridade Física das Peças
-    const r = 46;
-    const c = +(2 * Math.PI * r).toFixed(2);
-    const offset = +(c - (healthPct / 100) * c).toFixed(2);
-    const strokeColor = healthPct >= 85 ? '#35b877' : (healthPct >= 55 ? '#f0a03a' : '#e5534b');
-
-    const catMeta = {
-      cpu:     { label: 'Processador (CPU)', tabLabel: 'Comprar CPU', icon: 'cpu', glyph: 'attack', cur: cpu, specFn: (i) => `${i.mhz.toLocaleString('pt-BR')} MHz`, curVal: `${effCpu.toLocaleString('pt-BR')} MHz` },
-      ram:     { label: 'Memória RAM',       tabLabel: 'Comprar RAM', icon: 'layers', glyph: 'defense', cur: ram, specFn: (i) => i.ramMb >= 1024 ? `${+(i.ramMb / 1024).toFixed(0)} GB (${i.ramMb.toLocaleString('pt-BR')} MB)` : `${i.ramMb} MB`, curVal: `${usedRam}/${ram.ramMb} MB` },
-      hdd:     { label: 'Armazenamento',     tabLabel: 'Comprar Disco', icon: 'hard-drive', glyph: 'stealth', cur: hdd, specFn: (i) => i.hddMb >= 1024 ? `${+(i.hddMb / 1024).toFixed(1)} GB` : `${i.hddMb} MB`, curVal: `${usedHdd}/${hdd.hddMb} MB` },
-      network: { label: 'Link de Internet',  tabLabel: 'Upgrade Rede', icon: 'wifi', glyph: 'defense', cur: net, specFn: (i) => `${i.mbps} Mbit/s`, curVal: `${effNet} Mbit/s` }
-    };
 
     let mainColHtml = '';
 
+    // 1. ABA MINHAS MÁQUINAS (Estilo limpo da Foto 1: Potencial Total + Seletor por Máquina + Cards Individuais)
     if (this.activeTab === 'overview') {
-      const overviewRows = ['cpu', 'ram', 'hdd', 'network'].map((cat) => {
-        const m = catMeta[cat];
-        const list = this.catalog[cat];
-        const curIdx = list.findIndex((x) => x.id === this.current[cat]);
-        const nextItem = curIdx >= 0 && curIdx < list.length - 1 ? list[curIdx + 1] : null;
-        const canBuyNext = nextItem && currentBalance >= nextItem.price;
+      const scopePillsHtml = [
+        `<button type="button" id="hwScopeAll" class="hw-scope-pill ${this.selectedScope === 'all' ? 'active' : ''}"
+           data-tip-title="Potencial Total Somado" data-tip-meta="${fleet.length} máquinas"
+           data-tip-desc="Soma a potência, o consumo elétrico (Watts) e o gasto diário do seu PC Principal + todas as suas VPS."
+           onclick="window.hardwareEngine.selectScope('all')">
+           ${ic('layers')} <span>Potencial Total (${fleet.length})</span>
+         </button>`,
+        ...fleet.map((m) => `
+          <button type="button" id="hwScope_${esc(m.id)}" class="hw-scope-pill ${this.selectedScope === m.id ? 'active' : ''}"
+            data-tip-title="Ver separado: ${esc(m.name)}" data-tip-meta="${m.watts}W · $${m.dailyCost}/dia"
+            data-tip-desc="Isolar nos indicadores acima e na coluna lateral apenas a potência, o consumo e o gasto desta máquina."
+            onclick="window.hardwareEngine.selectScope('${esc(m.id)}')">
+            ${ic(m.isPrimaryPc ? 'monitor' : 'server')} <span>${esc(m.name)}</span>
+          </button>
+        `)
+      ].join('');
+
+      const scopeBannerLabel = scopedMachine
+        ? `Vendo separado: <strong>${esc(scopedMachine.name)}</strong> (${esc(scopedMachine.roleTag)})`
+        : `Potencial Total Combinado: <strong>1 PC Principal + ${totals.vpsCount} VPS</strong> (${totals.count} máquinas ativas)`;
+
+      const machineCardsHtml = fleet.map((m) => {
+        const isSel = this.selectedScope === m.id;
+        const ipHtml = m.isPrimaryPc && window.networkIdentity && window.networkIdentity.renderBlurredMyIpHtml
+          ? window.networkIdentity.renderBlurredMyIpHtml(m.ip, true)
+          : esc(m.ip);
 
         return `
-          <tr class="row-running">
+          <article class="hw-machine-card ${isSel ? 'is-selected' : ''}" id="hwCard_${esc(m.id)}">
+            <div class="hw-mc-head">
+              <div class="hw-mc-head-left">
+                ${ic(m.isPrimaryPc ? 'monitor' : 'server')}
+                <span>${esc(m.name)}</span>
+                <span class="hc-badge ${m.isPrimaryPc ? 'success' : 'info'}" style="font-size:10px;padding:1px 6px;">${esc(m.roleTag)}</span>
+              </div>
+              <div class="hw-mc-actions">
+                <button type="button" class="hw-mc-btn btn-inspect-machine"
+                  data-tip-title="${isSel ? 'Voltar ao Potencial Total' : `Ver ${esc(m.name)} separado`}"
+                  data-tip-meta="${m.watts}W · $${m.dailyCost}/dia"
+                  data-tip-desc="Mostra nos medidores do topo e no resumo lateral somente a potência, consumo e gasto desta máquina."
+                  onclick="window.hardwareEngine.selectScope('${isSel ? 'all' : esc(m.id)}')">
+                  ${isSel ? 'Total Geral' : 'Ver Separado'}
+                </button>
+                <button type="button" class="hw-mc-btn primary btn-upgrade-machine"
+                  data-tip-title="Melhorar ${esc(m.name)}" data-tip-meta="Upgrade"
+                  data-tip-desc="Abrir catálogo de peças (CPU, Disco e Memória RAM) para evoluir esta máquina."
+                  onclick="window.hardwareEngine.openUpgradeForMachine('${esc(m.id)}', 'cpu')">
+                  Melhorar
+                </button>
+              </div>
+            </div>
+
+            <div class="hw-mc-body">
+              <div class="hw-mc-rig-glyph ${m.isPrimaryPc ? '' : 'is-vps'}"
+                data-tip-title="${esc(m.name)}" data-tip-meta="${esc(m.roleTag)}" data-tip-desc="${esc(m.costBreakdown)}">
+                ${ic(m.isPrimaryPc ? 'cpu' : 'cloud')}
+              </div>
+
+              <div class="hw-mc-details">
+                <div class="hw-mc-title-row">
+                  <span class="hw-mc-title">${esc(m.name)}</span>
+                  <span class="hw-mc-ip">${ipHtml}</span>
+                </div>
+
+                <div class="hw-mc-specs-row" aria-label="Potência de ${esc(m.name)}">
+                  <span class="hw-mc-spec-item" data-tip-title="Potência de CPU" data-tip-meta="${m.cpuMhz.toLocaleString('pt-BR')} MHz" data-tip-desc="Velocidade de processamento desta máquina.">
+                    ${ic('cpu')} <strong>${m.cpuMhz.toLocaleString('pt-BR')} MHz</strong>
+                  </span>
+                  <span class="hw-mc-spec-item" data-tip-title="Espaço em Disco" data-tip-meta="${m.usedHddMb}/${m.hddMb} MB" data-tip-desc="Capacidade de armazenamento desta máquina.">
+                    ${ic('hard-drive')} ${esc(this.formatStorage(m.hddMb))}
+                  </span>
+                  <span class="hw-mc-spec-item" data-tip-title="Memória RAM" data-tip-meta="${m.usedRamMb}/${m.ramMb} MB" data-tip-desc="Memória disponível para processos simultâneos.">
+                    ${ic('layers')} ${esc(this.formatStorage(m.ramMb))}
+                  </span>
+                  <span class="hw-mc-spec-item" data-tip-title="Velocidade de Rede" data-tip-meta="${m.netMbps} Mbit/s" data-tip-desc="Banda de download e upload desta máquina.">
+                    ${ic('wifi')} ${m.netMbps} Mbit
+                  </span>
+                </div>
+
+                <div class="hw-mc-foot-grid">
+                  <div class="hw-mc-stat-pill" tabindex="0"
+                    data-tip-title="Consumo de ${esc(m.name)}" data-tip-meta="${m.watts} Watts"
+                    data-tip-desc="Carga atual: ${m.loadPct}% · RAM em uso: ${m.usedRamMb}/${m.ramMb} MB · Disco ocupado: ${m.usedHddMb}/${m.hddMb} MB.">
+                    <span class="lbl">Consumo &amp; Uso</span>
+                    <span class="val power">${ic('zap')} ${m.watts} W · ${m.loadPct}% uso</span>
+                  </div>
+                  <div class="hw-mc-stat-pill" tabindex="0"
+                    data-tip-title="Gasto de ${esc(m.name)}" data-tip-meta="$${m.dailyCost}/dia"
+                    data-tip-desc="${esc(m.costBreakdown)} · Projeção mensal: $${m.monthlyCost.toLocaleString('pt-BR')}/mês.">
+                    <span class="lbl">Gasto Operacional</span>
+                    <span class="val cost">${ic('coins')} $${m.dailyCost}/dia · $${m.monthlyCost}/mês</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      mainColHtml = `
+        <div class="hw-overview-stack">
+          <div class="hw-scope-bar">
+            <div class="hw-scope-pills" role="tablist" aria-label="Filtrar visão total ou por máquina">
+              ${scopePillsHtml}
+            </div>
+            <span style="font-size:11.5px;color:var(--hc-text-3);">${scopeBannerLabel}</span>
+          </div>
+
+          <!-- 6 Caixas Superiores (Potencial Total de Todas as Máquinas OU Máquina Selecionada) -->
+          <div class="hw-total-strip" id="hwTopMetricsStrip">
+            <div class="hw-total-tile" tabindex="0"
+              data-tip-title="${scopedMachine ? `CPU de ${esc(scopedMachine.name)}` : 'Potencial Total de CPU'}"
+              data-tip-meta="${activeMetrics.cpuMhz.toLocaleString('pt-BR')} MHz"
+              data-tip-desc="${scopedMachine ? 'Poder de processamento individual desta máquina.' : `Soma do seu PC Principal + ${totals.vpsCount} VPS ativas.`}">
+              <div class="hw-tile-ico">${ic('cpu')}</div>
+              <div class="hw-tile-meta">
+                <span class="hw-tile-val" id="hwMetricCpu">${esc(this.formatCpu(activeMetrics.cpuMhz))}</span>
+                <span class="hw-tile-unit">${scopedMachine ? 'CPU Máquina' : 'CPU Total'}</span>
+              </div>
+            </div>
+
+            <div class="hw-total-tile" tabindex="0"
+              data-tip-title="${scopedMachine ? `Disco de ${esc(scopedMachine.name)}` : 'Armazenamento Total'}"
+              data-tip-meta="${activeMetrics.usedHddMb}/${activeMetrics.hddMb} MB"
+              data-tip-desc="Espaço somado de HD, SSD e NVMe disponível.">
+              <div class="hw-tile-ico is-disk">${ic('hard-drive')}</div>
+              <div class="hw-tile-meta">
+                <span class="hw-tile-val" id="hwMetricHdd">${esc(this.formatStorage(activeMetrics.hddMb))}</span>
+                <span class="hw-tile-unit">${scopedMachine ? 'Disco Máquina' : 'Disco Total'}</span>
+              </div>
+            </div>
+
+            <div class="hw-total-tile" tabindex="0"
+              data-tip-title="${scopedMachine ? `RAM de ${esc(scopedMachine.name)}` : 'Memória RAM Total'}"
+              data-tip-meta="${activeMetrics.usedRamMb}/${activeMetrics.ramMb} MB"
+              data-tip-desc="Memória volátil total para rodar programas e serviços em segundo plano.">
+              <div class="hw-tile-ico is-ram">${ic('layers')}</div>
+              <div class="hw-tile-meta">
+                <span class="hw-tile-val" id="hwMetricRam">${esc(this.formatStorage(activeMetrics.ramMb))}</span>
+                <span class="hw-tile-unit">${scopedMachine ? 'RAM Máquina' : 'RAM Total'}</span>
+              </div>
+            </div>
+
+            <div class="hw-total-tile" tabindex="0"
+              data-tip-title="${scopedMachine ? `Link de ${esc(scopedMachine.name)}` : 'Banda Combinada'}"
+              data-tip-meta="${activeMetrics.netMbps} Mbit/s"
+              data-tip-desc="Capacidade de transferência somada das interfaces de rede.">
+              <div class="hw-tile-ico is-net">${ic('wifi')}</div>
+              <div class="hw-tile-meta">
+                <span class="hw-tile-val" id="hwMetricNet">${activeMetrics.netMbps} Mbit</span>
+                <span class="hw-tile-unit">${scopedMachine ? 'Link Máquina' : 'Rede Total'}</span>
+              </div>
+            </div>
+
+            <div class="hw-total-tile" tabindex="0"
+              data-tip-title="${scopedMachine ? `Consumo de ${esc(scopedMachine.name)}` : 'Consumo Elétrico Total'}"
+              data-tip-meta="${activeMetrics.watts} Watts"
+              data-tip-desc="Potência elétrica demandada pelas peças e instâncias ligadas.">
+              <div class="hw-tile-ico is-power">${ic('zap')}</div>
+              <div class="hw-tile-meta">
+                <span class="hw-tile-val" id="hwMetricWatts">${activeMetrics.watts} W</span>
+                <span class="hw-tile-unit">${scopedMachine ? 'Consumo Máquina' : 'Consumo Total'}</span>
+              </div>
+            </div>
+
+            <div class="hw-total-tile" tabindex="0"
+              data-tip-title="${scopedMachine ? `Gasto de ${esc(scopedMachine.name)}` : 'Gasto Diário Total'}"
+              data-tip-meta="$${activeMetrics.monthlyCost.toLocaleString('pt-BR')}/mês"
+              data-tip-desc="Soma de energia elétrica, link de internet e manutenção diária das VPS.">
+              <div class="hw-tile-ico is-cost">${ic('dollar-sign')}</div>
+              <div class="hw-tile-meta">
+                <span class="hw-tile-val" id="hwMetricCost">$${activeMetrics.dailyCost}/dia</span>
+                <span class="hw-tile-unit">$${activeMetrics.monthlyCost.toLocaleString('pt-BR')}/mês</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Grade de Máquinas Separadas (PC Principal + Cada VPS + Botão Contratar Nova VPS) -->
+          <div class="hw-machines-grid" id="hwMachinesGrid">
+            ${machineCardsHtml}
+            <button type="button" class="hw-add-vps-card" id="btnCardOpenBuyVps" onclick="window.hardwareEngine.setTab('buy_vps')"
+              data-tip-title="Contratar Nova VPS ou Servidor" data-tip-meta="A partir de $2.500"
+              data-tip-desc="Adicione mais máquinas virtuais (VPS) ou servidores dedicados para multiplicar seu potencial total.">
+              ${ic('plus-circle')}
+              <strong style="font-size:13px;color:var(--hc-text);">+ Contratar Nova VPS / Servidor</strong>
+              <span style="font-size:11.5px;">Expanda seu potencial total de CPU, RAM, Disco e Rede</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+    // 2. ABA MELHORAR MÁQUINA (Upgrade individual do PC Principal OU de qualquer VPS!)
+    else if (this.activeTab === 'upgrade') {
+      const targetPills = fleet.map((m) => `
+        <button type="button" class="hw-scope-pill ${targetMachine.id === m.id ? 'active' : ''}"
+          onclick="window.hardwareEngine.setUpgradeTarget('${esc(m.id)}')">
+          ${ic(m.isPrimaryPc ? 'monitor' : 'server')} <span>${esc(m.name)}</span>
+        </button>
+      `).join('');
+
+      const partPills = [
+        { key: 'cpu', label: 'CPU', icon: 'cpu' },
+        { key: 'hdd', label: 'Disco (HD/SSD/NVMe)', icon: 'hard-drive' },
+        { key: 'ram', label: 'Memória RAM', icon: 'layers' }
+      ].map((p) => `
+        <button type="button" class="hw-scope-pill ${this.upgradePartCat === p.key ? 'active' : ''}"
+          onclick="window.hardwareEngine.setUpgradePartCat('${p.key}')">
+          ${ic(p.icon)} <span>${p.label}</span>
+        </button>
+      `).join('');
+
+      mainColHtml = `
+        <div class="hw-overview-stack">
+          <div class="hw-scope-bar">
+            <div class="hw-scope-pills" aria-label="Escolher máquina para melhorar">${targetPills}</div>
+            <div class="hw-scope-pills" aria-label="Escolher tipo de peça">${partPills}</div>
+          </div>
+          ${this.renderCatalogTableHtml(this.upgradePartCat || 'cpu', targetMachine, currentBalance, esc, ic)}
+        </div>
+      `;
+    }
+    // 3. ABA COMPRAR NOVA VPS / SERVIDOR (Buy new server)
+    else if (this.activeTab === 'buy_vps') {
+      const catalogObj = window.SERVER_TYPES_CATALOG || {};
+      const vpsRows = Object.values(catalogObj).map((tpl) => {
+        const canAfford = currentBalance >= tpl.cost;
+        const watts = tpl.watts || Math.round(24 + (tpl.specs.cpuMhz / 1000) * 28);
+        const daily = tpl.dailyCost || Math.round(14 + watts * 0.16);
+        return `
+          <tr>
             <td class="soft-col-icon">
-              <span class="soft-mini-glyph kind-${m.glyph}" data-tip-title="${esc(m.label)}" data-tip-meta="${esc(m.curVal)}" data-tip-desc="${esc(m.cur.desc)}">
-                ${ic(m.icon)}
+              <span class="soft-mini-glyph kind-defense" data-tip-title="${esc(tpl.name)}" data-tip-meta="$ ${tpl.cost.toLocaleString('pt-BR')}" data-tip-desc="${esc(tpl.desc)}">
+                ${ic('cloud')}
               </span>
             </td>
             <td>
-              <span class="soft-name-trigger" tabindex="0" data-tip-title="${esc(m.cur.name)}" data-tip-meta="${esc(m.label)}" data-tip-desc="${esc(m.cur.desc)}">
-                <span class="soft-run-dot"></span>
-                <span>${esc(m.cur.name)}</span>
+              <span class="soft-name-trigger" tabindex="0" data-tip-title="${esc(tpl.name)}" data-tip-meta="Firewall v${tpl.defaultFwl.toFixed(1)}" data-tip-desc="${esc(tpl.desc)}">
+                <strong>${esc(tpl.name)}</strong>
               </span>
+              <div class="mono" style="font-size:11px;color:var(--hc-text-3);margin-top:2px;">
+                ${tpl.specs.cpuMhz.toLocaleString('pt-BR')} MHz · ${esc(this.formatStorage(tpl.specs.hddMb))} Disco · ${esc(this.formatStorage(tpl.specs.ramMb))} RAM · ${tpl.specs.netMbps} Mbit
+              </div>
             </td>
-            <td class="soft-col-size" style="width:130px;">${esc(m.specFn(m.cur))}</td>
-            <td class="soft-col-size" style="width:165px;color:var(--hc-text-2);">
-              ${nextItem ? `<span class="mono">${esc(m.specFn(nextItem))} · <strong style="color:var(--hc-warning-text);">$${nextItem.price.toLocaleString('pt-BR')}</strong></span>` : `<span class="hc-badge success">Topo Máximo</span>`}
-            </td>
+            <td class="soft-col-size" style="width:92px;color:#f5ba66;">${watts} W</td>
+            <td class="soft-col-size" style="width:96px;color:#ff8e88;">$${daily}/dia</td>
+            <td class="soft-col-size" style="width:115px;color:var(--hc-accent-text);font-weight:700;">$ ${tpl.cost.toLocaleString('pt-BR')}</td>
             <td class="soft-col-acts">
               <div class="soft-icon-actions">
-                <button type="button" class="soft-icon-act ic-info" aria-label="Ver catálogo de ${esc(m.label)}"
-                  data-tip-title="Ver opções de ${esc(m.label)}" data-tip-meta="${list.length} modelos"
-                  data-tip-desc="Abrir lista completa de peças e preços para ${esc(m.label)}."
-                  onclick="window.hardwareEngine.setTab('${cat}')">${ic('info')}</button>
-                ${nextItem ? `
-                  <button type="button" class="soft-icon-act ${canBuyNext ? 'ic-run' : 'ic-move'}" aria-label=" Evoluir ${esc(m.label)}"
-                    data-tip-title="${canBuyNext ? `Comprar ${esc(nextItem.name)}` : `Ver upgrade ($${nextItem.price.toLocaleString('pt-BR')})`}"
-                    data-tip-meta="$${nextItem.price.toLocaleString('pt-BR')}"
-                    data-tip-desc="${esc(nextItem.desc)}"
-                    onclick="${canBuyNext ? `buyHardwareUpgrade('${cat}', '${nextItem.id}', ${nextItem.price})` : `window.hardwareEngine.setTab('${cat}')`}">
-                    ${ic(canBuyNext ? 'shopping-cart' : 'arrow-up')}
-                  </button>
-                ` : ''}
+                <button type="button" class="soft-icon-act ic-info" aria-label="Info ${esc(tpl.name)}"
+                  data-tip-title="${esc(tpl.name)}" data-tip-meta="${watts}W · $${daily}/dia" data-tip-desc="${esc(tpl.desc)}">
+                  ${ic('info')}
+                </button>
+                <button type="button" id="btnBuyServer_${esc(tpl.type)}" class="soft-icon-act ic-run" ${!canAfford ? 'disabled' : ''}
+                  aria-label="Contratar ${esc(tpl.name)}"
+                  data-tip-title="${canAfford ? `Contratar ${esc(tpl.name)} agora` : `Saldo insuficiente ($ ${tpl.cost.toLocaleString('pt-BR')})`}"
+                  data-tip-meta="+$${daily}/dia"
+                  data-tip-desc="Adiciona imediatamente esta máquina na sua aba Minhas Máquinas e soma no Potencial Total."
+                  onclick="window.handlePurchaseVpsFromHardware('${esc(tpl.type)}')">
+                  ${ic('shopping-cart')}
+                </button>
               </div>
             </td>
           </tr>
@@ -285,106 +778,79 @@ class HardwareEngine {
       }).join('');
 
       mainColHtml = `
-        <div class="soft-table-wrap" role="region" aria-label="Componentes instalados no seu servidor">
-          <table class="soft-table clean-hw-table">
-            <thead>
-              <tr>
-                <th class="soft-col-icon"></th>
-                <th>Peça Instalada no Meu Servidor</th>
-                <th class="soft-col-size" style="width:130px;">Capacidade</th>
-                <th class="soft-col-size" style="width:165px;">Próximo Nível</th>
-                <th class="soft-col-acts">Ações</th>
-              </tr>
-            </thead>
-            <tbody>${overviewRows}</tbody>
-          </table>
-        </div>
-      `;
-    } else {
-      const cat = catMeta[this.activeTab] ? this.activeTab : 'cpu';
-      const m = catMeta[cat];
-      const list = this.catalog[cat];
-      const curIdx = list.findIndex((x) => x.id === this.current[cat]);
-
-      const rows = list.map((item, idx) => {
-        const isCurrent = idx === curIdx;
-        const isLower = idx < curIdx;
-        const canBuy = !isCurrent && !isLower && currentBalance >= item.price;
-        const priceStr = item.price === 0 ? 'Inicial' : `$ ${item.price.toLocaleString('pt-BR')}`;
-
-        return `
-          <tr class="${isCurrent ? 'row-running' : ''} ${isLower ? 'row-hidden' : ''}">
-            <td class="soft-col-icon">
-              <span class="soft-mini-glyph kind-${m.glyph}" data-tip-title="${esc(item.name)}" data-tip-meta="${esc(priceStr)}" data-tip-desc="${esc(item.desc)}">
-                ${ic(m.icon)}
-              </span>
-            </td>
-            <td>
-              <span class="soft-name-trigger" tabindex="0" data-tip-title="${esc(item.name)}" data-tip-meta="${esc(m.specFn(item))}" data-tip-desc="${esc(item.desc)}">
-                ${isCurrent ? '<span class="soft-run-dot"></span>' : ''}
-                <span>${esc(item.name)}</span>
-              </span>
-            </td>
-            <td class="soft-col-size" style="width:135px;">${esc(m.specFn(item))}</td>
-            <td class="soft-col-size" style="width:120px;color:${item.price === 0 ? 'var(--hc-text-3)' : 'var(--hc-warning-text)'};white-space:nowrap;">${esc(priceStr)}</td>
-            <td class="soft-col-acts">
-              ${isCurrent
-                ? `<span class="hc-badge success">Instalado</span>`
-                : (isLower
-                    ? `<span style="font-size:11.5px;color:var(--hc-text-3);">Superado</span>`
-                    : `<div class="soft-icon-actions">
-                         <button type="button" class="soft-icon-act ic-info" aria-label="Detalhes de ${esc(item.name)}"
-                           data-tip-title="${esc(item.name)}" data-tip-meta="${esc(m.specFn(item))}" data-tip-desc="${esc(item.desc)}">
-                           ${ic('info')}
-                         </button>
-                         <button type="button" class="soft-icon-act ic-run" ${!canBuy ? 'disabled' : ''} aria-label="Comprar ${esc(item.name)}"
-                           data-tip-title="${canBuy ? 'Comprar e instalar agora' : `Saldo insuficiente (faltam $ ${Math.ceil(item.price - currentBalance).toLocaleString('pt-BR')})`}"
-                           data-tip-meta="${esc(priceStr)}" data-tip-desc="${esc(item.desc)}"
-                           onclick="buyHardwareUpgrade('${cat}', '${item.id}', ${item.price})">
-                           ${ic('shopping-cart')}
-                         </button>
-                       </div>`)}
-            </td>
-          </tr>
-        `;
-      }).join('');
-
-      mainColHtml = `
-        <div class="soft-table-wrap" role="region" aria-label="Catálogo de ${esc(m.label)}">
-          <table class="soft-table clean-hw-table">
-            <thead>
-              <tr>
-                <th class="soft-col-icon"></th>
-                <th>Modelo · ${esc(m.label)}</th>
-                <th class="soft-col-size" style="width:135px;">Capacidade</th>
-                <th class="soft-col-size" style="width:120px;">Preço</th>
-                <th class="soft-col-acts">Ações</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
+        <div class="hw-overview-stack">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="font-size:12.5px;color:var(--hc-text-2);">Contrate novas instâncias <strong>VPS</strong> ou <strong>Servidores Dedicados</strong> para somar ao seu Potencial Total e distribuir operações.</span>
+            <button type="button" class="hc-btn ghost sm" onclick="navTo('winLan')">${ic('share-2')} Ver Topologia de Rede (LAN)</button>
+          </div>
+          <div class="soft-table-wrap" role="region" aria-label="Catálogo de VPS e Servidores">
+            <table class="soft-table clean-hw-table">
+              <thead>
+                <tr>
+                  <th class="soft-col-icon"></th>
+                  <th>Modelo de VPS / Servidor &amp; Potência</th>
+                  <th class="soft-col-size" style="width:92px;">Consumo</th>
+                  <th class="soft-col-size" style="width:96px;">Gasto</th>
+                  <th class="soft-col-size" style="width:115px;">Ativação</th>
+                  <th class="soft-col-acts">Ações</th>
+                </tr>
+              </thead>
+              <tbody>${vpsRows}</tbody>
+            </table>
+          </div>
         </div>
       `;
     }
+    // 4. ABA INTERNET (Upgrade de Link Mbit/s por Máquina)
+    else if (this.activeTab === 'network') {
+      const targetPills = fleet.map((m) => `
+        <button type="button" class="hw-scope-pill ${targetMachine.id === m.id ? 'active' : ''}"
+          onclick="window.hardwareEngine.setUpgradeTarget('${esc(m.id)}')">
+          ${ic(m.isPrimaryPc ? 'monitor' : 'server')} <span>${esc(m.name)} (${m.netMbps} Mbit)</span>
+        </button>
+      `).join('');
+
+      mainColHtml = `
+        <div class="hw-overview-stack">
+          <div class="hw-scope-bar">
+            <div class="hw-scope-pills" aria-label="Escolher máquina para upgrade de internet">${targetPills}</div>
+          </div>
+          ${this.renderCatalogTableHtml('network', targetMachine, currentBalance, esc, ic)}
+        </div>
+      `;
+    }
+    // 5. ABA HD EXTERNO (Cofre seguro XHD integrado em Hardware)
+    else if (this.activeTab === 'xhd') {
+      mainColHtml = window.stealthXhdEngine && typeof window.stealthXhdEngine.renderXhdAndStealthPanelHtml === 'function'
+        ? window.stealthXhdEngine.renderXhdAndStealthPanelHtml()
+        : `<div style="padding:24px;color:var(--hc-text-3);">Módulo de HD Externo indisponível.</div>`;
+    }
+
+    // Donut Lateral: adapta ao escopo (Potencial Total vs Máquina Selecionada)
+    const donutPct = scopedMachine ? scopedMachine.healthPct : healthPct;
+    const r = 46;
+    const c = +(2 * Math.PI * r).toFixed(2);
+    const offset = +(c - (donutPct / 100) * c).toFixed(2);
+    const strokeColor = donutPct >= 85 ? '#35b877' : (donutPct >= 55 ? '#f0a03a' : '#e5534b');
 
     el.innerHTML = `
       <div class="soft-frame" id="hardwareExplorerMain">
         <div class="soft-tabs-bar">
-          <div class="soft-tabs-left" role="tablist" aria-label="Categorias de Hardware">
-            <button type="button" class="soft-tab-btn ${this.activeTab === 'overview' ? 'active' : ''}" onclick="window.hardwareEngine.setTab('overview')">
-              ${ic('server')} <span>Meu Servidor</span>
+          <div class="soft-tabs-left" role="tablist" aria-label="Seções de Hardware e VPS">
+            <button type="button" id="hwTabOverview" class="soft-tab-btn ${this.activeTab === 'overview' ? 'active' : ''}" onclick="window.hardwareEngine.setTab('overview')">
+              ${ic('server')} <span>Minhas Máquinas (${fleet.length})</span>
             </button>
-            <button type="button" class="soft-tab-btn ${this.activeTab === 'cpu' ? 'active' : ''}" onclick="window.hardwareEngine.setTab('cpu')">
-              ${ic('cpu')} <span>Comprar CPU</span>
+            <button type="button" id="hwTabUpgrade" class="soft-tab-btn ${this.activeTab === 'upgrade' ? 'active' : ''}" onclick="window.hardwareEngine.setTab('upgrade')">
+              ${ic('cpu')} <span>Melhorar Máquina</span>
             </button>
-            <button type="button" class="soft-tab-btn ${this.activeTab === 'ram' ? 'active' : ''}" onclick="window.hardwareEngine.setTab('ram')">
-              ${ic('layers')} <span>Comprar RAM</span>
+            <button type="button" id="hwTabBuyVps" class="soft-tab-btn ${this.activeTab === 'buy_vps' ? 'active' : ''}" onclick="window.hardwareEngine.setTab('buy_vps')">
+              ${ic('cloud')} <span>Comprar VPS</span>
             </button>
-            <button type="button" class="soft-tab-btn ${this.activeTab === 'hdd' ? 'active' : ''}" onclick="window.hardwareEngine.setTab('hdd')">
-              ${ic('hard-drive')} <span>Comprar Disco</span>
+            <button type="button" id="hwTabNetwork" class="soft-tab-btn ${this.activeTab === 'network' ? 'active' : ''}" onclick="window.hardwareEngine.setTab('network')">
+              ${ic('wifi')} <span>Internet</span>
             </button>
-            <button type="button" class="soft-tab-btn ${this.activeTab === 'network' ? 'active' : ''}" onclick="window.hardwareEngine.setTab('network')">
-              ${ic('wifi')} <span>Upgrade Rede</span>
+            <button type="button" id="hwTabXhd" class="soft-tab-btn ${this.activeTab === 'xhd' ? 'active' : ''}" onclick="window.hardwareEngine.setTab('xhd')">
+              ${ic('hard-drive')} <span>HD Externo</span>
             </button>
           </div>
           <span class="mono" style="font-size:12px;color:var(--hc-accent-text);">Saldo: $ ${Number(currentBalance || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</span>
@@ -394,7 +860,7 @@ class HardwareEngine {
           <div class="soft-main-col">
             ${healthPct < 100 ? `
               <div class="soft-feedback-banner" style="background:rgba(208,68,58,0.16);border-color:rgba(229,83,75,0.45);color:#ff9b95;">
-                <span>⚠️ Peças danificadas por ataque DDoS (${healthPct}% de integridade). Velocidade reduzida até o reparo!</span>
+                <span>⚠️ PC Principal danificado por ataque DDoS (${healthPct}% de integridade). Velocidade reduzida até o reparo!</span>
                 <button type="button" id="btnRepairHardwareBanner" class="hc-btn sm" style="background:var(--hc-warning);border-color:var(--hc-warning);color:#101418;font-weight:700;opacity:1;" ${!canRepair ? 'disabled' : ''} onclick="window.handleRepairHardware()">
                   Consertar ($ ${repairCost.toLocaleString('pt-BR')})
                 </button>
@@ -405,29 +871,30 @@ class HardwareEngine {
 
           <aside class="soft-side-bar" id="hardwareHealthCard">
             <div class="soft-donut-wrap">
-              <svg class="soft-donut-svg" viewBox="0 0 116 116" aria-label="Saúde do Hardware ${healthPct}%">
+              <svg class="soft-donut-svg" viewBox="0 0 116 116" aria-label="Integridade ${donutPct}%">
                 <circle cx="58" cy="58" r="${r}" fill="none" stroke="#222832" stroke-width="8"></circle>
                 <circle cx="58" cy="58" r="${r}" fill="none" stroke="${strokeColor}" stroke-width="8"
                   stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${offset}" transform="rotate(-90 58 58)"></circle>
-                <text id="hwHealthPctLabel" x="58" y="63" text-anchor="middle" fill="#ebeff4" font-family="var(--hc-font-mono)" font-size="18" font-weight="700">${healthPct}%</text>
+                <text id="hwHealthPctLabel" x="58" y="63" text-anchor="middle" fill="#ebeff4" font-family="var(--hc-font-mono)" font-size="18" font-weight="700">${donutPct}%</text>
               </svg>
-              <div class="soft-donut-title">Saúde das Peças</div>
+              <div class="soft-donut-title">${scopedMachine ? esc(scopedMachine.name) : 'Saúde das Máquinas'}</div>
               <div class="soft-donut-numbers">
-                <span class="${healthPct < 100 ? 'total' : 'used'}">${healthPct < 100 ? 'Danificado DDoS' : '100% Nominal'}</span>
+                <span class="${donutPct < 100 ? 'total' : 'used'}">${scopedMachine ? 'Visão Individual' : `1 PC + ${totals.vpsCount} VPS`}</span>
               </div>
             </div>
 
-            <div class="soft-bays-box">
-              <div class="soft-bay-row"><span>CPU</span><span style="color:var(--hc-accent-text);">${effCpu.toLocaleString('pt-BR')} MHz</span></div>
-              <div class="soft-bay-row"><span>Uso RAM</span><span>${usedRam}/${ram.ramMb} MB</span></div>
-              <div class="soft-bay-row"><span>Uso Disco</span><span>${usedHdd}/${hdd.hddMb} MB</span></div>
-              <div class="soft-bay-row"><span>Internet</span><span style="color:var(--hc-info-text);">${effNet} Mbit/s</span></div>
+            <div class="soft-bays-box" id="hwSidebarSummaryBox">
+              <div class="soft-bay-row"><span>Escopo</span><span style="color:var(--hc-accent-text);">${scopedMachine ? '1 Máquina' : `Total (${totals.count})`}</span></div>
+              <div class="soft-bay-row"><span>Potência CPU</span><span>${activeMetrics.cpuMhz.toLocaleString('pt-BR')} MHz</span></div>
+              <div class="soft-bay-row"><span>Consumo</span><span style="color:#f5ba66;">⚡ ${activeMetrics.watts} W</span></div>
+              <div class="soft-bay-row"><span>Gasto / Dia</span><span style="color:#ff8e88;">$${activeMetrics.dailyCost}/dia</span></div>
+              <div class="soft-bay-row"><span>Gasto / Mês</span><span style="color:#ff8e88;">$${activeMetrics.monthlyCost.toLocaleString('pt-BR')}</span></div>
             </div>
 
             <div class="soft-tool-tiles">
-              <button type="button" class="soft-tool-tile" onclick="navTo('winSoftware');if(window.softwareEngine){window.softwareEngine.activeTab='xhd';window.softwareEngine.renderUI();}">
-                ${ic('hard-drive')}
-                <span>HD Externo</span>
+              <button type="button" class="soft-tool-tile" onclick="window.hardwareEngine.setTab('buy_vps')">
+                ${ic('cloud')}
+                <span>+ Nova VPS</span>
               </button>
               <button type="button" id="btnRepairHardware" class="soft-tool-tile ${healthPct < 100 ? 'danger' : ''}" ${!canRepair ? 'disabled style="opacity:0.45;cursor:not-allowed;"' : ''} onclick="window.handleRepairHardware()">
                 ${ic('wrench')}
@@ -444,14 +911,24 @@ class HardwareEngine {
 window.HARDWARE_CATALOG = HARDWARE_CATALOG;
 window.hardwareEngine = new HardwareEngine();
 
+window.handlePurchaseVpsFromHardware = function (typeKey) {
+  if (!window.lanServersEngine) return null;
+  const res = window.lanServersEngine.purchaseServer(typeKey);
+  if (res && res.success && window.hardwareEngine) {
+    window.hardwareEngine.activeTab = 'overview';
+    window.hardwareEngine.selectedScope = 'all';
+    window.hardwareEngine.rerender();
+  }
+  return res;
+};
+
 window.handleRepairHardware = function () {
   if (!window.hardwareEngine) return null;
   const res = window.hardwareEngine.repairHardware();
   if (!res.success) {
-    if (window.hackerAudio && typeof window.hackerAudio.playErrorBuzz === 'function') window.hackerAudio.playErrorBuzz();
-    if (typeof window.showToast === 'function') window.showToast('⚠️ ' + res.message);
-    return res;
+    alert(res.message);
+  } else if (typeof window.showToast === 'function') {
+    window.showToast(res.message);
   }
-  if (typeof window.showToast === 'function') window.showToast(res.message);
   return res;
 };
