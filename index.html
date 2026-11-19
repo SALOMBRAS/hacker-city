@@ -788,9 +788,9 @@
     </div>
 
     <!-- JANELA 12: QUITINETE & DESPESAS DE SOBREVIVÊNCIA -->
-    <div class="window-frame" id="winQuitinete" style="width: 760px; height: 520px; top: 80px; left: 180px; display: none;">
+    <div class="window-frame" id="winQuitinete" style="width: 960px; height: 600px; top: 60px; left: 140px; display: none;">
       <div class="window-header" onmousedown="dragWindowStart(event, 'winQuitinete')">
-        <div><div class="window-title">Quitinete</div><p class="page-sub">Contas de sobrevivência: aluguel, luz e água.</p></div>
+        <div><div class="window-title">Contas &amp; Relógio do Jogo</div><p class="page-sub">1 Hora Real = 1 Dia · 1 Dia Real = 1 Mês · Fechamento diário às 12:00 (acumula máx. 3 meses).</p></div>
         <div class="window-controls">
           <button class="btn-win btn-win-close" onclick="closeWindow('winQuitinete')"></button>
         </div>
@@ -1649,6 +1649,9 @@
         if (window.onlineEngine) {
           await window.onlineEngine.hydrateSessionAndConnect(userId, wal.balance);
         }
+        if (window.quitineteEngine) {
+          window.quitineteEngine.onPlayerEnteredGame();
+        }
 
         updateHudDisplays();
         if (window.internetEngine) window.internetEngine.syncCloudPlayers();
@@ -1725,6 +1728,9 @@
       }
       if (window.onlineEngine) {
         await window.onlineEngine.hydrateSessionAndConnect(uid, null);
+      }
+      if (window.quitineteEngine) {
+        window.quitineteEngine.onPlayerEnteredGame();
       }
       updateHudDisplays();
       initCheckersBoard();
@@ -1858,8 +1864,7 @@
     }
 
     async function payQuitineteBill(billId) {
-      if (!currentWallet) return;
-      if (!window.quitineteEngine) return;
+      if (!currentWallet || !window.quitineteEngine) return;
 
       const res = window.quitineteEngine.payBill(billId, currentWallet.balance);
       if (!res.success) {
@@ -1868,26 +1873,99 @@
         return;
       }
 
-      currentWallet.balance -= res.price;
-      if (currentProfile) currentProfile.reputation += res.repGain;
+      const applyAuthorizedPayment = (newBal, repDelta) => {
+        const fn = () => {
+          currentWallet.balance = Math.max(0, newBal);
+          if (currentProfile && repDelta) currentProfile.reputation += repDelta;
+        };
+        if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+          window.integrityGuard.runAuthorized(fn);
+        } else {
+          fn();
+        }
+      };
+
+      applyAuthorizedPayment(currentWallet.balance - res.price, res.repGain);
       window.addLocalLog('QUITINETE', `Despesa quitada (${billId}): -$ ${res.price}.00 HC (+${res.repGain} REP)`, 'success');
 
       if (window.hackerAudio) window.hackerAudio.playCashChime();
       showToast(res.message);
 
       updateHudDisplays();
-      loadBankTransactions();
       window.quitineteEngine.renderUI('quitineteAppBody', currentWallet.balance);
+      if (window.onlineEngine && typeof window.onlineEngine.saveLocalSnapshotImmediate === 'function') {
+        window.onlineEngine.saveLocalSnapshotImmediate();
+      }
 
-      try {
-        await supabase.rpc('buy_black_market_item', {
-          p_item_type: `quitinete_bill_${billId}`,
-          p_cost: res.price
-        });
-      } catch (e) {
-        console.warn('Registro de conta salvo localmente:', e);
+      const isCloudAuth = currentProfile && !String(currentProfile.email || '').endsWith('@local.hc');
+      if (isCloudAuth && window.supabase && typeof supabase.rpc === 'function') {
+        try {
+          const { data: rpcData, error: rpcErr } = await supabase.rpc('buy_black_market_item', {
+            p_item_type: `quitinete_bill_${billId}`,
+            p_cost: res.price
+          });
+          if (!rpcErr && rpcData && rpcData.new_balance !== undefined) {
+            applyAuthorizedPayment(rpcData.new_balance, 0);
+            updateHudDisplays();
+          }
+          loadBankTransactions();
+        } catch (e) {
+          console.warn('Registro de conta salvo localmente:', e);
+        }
       }
     }
+
+    window.payAllQuitineteBills = async function () {
+      if (!currentWallet || !window.quitineteEngine) return;
+
+      const res = window.quitineteEngine.payAllBills(currentWallet.balance);
+      if (!res.success) {
+        if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+        alert(res.message);
+        return;
+      }
+
+      const applyAuthorizedPayment = (newBal, repDelta) => {
+        const fn = () => {
+          currentWallet.balance = Math.max(0, newBal);
+          if (currentProfile && repDelta) currentProfile.reputation += repDelta;
+        };
+        if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+          window.integrityGuard.runAuthorized(fn);
+        } else {
+          fn();
+        }
+      };
+
+      applyAuthorizedPayment(currentWallet.balance - res.price, res.repGain);
+      window.addLocalLog('QUITINETE', `Todas as faturas quitadas: -$ ${res.price}.00 HC (+${res.repGain} REP)`, 'success');
+
+      if (window.hackerAudio) window.hackerAudio.playCashChime();
+      showToast(res.message);
+
+      updateHudDisplays();
+      window.quitineteEngine.renderUI('quitineteAppBody', currentWallet.balance);
+      if (window.onlineEngine && typeof window.onlineEngine.saveLocalSnapshotImmediate === 'function') {
+        window.onlineEngine.saveLocalSnapshotImmediate();
+      }
+
+      const isCloudAuth = currentProfile && !String(currentProfile.email || '').endsWith('@local.hc');
+      if (isCloudAuth && window.supabase && typeof supabase.rpc === 'function') {
+        try {
+          const { data: rpcData, error: rpcErr } = await supabase.rpc('buy_black_market_item', {
+            p_item_type: 'quitinete_bill_all',
+            p_cost: res.price
+          });
+          if (!rpcErr && rpcData && rpcData.new_balance !== undefined) {
+            applyAuthorizedPayment(rpcData.new_balance, 0);
+            updateHudDisplays();
+          }
+          loadBankTransactions();
+        } catch (e) {
+          console.warn('Registro de quitação geral salvo localmente:', e);
+        }
+      }
+    };
 
     function updateHardwareDisplay() {
       if (window.hardwareEngine) {
@@ -3286,7 +3364,9 @@
               <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
                 <span style="width: 30px; height: 30px; border-radius: 7px; background: ${pending > 0 ? 'var(--hc-warning-bg)' : 'var(--hc-surface-2)'}; color: ${pending > 0 ? 'var(--hc-warning-text)' : 'var(--hc-text-2)'}; display: grid; place-items: center; flex-shrink: 0;">${HC.icon('house')}</span>
                 <div style="font-size: 12.5px; line-height: 1.35;">
-                  ${pending > 0 ? `${pending} despesa${pending === 1 ? '' : 's'} pendente${pending === 1 ? '' : 's'} no esconderijo` : 'Contas do esconderijo quitadas'}
+                  ${(window.quitineteEngine && window.quitineteEngine.cycle && window.quitineteEngine.cycle.isPaused)
+                    ? '⏸ Contas pausadas em 3/3 meses no esconderijo'
+                    : (pending > 0 ? `${pending} despesa${pending === 1 ? '' : 's'} pendente${pending === 1 ? '' : 's'} (fecha às 12:00)` : 'Contas do esconderijo quitadas (próx. 12:00)')}
                 </div>
               </div>
               <button type="button" class="hc-btn ghost sm" style="color: var(--hc-accent-text); flex-shrink: 0;" onclick="navTo('winQuitinete')">Ver →</button>

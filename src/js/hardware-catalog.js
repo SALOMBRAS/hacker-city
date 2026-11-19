@@ -259,8 +259,9 @@ class HardwareEngine {
     const pcEnergyRate = this.getEnergyRatePerWattMonth(pcWatts);
     const pcEnergyMonthly = Math.round(pcWatts * pcEnergyRate);
     const pcNetMonthly = net.monthlyFee || 35;
+    // Escala de Tempo do Jogo: 1 Dia Real (24h) = 1 Mês no Jogo | 1 Hora Real (1h) = 1 Dia no Jogo!
     const pcMonthlyCost = pcEnergyMonthly + pcNetMonthly;
-    const pcDailyCost = Math.max(5, Math.round(pcMonthlyCost / 30));
+    const pcDailyCost = Math.max(1, Math.round(pcMonthlyCost / 24));
     const pcLoadPct = Math.min(100, Math.max(8, Math.round(((usedRam / Math.max(1, ram.ramMb)) * 60) + ((usedHdd / Math.max(1, hdd.hddMb)) * 40))));
     const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0';
 
@@ -287,7 +288,7 @@ class HardwareEngine {
         watts: pcWatts,
         dailyCost: pcDailyCost,
         monthlyCost: pcMonthlyCost,
-        costBreakdown: `Luz do PC (${pcWatts}W → $${pcEnergyMonthly}/mês) + Internet ${net.code || 'NET1'} · ${net.provider || 'ISP'} ($${pcNetMonthly}/mês)`
+        costBreakdown: `Luz do PC (${pcWatts}W → $${pcEnergyMonthly}/mês) + Internet ${net.code || 'NET1'} · ${net.provider || 'ISP'} ($${pcNetMonthly}/mês) · Chega todo dia às 12h (máx. 3 meses)`
       }
     ];
 
@@ -307,7 +308,7 @@ class HardwareEngine {
       const vpsEnergyMonthly = Math.round(vpsWatts * this.getEnergyRatePerWattMonth(vpsWatts));
       const baseCloudMonthly = s.type === 'mainframe' ? 6800 : (s.type === 'dedicated' ? 2400 : 290);
       const vpsMonthlyCost = baseCloudMonthly + vpsEnergyMonthly;
-      const vpsDailyCost = Math.max(14, Math.round(vpsMonthlyCost / 30));
+      const vpsDailyCost = Math.max(1, Math.round(vpsMonthlyCost / 24));
       const simUsedRam = Math.min(ramM, Math.round(ramM * (s.isHoneypot ? 0.34 : 0.22)));
       const simUsedHdd = Math.min(hddM, Math.round(hddM * (s.isHoneypot ? 0.28 : 0.18)));
       const vpsLoadPct = Math.round(((simUsedRam / Math.max(1, ramM)) * 60) + ((simUsedHdd / Math.max(1, hddM)) * 40));
@@ -846,13 +847,13 @@ class HardwareEngine {
             </div>
 
             <div class="hw-total-tile" tabindex="0"
-              data-tip-title="${scopedMachine ? `Gasto de ${esc(scopedMachine.name)}` : 'Gasto Diário Total'}"
-              data-tip-meta="$${activeMetrics.monthlyCost.toLocaleString('pt-BR')}/mês"
-              data-tip-desc="Soma de energia elétrica, link de internet e manutenção diária das VPS.">
+              data-tip-title="${scopedMachine ? `Gasto de ${esc(scopedMachine.name)}` : 'Gasto no Tempo do Jogo'}"
+              data-tip-meta="Fecha às 12:00 (máx. 3 meses)"
+              data-tip-desc="No jogo: 1 Hora Real = 1 Dia ($${activeMetrics.dailyCost}/dia) e 1 Dia Real (24h) = 1 Mês ($${activeMetrics.monthlyCost.toLocaleString('pt-BR')}/mês). A fatura chega todo dia às 12h e acumula no máx. 3 meses (depois pausa até você entrar no jogo novamente).">
               <div class="hw-tile-ico is-cost">${ic('dollar-sign')}</div>
               <div class="hw-tile-meta">
                 <span class="hw-tile-val" id="hwMetricCost">$${activeMetrics.dailyCost}/dia</span>
-                <span class="hw-tile-unit">$${activeMetrics.monthlyCost.toLocaleString('pt-BR')}/mês</span>
+                <span class="hw-tile-unit">$${activeMetrics.monthlyCost.toLocaleString('pt-BR')}/mês · 12h</span>
               </div>
             </div>
           </div>
