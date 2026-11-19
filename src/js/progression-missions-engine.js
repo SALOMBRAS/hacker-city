@@ -964,6 +964,30 @@
       const maxTier = this.getPlayerAllowedTier();
       const active = this.state.activeMission;
 
+      const dynamicCount = window.dynamicContractsEngine ? window.dynamicContractsEngine.contracts.length : 6;
+      const activeDynamicCount = window.dynamicContractsEngine ? window.dynamicContractsEngine.activeContracts.length : 0;
+
+      const navTabsHeader = `
+        <div style="display:flex;gap:8px;margin-bottom:14px;border-bottom:1px solid var(--hc-border);padding-bottom:10px;flex-wrap:wrap;">
+          <button type="button" id="tabCampaignMissions" class="hc-btn sm ${this.mainTab !== 'dynamic' ? 'primary' : 'ghost'}" onclick="window.missionsEngine.mainTab='campaign';window.missionsEngine.renderUI();">
+            🎯 Campanha &amp; Trabalhos Fixos
+          </button>
+          <button type="button" id="tabDynamicContracts" class="hc-btn sm ${this.mainTab === 'dynamic' ? 'primary' : 'ghost'}" onclick="window.missionsEngine.mainTab='dynamic';window.missionsEngine.renderUI();">
+            📜 Contratos Procedurais das 3 Facções (${dynamicCount}) ${activeDynamicCount > 0 ? `· <span style="color:#35b877;font-weight:bold;">${activeDynamicCount} Ativo(s)</span>` : ''}
+          </button>
+        </div>
+      `;
+
+      if (this.mainTab === 'dynamic' && window.dynamicContractsEngine) {
+        container.innerHTML = `
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            ${navTabsHeader}
+            ${window.dynamicContractsEngine.renderHtml()}
+          </div>
+        `;
+        return;
+      }
+
       const tutCardHtml = tutInfo.completed ? '' : `
         <div class="hc-card" style="padding:1.15rem 1.3rem;border-color:rgba(53,184,119,0.45);background:rgba(53,184,119,0.06);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">
           <div style="max-width:720px;">
@@ -1061,6 +1085,7 @@
 
       container.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:14px;">
+          ${navTabsHeader}
           ${tutCardHtml}
           ${activeHtml}
 
