@@ -139,9 +139,12 @@
       const validHops = this.state.enabled ? this.getValidHopsForTarget(targetIp) : [];
       const isProtected = this.state.enabled && validHops.length > 0;
 
+      const myIpHtml = window.networkIdentity && window.networkIdentity.renderBlurredMyIpHtml
+        ? window.networkIdentity.renderBlurredMyIpHtml(myIp, true)
+        : esc(myIp);
       const routeText = isProtected
-        ? `${esc(myIp)} → ${validHops.map((h) => `<strong style="color:var(--hc-accent-text);">${esc(h)}</strong>`).join(' → ')} → ${esc(targetIp)}`
-        : `${esc(myIp)} → ${esc(targetIp)} <span style="color:var(--hc-warning);">(Conexão Direta · Apague seu IP da log antes de sair!)</span>`;
+        ? `${myIpHtml} → ${validHops.map((h) => `<strong style="color:var(--hc-accent-text);">${esc(h)}</strong>`).join(' → ')} → ${esc(targetIp)}`
+        : `${myIpHtml} → ${esc(targetIp)} <span style="color:var(--hc-warning);">(Conexão Direta · Apague seu IP da log antes de sair!)</span>`;
 
       return `
         <div id="inetBounceBar" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;margin-bottom:10px;background:var(--hc-inset);border:1px solid ${isProtected ? 'rgba(53,184,119,0.4)' : 'var(--hc-border)'};border-radius:8px;font-size:0.78rem;">

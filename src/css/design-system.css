@@ -315,6 +315,50 @@ h1, h2, h3, h4 { font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; }
   line-height: 1.45;
 }
 
+/* ---- Proteção de Privacidade do IP do Jogador (Anti-Curiosos: últimos 7 dígitos com blur até passar o mouse) ---- */
+.my-ip-privacy {
+  display: inline-flex;
+  align-items: baseline;
+  vertical-align: baseline;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.my-ip-privacy:focus-visible {
+  outline: 2px solid var(--hc-accent-text);
+  outline-offset: 2px;
+}
+
+.my-ip-privacy .my-ip-head {
+  display: inline;
+}
+
+.my-ip-privacy .my-ip-blur-tail {
+  display: inline-block;
+  filter: blur(5.5px);
+  opacity: 0.86;
+  user-select: none;
+  -webkit-user-select: none;
+  padding: 0 2px;
+  margin: 0 -2px;
+  transition: filter 0.16s ease, opacity 0.16s ease;
+}
+
+.my-ip-privacy:hover .my-ip-blur-tail,
+.my-ip-privacy:focus-visible .my-ip-blur-tail,
+.my-ip-privacy:active .my-ip-blur-tail,
+#hudMyIpChip:hover .my-ip-blur-tail,
+#hudMyIpChip:focus-within .my-ip-blur-tail,
+#homeMyIpCell:hover .my-ip-blur-tail,
+#homeMyIpCell:focus-within .my-ip-blur-tail,
+#logsSideMyIpRow:hover .my-ip-blur-tail,
+#ispCurrentMyIpBox:hover .my-ip-blur-tail {
+  filter: blur(0px);
+  opacity: 1;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
