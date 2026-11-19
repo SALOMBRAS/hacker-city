@@ -48,6 +48,8 @@
   <script src="src/js/online-cloud-pvp-engine.js"></script>
   <script src="src/js/conn-manager-engine.js"></script>
   <script src="src/js/interactive-tour-ux-engine.js"></script>
+  <script src="src/js/lan-servers-engine.js"></script>
+  <script src="src/js/world-map-engine.js"></script>
 </head>
 <body>
 
@@ -249,6 +251,7 @@
             <button type="button" class="nav-item" data-win="winLogs" onclick="navTo('winLogs')"><i data-icon="file-text"></i><span>Meus Rastros (Logs)</span></button>
             <button type="button" class="nav-item" data-win="winSkillTree" onclick="navTo('winSkillTree')"><i data-icon="network"></i><span>Talentos &amp; Classes</span></button>
             <button type="button" class="nav-item" data-win="winTerminal" onclick="navTo('winTerminal')"><i data-icon="terminal"></i><span>Modo Comando (Extra)</span></button>
+            <button type="button" class="nav-item" id="navBtnLanServers" onclick="window.openLanModal()"><i data-icon="hard-drive"></i><span>Datacenter &amp; LAN</span></button>
           </div>
         </details>
 
@@ -266,6 +269,7 @@
             <button type="button" class="nav-item" data-win="winHackedDb" onclick="navTo('winHackedDb')"><i data-icon="database"></i><span>Senhas Descobertas</span></button>
             <button type="button" class="nav-item" data-win="winMissions" onclick="navTo('winMissions')"><i data-icon="target"></i><span>Trabalhos &amp; Missões</span></button>
             <button type="button" class="nav-item" data-win="winFbi" onclick="navTo('winFbi')"><i data-icon="shield-alert"></i><span>Polícia &amp; Recompensas</span></button>
+            <button type="button" class="nav-item" id="navBtnWorldMap" onclick="window.openWorldMapModal()"><i data-icon="globe-2"></i><span>Mapa-Múndi Tático</span></button>
           </div>
         </details>
 
