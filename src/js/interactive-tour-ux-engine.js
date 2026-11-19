@@ -368,35 +368,36 @@
             if (typeof window.navTo === 'function') window.navTo('winSoftware');
           }
         },
-        // PASSO 4 (idx 3)
+        // PASSO 4
         {
           id: 'running_ram_cooldown',
-          selector: '#runningProgramsPanel',
-          pointerLabel: '👀 Força & Carência',
+          selector: '#softwareExplorerMain',
+          fallbackSelector: '#runningProgramsPanel',
+          pointerLabel: '👀 Seus Aplicativos no PC',
           requiresDirectClick: false,
-          title: '4. Nível dos Programas, 1 Escudo por Vez & Carência!',
-          desc: 'Todo programa tem uma força (<code>v1.0</code>, <code>v1.5</code>, <code>v2.0</code>...). Você só limpa vírus do seu PC se seu <strong>Antivírus</strong> for <code>&gt;=</code> ao vírus, e <strong>nunca podem rodar 2 Firewalls ao mesmo tempo</strong>!',
-          hint: '⏱️ Ao ganhar um Firewall melhor, você desliga o antigo e fica alguns segundos desprotegido no <strong>Tempo de Carência</strong> até o novo ligar.',
+          title: '4. Programas no Disco vs. Segundo Plano',
+          desc: 'Aqui ficam os apps do seu PC (<strong>HD, SSD e NVMe</strong>) com ações de <strong>Rodar, Esconder, Mover e Apagar</strong>. O <strong>Firewall</strong> e o <strong>Hasher</strong> ficam rodando direto (1 por vez, com carência ao trocar).',
+          hint: '⚡ Já o <strong>Quebrador de Senha (Cracker)</strong> e o <strong>Antivírus</strong> ficam em <strong>segundo plano</strong>: não precisam rodar direto no PC — basta clicar na hora de usar!',
           nextLabel: 'Entendi! Vamos Invadir →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
             if (window.winManager && window.winManager.current !== 'winSoftware') {
               if (typeof window.navTo === 'function') window.navTo('winSoftware');
             }
-            if (window.softwareEngine && window.softwareEngine.state) {
-              window.softwareEngine.state.activeTab = 'tools';
+            if (window.softwareEngine) {
+              window.softwareEngine.activeTab = 'inventory';
               window.softwareEngine.renderUI('softwareAppBody');
             }
           }
         },
-        // PASSO 5 (idx 4)
+        // PASSO 5
         {
           id: 'topic_net',
           selector: '#navSummary_net',
           pointerLabel: '👆 Clique neste tópico',
           requiresDirectClick: true,
           title: '5. Tópico Explorar & Invadir',
-          desc: 'Agora vamos fazer sua <strong>primeira invasão completa do início ao fim</strong>: comparar defesas, quebrar senha, subir vírus, executar vírus e apagar a log!',
+          desc: 'Agora vamos fazer sua <strong>primeira invasão completa do início ao fim</strong>: comparar defesas, escolher o hash no Mini-PC, subir vírus, executar e apagar a log!',
           hint: '👆 <strong>Clique em "Explorar & Invadir"</strong> na barra lateral!',
           nextLabel: 'Abrir Explorar & Invadir →',
           onEnter: () => {
@@ -409,14 +410,14 @@
             if (d) d.open = true;
           }
         },
-        // PASSO 6 (idx 5)
+        // PASSO 6
         {
           id: 'open_browser',
           selector: 'button.nav-item[data-win="winBrowser"]',
           pointerLabel: '👆 Clique em Navegar por IPs',
           requiresDirectClick: true,
           title: '6. O Navegador de Computadores',
-          desc: 'É por aqui que você digita o IP de qualquer jogador, empresa, banco ou máquina de Enigma (onde você baixa novos vírus!).',
+          desc: 'É por aqui que você acessa o diretório de IPs públicos ou digita o IP de qualquer jogador, empresa, banco ou enigma.',
           hint: '👆 <strong>Clique em "Navegar por IPs"</strong> para colocarmos um PC de treino na sua mira!',
           nextLabel: 'Ir p/ Navegar por IPs →',
           onEnter: () => {
@@ -433,73 +434,112 @@
             }
           }
         },
-        // PASSO 7 (idx 6) — COMPARAR FORÇA DOS APLICATIVOS DA VÍTIMA!
+        // PASSO 7 — COMPARAR FORÇA DOS APLICATIVOS DA VÍTIMA!
         {
           id: 'compare_defenses',
           selector: '#inetHostDefenseCompareBox',
           pointerLabel: '👀 Compare os Programas!',
           requiresDirectClick: false,
           title: '7. Regra Vital: Os Programas Dele São Melhores que os Seus?',
-          desc: '<strong>Sempre olhe este quadro antes de atacar!</strong> Não adianta tentar invadir se o <strong>Escudo (Firewall)</strong> ou o <strong>Cofre (Hasher)</strong> da vítima for mais forte que o seu <strong>Quebrador de Senhas</strong>!',
-          hint: '✅ Veja ali: seu Quebrador é <code>v1.0</code> e o Escudo + Cofre dele também são <code>v1.0</code> — por isso aparece <strong>VOCÊ CONSEGUE INVADIR!</strong> (E ele está <em>Sem Antivírus</em>!).',
-          nextLabel: 'Boa! Bora Quebrar a Senha →',
+          desc: '<strong>Sempre olhe este quadro antes de atacar!</strong> Só é possível invadir se o <strong>Firewall</strong> e o <strong>Hasher</strong> da vítima forem menores ou iguais ao seu <strong>Quebrador de Senhas</strong>!',
+          hint: '✅ Seu melhor Hash no PC é <code>v1.0</code> e a defesa dele também é <code>v1.0</code> — por isso aparece <strong>Alcance compatível</strong>!',
+          nextLabel: 'Boa! Abrir Quebrador →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
             if (window.internetEngine) {
+              window.internetEngine.closeCrackerMiniPc();
               window.internetEngine.disconnectSsh(true);
               window.internetEngine.openIp(TRAINING_IP, 'invadir');
             }
           }
         },
-        // PASSO 8 (idx 7) — QUEBRAR A SENHA!
+        // PASSO 8 — CLICAR EM QUEBRAR SENHA PARA ABRIR O MINI-PC!
         {
           id: 'crack_password',
           selector: '#btnInetBruteforce',
           fallbackSelector: '#cardAttackBruteforce',
-          pointerLabel: '👆 Clique p/ Quebrar a Senha!',
+          pointerLabel: '👆 Clique em Quebrar senha!',
           requiresDirectClick: true,
-          title: '8. Invadindo: Quebrar a Senha da Vítima',
-          desc: `Já conferimos que seu programa alcança a defesa de <code>${TRAINING_IP}</code>. Agora vamos descobrir a senha principal dele!`,
-          hint: '🔑 <strong>Clique em "Quebrar Senha Agora"</strong> e aguarde a barra chegar a 100%!',
-          nextLabel: 'Quebrar Senha Agora →',
+          title: '8. Abrir seu Mini-PC de Quebrar Senha',
+          desc: `Como o quebrador funciona em <strong>segundo plano</strong>, você não precisou ativá-lo antes: basta clicar em <strong>Quebrar senha</strong> para abrir a lista de hashes do seu PC!`,
+          hint: '🔑 <strong>Clique em "Quebrar senha"</strong> para escolher qual programa do seu HD, SSD ou NVMe usar!',
+          nextLabel: 'Abrir Mini-PC →',
+          onEnter: () => {
+            this.ensureMobileDrawerIfNeeded(false);
+            if (window.internetEngine) {
+              window.internetEngine.closeCrackerMiniPc();
+              if (window.internetEngine.activeSshIp === TRAINING_IP) {
+                setTimeout(() => {
+                  if (this.isActive && this.currentStepId() === 'crack_password') {
+                    this.goToStepById('upload_virus_stage');
+                  }
+                }, 120);
+                return;
+              }
+              window.internetEngine.openIp(TRAINING_IP, 'invadir');
+            }
+          },
+          triggerAction: () => {
+            if (window.internetEngine) {
+              window.internetEngine.openCrackerMiniPc('all');
+            }
+          }
+        },
+        // PASSO 9 — ESCOLHER QUAL HASH USAR NO MINI-PC (HD / SSD / NVMe)!
+        {
+          id: 'choose_minipc_hash',
+          selector: '#miniPcCrackerWindow',
+          fallbackSelector: '#btnMiniPcUseBest',
+          pointerLabel: '👆 Escolha o Cracker v1.0!',
+          requiresDirectClick: true,
+          title: '9. Mini-PC: Escolha Qual Hash Usar (HD / SSD / NVMe)',
+          desc: 'Aqui aparecem todos os hashes guardados nas unidades <strong>HD, SSD e NVMe</strong> do seu computador! Repare que o <code>v0.5</code> é fraco p/ este alvo, enquanto o <code>Cracker.crc v1.0</code> alcança a defesa.',
+          hint: '👆 <strong>Clique em "Usar este"</strong> no <code>Cracker.crc v1.0</code> e aguarde a quebra chegar em 100%!',
+          nextLabel: 'Usar Cracker v1.0 →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
             if (window.internetEngine) {
               if (window.internetEngine.activeSshIp === TRAINING_IP) {
                 setTimeout(() => {
-                  if (this.isActive && this.stepIndex === 7) this.goToStep(8);
+                  if (this.isActive && this.currentStepId() === 'choose_minipc_hash') {
+                    this.goToStepById('upload_virus_stage');
+                  }
                 }, 120);
                 return;
               }
-              window.internetEngine.openIp(TRAINING_IP, 'invadir');
+              if (!window.internetEngine.isCracking && !window.internetEngine.miniPcOpen) {
+                window.internetEngine.openIp(TRAINING_IP, 'invadir');
+                window.internetEngine.openCrackerMiniPc('all');
+              }
             }
             this.startWatchingAsyncStep('crack');
           },
           triggerAction: () => {
             if (!window.internetEngine) return;
             if (window.internetEngine.activeSshIp === TRAINING_IP) {
-              this.goToStep(8);
+              this.goToStepById('upload_virus_stage');
               return;
             }
             if (!window.internetEngine.isCracking) {
-              window.internetEngine.startBruteforce();
+              window.internetEngine.confirmBruteforceWithHash('main_cracker');
             }
             this.startWatchingAsyncStep('crack');
           }
         },
-        // PASSO 9 (idx 8) — SUBIR O VÍRUS PRO PC DA VÍTIMA (UPLOAD)!
+        // PASSO 10 — SUBIR O VÍRUS PRO PC DA VÍTIMA (UPLOAD)!
         {
           id: 'upload_virus_stage',
           selector: '#remoteVirusDeployCard',
           fallbackSelector: '#btnUploadVirusStage',
           pointerLabel: '👆 Clique em 1️⃣ Subir pro PC da Vítima!',
           requiresDirectClick: true,
-          title: '9. Subindo o Vírus pro Disco da Vítima (1ª Etapa)',
-          desc: 'Você entrou no PC dele! O Mestre Tankado liberou sua 1ª amostra <code>Spam.vspam (v1.0)</code> (os próximos vírus você baixa nos <strong>Puzzles</strong>). Confira sempre se a vítima tem <strong>HD/RAM livres</strong> e <strong>Antivírus</strong> mais fraco que seu vírus!',
-          hint: '📤 <strong>Clique em "1️⃣ Subir pro PC da Vítima"</strong> para enviar o arquivo do vírus pela sua internet até o disco dele!',
+          title: '10. Subindo o Vírus pro Disco da Vítima (1ª Etapa)',
+          desc: 'Você entrou no PC dele! Veja abaixo a lista de programas instalados na máquina da vítima (com botão de <strong>Download</strong>!). Agora vamos subir sua 1ª amostra <code>Spam.vspam (v1.0)</code> pro disco dele.',
+          hint: '📤 <strong>Clique em "1️⃣ Subir pro PC da Vítima"</strong> para enviar o arquivo pela sua internet!',
           nextLabel: '1️⃣ Subir Vírus Agora →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
+            if (window.internetEngine) window.internetEngine.closeCrackerMiniPc();
             this.ensureConnectedRootOnTrainingHost();
             if (window.softwareEngine && typeof window.softwareEngine.grantTutorialStarterSample === 'function') {
               window.softwareEngine.grantTutorialStarterSample();
@@ -509,11 +549,12 @@
               window.internetEngine.sshSubTab = 'files';
               window.internetEngine.render('internetAppBody');
             }
-            // Se já subiu antes, avança direto p/ executar!
             const staged = window.softwareEngine ? window.softwareEngine.getStagedVirusesOnIp(TRAINING_IP) : [];
             if (staged.length > 0) {
               setTimeout(() => {
-                if (this.isActive && this.stepIndex === 8) this.goToStep(9);
+                if (this.isActive && this.currentStepId() === 'upload_virus_stage') {
+                  this.goToStepById('execute_staged_virus');
+                }
               }, 140);
               return;
             }
@@ -523,7 +564,7 @@
             if (!window.internetEngine || !window.softwareEngine) return;
             const staged = window.softwareEngine.getStagedVirusesOnIp(TRAINING_IP);
             if (staged.length > 0) {
-              this.goToStep(9);
+              this.goToStepById('execute_staged_virus');
               return;
             }
             if (!window.softwareEngine.activeUploadJob) {
@@ -532,16 +573,16 @@
             this.startWatchingAsyncStep('upload_stage');
           }
         },
-        // PASSO 10 (idx 9) — EXECUTAR O VÍRUS NO PC DA VÍTIMA!
+        // PASSO 11 — EXECUTAR O VÍRUS NO PC DA VÍTIMA!
         {
           id: 'execute_staged_virus',
           selector: '#stagedVirusesBox',
           fallbackSelector: '#btnExecStagedVirus_vspam',
           pointerLabel: '👆 Clique em 2️⃣ Executar no PC da Vítima!',
           requiresDirectClick: true,
-          title: '10. Executando o Vírus na Memória da Vítima (2ª Etapa)',
-          desc: 'Veja a caixa laranja: subir o arquivo só colocou o <code>/root/Spam.vspam</code> no disco da vítima — <strong>ele ainda está parado</strong>! Se você sair sem executar, ele não gera nenhum centavo!',
-          hint: '▶️ <strong>Clique em "2️⃣ ▶ Executar no PC da Vítima"</strong> para rodá-lo na memória dela gerando dinheiro p/ você!',
+          title: '11. Executando o Vírus na Memória da Vítima (2ª Etapa)',
+          desc: 'Subir o arquivo só colocou o <code>/root/Spam.vspam</code> no disco da vítima — <strong>ele ainda está parado</strong>! Se você sair sem rodar, ele não gera dinheiro.',
+          hint: '▶️ <strong>Clique em "2️⃣ ▶ Executar no PC da Vítima"</strong> para ativá-lo na memória dela!',
           nextLabel: '2️⃣ Executar Vírus →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
@@ -551,7 +592,6 @@
               const staged = window.softwareEngine.getStagedVirusesOnIp(TRAINING_IP);
               const running = window.softwareEngine.getRemoteVirusesOnIp(TRAINING_IP);
               if (staged.length === 0 && running.length === 0) {
-                // Garante que haja o arquivo staged caso o jogador tenha voltado/pulado
                 window.softwareEngine.state.stagedRemoteViruses[TRAINING_IP] = [{
                   virusKey: 'vspam',
                   filename: 'Spam.vspam',
@@ -576,13 +616,13 @@
             }
           }
         },
-        // PASSO 11 (idx 10) — VOLTAR NA ABA DE LOGS DA VÍTIMA!
+        // PASSO 12 — VOLTAR NA ABA DE LOGS DA VÍTIMA!
         {
           id: 'back_to_logs_tab',
           selector: '#btnSshSubTabLogs',
           pointerLabel: '👆 Volte p/ Logs da Vítima!',
           requiresDirectClick: true,
-          title: '11. Atenção: Subir e Executar Gravaram Seu IP de Novo!',
+          title: '12. Atenção: Subir e Executar Gravaram Seu IP de Novo!',
           desc: 'Seu vírus já está rodando e gerando lucro! <strong>MAS CUIDADO:</strong> tanto entrar quanto subir o arquivo e executar o vírus deixaram seu IP anotado na log da vítima!',
           hint: '⚠️ <strong>Nunca saia sem limpar a log por último!</strong> Clique agora em <strong>"Logs (/var/log/syslog) ⚠️"</strong>!',
           nextLabel: 'Abrir Logs da Vítima →',
@@ -602,15 +642,15 @@
             }
           }
         },
-        // PASSO 12 (idx 11) — APAGAR RASTROS + DEIXAR FARPA + RECOMPENSA!
+        // PASSO 13 — APAGAR RASTROS + DEIXAR FARPA + RECOMPENSA!
         {
           id: 'wipe_log_and_taunt',
           selector: '#remoteTauntQuickBar',
           fallbackSelector: '#remoteLogEditorBox',
           pointerLabel: '👆 Apague seu IP & Deixe Farpa!',
           requiresDirectClick: true,
-          title: '12. Apague Todos os Seus Rastros & Tire Onda!',
-          desc: 'Olhe na caixa preta abaixo: lá estão seus <strong>3 rastros</strong> (entrada, upload e execução do vírus) com seu IP! Jogadores espertos apagam o próprio IP e ainda deixam uma farpa provocando a vítima!',
+          title: '13. Apague Todos os Seus Rastros & Tire Onda!',
+          desc: 'Olhe na caixa abaixo: lá estão seus <strong>3 rastros</strong> (entrada, upload e execução do vírus) com seu IP! Jogadores espertos apagam o próprio IP e ainda deixam uma farpa provocando a vítima!',
           hint: '🔥 <strong>Clique em "Apagar Meu IP & Deixar Farpa"</strong> para ficar invisível com o vírus lucrando lá dentro e ganhar <strong>+$ 500 HC + 100 REP</strong>!',
           nextLabel: 'Concluir (+$500) →',
           onEnter: () => {
@@ -704,8 +744,18 @@
       }
     }
 
+    currentStepId() {
+      return (this.steps[this.stepIndex] && this.steps[this.stepIndex].id) || '';
+    }
+
+    goToStepById(stepId) {
+      const idx = this.steps.findIndex((s) => s.id === stepId);
+      if (idx >= 0) this.goToStep(idx);
+    }
+
     prev() {
       if (this.stepIndex <= 0) return;
+      if (window.internetEngine) window.internetEngine.closeCrackerMiniPc();
       this.goToStep(this.stepIndex - 1);
     }
 
@@ -715,9 +765,15 @@
 
       if (step.id === 'crack_password') {
         if (step.triggerAction) step.triggerAction();
+        this.goToStepById('choose_minipc_hash');
+        return;
+      }
+
+      if (step.id === 'choose_minipc_hash') {
+        if (step.triggerAction) step.triggerAction();
         const hintEl = document.getElementById('hcTourActionHint');
         if (hintEl && window.internetEngine && window.internetEngine.isCracking) {
-          hintEl.innerHTML = '⏳ <strong>Quebrando senha em tempo real...</strong> Assim que chegar em 100%, avançaremos sozinhos!';
+          hintEl.innerHTML = '⏳ <strong>Quebrando senha em segundo plano...</strong> Assim que chegar em 100%, avançaremos sozinhos!';
         }
         return;
       }
@@ -755,23 +811,24 @@
           this.asyncWatchTimer = null;
           return;
         }
-        if (kind === 'crack' && this.stepIndex === 7) {
+        const curId = this.currentStepId();
+        if (kind === 'crack' && (curId === 'crack_password' || curId === 'choose_minipc_hash')) {
           if (window.internetEngine && window.internetEngine.activeSshIp === TRAINING_IP) {
             clearInterval(this.asyncWatchTimer);
             this.asyncWatchTimer = null;
-            this.goToStep(8);
+            this.goToStepById('upload_virus_stage');
           }
-        } else if (kind === 'upload_stage' && this.stepIndex === 8) {
+        } else if (kind === 'upload_stage' && curId === 'upload_virus_stage') {
           const staged = window.softwareEngine ? window.softwareEngine.getStagedVirusesOnIp(TRAINING_IP) : [];
           const running = window.softwareEngine ? window.softwareEngine.getRemoteVirusesOnIp(TRAINING_IP) : [];
           if (staged.length > 0) {
             clearInterval(this.asyncWatchTimer);
             this.asyncWatchTimer = null;
-            this.goToStep(9);
+            this.goToStepById('execute_staged_virus');
           } else if (running.length > 0) {
             clearInterval(this.asyncWatchTimer);
             this.asyncWatchTimer = null;
-            this.goToStep(10);
+            this.goToStepById('back_to_logs_tab');
           }
         }
       }, 200);
@@ -824,6 +881,9 @@
 
     resolveTargetElement(step) {
       if (!step) return null;
+      if (step.id === 'choose_minipc_hash' && window.internetEngine && window.internetEngine.isCracking) {
+        return document.getElementById('cardAttackBruteforce') || document.querySelector(step.selector);
+      }
       let el = document.querySelector(step.selector);
       if ((!el || el.offsetWidth === 0) && step.fallbackSelector) {
         el = document.querySelector(step.fallbackSelector);
@@ -842,14 +902,14 @@
           setTimeout(() => {
             const d = document.getElementById('navTopic_pc');
             if (d) d.open = true;
-            if (this.isActive && this.stepIndex === 1) this.goToStep(2);
+            if (this.isActive && this.currentStepId() === 'topic_pc') this.goToStepById('open_software');
           }, 80);
           return;
         }
 
         if (step.id === 'open_software') {
           setTimeout(() => {
-            if (this.isActive && this.stepIndex === 2) this.goToStep(3);
+            if (this.isActive && this.currentStepId() === 'open_software') this.goToStepById('running_ram_cooldown');
           }, 100);
           return;
         }
@@ -858,7 +918,7 @@
           setTimeout(() => {
             const d = document.getElementById('navTopic_net');
             if (d) d.open = true;
-            if (this.isActive && this.stepIndex === 4) this.goToStep(5);
+            if (this.isActive && this.currentStepId() === 'topic_net') this.goToStepById('open_browser');
           }, 80);
           return;
         }
@@ -869,17 +929,29 @@
               window.internetEngine.disconnectSsh(true);
               window.internetEngine.openIp(TRAINING_IP, 'invadir');
             }
-            if (this.isActive && this.stepIndex === 5) this.goToStep(6);
+            if (this.isActive && this.currentStepId() === 'open_browser') this.goToStepById('compare_defenses');
           }, 100);
           return;
         }
 
         if (step.id === 'crack_password') {
-          const hintEl = document.getElementById('hcTourActionHint');
-          if (hintEl) {
-            hintEl.innerHTML = '⏳ <strong>Boa! Quebrando a senha...</strong> Aguarde chegar em 100% que o próximo passo abre sozinho!';
+          setTimeout(() => {
+            if (this.isActive && this.currentStepId() === 'crack_password') {
+              this.goToStepById('choose_minipc_hash');
+            }
+          }, 90);
+          return;
+        }
+
+        if (step.id === 'choose_minipc_hash') {
+          const clickedBtn = ev.target && ev.target.closest ? ev.target.closest('button') : null;
+          if (clickedBtn && (clickedBtn.id === 'btnMiniPcUseBest' || String(clickedBtn.getAttribute('onclick') || '').includes('confirmBruteforceWithHash'))) {
+            const hintEl = document.getElementById('hcTourActionHint');
+            if (hintEl) {
+              hintEl.innerHTML = '⏳ <strong>Boa! Quebrando a senha em segundo plano...</strong> Aguarde chegar em 100% que o próximo passo abre sozinho!';
+            }
+            this.startWatchingAsyncStep('crack');
           }
-          this.startWatchingAsyncStep('crack');
           return;
         }
 
@@ -899,7 +971,7 @@
           const clickedBtn = ev.target && ev.target.closest ? ev.target.closest('button') : null;
           if (clickedBtn && clickedBtn.id.startsWith('btnExecStagedVirus_')) {
             setTimeout(() => {
-              if (this.isActive && this.stepIndex === 9) this.goToStep(10);
+              if (this.isActive && this.currentStepId() === 'execute_staged_virus') this.goToStepById('back_to_logs_tab');
             }, 180);
           }
           return;
@@ -907,7 +979,7 @@
 
         if (step.id === 'back_to_logs_tab') {
           setTimeout(() => {
-            if (this.isActive && this.stepIndex === 10) this.goToStep(11);
+            if (this.isActive && this.currentStepId() === 'back_to_logs_tab') this.goToStepById('wipe_log_and_taunt');
           }, 120);
           return;
         }
