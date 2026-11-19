@@ -1,7 +1,6 @@
 /**
- * Hacker City // Pilar 7: Darknet Fórum, The Cyber Chronicle & Perfil Público Clicável
- * Integra comunicação assíncrona da comunidade, jornalismo procedural do submundo cibernético
- * e modal de dossiê/perfil de qualquer jogador ao clicar em seu codinome.
+ * Hacker City // Pilar 7: Fórum da Rede, Notícias da Rede & Perfil Público Clicável
+ * Páginas nativas integradas ao Design System ("Arroz com Feijão Bem Feito").
  */
 (function () {
   function esc(s) {
@@ -12,139 +11,152 @@
       .replace(/"/g, '&quot;');
   }
 
-  // Sementes iniciais para o Fórum
+  function iconSvg(name) {
+    return (window.HC && window.HC.icon) ? window.HC.icon(name) : '';
+  }
+
+  const CATEGORY_LABELS = {
+    geral: 'Todos',
+    exploits: 'Dicas & Exploits',
+    recrutamento: 'Recrutamento',
+    farpas: 'Farpas & Disputas',
+    mercado: 'Mercado'
+  };
+
   const DEFAULT_FORUM_THREADS = [
     {
       id: 'th_01',
       category: 'exploits',
-      title: 'Dica: Como quebrar o Puzzle do Nó 15 (Buffer 2048) e liberar Minerador v7.0',
+      title: 'Guia prático: como fechar o Enigma 15 (Buffer 2048) e destravar o Minerador v7.0',
       authorTag: 'ZeroCool',
       authorSpec: 'exploiter',
       pinned: true,
       locked: false,
       upvotes: 42,
       views: 312,
-      createdAt: '2026-11-18 22:15',
+      createdAt: 'Ontem · 22:15',
       posts: [
         {
           id: 'p_01_1',
           authorTag: 'ZeroCool',
-          content: 'Irmãos da rede, para fechar a grade 2048 no BufferMerge sempre empurrem os blocos maiores para o canto inferior direito. Não deixem o nó 64 no meio do buffer!',
+          content: 'Para fechar a grade 2048 sem travar o tabuleiro, mantenham sempre o maior bloco fixo no canto inferior direito e evitem subir a coluna principal.',
           upvotes: 28,
-          createdAt: '2026-11-18 22:15'
+          createdAt: 'Ontem · 22:15'
         },
         {
           id: 'p_01_2',
           authorTag: 'AcidBurn',
-          content: 'Confirmo a técnica. Funcionou de primeira no mainframe do FBI também. Valeu pela dica, Zero.',
+          content: 'Testado e aprovado! Passei de primeira usando essa sequência e já instalei o minerador novo.',
           upvotes: 14,
-          createdAt: '2026-11-18 22:40'
+          createdAt: 'Ontem · 22:40'
         }
       ]
     },
     {
       id: 'th_02',
       category: 'farpas',
-      title: 'Aviso ao clã CyberShadows: sua botnet em Tóquio caiu',
+      title: 'Recado ao clã CyberShadows: os nós de vocês em Tóquio caíram',
       authorTag: 'CrashOver',
       authorSpec: 'botmaster',
       pinned: false,
       locked: false,
       upvotes: 68,
       views: 520,
-      createdAt: '2026-11-19 00:04',
+      createdAt: 'Hoje · 00:04',
       posts: [
         {
           id: 'p_02_1',
           authorTag: 'CrashOver',
-          content: 'Tentaram derrubar nosso gateway com DDoS fraco de 12 Gbps. Revidamos com 80 Gbps pelo backbone de Seul e limpamos todos os zumbis de vocês. Melhorem.',
+          content: 'Tentaram derrubar nosso gateway durante a madrugada, mas revidamos pelo backbone de Seul e tomamos a influência da região.',
           upvotes: 45,
-          createdAt: '2026-11-19 00:04'
+          createdAt: 'Hoje · 00:04'
         },
         {
           id: 'p_02_2',
           authorTag: 'LordNikon',
-          content: 'Prints ou nunca aconteceu. A gente viu o trace do FBI batendo na porta de vocês agorinha...',
+          content: 'A disputa ainda não acabou. Nos vemos no próximo ciclo de território.',
           upvotes: 19,
-          createdAt: '2026-11-19 00:22'
+          createdAt: 'Hoje · 00:22'
         }
       ]
     },
     {
       id: 'th_03',
       category: 'recrutamento',
-      title: '[RECRUTAMENTO] The Syndicate abrindo 3 vagas para Sentinels nível 10+',
+      title: 'The Syndicate com 3 vagas abertas para especialistas em defesa (Firewall v5.0+)',
       authorTag: 'PhantomX',
       authorSpec: 'sentinel',
       pinned: true,
       locked: false,
       upvotes: 35,
       views: 290,
-      createdAt: '2026-11-19 01:10',
+      createdAt: 'Hoje · 01:10',
       posts: [
         {
           id: 'p_03_1',
           authorTag: 'PhantomX',
-          content: 'Buscamos operadores com foco em defesa territorial e firewall v6.0+. Oferecemos cofre compartilhado com mais de 2.500.000 HC e bônus de banda em Zurique.',
+          content: 'Procuramos operadores ativos para manter nossas zonas na Europa. Cofre do clã abastecido e bônus regional liberado para todos os membros.',
           upvotes: 21,
-          createdAt: '2026-11-19 01:10'
+          createdAt: 'Hoje · 01:10'
         }
       ]
     },
     {
       id: 'th_04',
       category: 'mercado',
-      title: 'Vendo lote de Exploits Zero-Day v8.5 para Mainframes Bancários',
+      title: 'Troco coordenadas de servidores vulneráveis por informações de contas offshore',
       authorTag: 'CerealKiller',
       authorSpec: 'carder',
       pinned: false,
       locked: false,
       upvotes: 18,
       views: 180,
-      createdAt: '2026-11-19 02:00',
+      createdAt: 'Hoje · 02:00',
       posts: [
         {
           id: 'p_04_1',
           authorTag: 'CerealKiller',
-          content: 'Aceito BTC ou HC via escrow de conta offshore. Quem tiver interesse manda PM na caixa de mensagens.',
+          content: 'Interessados podem mandar mensagem direta pela caixa criptografada.',
           upvotes: 12,
-          createdAt: '2026-11-19 02:00'
+          createdAt: 'Hoje · 02:00'
         }
       ]
     }
   ];
 
-  // Notícias dinâmicas do jornal The Cyber Chronicle
   const DEFAULT_NEWS = [
     {
       id: 'news_01',
-      edition: 'Edição Noturna #412',
-      category: 'manchete',
+      edition: 'Edição #412',
+      category: 'Manchete',
+      badgeCls: 'success',
       date: '19/11/2026',
-      headline: 'RAID MASSIVO NO BANCO CENTRAL OFFSHORE: MAIS DE 1.2M HC TRANSFERIDOS EM MINUTOS',
-      lead: 'Operação relâmpago atribuída a operadores anônimos contornou firewalls v7.0 e esvaziou cofres em Zurique.',
-      body: 'Especialistas em segurança da Safenet confirmam que os atacantes utilizaram cadeias de saltos transatlânticos passando por São Paulo, Londres e Tóquio, reduzindo a taxa de rastreamento para menos de 10%. As autoridades já emitiram 4 novos dossiês de busca no Mainframe FBI 161.89.1.1.',
-      source: 'Redação Darknet Press'
+      headline: 'Transferência milionária esvazia reservas de banco offshore em Zurique',
+      lead: 'Operadores usaram cadeia de 4 saltos intercontinentais para contornar o rastreamento e limpar os registros em menos de dois minutos.',
+      body: 'Analistas da Safenet apontam que o grupo combinou quebra de senha de alta versão com roteamento por São Paulo, Londres e Tóquio. Quatro novos dossiês sob investigação foram abertos no servidor federal 161.89.1.1.',
+      source: 'Redação da Rede'
     },
     {
       id: 'news_02',
-      edition: 'Edição Noturna #412',
-      category: 'fbi',
+      edition: 'Edição #412',
+      category: 'Polícia Federal',
+      badgeCls: 'danger',
       date: '19/11/2026',
-      headline: 'MAINFRAME DO FBI REFORÇA LISTA DE PROCURADOS COM RECOMPENSAS DE ATÉ 150.000 HC',
-      lead: 'Agentes federais aumentam vigilância sobre nós de gateway suspeitos que utilizam roteamento de Honeypot.',
-      body: 'Qualquer operador que expurgar seus dossiês do servidor 161.89.1.1 poderá ter o mandado suspenso temporariamente, porém o algoritmo de correlação de logs do FBI está operando em capacidade máxima.',
-      source: 'Divisão de Crimes Cibernéticos'
+      headline: 'FBI eleva recompensas por procurados que deixaram rastros em invasões recentes',
+      lead: 'Servidores governamentais atualizaram a lista pública de mandados com pagamentos imediatos para quem derrubar os alvos.',
+      body: 'Operadores experientes seguem tentando invadir o próprio mainframe 161.89.1.1 para expurgar fichas antes que caçadores de recompensas localizem seus gateways públicos.',
+      source: 'Boletim Safenet'
     },
     {
       id: 'news_03',
-      edition: 'Edição Noturna #412',
-      category: 'territorios',
+      edition: 'Edição #412',
+      category: 'Territórios',
+      badgeCls: 'info',
       date: '19/11/2026',
-      headline: 'GUERRA DE CLÃS: THE SYNDICATE DOMINA ROTA DE CABOS SUBMARINOS EM CINGAPURA',
-      lead: 'Batalha de botnets pelo controle do tráfego do Sudeste Asiático atinge pico de 140 Gbps.',
-      body: 'Com o controle de Cingapura e Hong Kong, membros do Syndicate agora desfrutam de um bônus de 30% em largura de banda e taxas de lavagem reduzidas.',
-      source: 'Observatório BGP Global'
+      headline: 'Disputa entre clãs movimenta rotas submarinas na Europa e Ásia-Pacífico',
+      lead: 'Controle dos pontos de presença em Cingapura e Frankfurt garante vantagem de banda e sigilo bancário às equipes vencedoras.',
+      body: 'Qualquer operador pode contribuir reforçando ou infiltrando regiões diretamente pelo Mapa-Múndi para virar o placar de influência.',
+      source: 'Observatório Global'
     }
   ];
 
@@ -154,6 +166,7 @@
       this.news = [];
       this.activeCategory = 'geral';
       this.activeThreadId = null;
+      this.composeOpen = false;
       this.init();
     }
 
@@ -163,7 +176,7 @@
     }
 
     storageKey() {
-      return 'HC_DARKNET_SOCIAL_STATE';
+      return 'HC_DARKNET_SOCIAL_STATE_V2';
     }
 
     loadState() {
@@ -193,7 +206,6 @@
       } catch (e) {}
     }
 
-    // Configura delegação de eventos para que qualquer clique em [data-player-tag] abra o perfil
     setupNickClickDelegation() {
       document.addEventListener('click', (e) => {
         const target = e.target.closest('[data-player-tag], .player-nick-link');
@@ -201,6 +213,7 @@
           const tag = target.getAttribute('data-player-tag') || target.innerText.trim().replace(/^@/, '');
           if (tag) {
             e.preventDefault();
+            e.stopPropagation();
             this.openProfileModal(tag);
           }
         }
@@ -208,56 +221,24 @@
     }
 
     // =========================================================================
-    // 1. FÓRUM DARKNET
+    // 1. FÓRUM DA REDE (Página Nativa winForum)
     // =========================================================================
     openForumModal() {
-      let modal = document.getElementById('darknet-forum-modal');
-      if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'darknet-forum-modal';
-        modal.style.position = 'fixed';
-        modal.style.top = '0';
-        modal.style.left = '0';
-        modal.style.width = '100vw';
-        modal.style.height = '100vh';
-        modal.style.background = 'rgba(5, 8, 14, 0.82)';
-        modal.style.backdropFilter = 'blur(6px)';
-        modal.style.zIndex = '9999';
-        modal.style.display = 'flex';
-        modal.style.alignItems = 'center';
-        modal.style.justifyContent = 'center';
-        modal.innerHTML = `
-          <div style="background:#0f1521;border:1px solid #23344d;border-radius:12px;width:920px;max-width:96vw;box-shadow:0 18px 45px rgba(0,0,0,0.7);overflow:hidden;font-family:sans-serif;color:#e2e8f0;">
-            <div style="background:#151f30;padding:12px 18px;border-bottom:1px solid #23344d;display:flex;justify-content:space-between;align-items:center;">
-              <div style="display:flex;align-items:center;gap:8px;">
-                <span style="font-size:1.15rem;">💬</span>
-                <strong style="font-size:0.98rem;letter-spacing:0.02em;color:#38bdf8;">DARKNET COMMUNITY FÓRUM // TÓPICOS &amp; EXPLOITS</strong>
-              </div>
-              <button id="close-forum-modal-btn" style="background:transparent;border:none;color:#8e9db4;font-size:1.2rem;cursor:pointer;padding:0 6px;">✕</button>
-            </div>
-            <div id="darknet-forum-body" style="padding:16px;max-height:82vh;overflow-y:auto;"></div>
-          </div>
-        `;
-        document.body.appendChild(modal);
-
-        document.getElementById('close-forum-modal-btn').onclick = () => {
-          modal.style.display = 'none';
-        };
-      } else {
-        modal.style.display = 'flex';
+      if (typeof window.navTo === 'function') {
+        window.navTo('winForum');
       }
-
       this.renderForumUI();
     }
 
     createThread(category, title, content) {
       if (!title || !content) {
-        if (window.showToast) window.showToast('Título e conteúdo são obrigatórios!', 'warning');
+        if (window.showToast) window.showToast('Preencha o título e a mensagem do tópico.', 'warning');
         return;
       }
 
-      const myTag = (window.currentProfile && window.currentProfile.hacker_tag) || 'Operador_Anônimo';
+      const myTag = (window.currentProfile && window.currentProfile.hacker_tag) || 'Operador';
       const mySpec = (window.currentProfile && window.currentProfile.specialty) || 'exploiter';
+      const timeNow = 'Agora · ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
       const newTh = {
         id: `th_${Date.now()}`,
@@ -269,54 +250,44 @@
         locked: false,
         upvotes: 1,
         views: 1,
-        createdAt: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        createdAt: timeNow,
         posts: [
           {
             id: `p_${Date.now()}_1`,
             authorTag: myTag,
             content: content.trim(),
             upvotes: 1,
-            createdAt: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+            createdAt: timeNow
           }
         ]
       };
 
       this.threads.unshift(newTh);
+      this.composeOpen = false;
       this.saveState();
 
-      if (window.showToast) window.showToast('📝 Tópico publicado no Darknet Fórum!', 'success');
-      if (window.audioEngine && typeof window.audioEngine.playKeyClick === 'function') {
-        window.audioEngine.playKeyClick();
-      }
-
+      if (window.showToast) window.showToast('Tópico publicado no Fórum da Rede.', 'success');
       this.activeThreadId = newTh.id;
       this.renderForumUI();
     }
 
     replyThread(threadId, content) {
       if (!content || !content.trim()) return;
-
       const th = this.threads.find((t) => t.id === threadId);
       if (!th) return;
 
-      const myTag = (window.currentProfile && window.currentProfile.hacker_tag) || 'Operador_Anônimo';
-
+      const myTag = (window.currentProfile && window.currentProfile.hacker_tag) || 'Operador';
       th.posts.push({
         id: `p_${Date.now()}`,
         authorTag: myTag,
         content: content.trim(),
         upvotes: 0,
-        createdAt: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+        createdAt: 'Agora · ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
       });
-
       th.views += 1;
       this.saveState();
 
-      if (window.showToast) window.showToast('💬 Resposta postada com sucesso!', 'info');
-      if (window.audioEngine && typeof window.audioEngine.playKeyClick === 'function') {
-        window.audioEngine.playKeyClick();
-      }
-
+      if (window.showToast) window.showToast('Resposta enviada.', 'info');
       this.renderForumUI();
     }
 
@@ -330,55 +301,54 @@
     }
 
     renderForumHtml() {
-      // Se tiver um tópico aberto em detalhes
       if (this.activeThreadId) {
         const th = this.threads.find((t) => t.id === this.activeThreadId);
         if (th) {
-          const postsHtml = th.posts.map((p) => `
-            <div style="background:#131c2a;border:1px solid #23344d;border-radius:6px;padding:12px;margin-bottom:8px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;border-bottom:1px solid #1a273b;padding-bottom:4px;">
-                <div style="display:flex;align-items:center;gap:6px;">
-                  <span style="cursor:pointer;color:#38bdf8;font-weight:bold;font-size:0.88rem;" data-player-tag="${esc(p.authorTag)}">
-                    @${esc(p.authorTag)}
-                  </span>
-                  <span style="font-size:0.7rem;background:#1e293b;color:#94a3b8;padding:1px 5px;border-radius:3px;">${esc(p.createdAt)}</span>
+          const catLabel = CATEGORY_LABELS[th.category] || th.category;
+          const postsHtml = th.posts.map((p) => {
+            const initials = p.authorTag.slice(0, 2).toUpperCase();
+            return `
+              <div class="hc-card" style="padding: 14px 18px; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="width: 28px; height: 28px; border-radius: 50%; background: var(--hc-surface-3); color: var(--hc-text); font-size: 11px; font-weight: 700; display: grid; place-items: center;">${esc(initials)}</span>
+                    <strong style="cursor: pointer; color: var(--hc-accent-text); font-size: 13.5px;" data-player-tag="${esc(p.authorTag)}">@${esc(p.authorTag)}</strong>
+                    <span class="mono" style="font-size: 11.5px; color: var(--hc-text-3);">${esc(p.createdAt)}</span>
+                  </div>
                 </div>
-                <div style="font-size:0.75rem;color:#35b877;font-weight:bold;">▲ ${p.upvotes}</div>
+                <div style="font-size: 13.5px; color: var(--hc-text); line-height: 1.55; white-space: pre-wrap; padding-left: 38px;">${esc(p.content)}</div>
               </div>
-              <div style="font-size:0.85rem;color:#cbd5e1;line-height:1.45;white-space:pre-wrap;">${esc(p.content)}</div>
-            </div>
-          `).join('');
+            `;
+          }).join('');
 
           return `
             <div>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 10px; flex-wrap: wrap;">
                 <button type="button" class="hc-btn ghost sm" onclick="window.darknetSocialEngine.activeThreadId = null; window.darknetSocialEngine.renderForumUI();">
-                  ◀ Voltar para Lista de Tópicos
+                  ${iconSvg('arrow-left')} Voltar aos tópicos
                 </button>
-                <button type="button" class="hc-btn primary sm" onclick="window.darknetSocialEngine.upvoteThread('${esc(th.id)}')">
-                  ▲ Upvote Tópico (${th.upvotes})
+                <button type="button" class="hc-btn sm" onclick="window.darknetSocialEngine.upvoteThread('${esc(th.id)}')">
+                  ${iconSvg('arrow-up')} Apoiar tópico (${th.upvotes})
                 </button>
               </div>
 
-              <div style="background:#0c111a;border:1px solid #1e2c40;border-radius:8px;padding:14px;margin-bottom:14px;">
-                <div style="font-size:0.75rem;color:#f59e0b;font-weight:bold;text-transform:uppercase;margin-bottom:4px;">
-                  [${esc(th.category)}] · Publicado por @${esc(th.authorTag)} em ${esc(th.createdAt)}
+              <div class="hc-card" style="margin-bottom: 16px; padding: 18px 20px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                  <span class="hc-badge info">${esc(catLabel)}</span>
+                  <span style="font-size: 12px; color: var(--hc-text-3);">Iniciado por <strong style="cursor:pointer;color:var(--hc-text-2);" data-player-tag="${esc(th.authorTag)}">@${esc(th.authorTag)}</strong> · ${esc(th.createdAt)}</span>
                 </div>
-                <h3 style="margin:0 0 10px 0;font-size:1.1rem;color:#fff;">${esc(th.title)}</h3>
+                <h2 style="margin: 0; font-size: 19px; color: var(--hc-text);">${esc(th.title)}</h2>
               </div>
 
-              <div style="margin-bottom:14px;">
-                <h4 style="margin:0 0 8px 0;font-size:0.86rem;color:#94a3b8;">RESPOSTAS DA COMUNIDADE (${th.posts.length})</h4>
-                ${postsHtml}
-              </div>
+              <div class="hc-eyebrow" style="margin-bottom: 10px;">Mensagens (${th.posts.length})</div>
+              <div style="margin-bottom: 18px;">${postsHtml}</div>
 
-              <!-- Caixa de resposta -->
-              <div style="background:#0c111a;border:1px solid #1e2c40;border-radius:8px;padding:12px;">
-                <div style="font-size:0.82rem;font-weight:bold;color:#38bdf8;margin-bottom:6px;">RESPONDER A ESTE TÓPICO</div>
-                <textarea id="forum-reply-input" style="width:100%;height:70px;background:#151f30;border:1px solid #23344d;border-radius:6px;color:#fff;padding:8px;font-size:0.85rem;resize:none;" placeholder="Escreva sua resposta ou contra-argumento..."></textarea>
-                <div style="display:flex;justify-content:flex-end;margin-top:6px;">
-                  <button type="button" class="hc-btn primary sm" onclick="window.darknetSocialEngine.replyThread('${esc(th.id)}', document.getElementById('forum-reply-input').value)">
-                    Publicar Resposta
+              <div class="hc-card" style="padding: 16px 18px;">
+                <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">Participar da discussão</div>
+                <textarea id="forum-reply-input" class="hc-input" style="height: 84px; padding: 10px 12px; resize: vertical;" placeholder="Escreva sua resposta..."></textarea>
+                <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+                  <button type="button" class="hc-btn primary" onclick="window.darknetSocialEngine.replyThread('${esc(th.id)}', document.getElementById('forum-reply-input').value)">
+                    Publicar resposta
                   </button>
                 </div>
               </div>
@@ -387,193 +357,189 @@
         }
       }
 
-      // Lista geral de tópicos
-      const filteredThreads = this.activeCategory === 'geral' 
-        ? this.threads 
+      const filtered = this.activeCategory === 'geral'
+        ? this.threads
         : this.threads.filter((t) => t.category === this.activeCategory);
 
-      const threadCards = filteredThreads.map((t) => `
-        <div style="background:#131c2a;border:1px solid #23344d;border-radius:8px;padding:12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:border-color 0.2s;" onclick="window.darknetSocialEngine.activeThreadId = '${esc(t.id)}'; window.darknetSocialEngine.renderForumUI();">
-          <div>
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-              ${t.pinned ? '<span style="font-size:0.7rem;background:rgba(245,158,11,0.2);color:#f59e0b;padding:1px 6px;border-radius:3px;font-weight:bold;">PINNED</span>' : ''}
-              <span style="font-size:0.72rem;background:#1e293b;color:#94a3b8;padding:1px 6px;border-radius:3px;text-transform:uppercase;">${esc(t.category)}</span>
-              <strong style="color:#fff;font-size:0.92rem;">${esc(t.title)}</strong>
-            </div>
-            <div style="font-size:0.75rem;color:#8e9db4;">
-              Por <span style="color:#38bdf8;" data-player-tag="${esc(t.authorTag)}">@${esc(t.authorTag)}</span> · ${t.posts.length} respostas · ${t.views} views · ${esc(t.createdAt)}
-            </div>
-          </div>
-
-          <div style="text-align:right;">
-            <div style="font-size:0.85rem;color:#35b877;font-weight:bold;">▲ ${t.upvotes}</div>
-          </div>
-        </div>
-      `).join('');
+      const rows = filtered.map((t) => {
+        const initials = t.authorTag.slice(0, 2).toUpperCase();
+        const catLabel = CATEGORY_LABELS[t.category] || t.category;
+        return `
+          <tr style="cursor: pointer;" onclick="window.darknetSocialEngine.activeThreadId = '${esc(t.id)}'; window.darknetSocialEngine.renderForumUI();">
+            <td>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="width: 32px; height: 32px; border-radius: 50%; background: var(--hc-surface-2); border: 1px solid var(--hc-border); color: var(--hc-text-2); font-size: 11px; font-weight: 700; display: grid; place-items: center; flex-shrink: 0;">${esc(initials)}</span>
+                <div>
+                  <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                    ${t.pinned ? '<span class="hc-badge warning">Fixado</span>' : ''}
+                    <strong style="font-size: 14px; color: var(--hc-text);">${esc(t.title)}</strong>
+                  </div>
+                  <div style="font-size: 12px; color: var(--hc-text-3); margin-top: 2px;">
+                    Por <span style="color: var(--hc-accent-text);" data-player-tag="${esc(t.authorTag)}">@${esc(t.authorTag)}</span> · ${esc(t.createdAt)}
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td><span class="hc-badge">${esc(catLabel)}</span></td>
+            <td class="mono" style="color: var(--hc-text-2); font-size: 12.5px;">${t.posts.length}</td>
+            <td class="mono" style="text-align: right; color: var(--hc-accent-text); font-weight: 600;">▲ ${t.upvotes}</td>
+          </tr>
+        `;
+      }).join('');
 
       return `
-        <div style="display:flex;flex-direction:column;gap:14px;">
-          <!-- Barra de Categorias e Novo Tópico -->
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:1px solid #1f2b3d;padding-bottom:10px;">
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              ${['geral', 'exploits', 'recrutamento', 'farpas', 'mercado'].map((cat) => `
-                <button type="button" class="hc-btn ${this.activeCategory === cat ? 'primary' : 'ghost'} sm" onclick="window.darknetSocialEngine.activeCategory = '${cat}'; window.darknetSocialEngine.renderForumUI();">
-                  ${cat.toUpperCase()}
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--hc-border); margin-bottom: 16px;">
+            <div class="hc-tabs" style="border-bottom: 0;">
+              ${Object.entries(CATEGORY_LABELS).map(([key, label]) => `
+                <button type="button" class="hc-tab ${this.activeCategory === key ? 'active' : ''}" onclick="window.darknetSocialEngine.activeCategory = '${key}'; window.darknetSocialEngine.renderForumUI();">
+                  ${esc(label)}
                 </button>
               `).join('')}
             </div>
-
-            <button type="button" class="hc-btn primary sm" onclick="document.getElementById('forum-new-thread-box').style.display = document.getElementById('forum-new-thread-box').style.display === 'none' ? 'block' : 'none';">
-              + Criar Tópico
+            <button type="button" class="hc-btn primary sm" style="margin-bottom: 6px;" onclick="window.darknetSocialEngine.composeOpen = !window.darknetSocialEngine.composeOpen; window.darknetSocialEngine.renderForumUI();">
+              + Novo tópico
             </button>
           </div>
 
-          <!-- Caixa Expansível de Criar Novo Tópico -->
-          <div id="forum-new-thread-box" style="display:none;background:#0c111a;border:1px solid #23344d;border-radius:8px;padding:12px;">
-            <div style="font-size:0.85rem;font-weight:bold;color:#38bdf8;margin-bottom:8px;">PUBLICAR NOVO TÓPICO NA DARKNET</div>
-            <div style="display:grid;grid-template-columns:1fr 200px;gap:8px;margin-bottom:8px;">
-              <input type="text" id="new-thread-title" placeholder="Título chamativo do tópico..." style="background:#151f30;border:1px solid #23344d;border-radius:6px;color:#fff;padding:8px;font-size:0.85rem;">
-              <select id="new-thread-category" style="background:#151f30;border:1px solid #23344d;border-radius:6px;color:#fff;padding:8px;font-size:0.85rem;">
-                <option value="exploits">Exploits &amp; Puzzles</option>
-                <option value="recrutamento">Recrutamento de Clã</option>
-                <option value="farpas">Dossiês &amp; Farpas</option>
-                <option value="mercado">Mercado Negro</option>
-                <option value="geral">Geral &amp; Conversa</option>
-              </select>
+          ${this.composeOpen ? `
+            <div class="hc-card" style="margin-bottom: 16px; padding: 16px 18px;">
+              <div style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">Criar novo tópico</div>
+              <div style="display: grid; grid-template-columns: 1fr 200px; gap: 10px; margin-bottom: 10px;">
+                <input type="text" id="new-thread-title" class="hc-input" placeholder="Assunto claro e direto...">
+                <select id="new-thread-category" class="hc-input">
+                  <option value="exploits">Dicas &amp; Exploits</option>
+                  <option value="recrutamento">Recrutamento</option>
+                  <option value="farpas">Farpas &amp; Disputas</option>
+                  <option value="mercado">Mercado</option>
+                  <option value="geral">Geral</option>
+                </select>
+              </div>
+              <textarea id="new-thread-content" class="hc-input" style="height: 84px; padding: 10px 12px; resize: vertical;" placeholder="Escreva os detalhes da publicação..."></textarea>
+              <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
+                <button type="button" class="hc-btn ghost sm" onclick="window.darknetSocialEngine.composeOpen = false; window.darknetSocialEngine.renderForumUI();">Cancelar</button>
+                <button type="button" class="hc-btn primary sm" onclick="window.darknetSocialEngine.createThread(document.getElementById('new-thread-category').value, document.getElementById('new-thread-title').value, document.getElementById('new-thread-content').value)">
+                  Publicar tópico
+                </button>
+              </div>
             </div>
-            <textarea id="new-thread-content" style="width:100%;height:80px;background:#151f30;border:1px solid #23344d;border-radius:6px;color:#fff;padding:8px;font-size:0.85rem;resize:none;" placeholder="Conteúdo da postagem..."></textarea>
-            <div style="display:flex;justify-content:flex-end;margin-top:8px;">
-              <button type="button" class="hc-btn primary sm" onclick="window.darknetSocialEngine.createThread(document.getElementById('new-thread-category').value, document.getElementById('new-thread-title').value, document.getElementById('new-thread-content').value)">
-                Publicar Tópico Agora
-              </button>
-            </div>
-          </div>
+          ` : ''}
 
-          <!-- Lista de Tópicos -->
-          <div style="display:flex;flex-direction:column;gap:8px;">
-            ${threadCards || '<div style="color:#64748b;text-align:center;padding:20px;">Nenhum tópico nesta categoria ainda.</div>'}
+          <div class="hc-card" style="padding: 0; overflow: hidden;">
+            <table class="hc-table">
+              <thead>
+                <tr>
+                  <th>Tópico</th>
+                  <th>Categoria</th>
+                  <th>Respostas</th>
+                  <th style="text-align: right;">Votos</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows || '<tr><td colspan="4" style="text-align:center;color:var(--hc-text-3);padding:24px;">Nenhum tópico publicado nesta categoria.</td></tr>'}
+              </tbody>
+            </table>
           </div>
         </div>
       `;
     }
 
     renderForumUI() {
-      const container = document.getElementById('darknet-forum-body');
+      const container = document.getElementById('forumAppBody') || document.getElementById('darknet-forum-body');
       if (container) {
         container.innerHTML = this.renderForumHtml();
       }
     }
 
     // =========================================================================
-    // 2. JORNAL DA REDE (THE CYBER CHRONICLE)
+    // 2. NOTÍCIAS DA REDE (Página Nativa winNews)
     // =========================================================================
     openNewsModal() {
-      let modal = document.getElementById('cyber-chronicle-modal');
-      if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'cyber-chronicle-modal';
-        modal.style.position = 'fixed';
-        modal.style.top = '0';
-        modal.style.left = '0';
-        modal.style.width = '100vw';
-        modal.style.height = '100vh';
-        modal.style.background = 'rgba(4, 6, 11, 0.88)';
-        modal.style.backdropFilter = 'blur(6px)';
-        modal.style.zIndex = '9999';
-        modal.style.display = 'flex';
-        modal.style.alignItems = 'center';
-        modal.style.justifyContent = 'center';
-        modal.innerHTML = `
-          <div style="background:#0e131d;border:2px solid #38bdf8;border-radius:8px;width:880px;max-width:96vw;box-shadow:0 20px 50px rgba(0,0,0,0.8);overflow:hidden;font-family:'Courier New', monospace;color:#e2e8f0;">
-            <div style="background:#131c2a;padding:14px 20px;border-bottom:2px solid #38bdf8;display:flex;justify-content:space-between;align-items:center;">
-              <div>
-                <div style="font-size:1.3rem;font-weight:bold;letter-spacing:0.08em;color:#38bdf8;">📰 THE CYBER CHRONICLE</div>
-                <div style="font-size:0.75rem;color:#8e9db4;">O DIÁRIO INDEPENDENTE DO SUBMUNDO CIBERNÉTICO &amp; MERCADO SHADOW</div>
-              </div>
-              <button id="close-news-modal-btn" style="background:transparent;border:none;color:#8e9db4;font-size:1.4rem;cursor:pointer;padding:0 6px;">✕</button>
-            </div>
-            <div id="cyber-chronicle-body" style="padding:18px;max-height:82vh;overflow-y:auto;"></div>
-          </div>
-        `;
-        document.body.appendChild(modal);
-
-        document.getElementById('close-news-modal-btn').onclick = () => {
-          modal.style.display = 'none';
-        };
-      } else {
-        modal.style.display = 'flex';
+      if (typeof window.navTo === 'function') {
+        window.navTo('winNews');
       }
-
       this.renderNewsUI();
     }
 
     renderNewsHtml() {
-      const btcPrice = (window.softwareEngine && window.softwareEngine.btcPrice) || 84250;
-      const btcChange = '+4.8%';
+      const btcPrice = (window.bitcoinEngine && window.bitcoinEngine.btcUsdRate) || 84250;
+      const fbiCount = (window.safenetFbiEngine && Array.isArray(window.safenetFbiEngine.fbiWantedList))
+        ? window.safenetFbiEngine.fbiWantedList.length
+        : 0;
 
-      const newsCards = this.news.map((n) => `
-        <div style="background:#080c14;border:1px solid #1f2b3e;border-radius:6px;padding:14px;margin-bottom:12px;">
-          <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:#64748b;margin-bottom:6px;">
-            <span>[${esc(n.category.toUpperCase())}] · ${esc(n.edition)}</span>
-            <span>${esc(n.date)} · ${esc(n.source)}</span>
+      const cards = this.news.map((n) => `
+        <article class="hc-card" style="padding: 20px 22px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="hc-badge ${n.badgeCls || 'info'}">${esc(n.category)}</span>
+              <span class="mono" style="font-size: 11.5px; color: var(--hc-text-3);">${esc(n.edition)}</span>
+            </div>
+            <span class="mono" style="font-size: 11.5px; color: var(--hc-text-3);">${esc(n.date)} · ${esc(n.source)}</span>
           </div>
-          <h3 style="margin:0 0 8px 0;font-size:1.05rem;color:#fff;line-height:1.3;">${esc(n.headline)}</h3>
-          <div style="font-size:0.86rem;color:#38bdf8;font-style:italic;margin-bottom:8px;line-height:1.4;">"${esc(n.lead)}"</div>
-          <div style="font-size:0.82rem;color:#94a3b8;line-height:1.45;">${esc(n.body)}</div>
-        </div>
+          <h3 style="margin: 0 0 8px 0; font-size: 17.5px; color: var(--hc-text); line-height: 1.3;">${esc(n.headline)}</h3>
+          <p style="margin: 0 0 10px 0; font-size: 13.5px; color: var(--hc-accent-text); font-weight: 500; line-height: 1.45;">${esc(n.lead)}</p>
+          <p style="margin: 0; font-size: 13px; color: var(--hc-text-2); line-height: 1.55;">${esc(n.body)}</p>
+        </article>
       `).join('');
 
       return `
         <div>
-          <!-- Ticker Financeiro da Rede -->
-          <div style="background:#070a10;border:1px dashed #23344d;border-radius:4px;padding:8px 12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;font-size:0.78rem;">
-            <span>🪙 <strong>BITCOIN (BTC):</strong> $ ${Number(btcPrice).toLocaleString('pt-BR')} HC <span style="color:#35b877;">(${btcChange})</span></span>
-            <span>🛡️ <strong>STATUS SAFENET:</strong> <span style="color:#ef4444;">ALERTA VERMELHO (161.89.1.1)</span></span>
-            <span>⚡ <strong>VOLUMES DDOS:</strong> 184 Gbps</span>
+          <div class="hc-stat-strip" style="margin-bottom: 20px;">
+            <div class="hc-stat-cell">
+              <div class="hc-stat-label">Cotação Bitcoin</div>
+              <div class="hc-stat-value">$${Number(btcPrice).toLocaleString('pt-BR')}</div>
+              <div class="hc-stat-sub ok">+4,8% nas últimas 24h</div>
+            </div>
+            <div class="hc-stat-cell">
+              <div class="hc-stat-label">Mandados federais</div>
+              <div class="hc-stat-value">${fbiCount}</div>
+              <div class="hc-stat-sub">Mainframe 161.89.1.1</div>
+            </div>
+            <div class="hc-stat-cell">
+              <div class="hc-stat-label">Tráfego de ataque</div>
+              <div class="hc-stat-value">184 Gbps</div>
+              <div class="hc-stat-sub">Pico nos cabos asiáticos</div>
+            </div>
+            <div class="hc-stat-cell">
+              <div class="hc-stat-label">Boletim</div>
+              <div class="hc-stat-value">Edição #412</div>
+              <div class="hc-stat-sub">Atualizado automaticamente</div>
+            </div>
           </div>
 
-          <!-- Manchetes e Artigos -->
-          <div>${newsCards}</div>
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            ${cards}
+          </div>
         </div>
       `;
     }
 
     renderNewsUI() {
-      const container = document.getElementById('cyber-chronicle-body');
+      const container = document.getElementById('newsAppBody') || document.getElementById('cyber-chronicle-body');
       if (container) {
         container.innerHTML = this.renderNewsHtml();
       }
     }
 
     // =========================================================================
-    // 3. MODAL DE PERFIL PÚBLICO CLICÁVEL
+    // 3. PERFIL PÚBLICO CLICÁVEL (Dialog Compacto Neutro + Verde)
     // =========================================================================
     openProfileModal(tagOrId) {
       let modal = document.getElementById('player-profile-modal');
       if (!modal) {
         modal = document.createElement('div');
         modal.id = 'player-profile-modal';
-        modal.style.position = 'fixed';
-        modal.style.top = '0';
-        modal.style.left = '0';
-        modal.style.width = '100vw';
-        modal.style.height = '100vh';
-        modal.style.background = 'rgba(4, 6, 12, 0.84)';
-        modal.style.backdropFilter = 'blur(6px)';
-        modal.style.zIndex = '10000';
-        modal.style.display = 'flex';
-        modal.style.alignItems = 'center';
-        modal.style.justifyContent = 'center';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(8,10,14,0.72);backdrop-filter:blur(3px);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;';
+        modal.onclick = (ev) => {
+          if (ev.target === modal) modal.style.display = 'none';
+        };
         modal.innerHTML = `
-          <div style="background:#101724;border:1px solid #2d415e;border-radius:12px;width:580px;max-width:94vw;box-shadow:0 18px 45px rgba(0,0,0,0.7);overflow:hidden;font-family:sans-serif;color:#e2e8f0;">
-            <div style="background:#162133;padding:12px 18px;border-bottom:1px solid #2d415e;display:flex;justify-content:space-between;align-items:center;">
-              <div style="display:flex;align-items:center;gap:8px;">
-                <span style="font-size:1.15rem;">👤</span>
-                <strong style="font-size:0.95rem;letter-spacing:0.02em;color:#38bdf8;">DOSSIÊ DE OPERADOR // PERFIL PÚBLICO</strong>
-              </div>
-              <button id="close-profile-modal-btn" style="background:transparent;border:none;color:#8e9db4;font-size:1.2rem;cursor:pointer;padding:0 6px;">✕</button>
+          <div class="hc-card" style="width: 480px; max-width: 100%; padding: 0; overflow: hidden; box-shadow: var(--hc-shadow-3);">
+            <div style="padding: 14px 18px; border-bottom: 1px solid var(--hc-border); display: flex; justify-content: space-between; align-items: center;">
+              <strong style="font-size: 14px; color: var(--hc-text);">Perfil do operador</strong>
+              <button id="close-profile-modal-btn" type="button" class="icon-btn" aria-label="Fechar">${iconSvg('x') || '✕'}</button>
             </div>
-            <div id="player-profile-body" style="padding:16px;"></div>
+            <div id="player-profile-body" style="padding: 18px;"></div>
           </div>
         `;
         document.body.appendChild(modal);
@@ -592,9 +558,8 @@
       const container = document.getElementById('player-profile-body');
       if (!container) return;
 
-      const tag = String(targetTag || 'Operador_Anônimo').replace(/^@/, '');
-      
-      // Gera dados enriquecidos se for bot ou jogador do histórico
+      const tag = String(targetTag || 'Operador').replace(/^@/, '');
+      const initials = tag.slice(0, 2).toUpperCase();
       const hash = tag.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
       const specs = ['Infiltrador', 'Cyber Sentinel', 'Botmaster', 'Cripto-Carder'];
       const spec = specs[hash % specs.length];
@@ -605,51 +570,43 @@
       const isWanted = heat >= 4;
 
       container.innerHTML = `
-        <div style="display:flex;flex-direction:column;gap:12px;">
-          <!-- Topo do Perfil com Avatar e Tag -->
-          <div style="display:flex;align-items:center;gap:14px;background:#0a0e16;padding:12px;border-radius:8px;border:1px solid #1f2d40;">
-            <div style="width:56px;height:56px;border-radius:8px;background:linear-gradient(135deg, #1e293b, #0f172a);border:1px solid #38bdf8;display:flex;align-items:center;justify-content:center;font-size:1.6rem;">
-              👤
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--hc-accent); color: #fff; font-weight: 700; font-size: 15px; display: grid; place-items: center; flex-shrink: 0;">
+              ${esc(initials)}
             </div>
-            <div style="flex:1;">
-              <div style="display:flex;align-items:center;gap:8px;">
-                <strong style="font-size:1.15rem;color:#fff;">${esc(tag)}</strong>
-                ${isWanted ? '<span style="font-size:0.68rem;background:rgba(239,68,68,0.2);color:#ef4444;border:1px solid #ef4444;padding:1px 6px;border-radius:4px;font-weight:bold;">PROCURADO FBI</span>' : ''}
+            <div style="min-width: 0; flex: 1;">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <strong style="font-size: 17px; color: var(--hc-text);">${esc(tag)}</strong>
+                ${isWanted ? '<span class="hc-badge danger">Procurado FBI</span>' : '<span class="hc-badge success">Ativo</span>'}
               </div>
-              <div style="font-size:0.8rem;color:#94a3b8;margin-top:2px;">
-                Especialidade: <strong style="color:#38bdf8;">${spec}</strong> · Clã: <strong style="color:#f59e0b;">${clan}</strong>
+              <div style="font-size: 12.5px; color: var(--hc-text-2); margin-top: 2px;">
+                ${esc(spec)} · Clã <strong style="color: var(--hc-text);">${esc(clan)}</strong>
               </div>
             </div>
           </div>
 
-          <!-- Métricas e Hardware Estimado -->
-          <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:8px;">
-            <div style="background:#131c2a;border:1px solid #23344d;border-radius:6px;padding:8px;text-align:center;">
-              <div style="font-size:0.7rem;color:#8e9db4;">REPUTAÇÃO</div>
-              <div style="font-size:1.05rem;font-weight:bold;color:#35b877;">${rep.toLocaleString()} pts</div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); background: var(--hc-inset); border: 1px solid var(--hc-border); border-radius: 8px; overflow: hidden;">
+            <div style="padding: 10px 12px; border-right: 1px solid var(--hc-border);">
+              <div class="hc-eyebrow" style="font-size: 9.5px;">Reputação</div>
+              <div class="mono" style="font-size: 14px; font-weight: 600; color: var(--hc-accent-text); margin-top: 2px;">${rep.toLocaleString('pt-BR')}</div>
             </div>
-            <div style="background:#131c2a;border:1px solid #23344d;border-radius:6px;padding:8px;text-align:center;">
-              <div style="font-size:0.7rem;color:#8e9db4;">NÍVEL DE HEAT</div>
-              <div style="font-size:1.05rem;font-weight:bold;color:${heat >= 4 ? '#ef4444' : '#f59e0b'};">★ ${heat}/5</div>
+            <div style="padding: 10px 12px; border-right: 1px solid var(--hc-border);">
+              <div class="hc-eyebrow" style="font-size: 9.5px;">Alerta</div>
+              <div class="mono" style="font-size: 14px; font-weight: 600; margin-top: 2px;">Nível ${heat}/5</div>
             </div>
-            <div style="background:#131c2a;border:1px solid #23344d;border-radius:6px;padding:8px;text-align:center;">
-              <div style="font-size:0.7rem;color:#8e9db4;">GATEWAY IP</div>
-              <div style="font-size:0.92rem;font-family:monospace;color:#38bdf8;">${ipMask}</div>
+            <div style="padding: 10px 12px;">
+              <div class="hc-eyebrow" style="font-size: 9.5px;">Gateway</div>
+              <div class="mono" style="font-size: 13px; color: var(--hc-text-2); margin-top: 2px;">${ipMask}</div>
             </div>
           </div>
 
-          <!-- Dossiê de Inteligência -->
-          <div style="background:#090d14;border:1px solid #1c2738;border-radius:6px;padding:10px;font-size:0.78rem;color:#94a3b8;line-height:1.4;">
-            <strong style="color:#e2e8f0;">Relatório de Sensores:</strong> Alvo visto recentemente orbitando a faixa de rede de bancos offshore. Possui firewall ativo estimado em v4.0+ e histórico de ataques combinados de botnet.
-          </div>
-
-          <!-- Ações Rápidas de Interação Direta -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
-            <button type="button" class="hc-btn primary sm" onclick="window.darknetSocialEngine.actionSendMessage('${esc(tag)}')">
-              ✉️ Enviar Mensagem Privada
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 2px;">
+            <button type="button" class="hc-btn primary" onclick="window.darknetSocialEngine.actionSendMessage('${esc(tag)}')">
+              ${iconSvg('mail')} Enviar mensagem
             </button>
-            <button type="button" class="hc-btn ghost sm" style="color:#ef4444;" onclick="window.darknetSocialEngine.actionPlaceBounty('${esc(tag)}')">
-              🎯 Colocar Cabeça a Prêmio
+            <button type="button" class="hc-btn danger" onclick="window.darknetSocialEngine.actionPlaceBounty('${esc(tag)}')">
+              ${iconSvg('crosshair')} Recompensa
             </button>
           </div>
         </div>
@@ -657,23 +614,20 @@
     }
 
     actionSendMessage(targetTag) {
-      // Fecha modal de perfil e abre tela de mensagens
       const modal = document.getElementById('player-profile-modal');
       if (modal) modal.style.display = 'none';
-
       if (typeof window.navTo === 'function') window.navTo('winMail');
-      if (window.showToast) window.showToast(`Caixa de mensagens aberta para @${targetTag}`, 'info');
+      if (window.showToast) window.showToast(`Caixa de mensagens aberta para @${targetTag}.`, 'info');
     }
 
     actionPlaceBounty(targetTag) {
-      // Fecha modal de perfil e abre modal de recompensa
       const modal = document.getElementById('player-profile-modal');
       if (modal) modal.style.display = 'none';
-
       if (window.mmoEngine && typeof window.mmoEngine.openBountyModalForTarget === 'function') {
         window.mmoEngine.openBountyModalForTarget(targetTag);
       } else {
-        if (window.showToast) window.showToast(`Preparando contrato de caça para @${targetTag}...`, 'warning');
+        if (window.navTo) window.navTo('winFbi');
+        if (window.showToast) window.showToast(`Abrindo mural de recompensas para @${targetTag}.`, 'warning');
       }
     }
   }

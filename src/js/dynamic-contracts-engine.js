@@ -312,54 +312,57 @@
     }
 
     renderHtml() {
+      const badgeClsMap = { corporate: 'info', syndicate: 'danger', bounty: 'warning' };
+
       const activeSection = this.activeContracts.length === 0
-        ? `<div style="background:#0c1017;border:1px dashed #243144;border-radius:8px;padding:14px;text-align:center;color:#8e9db4;font-size:0.84rem;margin-bottom:18px;">
-             Nenhum contrato ativo no momento. Aceite até 3 contratos procedurais abaixo!
+        ? `<div class="hc-card" style="text-align:center;color:var(--hc-text-3);font-size:13px;padding:16px;margin-bottom:14px;">
+             Nenhum contrato aceito no momento. Escolha até 3 contratos simultâneos abaixo.
            </div>`
         : `
-          <div style="margin-bottom:20px;">
-            <h4 style="margin:0 0 10px 0;font-size:0.92rem;color:#35b877;display:flex;align-items:center;gap:6px;">
-              <span>⚡</span> SEUS CONTRATOS ATIVOS (${this.activeContracts.length}/3)
-            </h4>
+          <div style="margin-bottom:18px;">
+            <div class="hc-eyebrow" style="margin-bottom:8px;">Contratos em andamento (${this.activeContracts.length}/3)</div>
             <div style="display:flex;flex-direction:column;gap:10px;">
               ${this.activeContracts.map((c) => {
-                const fMeta = FACTION_DATA[c.faction];
+                const fMeta = FACTION_DATA[c.faction] || { badge: 'Contrato' };
+                const bCls = badgeClsMap[c.faction] || 'info';
                 const allDone = c.actions.every((a) => a.done);
 
                 return `
-                  <div style="background:#151c27;border:1px solid ${allDone ? '#35b877' : '#28374d'};border-radius:8px;padding:14px;">
+                  <div class="hc-card" style="border-color:${allDone ? 'var(--hc-success)' : 'var(--hc-border)'};">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
                       <div>
-                        <span style="font-size:0.75rem;padding:2px 8px;border-radius:4px;background:rgba(56,189,248,0.15);color:${fMeta.color};font-weight:bold;">${fMeta.badge}</span>
-                        <strong style="font-size:0.95rem;margin-left:6px;color:#fff;">${esc(c.title)}</strong>
-                        <div style="font-size:0.8rem;color:#94a3b8;margin-top:2px;">Cliente: ${esc(c.clientName)} · Alvo: <code style="color:#38bdf8;cursor:pointer;" onclick="window.internetEngine.openIp('${esc(c.targetIp)}')">${esc(c.targetIp)}</code> (${esc(c.targetHostname)})</div>
+                        <span class="hc-badge ${bCls}">${esc(fMeta.badge)}</span>
+                        <strong style="font-size:14.5px;margin-left:8px;color:var(--hc-text);">${esc(c.title)}</strong>
+                        <div style="font-size:12.5px;color:var(--hc-text-2);margin-top:4px;">
+                          Contratante: ${esc(c.clientName)} · Alvo: <code style="color:var(--hc-accent-text);cursor:pointer;" onclick="window.internetEngine.openIp('${esc(c.targetIp)}')">${esc(c.targetIp)}</code> (${esc(c.targetHostname)})
+                        </div>
                       </div>
                       <div style="text-align:right;">
-                        <strong style="color:#35b877;font-family:monospace;font-size:0.95rem;">${fmtUsd(c.rewardCash)}</strong>
-                        <div style="font-size:0.76rem;color:#f59e0b;font-family:monospace;">+${c.rewardBtc} BTC · +${c.reputationGain} REP</div>
+                        <strong class="mono" style="color:var(--hc-accent-text);font-size:14.5px;">${fmtUsd(c.rewardCash)}</strong>
+                        <div class="mono" style="font-size:11.5px;color:var(--hc-text-3);">+${c.rewardBtc} BTC · +${c.reputationGain} REP</div>
                       </div>
                     </div>
 
-                    <div style="margin:12px 0 10px 0;padding:10px;background:#0d121a;border-radius:6px;border:1px solid #1f2a3a;">
-                      <div style="font-size:0.76rem;color:#64748b;text-transform:uppercase;margin-bottom:6px;">Checklist de Requisitos:</div>
-                      <div style="display:flex;flex-direction:column;gap:4px;">
+                    <div style="margin:12px 0;padding:10px 12px;background:var(--hc-inset);border-radius:6px;border:1px solid var(--hc-border-subtle);">
+                      <div class="hc-eyebrow" style="font-size:10px;margin-bottom:6px;">Etapas necessárias</div>
+                      <div style="display:flex;flex-direction:column;gap:5px;">
                         ${c.actions.map((act) => `
-                          <div style="font-size:0.82rem;display:flex;align-items:center;gap:6px;color:${act.done ? '#35b877' : '#cbd5e1'};">
-                            <span>${act.done ? '✅' : '⬜'}</span>
-                            <span style="${act.done ? 'text-decoration:line-through;opacity:0.85;' : ''}">${esc(act.label)}</span>
+                          <div style="font-size:12.5px;display:flex;align-items:center;gap:8px;color:${act.done ? 'var(--hc-accent-text)' : 'var(--hc-text)'};">
+                            <span class="mono">${act.done ? '[✓]' : '[ ]'}</span>
+                            <span style="${act.done ? 'text-decoration:line-through;opacity:0.8;' : ''}">${esc(act.label)}</span>
                           </div>
                         `).join('')}
                       </div>
                     </div>
 
                     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-                      <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(c.targetIp)}', 'invadir')">
-                        Conectar ao Alvo (${esc(c.targetIp)}) →
+                      <button type="button" class="hc-btn sm" onclick="window.internetEngine.openIp('${esc(c.targetIp)}', 'invadir')">
+                        Abrir alvo (${esc(c.targetIp)}) →
                       </button>
                       <div style="display:flex;gap:8px;">
                         ${allDone
-                          ? `<button type="button" class="hc-btn primary sm" onclick="window.dynamicContractsEngine.claimReward('${esc(c.id)}')">🎉 Coletar Recompensa</button>`
-                          : `<button type="button" class="hc-btn ghost sm" style="color:#ef4444;border-color:#7f1d1d;" onclick="window.dynamicContractsEngine.abandonContract('${esc(c.id)}')">Abandonar</button>`}
+                          ? `<button type="button" class="hc-btn primary sm" onclick="window.dynamicContractsEngine.claimReward('${esc(c.id)}')">Receber pagamento</button>`
+                          : `<button type="button" class="hc-btn danger sm" onclick="window.dynamicContractsEngine.abandonContract('${esc(c.id)}')">Cancelar</button>`}
                       </div>
                     </div>
                   </div>
@@ -374,30 +377,31 @@
         : this.contracts.filter((x) => x.faction === this.activeTab);
 
       const boardCards = filtered.length === 0
-        ? `<div style="padding:24px;text-align:center;color:#8e9db4;font-size:0.84rem;">Nenhum contrato nesta categoria agora. Novos contratos chegam a cada 45 minutos!</div>`
+        ? `<div class="hc-card" style="padding:24px;text-align:center;color:var(--hc-text-3);font-size:13px;">Nenhum contrato disponível nesta aba.</div>`
         : filtered.map((c) => {
-            const fMeta = FACTION_DATA[c.faction];
+            const fMeta = FACTION_DATA[c.faction] || { badge: 'Contrato' };
+            const bCls = badgeClsMap[c.faction] || 'info';
             return `
-              <div style="background:#111622;border:1px solid #233044;border-radius:8px;padding:14px;display:flex;flex-direction:column;justify-content:space-between;">
+              <div class="hc-card" style="display:flex;flex-direction:column;justify-content:space-between;gap:12px;">
                 <div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                    <span style="font-size:0.72rem;padding:2px 8px;border-radius:4px;background:rgba(56,189,248,0.12);color:${fMeta.color};font-weight:bold;">${fMeta.badge}</span>
-                    <span style="font-size:0.72rem;color:#8e9db4;text-transform:uppercase;">Dif: <strong>${esc(c.difficulty)}</strong></span>
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <span class="hc-badge ${bCls}">${esc(fMeta.badge)}</span>
+                    <span class="mono" style="font-size:11px;color:var(--hc-text-3);">${esc(c.difficulty)}</span>
                   </div>
-                  <strong style="color:#fff;font-size:0.92rem;">${esc(c.title)}</strong>
-                  <div style="font-size:0.8rem;color:#94a3b8;margin:4px 0 8px 0;line-height:1.4;">${esc(c.briefing)}</div>
-                  <div style="font-size:0.78rem;color:#cbd5e1;margin-bottom:10px;">
-                    Alvo: <code style="color:#38bdf8;">${esc(c.targetIp)}</code> (${esc(c.targetHostname)})
+                  <strong style="color:var(--hc-text);font-size:14px;">${esc(c.title)}</strong>
+                  <p style="font-size:12.5px;color:var(--hc-text-2);margin:6px 0 10px 0;line-height:1.45;">${esc(c.briefing)}</p>
+                  <div style="font-size:12px;color:var(--hc-text-3);">
+                    Alvo: <code style="color:var(--hc-accent-text);">${esc(c.targetIp)}</code> · ${esc(c.targetHostname)}
                   </div>
                 </div>
 
-                <div style="border-top:1px solid #1e293b;padding-top:10px;display:flex;justify-content:space-between;align-items:center;">
+                <div style="border-top:1px solid var(--hc-border-subtle);padding-top:10px;display:flex;justify-content:space-between;align-items:center;">
                   <div>
-                    <strong style="color:#35b877;font-family:monospace;font-size:0.95rem;">${fmtUsd(c.rewardCash)}</strong>
-                    <div style="font-size:0.72rem;color:#f59e0b;font-family:monospace;">+${c.rewardBtc} BTC · +${c.reputationGain} REP</div>
+                    <strong class="mono" style="color:var(--hc-accent-text);font-size:14px;">${fmtUsd(c.rewardCash)}</strong>
+                    <div class="mono" style="font-size:11px;color:var(--hc-text-3);">+${c.rewardBtc} BTC · +${c.reputationGain} REP</div>
                   </div>
                   <button type="button" class="hc-btn primary sm" onclick="window.dynamicContractsEngine.acceptContract('${esc(c.id)}')">
-                    Aceitar Contrato
+                    Aceitar
                   </button>
                 </div>
               </div>
@@ -408,23 +412,23 @@
         <div style="display:flex;flex-direction:column;gap:12px;">
           ${activeSection}
 
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border-bottom:1px solid #28374d;padding-bottom:10px;">
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              <button type="button" class="hc-btn sm ${this.activeTab === 'all' ? 'primary' : 'ghost'}" onclick="window.dynamicContractsEngine.activeTab='all';window.dynamicContractsEngine.renderUI();">
-                Todos os Contratos (${this.contracts.length})
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--hc-border);">
+            <div class="hc-tabs" style="border-bottom:0;">
+              <button type="button" class="hc-tab ${this.activeTab === 'all' ? 'active' : ''}" onclick="window.dynamicContractsEngine.activeTab='all';window.dynamicContractsEngine.renderUI();">
+                Todos (${this.contracts.length})
               </button>
-              <button type="button" class="hc-btn sm ${this.activeTab === 'corporate' ? 'primary' : 'ghost'}" onclick="window.dynamicContractsEngine.activeTab='corporate';window.dynamicContractsEngine.renderUI();">
-                🏢 Corporativo (White Hat)
+              <button type="button" class="hc-tab ${this.activeTab === 'corporate' ? 'active' : ''}" onclick="window.dynamicContractsEngine.activeTab='corporate';window.dynamicContractsEngine.renderUI();">
+                Corporativo
               </button>
-              <button type="button" class="hc-btn sm ${this.activeTab === 'syndicate' ? 'primary' : 'ghost'}" onclick="window.dynamicContractsEngine.activeTab='syndicate';window.dynamicContractsEngine.renderUI();">
-                🏴‍☠️ Syndicate (Black Hat)
+              <button type="button" class="hc-tab ${this.activeTab === 'syndicate' ? 'active' : ''}" onclick="window.dynamicContractsEngine.activeTab='syndicate';window.dynamicContractsEngine.renderUI();">
+                Syndicate
               </button>
-              <button type="button" class="hc-btn sm ${this.activeTab === 'bounty' ? 'primary' : 'ghost'}" onclick="window.dynamicContractsEngine.activeTab='bounty';window.dynamicContractsEngine.renderUI();">
-                🎯 Caçador (Gray Hat)
+              <button type="button" class="hc-tab ${this.activeTab === 'bounty' ? 'active' : ''}" onclick="window.dynamicContractsEngine.activeTab='bounty';window.dynamicContractsEngine.renderUI();">
+                Caçador
               </button>
             </div>
-            <button type="button" class="hc-btn ghost sm" onclick="window.dynamicContractsEngine.generateContracts(true);window.dynamicContractsEngine.renderUI();">
-              Renovar Quadro Agora ↻
+            <button type="button" class="hc-btn ghost sm" style="margin-bottom:6px;" onclick="window.dynamicContractsEngine.generateContracts(true);window.dynamicContractsEngine.renderUI();">
+              Atualizar lista ↻
             </button>
           </div>
 
