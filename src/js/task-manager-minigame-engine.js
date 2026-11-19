@@ -594,9 +594,9 @@
   }
 
   // =========================================================================
-  // 3. PUZZLE TRAIL ENGINE ("FIRST PUZZLE" 109.64.200.10 -> 7 SERVIDORES EM CADEIA!)
+  // 3. PUZZLE TRAIL ENGINE ("FIRST PUZZLE" 109.64.200.10 -> 20 MÁQUINAS EM CADEIA!)
   // Regra Oficial: Você NÃO nasce com vírus nem compra qualquer vírus do nada!
-  // Os vírus básicos (v1.0) e ferramentas táticas são baixados invadindo as máquinas da Trilha de Enigmas!
+  // Os vírus e softwares raros (v1.0 a v10.0) são conquistados nos 5 minijogos reais!
   // =========================================================================
   const PUZZLE_CHAIN = [
     {
@@ -605,9 +605,9 @@
       hostname: 'First Puzzle // Gateway Enigma #1',
       kind: 'lightsout',
       title: 'Enigma #1 — Matriz Lights Out (3×3)',
-      prompt: 'Acenda TODOS os 9 nós da matriz quântica! Clicar em uma célula inverte ela e suas vizinhas ortogonais (ou resolva decodificando a chave secundária).',
+      prompt: 'Acenda TODOS os 9 nós da matriz quântica! Clicar em uma célula inverte ela e suas vizinhas ortogonais.',
       fallbackAnswer: '42',
-      nextIp: '109.64.200.22',
+      nextIp: '109.64.200.20',
       rewardLabel: 'Spam.vspam v1.0 + Collector.vcol v1.0',
       rewardSoftwares: [
         { softKey: 'vspam', versionInt: 10 },
@@ -619,14 +619,14 @@
     },
     {
       index: 2,
-      ip: '109.64.200.22',
-      hostname: 'Enigma Node #2 // Cipher Relay',
-      kind: 'qa',
-      title: 'Enigma #2 — Decodificação Binária ASCII',
-      prompt: 'Converta os 4 bytes binários interceptados no cabeçalho SSH para texto ASCII:\n01010010 01001111 01001111 01010100',
-      hint: 'São 4 letras (usuário administrador padrão do Unix).',
-      expectedAnswer: 'root',
-      nextIp: '109.64.200.35',
+      ip: '109.64.200.20',
+      hostname: 'Enigma Node #2 // Memory Sweep',
+      kind: 'minesweeper',
+      rows: 4, cols: 4, mineCount: 2,
+      title: 'Enigma #2 — Campo Minado Forense (4×4)',
+      prompt: 'Mapeie o setor de memória sem detonar as armadilhas de kernel ativas.',
+      fallbackAnswer: 'root',
+      nextIp: '109.64.200.30',
       rewardLabel: 'Warez.vwarez v1.0 + Torrent.torrent v1.0',
       rewardSoftwares: [
         { softKey: 'vwarez', versionInt: 10 },
@@ -638,14 +638,13 @@
     },
     {
       index: 3,
-      ip: '109.64.200.35',
-      hostname: 'Enigma Node #3 // Port Knocking',
-      kind: 'qa',
-      title: 'Enigma #3 — Protocolo e Porta Padrão',
-      prompt: 'Qual é o número da porta TCP padrão mundialmente reservada para conexões Secure Shell (SSH)?',
-      hint: 'Número inteiro de 2 dígitos.',
-      expectedAnswer: '22',
-      nextIp: '109.64.200.48',
+      ip: '109.64.200.30',
+      hostname: 'Enigma Node #3 // Cripto Sudoku',
+      kind: 'hex_sudoku',
+      title: 'Enigma #3 — Sudoku Hexadecimal 4×4',
+      prompt: 'Preencha a matriz criptográfica com 1, 2, 3 e 4 sem repetir em nenhuma linha, coluna ou bloco 2×2.',
+      fallbackAnswer: '22',
+      nextIp: '109.64.200.40',
       rewardLabel: 'FTP_Exploit.exp v1.0 + SSH_Exploit.exp v1.0 + Nmap.nmap v1.0',
       rewardSoftwares: [
         { softKey: 'exploit_ftp', versionInt: 10 },
@@ -658,14 +657,14 @@
     },
     {
       index: 4,
-      ip: '109.64.200.48',
-      hostname: 'Enigma Node #4 // Hexadecimal Vault',
-      kind: 'qa',
-      title: 'Enigma #4 — Conversão Hexadecimal',
-      prompt: 'Um pacote suspeito carrega o payload hexadecimal 0xFF. Qual é o valor decimal exato de 0xFF (1 byte cheio)?',
-      hint: '16 × 15 + 15 (último octeto de broadcast IPv4).',
-      expectedAnswer: '255',
-      nextIp: '109.64.200.61',
+      ip: '109.64.200.40',
+      hostname: 'Enigma Node #4 // Buffer Fusion 2048',
+      kind: 'buffer_2048',
+      targetVal: 64,
+      title: 'Enigma #4 — Fusão Algorítmica 2048 (Meta: 64KB)',
+      prompt: 'Funda blocos binários de pacotes até compilar um buffer íntegro de 64KB.',
+      fallbackAnswer: '255',
+      nextIp: '109.64.200.50',
       rewardLabel: 'Miner.vminer v1.0 + Antivirus.av v1.5',
       rewardSoftwares: [
         { softKey: 'vminer', versionInt: 10 },
@@ -677,14 +676,13 @@
     },
     {
       index: 5,
-      ip: '109.64.200.61',
-      hostname: 'Enigma Node #5 // Cifra César Forense',
-      kind: 'qa',
-      title: 'Enigma #5 — Criptoanálise ROT-1 (Deslocamento -1)',
-      prompt: 'Recue 1 letra no alfabeto em cada caractere de "IBDLFS" para revelar a senha mestre:',
-      hint: 'I->H, B->A, D->C...',
-      expectedAnswer: 'hacker',
-      nextIp: '109.64.200.77',
+      ip: '109.64.200.50',
+      hostname: 'Enigma Node #5 // Neural Tic-Tac-Toe',
+      kind: 'neural_ttt',
+      title: 'Enigma #5 — Jogo da Velha Quântico vs Safenet AI',
+      prompt: 'Vença ou empate estrategicamente contra o algoritmo minimax em 2 rodadas.',
+      fallbackAnswer: 'hacker',
+      nextIp: '109.64.200.60',
       rewardLabel: 'DDoS_Node.vddos v1.0 + DDoS_Breaker.vbrk v1.0',
       rewardSoftwares: [
         { softKey: 'vddos', versionInt: 10 },
@@ -696,14 +694,14 @@
     },
     {
       index: 6,
-      ip: '109.64.200.77',
-      hostname: 'Enigma Node #6 // Sub-Rede Bancária',
-      kind: 'qa',
-      title: 'Enigma #6 — Máscara de Sub-Rede (/24)',
-      prompt: 'Quantos endereços IPv4 totais (incluindo rede e broadcast) existem em um bloco CIDR /24 (2 elevado a 8)?',
-      hint: '2^8.',
-      expectedAnswer: '256',
-      nextIp: '109.64.200.88',
+      ip: '109.64.200.60',
+      hostname: 'Enigma Node #6 // Memory Sweep Tier 2',
+      kind: 'minesweeper',
+      rows: 5, cols: 5, mineCount: 3,
+      title: 'Enigma #6 — Campo Minado Militar (5×5)',
+      prompt: 'Desarme 3 armadilhas de kernel em bloco de alta velocidade.',
+      fallbackAnswer: '256',
+      nextIp: '109.64.200.65',
       rewardLabel: 'BankTrojan.vbank v1.0 + Cracker.crc v2.0',
       rewardSoftwares: [
         { softKey: 'vbank', versionInt: 10 },
@@ -715,14 +713,13 @@
     },
     {
       index: 7,
-      ip: '109.64.200.88',
-      hostname: 'Sanctum Omega // Enigma Final #7',
-      kind: 'qa',
-      title: 'Enigma #7 — Protocolo HyperText (HTTP)',
-      prompt: 'Qual é o número da porta TCP padrão utilizada por servidores Web HTTP não criptografados (WebServer.exe)?',
-      hint: 'Porta clássica de 2 dígitos da World Wide Web.',
-      expectedAnswer: '80',
-      nextIp: '71.4.20.1',
+      ip: '109.64.200.65',
+      hostname: 'Enigma Node #7 // Relé de Grade 4x4',
+      kind: 'lightsout',
+      title: 'Enigma #7 — Lights Out Quântico',
+      prompt: 'Alinhe o fluxo elétrico de todos os 9 relés de comutação.',
+      fallbackAnswer: '80',
+      nextIp: '109.64.200.70',
       rewardLabel: 'Firewall.fwl v2.5 + Hasher.hash v2.5 + Hider.hdr v2.5',
       rewardSoftwares: [
         { softKey: 'firewall', versionInt: 25 },
@@ -732,6 +729,246 @@
       rewardSoftKey: 'firewall',
       rewardSoftVer: 25,
       rewardRep: 150
+    },
+    {
+      index: 8,
+      ip: '109.64.200.70',
+      hostname: 'Enigma Node #8 // Cripto Sudoku Tier 2',
+      kind: 'hex_sudoku',
+      title: 'Enigma #8 — Sudoku Criptográfico Especialista',
+      prompt: 'Resolva a alocação de registros sem colisões de hash.',
+      fallbackAnswer: '443',
+      nextIp: '109.64.200.75',
+      rewardLabel: 'PortScan.scan v3.0 + Bypass.byp v3.0',
+      rewardSoftwares: [
+        { softKey: 'portscan', versionInt: 30 },
+        { softKey: 'hasher', versionInt: 30 }
+      ],
+      rewardSoftKey: 'portscan',
+      rewardSoftVer: 30,
+      rewardRep: 180
+    },
+    {
+      index: 9,
+      ip: '109.64.200.75',
+      hostname: 'Enigma Node #9 // Buffer Merge 128KB',
+      kind: 'buffer_2048',
+      targetVal: 128,
+      title: 'Enigma #9 — Compilador 2048 (Meta: 128KB)',
+      prompt: 'Funda pacotes em tempo real até consolidar o token binário de 128KB.',
+      fallbackAnswer: '1337',
+      nextIp: '109.64.200.80',
+      rewardLabel: 'Miner.vminer v3.5 + Collector.vcol v3.0',
+      rewardSoftwares: [
+        { softKey: 'vminer', versionInt: 35 },
+        { softKey: 'collector', versionInt: 30 }
+      ],
+      rewardSoftKey: 'vminer',
+      rewardSoftVer: 35,
+      rewardRep: 210
+    },
+    {
+      index: 10,
+      ip: '109.64.200.80',
+      hostname: 'Enigma Node #10 // Neural Minimax Nível 2',
+      kind: 'neural_ttt',
+      title: 'Enigma #10 — Duelo Quântico Safenet II',
+      prompt: 'Supere a heurística neural da polícia federal.',
+      fallbackAnswer: 'cipher',
+      nextIp: '109.64.200.82',
+      rewardLabel: 'Cracker.crc v4.0 + Hasher.hash v4.0',
+      rewardSoftwares: [
+        { softKey: 'cracker', versionInt: 40 },
+        { softKey: 'hasher', versionInt: 40 }
+      ],
+      rewardSoftKey: 'cracker',
+      rewardSoftVer: 40,
+      rewardRep: 250
+    },
+    {
+      index: 11,
+      ip: '109.64.200.82',
+      hostname: 'Enigma Node #11 // Memory Sweep Militar',
+      kind: 'minesweeper',
+      rows: 5, cols: 5, mineCount: 4,
+      title: 'Enigma #11 — Campo Minado Militar de Alta Densidade',
+      prompt: 'Limpe o setor sem detonar os 4 setores corrompidos.',
+      fallbackAnswer: 'defense',
+      nextIp: '109.64.200.84',
+      rewardLabel: 'Firewall.fwl v5.0 + Antivirus.av v5.0',
+      rewardSoftwares: [
+        { softKey: 'firewall', versionInt: 50 },
+        { softKey: 'antivirus', versionInt: 50 }
+      ],
+      rewardSoftKey: 'firewall',
+      rewardSoftVer: 50,
+      rewardRep: 300
+    },
+    {
+      index: 12,
+      ip: '109.64.200.84',
+      hostname: 'Enigma Node #12 // Matriz de Relés II',
+      kind: 'lightsout',
+      title: 'Enigma #12 — Reconfiguração de Switch Central',
+      prompt: 'Ative todas as linhas da malha de roteamento.',
+      fallbackAnswer: 'router',
+      nextIp: '109.64.200.86',
+      rewardLabel: 'DDoS_Node.vddos v5.0 + Spammer.vspam v5.0',
+      rewardSoftwares: [
+        { softKey: 'vddos', versionInt: 50 },
+        { softKey: 'vspam', versionInt: 50 }
+      ],
+      rewardSoftKey: 'vddos',
+      rewardSoftVer: 50,
+      rewardRep: 360
+    },
+    {
+      index: 13,
+      ip: '109.64.200.86',
+      hostname: 'Enigma Node #13 // Cripto Sudoku Militar',
+      kind: 'hex_sudoku',
+      title: 'Enigma #13 — Sudoku Cripto Pentágono',
+      prompt: 'Alinhe a grade 4×4 sem duplicidade em sub-redes.',
+      fallbackAnswer: 'pentagon',
+      nextIp: '109.64.200.88',
+      rewardLabel: 'BankTrojan.vbank v6.0 + Cracker.crc v6.0',
+      rewardSoftwares: [
+        { softKey: 'vbank', versionInt: 60 },
+        { softKey: 'cracker', versionInt: 60 }
+      ],
+      rewardSoftKey: 'cracker',
+      rewardSoftVer: 60,
+      rewardRep: 420
+    },
+    {
+      index: 14,
+      ip: '109.64.200.88',
+      hostname: 'Enigma Node #14 // Buffer 2048 - 128KB Elite',
+      kind: 'buffer_2048',
+      targetVal: 128,
+      title: 'Enigma #14 — Fusão Algorítmica Avançada',
+      prompt: 'Compile um token binário de alta octanagem de 128KB.',
+      fallbackAnswer: 'token',
+      nextIp: '109.64.200.90',
+      rewardLabel: 'Miner.vminer v7.0 + DDoS_Breaker.vbrk v7.0',
+      rewardSoftwares: [
+        { softKey: 'vminer', versionInt: 70 },
+        { softKey: 'ddos_breaker', versionInt: 70 }
+      ],
+      rewardSoftKey: 'vminer',
+      rewardSoftVer: 70,
+      rewardRep: 500
+    },
+    {
+      index: 15,
+      ip: '109.64.200.90',
+      hostname: 'Enigma Node #15 // Neural Minimax Mestre',
+      kind: 'neural_ttt',
+      title: 'Enigma #15 — Enfrentamento de Rede Neural Safenet',
+      prompt: 'Contenha o algoritmo preditivo em batalha direta de 3 rounds.',
+      fallbackAnswer: 'minimax',
+      nextIp: '109.64.200.92',
+      rewardLabel: 'PortScan.scan v7.5 + Hasher.hash v7.5',
+      rewardSoftwares: [
+        { softKey: 'portscan', versionInt: 75 },
+        { softKey: 'hasher', versionInt: 75 }
+      ],
+      rewardSoftKey: 'portscan',
+      rewardSoftVer: 75,
+      rewardRep: 600
+    },
+    {
+      index: 16,
+      ip: '109.64.200.92',
+      hostname: 'Enigma Node #16 // Memory Sweep Quântico',
+      kind: 'minesweeper',
+      rows: 5, cols: 5, mineCount: 4,
+      title: 'Enigma #16 — Desarme de Memória Safenet',
+      prompt: 'Mapeie o kernel criptográfico de alta vigilância.',
+      fallbackAnswer: 'safenet',
+      nextIp: '109.64.200.94',
+      rewardLabel: 'Firewall.fwl v8.0 + Antivirus.av v8.0',
+      rewardSoftwares: [
+        { softKey: 'firewall', versionInt: 80 },
+        { softKey: 'antivirus', versionInt: 80 }
+      ],
+      rewardSoftKey: 'firewall',
+      rewardSoftVer: 80,
+      rewardRep: 720
+    },
+    {
+      index: 17,
+      ip: '109.64.200.94',
+      hostname: 'Enigma Node #17 // Matriz Lights Out Final',
+      kind: 'lightsout',
+      title: 'Enigma #17 — Comutador Quântico Matrix',
+      prompt: 'Ative a malha integral de conexões de Sanctum.',
+      fallbackAnswer: 'matrix',
+      nextIp: '109.64.200.96',
+      rewardLabel: 'BankTrojan.vbank v8.5 + DDoS_Node.vddos v8.5',
+      rewardSoftwares: [
+        { softKey: 'vbank', versionInt: 85 },
+        { softKey: 'vddos', versionInt: 85 }
+      ],
+      rewardSoftKey: 'vddos',
+      rewardSoftVer: 85,
+      rewardRep: 850
+    },
+    {
+      index: 18,
+      ip: '109.64.200.96',
+      hostname: 'Enigma Node #18 // Hex Sudoku Quântico',
+      kind: 'hex_sudoku',
+      title: 'Enigma #18 — Sudoku Quântico sem Colisão',
+      prompt: 'Resolva a matriz mestre de 4×4 para desbloquear o penúltimo IP.',
+      fallbackAnswer: 'quantum',
+      nextIp: '109.64.200.98',
+      rewardLabel: 'Cracker.crc v9.0 + Hasher.hash v9.0',
+      rewardSoftwares: [
+        { softKey: 'cracker', versionInt: 90 },
+        { softKey: 'hasher', versionInt: 90 }
+      ],
+      rewardSoftKey: 'cracker',
+      rewardSoftVer: 90,
+      rewardRep: 1000
+    },
+    {
+      index: 19,
+      ip: '109.64.200.98',
+      hostname: 'Enigma Node #19 // Buffer 2048 - 256KB Mestre',
+      kind: 'buffer_2048',
+      targetVal: 64,
+      title: 'Enigma #19 — Fusão Binária Mestre (Meta: 64KB)',
+      prompt: 'Compile o token final de autorização para o Sanctum Omega.',
+      fallbackAnswer: 'omega',
+      nextIp: '109.64.200.99',
+      rewardLabel: 'Miner.vminer v9.5 + Firewall.fwl v9.5',
+      rewardSoftwares: [
+        { softKey: 'vminer', versionInt: 95 },
+        { softKey: 'firewall', versionInt: 95 }
+      ],
+      rewardSoftKey: 'vminer',
+      rewardSoftVer: 95,
+      rewardRep: 1250
+    },
+    {
+      index: 20,
+      ip: '109.64.200.99',
+      hostname: 'Sanctum Final Omega // Enigma Supremo #20',
+      kind: 'neural_ttt',
+      title: 'Enigma #20 — Sanctum Omega (IA Suprema)',
+      prompt: 'Duelo final contra a inteligência de defesa mais poderosa da rede. Vença ou empate para conquistar os Softwares Lendários v10.0!',
+      fallbackAnswer: 'godmode',
+      nextIp: '109.64.200.99',
+      rewardLabel: 'Cracker.crc v10.0 + Firewall.fwl v10.0 + Antivirus.av v10.0',
+      rewardSoftwares: [
+        { softKey: 'cracker', versionInt: 100 },
+        { softKey: 'firewall', versionInt: 100 },
+        { softKey: 'antivirus', versionInt: 100 }
+      ],
+      rewardSoftKey: 'cracker',
+      rewardSoftVer: 100,
+      rewardRep: 2000
     }
   ];
 
@@ -819,6 +1056,10 @@
       if (window.internetEngine) window.internetEngine.render();
     }
 
+    refreshCurrentView() {
+      if (window.internetEngine) window.internetEngine.render();
+    }
+
     submitRiddleAnswer(nodeIndex, rawAnswer) {
       this.ensureLoaded();
       const node = PUZZLE_CHAIN.find((n) => n.index === Number(nodeIndex));
@@ -898,7 +1139,71 @@
         : '';
 
       let interactiveHtml = '';
-      if (node.kind === 'lightsout') {
+      if (node.kind === 'minesweeper' && window.MinesweeperEngine) {
+        if (!window.activeMinesweeper || window.activeMinesweeper.nodeIndex !== node.index) {
+          window.activeMinesweeper = new window.MinesweeperEngine(node.rows || 5, node.cols || 5, node.mineCount || 3, () => {
+            this.markSolved(node.index);
+          });
+          window.activeMinesweeper.nodeIndex = node.index;
+        }
+        interactiveHtml = `
+          <div style="margin-top:14px;">
+            ${window.activeMinesweeper.renderHtml()}
+            <div style="display:flex;gap:8px;margin-top:10px;justify-content:center;">
+              <input type="text" id="riddleAnsInput_${node.index}" class="form-input" placeholder="Bypass de emergência..." style="max-width:180px;font-family:var(--hc-font-mono);">
+              <button type="button" class="hc-btn sm" onclick="window.handleRiddleSubmit(${node.index})">Submeter Chave</button>
+            </div>
+          </div>
+        `;
+      } else if (node.kind === 'hex_sudoku' && window.HexSudokuEngine) {
+        if (!window.activeSudoku || window.activeSudoku.nodeIndex !== node.index) {
+          window.activeSudoku = new window.HexSudokuEngine(() => {
+            this.markSolved(node.index);
+          });
+          window.activeSudoku.nodeIndex = node.index;
+        }
+        interactiveHtml = `
+          <div style="margin-top:14px;">
+            ${window.activeSudoku.renderHtml()}
+            <div style="display:flex;gap:8px;margin-top:10px;justify-content:center;">
+              <input type="text" id="riddleAnsInput_${node.index}" class="form-input" placeholder="Bypass de emergência..." style="max-width:180px;font-family:var(--hc-font-mono);">
+              <button type="button" class="hc-btn sm" onclick="window.handleRiddleSubmit(${node.index})">Submeter Chave</button>
+            </div>
+          </div>
+        `;
+      } else if (node.kind === 'buffer_2048' && window.BufferMerge2048Engine) {
+        if (!window.active2048 || window.active2048.nodeIndex !== node.index) {
+          window.active2048 = new window.BufferMerge2048Engine(node.targetVal || 64, () => {
+            this.markSolved(node.index);
+          });
+          window.active2048.nodeIndex = node.index;
+        }
+        interactiveHtml = `
+          <div style="margin-top:14px;">
+            ${window.active2048.renderHtml()}
+            <div style="display:flex;gap:8px;margin-top:10px;justify-content:center;">
+              <input type="text" id="riddleAnsInput_${node.index}" class="form-input" placeholder="Bypass de emergência..." style="max-width:180px;font-family:var(--hc-font-mono);">
+              <button type="button" class="hc-btn sm" onclick="window.handleRiddleSubmit(${node.index})">Submeter Chave</button>
+            </div>
+          </div>
+        `;
+      } else if (node.kind === 'neural_ttt' && window.NeuralTicTacToeEngine) {
+        if (!window.activeTicTacToe || window.activeTicTacToe.nodeIndex !== node.index) {
+          window.activeTicTacToe = new window.NeuralTicTacToeEngine(() => {
+            this.markSolved(node.index);
+          });
+          window.activeTicTacToe.nodeIndex = node.index;
+        }
+        interactiveHtml = `
+          <div style="margin-top:14px;">
+            ${window.activeTicTacToe.renderHtml()}
+            <div style="display:flex;gap:8px;margin-top:10px;justify-content:center;">
+              <input type="text" id="riddleAnsInput_${node.index}" class="form-input" placeholder="Bypass de emergência..." style="max-width:180px;font-family:var(--hc-font-mono);">
+              <button type="button" class="hc-btn sm" onclick="window.handleRiddleSubmit(${node.index})">Submeter Chave</button>
+            </div>
+          </div>
+        `;
+      } else if (node.kind === 'lightsout') {
         const cells = [];
         for (let r = 0; r < 3; r++) {
           for (let c = 0; c < 3; c++) {

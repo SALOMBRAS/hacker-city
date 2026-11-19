@@ -1657,6 +1657,10 @@
         });
       }
 
+      if (window.dynamicContractsEngine) {
+        window.dynamicContractsEngine.onGameAction('break_pass', host.ip);
+      }
+
       if (host.kind === 'bot' && window.botAI) {
         window.botAI.registerIntrusion(host.ip, visibleIp);
       } else {
@@ -1829,6 +1833,9 @@
       }
       if (window.tutorialEngine) {
         window.tutorialEngine.notifyLogsSaved(this.activeSshIp, newLines);
+      }
+      if (window.dynamicContractsEngine) {
+        window.dynamicContractsEngine.onGameAction('wipe_log', this.activeSshIp);
       }
       const sshHost = this.resolveHost(this.activeSshIp);
       if (sshHost && sshHost.isRealHuman && window.onlineEngine) {
