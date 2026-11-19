@@ -504,8 +504,7 @@
 
     <!-- PÁGINA: HOME (PAINEL DE OPERAÇÕES) -->
     <div class="window-frame" id="winHome" style="display: none;">
-      <div class="window-header"><div class="window-title">Painel de operações</div></div>
-      <div class="window-body" id="homeBody"></div>
+      <div class="window-body" id="homeBody" style="padding-top: 22px !important;"></div>
     </div>
 
     <!-- JANELA 1: TERMINAL CLI -->
@@ -2919,170 +2918,293 @@
       const el = document.getElementById('homeBody');
       if (!el || !currentProfile || !currentWallet) return;
       const rep = currentProfile.reputation || 0;
-      const title = window.skillTreeEngine ? window.skillTreeEngine.getPlayerTitle(currentProfile.specialty, rep) : '';
+      const title = window.skillTreeEngine ? window.skillTreeEngine.getPlayerTitle(currentProfile.specialty, rep) : 'Operador';
       const sp = window.skillTreeEngine ? window.skillTreeEngine.getAvailableSP(rep) : 0;
       const pending = window.quitineteEngine ? window.quitineteEngine.getPendingCount() : 0;
       const heat = currentProfile.heat_level || 1;
 
       const tutInfo = window.tutorialEngine ? window.tutorialEngine.getCurrentStepInfo() : { completed: true };
       const activeMsn = (window.missionsEngine && window.missionsEngine.ensureLoaded().activeMission) || null;
+      const activeDyn = (window.dynamicContractsEngine && Array.isArray(window.dynamicContractsEngine.activeContracts) && window.dynamicContractsEngine.activeContracts[0]) || null;
 
       let step;
       if (!tutInfo.completed) {
-        step = { tag: tutInfo.badge, title: tutInfo.title, text: tutInfo.desc, cta: tutInfo.cta, customOnclick: 'window.tutorialEngine.getCurrentStepInfo().action()' };
+        step = {
+          tag: tutInfo.badge,
+          title: tutInfo.title,
+          hirer: 'Treinamento Inicial',
+          reward: '+$500 & +100 REP',
+          status: 'Em andamento',
+          cta: tutInfo.cta,
+          customOnclick: 'window.tutorialEngine.getCurrentStepInfo().action()'
+        };
       } else if (activeMsn) {
-        step = { tag: `Missão · ${activeMsn.badge}`, title: `Contrato de ${activeMsn.hirer} (${activeMsn.targetIp})`, text: activeMsn.brief, cta: 'Abrir Missão', go: 'winMissions' };
+        step = {
+          tag: activeMsn.badge || 'Missão ativa',
+          title: `Contrato de ${activeMsn.hirer}`,
+          hirer: activeMsn.hirer,
+          reward: fmtMoney(activeMsn.rewardCash || 1200),
+          status: `Alvo ${activeMsn.targetIp}`,
+          cta: 'Abrir missão',
+          go: 'winMissions'
+        };
+      } else if (activeDyn) {
+        step = {
+          tag: activeDyn.factionName || 'Contrato',
+          title: activeDyn.title,
+          hirer: activeDyn.factionName || 'Facção',
+          reward: fmtMoney(activeDyn.rewardCash || 2500),
+          status: 'Em andamento',
+          cta: 'Ver contrato',
+          go: 'winMissions'
+        };
       } else if (pending > 0) {
-        step = { tag: 'Sobrevivência', title: pending === 1 ? 'Há 1 conta da Quitinete em atraso' : `Há ${pending} contas da Quitinete em atraso`, text: 'Aluguel, luz e água atrasados geram despejo e corte de energia. Pague antes de planejar o próximo ataque.', cta: 'Abrir Quitinete', go: 'winQuitinete' };
+        step = {
+          tag: 'Despesas fixas',
+          title: pending === 1 ? '1 conta do esconderijo pendente' : `${pending} contas do esconderijo pendentes`,
+          hirer: 'Esconderijo',
+          reward: 'Evita corte de luz',
+          status: 'Atenção necessária',
+          cta: 'Pagar contas',
+          go: 'winQuitinete'
+        };
       } else if (sp > 0) {
-        step = { tag: 'Progressão', title: `Você tem ${sp} ponto${sp === 1 ? '' : 's'} de habilidade`, text: 'Aprimore passivas ou libere uma subclasse cumprindo uma missão de desbloqueio.', cta: 'Abrir habilidades', go: 'winSkillTree' };
+        step = {
+          tag: 'Especialização',
+          title: `${sp} ponto${sp === 1 ? '' : 's'} de talento disponível`,
+          hirer: 'Árvore de Classes',
+          reward: 'Bônus passivo',
+          status: 'Pronto para aplicar',
+          cta: 'Abrir talentos',
+          go: 'winSkillTree'
+        };
       } else {
-        step = { tag: 'Operação', title: 'Aceite um contrato ou cace Procurados do FBI', text: 'Escolha contratos no Quadro de Missões ou derrube IPs na Lista de Procurados do FBI via DDoS.', cta: 'Abrir Missões', go: 'winMissions' };
+        step = {
+          tag: 'Operação livre',
+          title: 'Escolha um novo contrato no quadro de facções',
+          hirer: 'Central de Contratos',
+          reward: '$1.500 – $25.000',
+          status: 'Disponível agora',
+          cta: 'Abrir missões',
+          go: 'winMissions'
+        };
       }
 
       const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0';
       const ipStatus = window.networkIdentity ? window.networkIdentity.getWeeklyResetStatus() : { canResetFree: true, formattedRemaining: '' };
-      const btcStr = window.bitcoinEngine ? window.bitcoinEngine.getFormattedBtc() : '0.00000000';
+      const btcStr = window.bitcoinEngine ? String(window.bitcoinEngine.getFormattedBtc()).replace('.', ',') : '0,00000000';
       const harvest = window.softwareEngine ? window.softwareEngine.getPendingHarvestSummary() : { virusCount: 0, cashReady: 0, btcReadyStr: '0.00000000' };
-      const shortcuts = [
-        ['winBrowser', 'globe', 'Navegar por IPs'],
-        ['winSoftware', 'package', 'Programas & Proteção'],
-        ['winTaskManager', 'activity', 'Fila de Ações'],
-        ['winMissions', 'target', 'Trabalhos & Missões'],
-        ['winHackedDb', 'database', 'Senhas Descobertas'],
-        ['winLogs', 'file-text', 'Meus Rastros']
-      ];
+      const isWanted = !!(window.safenetFbiEngine && window.safenetFbiEngine.isIpWantedByFbi(myIp));
 
       if (window.safenetFbiEngine) window.safenetFbiEngine.ensureSeeded();
       if (window.livingBotsEngine) window.livingBotsEngine.ensureInitialized();
       const newsItems = (window.safenetFbiEngine ? window.safenetFbiEngine.worldNews : []).slice(0, 3);
-      const fbiItems = (window.safenetFbiEngine ? window.safenetFbiEngine.fbiWantedList : []).slice(0, 2);
-      const safeItems = (window.safenetFbiEngine ? window.safenetFbiEngine.safenetList : []).slice(0, 2);
+      const fbiItems = (window.safenetFbiEngine ? window.safenetFbiEngine.fbiWantedList : []).slice(0, 3);
+      const safeItems = (window.safenetFbiEngine ? window.safenetFbiEngine.safenetList : []).slice(0, 3);
+
+      const solvedCount = (window.taskManagerEngine && window.taskManagerEngine.solvedPuzzles)
+        ? Object.keys(window.taskManagerEngine.solvedPuzzles).length
+        : 0;
+      const nextPuzzleNum = Math.min(20, solvedCount + 1);
 
       el.innerHTML = `
-        <div class="home-head" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <div class="hc-breadcrumb"><span>Início</span><span class="sep">›</span><span class="curr">Painel de operações</span></div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
           <div>
-            <h1 class="home-title">Olá, ${currentProfile.hacker_tag}!</h1>
-            <p class="home-sub">${title} · Tudo explicado sem termos difíceis</p>
+            <h1 class="home-title">Bem-vindo de volta, ${escapeHtml(currentProfile.hacker_tag)}</h1>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button type="button" id="btnHomeStartTour" class="hc-btn primary" onclick="if(window.spotlightTour) window.spotlightTour.start(true);">
-              🎓 Me Ensine Onde Clicar (Tour Guiado)
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" id="btnHomeStartTour" class="hc-btn ghost" style="border-color: var(--hc-border);" onclick="if(window.spotlightTour) window.spotlightTour.start(true);">
+              ${HC.icon('help-circle')} Tour Guiado
             </button>
-            <button type="button" class="hc-btn ghost" onclick="navTo('winBrowser')">${HC.icon('globe')} Navegar por IPs</button>
+            <button type="button" class="hc-btn" onclick="navTo('winBrowser')">
+              ${HC.icon('globe')} Abrir Internet
+            </button>
           </div>
         </div>
 
-        <div class="stat-grid">
-          <div class="hc-card" style="cursor: pointer;" onclick="navTo('winBitcoin')" title="Clique para abrir sua Carteira Bitcoin">
-            <div class="hc-stat-label">Dinheiro & Cripto</div>
+        <!-- Faixa Unificada de 4 Métricas -->
+        <div class="hc-stat-strip">
+          <div class="hc-stat-cell clickable" onclick="navTo('winBank')" title="Abrir Banco &amp; Carteira">
+            <div class="hc-stat-label">Dinheiro</div>
             <div class="hc-stat-value">${fmtMoney(currentWallet.balance)}</div>
-            <div style="margin-top: 4px; font-family: var(--hc-font-mono); font-size: 0.75rem; color: var(--hc-text-2);">${btcStr} BTC na carteira</div>
+            <div class="hc-stat-sub mono">${btcStr} BTC na carteira</div>
           </div>
-          <div class="hc-card"><div class="hc-stat-label">Reputação</div><div class="hc-stat-value">${rep.toLocaleString('pt-BR')}</div></div>
-          <div class="hc-card" style="cursor: pointer;" onclick="navTo('winFbi')" title="Clique para ver Safenet & Procurados do FBI">
-            <div class="hc-stat-label">Procurado / FBI</div>
+
+          <div class="hc-stat-cell clickable" onclick="navTo('winRanking')" title="Ver Ranking Geral">
+            <div class="hc-stat-label">Reputação</div>
+            <div class="hc-stat-value">${rep.toLocaleString('pt-BR')}</div>
+            <div class="hc-stat-sub ok">${escapeHtml(title)}</div>
+          </div>
+
+          <div class="hc-stat-cell clickable" onclick="navTo('winFbi')" title="Ver Polícia &amp; Safenet">
+            <div class="hc-stat-label">Nível de Alerta</div>
             <div class="hc-stat-value">Nível ${heat}</div>
-            <div style="margin-top: 4px; font-size: 0.75rem; color: ${window.safenetFbiEngine && window.safenetFbiEngine.isIpWantedByFbi(myIp) ? 'var(--hc-danger-text)' : 'var(--hc-accent-text)'};">
-              ${window.safenetFbiEngine && window.safenetFbiEngine.isIpWantedByFbi(myIp) ? '● Procurado pelo FBI!' : '● Fora das listas federais'}
+            <div class="hc-progress ${isWanted ? 'danger' : ''}" style="margin: 4px 0 2px; height: 4px;">
+              <span style="width: ${Math.min(100, heat * 20)}%;"></span>
+            </div>
+            <div class="hc-stat-sub ${isWanted ? 'danger' : ''}">
+              ${isWanted ? 'Procurado pelo FBI' : 'Nenhum mandado ativo'}
             </div>
           </div>
-          <div class="hc-card" style="cursor: pointer;" onclick="window.internetEngine.openIp('71.4.5.1')" title="Clique para gerenciar ou renovar seu IP no Provedor ISP">
-            <div class="hc-stat-label">Seu IP Público</div>
-            <div class="hc-stat-value" style="font-family: var(--hc-font-mono); color: var(--hc-accent-text); font-size: 1.25rem;">${escapeHtml(myIp)}</div>
-            <div style="margin-top: 4px; font-size: 0.75rem; color: ${ipStatus.canResetFree ? 'var(--hc-accent-text)' : 'var(--hc-text-2)'};">
-              ${ipStatus.canResetFree ? '● Troca grátis 1×/semana disponível' : `Próxima troca grátis em ${escapeHtml(ipStatus.formattedRemaining)}`}
+
+          <div class="hc-stat-cell clickable" onclick="window.internetEngine.openIp('71.4.5.1')" title="Gerenciar ou trocar seu IP no Provedor ISP">
+            <div class="hc-stat-label">Seu IP</div>
+            <div class="hc-stat-value" style="color: var(--hc-accent-text);">${escapeHtml(myIp)}</div>
+            <div class="hc-stat-sub ${ipStatus.canResetFree ? 'ok' : ''}">
+              ${HC.icon('shield')}
+              <span>${ipStatus.canResetFree ? 'Troca grátis disponível' : `Troca em ${escapeHtml(ipStatus.formattedRemaining)}`}</span>
             </div>
           </div>
         </div>
 
-        ${harvest.virusCount > 0 ? `
-          <div class="hc-card" style="margin-top: 14px; padding: 0.9rem 1.15rem; border-color: rgba(53, 184, 119, 0.35); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
-            <div>
-              <span class="hc-badge success">Vírus em Operação (${harvest.virusCount})</span>
-              <span style="margin-left: 8px; font-size: 0.86rem;">Pronto para coletar: <strong style="color: var(--hc-accent-text);">${fmtMoney(harvest.cashReady)}</strong> e <strong style="font-family: var(--hc-font-mono); color: var(--hc-warning);">${harvest.btcReadyStr} BTC</strong></span>
-            </div>
-            <button type="button" class="hc-btn primary sm" onclick="window.handleCollectViruses()">Coletar com Collector.vcol →</button>
-          </div>
-        ` : ''}
-
+        <!-- Próximo Passo + Também esperando por você (2 Colunas Integradas) -->
         <div class="hc-eyebrow section-label">Próximo passo</div>
-        <div class="hc-card next-step">
-          <div>
-            <span class="hc-badge info">${escapeHtml(step.tag)}</span>
-            <h2>${escapeHtml(step.title)}</h2>
-            <p>${escapeHtml(step.text)}</p>
-          </div>
-          <button type="button" class="hc-btn primary" onclick="${step.customOnclick ? step.customOnclick : `navTo('${step.go}')`}">${escapeHtml(step.cta)} ${HC.icon('arrow-right')}</button>
-        </div>
-
-        <div class="hc-eyebrow section-label">Atalhos & Trilha de Enigmas</div>
-        <div class="shortcut-grid">
-          ${shortcuts.map(s => `<button type="button" class="hc-card shortcut" onclick="navTo('${s[0]}')">${HC.icon(s[1], 'lg')}<span>${s[2]}</span></button>`).join('')}
-        </div>
-        <div class="hc-card" style="margin-top:12px;padding:0.85rem 1.1rem;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-          <div style="font-size:0.83rem;">
-            <span class="hc-badge info">TRILHA DE ENIGMAS</span>
-            <strong style="margin-left:8px;">First Puzzle (<code>109.64.200.10</code>)</strong>
-            <span style="color:var(--hc-text-2);margin-left:6px;">— Resolva os 6 servidores em cadeia para destravar softwares v1.5 → v3.0 grátis!</span>
-          </div>
-          <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('109.64.200.10')">Ir ao First Puzzle →</button>
-        </div>
-
-        <div class="hc-eyebrow section-label">O Mundo Vivo</div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 14px;">
-          <!-- Coluna 1: Notícias & Jogadores Online -->
-          <div class="hc-card" style="padding: 1rem 1.15rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <strong style="font-size: 0.9rem;">Notícias &amp; Jogadores Online</strong>
-              <button type="button" class="hc-btn ghost sm" style="padding: 2px 6px; font-size: 0.74rem; color: var(--hc-accent-text);" onclick="navTo('winOnline');">Ver jogadores →</button>
-            </div>
-            ${newsItems.map(n => `
-              <div style="padding: 6px 0; border-bottom: 1px solid var(--hc-border); font-size: 0.78rem; color: var(--hc-text-2);">
-                <span style="font-family: var(--hc-font-mono); color: var(--hc-text-3);">[${escapeHtml(n.at)}]</span> ${escapeHtml(n.headline)}
+        <div class="hc-split-card">
+          <div class="hc-split-main">
+            <div>
+              <span class="hc-badge info">${escapeHtml(step.tag)}</span>
+              <h2 style="font-size: 18px; margin: 10px 0 14px; color: var(--hc-text);">${escapeHtml(step.title)}</h2>
+              <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px;">
+                <div>
+                  <div class="hc-eyebrow" style="font-size: 10px;">Origem</div>
+                  <div style="font-size: 13.5px; font-weight: 600; margin-top: 2px;">${escapeHtml(step.hirer)}</div>
+                </div>
+                <div>
+                  <div class="hc-eyebrow" style="font-size: 10px;">Recompensa</div>
+                  <div style="font-size: 13.5px; font-weight: 600; color: var(--hc-accent-text); font-family: var(--hc-font-mono); margin-top: 2px;">${escapeHtml(step.reward)}</div>
+                </div>
+                <div>
+                  <div class="hc-eyebrow" style="font-size: 10px;">Objetivo</div>
+                  <div style="font-size: 13.5px; font-weight: 600; margin-top: 2px;">${escapeHtml(step.status)}</div>
+                </div>
               </div>
-            `).join('')}
+              <button type="button" class="hc-btn primary" onclick="${step.customOnclick ? step.customOnclick : `navTo('${step.go}')`}">
+                ${escapeHtml(step.cta)} ${HC.icon('arrow-right')}
+              </button>
+            </div>
+
+            <div style="padding-top: 14px; border-top: 1px solid var(--hc-border-subtle); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12.5px;">
+              <div>
+                <span class="hc-eyebrow" style="font-size: 10px; margin-right: 8px;">Trilha de Enigmas</span>
+                <strong style="color: var(--hc-text);">Enigma ${nextPuzzleNum} de 20</strong>
+              </div>
+              <button type="button" class="hc-btn ghost sm" style="font-family: var(--hc-font-mono); color: var(--hc-accent-text); padding: 0 8px;" onclick="window.internetEngine.openIp('109.64.200.10')">
+                109.64.200.10 →
+              </button>
+            </div>
+          </div>
+
+          <div class="hc-split-side">
+            <div style="font-size: 12.5px; font-weight: 600; color: var(--hc-text-2); margin-bottom: 2px;">Também esperando por você</div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--hc-border-subtle);">
+              <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                <span style="width: 30px; height: 30px; border-radius: 7px; background: var(--hc-accent-soft); color: var(--hc-accent-text); display: grid; place-items: center; flex-shrink: 0;">${HC.icon('zap')}</span>
+                <div style="font-size: 12.5px; line-height: 1.35;">
+                  ${harvest.virusCount > 0
+                    ? `<strong>${fmtMoney(harvest.cashReady)}</strong> prontos em ${harvest.virusCount} vírus`
+                    : `<span style="color: var(--hc-text-2);">Instale vírus em alvos para renda passiva</span>`}
+                </div>
+              </div>
+              <button type="button" class="hc-btn ghost sm" style="color: var(--hc-accent-text); flex-shrink: 0;" onclick="${harvest.virusCount > 0 ? 'window.handleCollectViruses()' : "navTo('winSoftware')"}">
+                ${harvest.virusCount > 0 ? 'Coletar →' : 'Abrir →'}
+              </button>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--hc-border-subtle);">
+              <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                <span style="width: 30px; height: 30px; border-radius: 7px; background: var(--hc-info-bg); color: var(--hc-info-text); display: grid; place-items: center; flex-shrink: 0;">${HC.icon('mail')}</span>
+                <div style="font-size: 12.5px; line-height: 1.35;">
+                  Caixa de mensagens e contratos privados
+                </div>
+              </div>
+              <button type="button" class="hc-btn ghost sm" style="color: var(--hc-accent-text); flex-shrink: 0;" onclick="navTo('winMail')">Ler →</button>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0;">
+              <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                <span style="width: 30px; height: 30px; border-radius: 7px; background: ${pending > 0 ? 'var(--hc-warning-bg)' : 'var(--hc-surface-2)'}; color: ${pending > 0 ? 'var(--hc-warning-text)' : 'var(--hc-text-2)'}; display: grid; place-items: center; flex-shrink: 0;">${HC.icon('house')}</span>
+                <div style="font-size: 12.5px; line-height: 1.35;">
+                  ${pending > 0 ? `${pending} despesa${pending === 1 ? '' : 's'} pendente${pending === 1 ? '' : 's'} no esconderijo` : 'Contas do esconderijo quitadas'}
+                </div>
+              </div>
+              <button type="button" class="hc-btn ghost sm" style="color: var(--hc-accent-text); flex-shrink: 0;" onclick="navTo('winQuitinete')">Ver →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- O Mundo (3 Cards Simétricos Limpos) -->
+        <div class="hc-eyebrow section-label">O mundo</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 14px;">
+          <!-- Coluna 1: Notícias -->
+          <div class="hc-card" style="padding: 16px 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <strong style="font-size: 14px;">Notícias</strong>
+              <button type="button" class="hc-btn ghost sm" style="padding: 2px 6px; font-size: 12px; color: var(--hc-accent-text);" onclick="navTo('winNews')">Ver todas</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              ${newsItems.map((n) => `
+                <div style="display: flex; align-items: flex-start; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--hc-border-subtle);">
+                  <span style="width: 28px; height: 28px; border-radius: 6px; background: var(--hc-info-bg); color: var(--hc-info-text); display: grid; place-items: center; flex-shrink: 0; margin-top: 1px;">${HC.icon('newspaper')}</span>
+                  <div style="min-width: 0;">
+                    <div style="font-size: 13px; font-weight: 500; color: var(--hc-text); line-height: 1.35;">${escapeHtml(n.headline)}</div>
+                    <div style="font-family: var(--hc-font-mono); font-size: 11px; color: var(--hc-text-3); margin-top: 2px;">${escapeHtml(n.at)}</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
           </div>
 
           <!-- Coluna 2: Procurados do FBI -->
-          <div class="hc-card" style="padding: 1rem 1.15rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <strong style="font-size: 0.9rem;">Procurados do FBI</strong>
-              <button type="button" class="hc-btn ghost sm" style="padding: 2px 6px; font-size: 0.74rem; color: var(--hc-accent-text);" onclick="window.safenetFbiEngine.activeTab='fbi';navTo('winFbi');">Lista completa →</button>
+          <div class="hc-card" style="padding: 16px 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <strong style="font-size: 14px; display: inline-flex; align-items: center; gap: 6px;">${HC.icon('shield')} Procurados do FBI</strong>
+              <button type="button" class="hc-btn ghost sm" style="padding: 2px 6px; font-size: 12px; color: var(--hc-accent-text);" onclick="window.safenetFbiEngine.activeTab='fbi';navTo('winFbi');">Lista completa</button>
             </div>
             ${fbiItems.length === 0
-              ? `<div style="font-size: 0.8rem; color: var(--hc-text-3); padding: 10px 0;">Nenhum procurado ativo neste segundo.</div>`
-              : fbiItems.map(w => `
-                  <div style="padding: 7px 0; border-bottom: 1px solid var(--hc-border); display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 0.8rem;">
+              ? `<div class="hc-empty-box">
+                   <div class="hc-empty-icon">${HC.icon('shield')}</div>
+                   <strong>Ninguém procurado agora</strong>
+                   <p>Quem o FBI caçar aparece aqui com recompensa paga a quem derrubar o alvo.</p>
+                 </div>`
+              : fbiItems.map((w) => `
+                  <div style="padding: 9px 0; border-bottom: 1px solid var(--hc-border-subtle); display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px;">
                     <div>
-                      <strong>${escapeHtml(w.handle)}</strong>
-                      <div style="font-family: var(--hc-font-mono); font-size: 0.74rem; color: var(--hc-accent-text);">${escapeHtml(w.ip)}</div>
+                      <strong style="cursor: pointer;" data-player-tag="${escapeHtml(w.handle)}">${escapeHtml(w.handle)}</strong>
+                      <div style="font-family: var(--hc-font-mono); font-size: 11.5px; color: var(--hc-accent-text);">${escapeHtml(w.ip)}</div>
                     </div>
-                    <strong style="font-family: var(--hc-font-mono); color: var(--hc-warning);">${fmtMoney(w.bountyCash)}</strong>
+                    <strong style="font-family: var(--hc-font-mono); font-size: 12.5px; color: var(--hc-warning-text);">${fmtMoney(w.bountyCash)}</strong>
                   </div>
                 `).join('')}
           </div>
 
           <!-- Coluna 3: Mira da Safenet -->
-          <div class="hc-card" style="padding: 1rem 1.15rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <strong style="font-size: 0.9rem;">Mira da Safenet</strong>
-              <button type="button" class="hc-btn ghost sm" style="padding: 2px 6px; font-size: 0.74rem; color: var(--hc-accent-text);" onclick="window.safenetFbiEngine.activeTab='safenet';navTo('winFbi');">Abrir Safenet →</button>
+          <div class="hc-card" style="padding: 16px 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <strong style="font-size: 14px; display: inline-flex; align-items: center; gap: 6px;">${HC.icon('shield-alert')} Mira da Safenet</strong>
+              <button type="button" class="hc-btn ghost sm" style="padding: 2px 6px; font-size: 12px; color: var(--hc-accent-text);" onclick="window.safenetFbiEngine.activeTab='safenet';navTo('winFbi');">Página da Safenet</button>
             </div>
             ${safeItems.length === 0
-              ? `<div style="font-size: 0.8rem; color: var(--hc-text-3); padding: 10px 0;">Ninguém na mira da Safenet agora.</div>`
-              : safeItems.map(s => `
-                  <div style="padding: 7px 0; border-bottom: 1px solid var(--hc-border); font-size: 0.79rem;">
-                    <div style="display: flex; justify-content: space-between;">
-                      <strong>${escapeHtml(s.handle)}</strong>
-                      <code style="color: var(--hc-accent-text);">${escapeHtml(s.ip)}</code>
+              ? `<div class="hc-empty-box">
+                   <div class="hc-empty-icon">${HC.icon('shield')}</div>
+                   <strong>Ninguém na mira da Safenet</strong>
+                   <p>Transferências ilegais e invasões sem limpeza de rastro aparecem aqui.</p>
+                 </div>`
+              : safeItems.map((s) => `
+                  <div style="padding: 9px 0; border-bottom: 1px solid var(--hc-border-subtle); font-size: 13px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <strong style="cursor: pointer;" data-player-tag="${escapeHtml(s.handle)}">${escapeHtml(s.handle)}</strong>
+                      <span class="mono" style="font-size: 11.5px; color: var(--hc-accent-text);">${escapeHtml(s.ip)}</span>
                     </div>
-                    <div style="font-size: 0.73rem; color: var(--hc-text-3);">${escapeHtml(s.reason)}</div>
+                    <div style="font-size: 11.5px; color: var(--hc-text-3); margin-top: 2px;">${escapeHtml(s.reason)}</div>
                   </div>
                 `).join('')}
           </div>
         </div>`;
     }
+    window.renderHome = renderHome;
 
     function openWindow(winId) { 
       document.querySelector('.sidebar')?.classList.remove('mobile-open');
