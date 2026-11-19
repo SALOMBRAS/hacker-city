@@ -1482,4 +1482,162 @@ body:has(#hcSpotlightRoot.active) #miniPcCrackerBackdrop.open {
   color: var(--hc-accent-text);
 }
 
+/* ---------- Missões Estilo Mensagem/E-mail com Mini-História + Caixa Lateral (Foto 1) ---------- */
+.msn-current-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(290px, 1fr);
+  gap: 18px;
+  padding: 6px 2px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .msn-current-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.msn-mail-box {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.msn-mail-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.msn-sender-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: var(--hc-inset);
+  border: 1px solid var(--hc-border-strong);
+  display: grid;
+  place-items: center;
+  color: var(--hc-accent-text);
+  flex-shrink: 0;
+}
+
+.msn-sender-avatar svg {
+  width: 24px;
+  height: 24px;
+}
+
+.msn-mail-meta {
+  font-family: var(--hc-font-mono);
+  font-size: 11.5px;
+  color: var(--hc-text-3);
+  margin-bottom: 6px;
+}
+
+.msn-mail-story {
+  font-size: 13.8px;
+  line-height: 1.62;
+  color: var(--hc-text);
+}
+
+.msn-hl-file {
+  font-family: var(--hc-font-mono);
+  font-weight: 600;
+  color: #ff7b72;
+}
+
+.msn-hl-virus {
+  font-family: var(--hc-font-mono);
+  font-weight: 600;
+  color: #f5ba66;
+}
+
+.msn-hl-money {
+  font-family: var(--hc-font-mono);
+  font-weight: 700;
+  color: var(--hc-accent-text);
+}
+
+.msn-hl-ip {
+  font-family: var(--hc-font-mono);
+  color: var(--hc-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.msn-hl-ip:hover {
+  color: var(--hc-accent-text);
+}
+
+.msn-verify-box {
+  background: var(--hc-inset);
+  border: 1px solid var(--hc-border);
+  border-radius: 9px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.msn-verify-box.is-ready {
+  border-color: rgba(95, 211, 154, 0.48);
+  background: rgba(18, 129, 79, 0.11);
+}
+
+.msn-info-card {
+  background: var(--hc-inset);
+  border: 1px solid var(--hc-border);
+  border-radius: 9px;
+  overflow: hidden;
+}
+
+.msn-info-head {
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.025);
+  border-bottom: 1px solid var(--hc-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--hc-text);
+}
+
+.msn-info-head svg {
+  width: 15px;
+  height: 15px;
+  color: #f5ba66;
+}
+
+.msn-info-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.msn-info-table tr {
+  border-bottom: 1px solid var(--hc-border);
+}
+
+.msn-info-table tr:last-child {
+  border-bottom: 0;
+}
+
+.msn-info-table th {
+  text-align: left;
+  padding: 9px 14px;
+  width: 112px;
+  color: var(--hc-text-3);
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.msn-info-table td {
+  padding: 9px 14px;
+  color: var(--hc-text);
+  font-family: var(--hc-font-mono);
+  vertical-align: middle;
+}
+
+
 

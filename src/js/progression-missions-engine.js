@@ -637,23 +637,23 @@
   }
 
   // =========================================================================
-  // 3. QUADRO DINÂMICO DE MISSÕES (5 TIPOS REAIS DE CONTRATO — ECONOMIA HARDCORE)
+  // 3. QUADRO DE MISSÕES POR MENSAGEM/E-MAIL COM MINI-HISTÓRIA E VERIFICAÇÃO REAL
   // =========================================================================
-  const HIRERS = [
-    'Numataka Corp',
-    'Meridian BioLabs',
-    'Kestrel Defense',
-    'Coletivo Vagalume',
-    'Helios Clearing',
-    'Aegis Telecom',
-    'Orion Syndicate'
+  const HIRERS_DIRECTORY = [
+    { name: 'Geek Pride Labs', ip: '239.231.94.245', email: 'ops@geekpridelabs.hc', icon: 'terminal' },
+    { name: 'Meridian BioLabs', ip: '194.88.14.202', email: 'board@meridian.hc', icon: 'database' },
+    { name: 'Coletivo Vagalume', ip: '177.54.99.18', email: 'cipher@vagalume.hc', icon: 'bug' },
+    { name: 'Orion Syndicate', ip: '89.207.132.41', email: 'vault@orion.hc', icon: 'bitcoin' },
+    { name: 'Helios Clearing', ip: '91.198.174.192', email: 'exec@helios.hc', icon: 'landmark' },
+    { name: 'Kestrel Defense', ip: '198.18.44.9', email: 'blackops@kestrel.hc', icon: 'radar' }
   ];
 
   const MISSION_TARGETS = [
     { ip: '203.17.88.40', hostname: 'Farofa Systems S.A.', tier: 1, balanceHint: 185 },
     { ip: '133.70.13.37', hostname: 'Rádio Pirata 1337 FM', tier: 1, balanceHint: 110 },
+    { ip: '187.22.5.60', hostname: 'Boteco h4x0r', tier: 1, balanceHint: 260 },
+    { ip: '58.40.12.9', hostname: 'Corvo Cinza Logística', tier: 2, balanceHint: 340 },
     { ip: '185.220.101.9', hostname: 'Blackmarket Onion', tier: 2, balanceHint: 420 },
-    { ip: '149.56.28.11', hostname: 'VPC Operador m4riposa', tier: 2, balanceHint: 340 },
     { ip: '77.3.9.21', hostname: 'Banco Colchão & Clearing HC', tier: 3, balanceHint: 1150 }
   ];
 
@@ -661,7 +661,10 @@
     constructor() {
       this.userId = null;
       this.state = null;
-      this.filterTier = 0; // 0 = todos
+      this.mainTab = 'campaign'; // 'campaign' | 'dynamic'
+      this.subTab = 'available'; // 'available' | 'current' | 'completed'
+      this.filterTier = 0;       // 0 = todos
+      this.lastVerifyFeedback = null;
     }
 
     storageKey(uid) {
@@ -680,15 +683,25 @@
       } catch (e) {}
 
       if (saved && Array.isArray(saved.pool)) {
-        this.state = saved;
+        this.state = {
+          downloadedFiles: [],
+          deletedFiles: [],
+          ...saved
+        };
       } else {
         this.state = {
           activeMission: null,
           pool: [],
           history: [],
+          downloadedFiles: [],
+          deletedFiles: [],
           completedCount: 0,
           abortedCount: 0
         };
+        this.generatePool();
+      }
+      // Garante que contratos legados tenham hirerIp / actionLabel
+      if (this.state.pool.length > 0 && !this.state.pool[0].hirerIp) {
         this.generatePool();
       }
       return this.state;
@@ -702,88 +715,155 @@
     }
 
     generatePool() {
+      const nowStamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
       const templates = [
         {
-          type: 'delete_file',
-          badge: 'Apagar Arquivo',
+          type: 'steal_data',
+          badge: 'Roubar Arquivo',
           tier: 1,
+          hirerIdx: 0,
           targetIdx: 0,
-          fileName: 'auditoria_secreta_2026.db',
-          fileContent: 'Registros fiscais comprometedores solicitados para destruição imediata.',
-          rewardCash: 150,
+          fileName: 'Users.dat',
+          fileSizeMb: 28,
+          fileContent: 'DUMP CONFIDENCIAL DE CREDENCIAIS CORPORATIVAS // FAROFA SYSTEMS S.A.',
+          rewardCash: 650,
           rewardSats: 0,
-          repReward: 50,
-          brief: 'Invada o servidor alvo via SSH Root, localize o arquivo confidencial na aba "Vírus, Carteira & Arquivos" e clique em Apagar Arquivo.'
+          repReward: 70,
+          brief: 'Invadir 203.17.88.40 (Farofa Systems S.A.) e baixar o arquivo Users.dat (28 MB) para o seu computador.'
         },
         {
-          type: 'steal_data',
-          badge: 'Roubar Dados',
+          type: 'delete_file',
+          badge: 'Deletar Arquivo',
           tier: 1,
+          hirerIdx: 1,
           targetIdx: 1,
-          fileName: 'chaves_transmissao_1337.key',
-          fileContent: 'HASH-9941-KESTREL-PAYLOAD-VERIFIED',
-          rewardCash: 195,
+          fileName: 'Auditoria_Fiscal_2026.db',
+          fileSizeMb: 42,
+          fileContent: 'Registros fiscais sigilosos solicitados para destruição imediata.',
+          rewardCash: 580,
           rewardSats: 0,
           repReward: 65,
-          brief: 'Quebre o acesso root do alvo, extraia o arquivo criptografado na aba de arquivos SSH para transmitir uma cópia ao contratante.'
+          brief: 'Invadir 133.70.13.37 (Rádio Pirata 1337 FM) e excluir permanentemente o arquivo Auditoria_Fiscal_2026.db (42 MB) do servidor deles.'
         },
         {
-          type: 'check_balance',
-          badge: 'Auditar Reserva',
+          type: 'install_virus',
+          badge: 'Instalar Vírus',
+          tier: 1,
+          hirerIdx: 2,
+          targetIdx: 0,
+          virusKey: 'vspam',
+          virusFilename: 'Spam.vspam',
+          rewardCash: 780,
+          rewardSats: 0,
+          repReward: 85,
+          brief: 'Invadir 203.17.88.40, subir o vírus Spam.vspam e executá-lo (⚙️) para deixá-lo rodando em segundo plano no PC da vítima.'
+        },
+        {
+          type: 'install_virus',
+          badge: 'Plantar Minerador',
           tier: 2,
+          hirerIdx: 3,
           targetIdx: 3,
-          expectedAmount: 340,
-          rewardCash: 420,
-          rewardSats: 40000,
-          repReward: 95,
-          brief: 'Invada a VPC alvo, verifique na sessão SSH o valor exato em dólares da reserva financeira local e informe abaixo para validar a auditoria.'
+          virusKey: 'vminer',
+          virusFilename: 'Miner.vminer',
+          rewardCash: 1250,
+          rewardSats: 45000,
+          repReward: 115,
+          brief: 'Invadir 58.40.12.9 (Corvo Cinza Logística), enviar Miner.vminer e deixá-lo rodando ativo na memória do alvo.'
         },
         {
           type: 'drain_funds',
-          badge: 'Drenar Conta / Carteira',
+          badge: 'Drenar Cofre',
           tier: 2,
-          targetIdx: 2,
-          rewardCash: 640,
+          hirerIdx: 4,
+          targetIdx: 4,
+          rewardCash: 950,
           rewardSats: 65000,
-          repReward: 120,
-          brief: 'Invada o servidor alvo, entre como root e execute "Drenar Reserva Local" ou "Roubar wallet.dat" para esvaziar os fundos ilícitos.'
+          repReward: 125,
+          brief: 'Invadir 185.220.101.9 (Blackmarket Onion) como root e esvaziar a reserva financeira ou carteira BTC do servidor.'
         },
         {
           type: 'ddos_takedown',
           badge: 'Ataque DDoS',
           tier: 3,
-          targetIdx: 4,
+          hirerIdx: 5,
+          targetIdx: 5,
           requiredGbps: 2.5,
-          rewardCash: 1650,
+          rewardCash: 1850,
           rewardSats: 180000,
-          repReward: 190,
-          brief: 'Exige Curso #4 (Engenharia de Vírus & DDoS) ou >= 2.5 Gbps de vírus DDoS_Node.vddos ativos. Dispare a sobrecarga DDoS para derrubar o mainframe alvo!'
+          repReward: 195,
+          brief: 'Lançar sobrecarga DDoS (>= 2.5 Gbps ou Curso #4) contra o mainframe 77.3.9.21 (Banco Colchão & Clearing HC).'
         }
       ];
 
       this.state.pool = templates.map((tpl, idx) => {
         const tgt = MISSION_TARGETS[tpl.targetIdx];
-        const hirer = HIRERS[(idx + Math.floor(Math.random() * HIRERS.length)) % HIRERS.length];
+        const hirerObj = HIRERS_DIRECTORY[tpl.hirerIdx % HIRERS_DIRECTORY.length];
         return {
           id: 'MSN-' + (100 + idx) + '-' + Math.floor(100 + Math.random() * 899),
-          hirer,
+          hirer: hirerObj.name,
+          hirerIp: hirerObj.ip,
+          hirerEmail: hirerObj.email,
+          hirerIcon: hirerObj.icon,
+          sentAt: nowStamp,
           type: tpl.type,
           badge: tpl.badge,
           tier: tpl.tier,
           targetIp: tgt.ip,
           targetHostname: tgt.hostname,
           fileName: tpl.fileName || null,
+          fileSizeMb: tpl.fileSizeMb || 24,
           fileContent: tpl.fileContent || null,
+          virusKey: tpl.virusKey || null,
+          virusFilename: tpl.virusFilename || null,
           expectedAmount: tpl.expectedAmount || tgt.balanceHint,
           requiredGbps: tpl.requiredGbps || 0,
           rewardCash: tpl.rewardCash,
           rewardSats: tpl.rewardSats,
           repReward: tpl.repReward,
           brief: tpl.brief,
+          downloadedToLocal: false,
+          deletedOnRemote: false,
+          drainedConfirmed: false,
           progressDone: false
         };
       });
       this.save();
+    }
+
+    buildPlainEmailBody(m, playerTag) {
+      if (m.type === 'steal_data') {
+        return `${playerTag},\n\nNós da ${m.hirer} temos uma proposta confidencial para você.\nPrecisamos que você acesse os servidores de ${m.targetHostname} (${m.targetIp}) e baixe uma cópia do arquivo "${m.fileName}" (${m.fileSizeMb} MB) para o seu computador.\n\nPagamento: $${m.rewardCash} quando confirmarmos que o arquivo está salvo com você.\nFaça isso em silêncio, apague seu IP da log e lembre-se: se for pego, nós não conhecemos você.\n\n— ${m.hirer} [${m.hirerIp}]`;
+      }
+      if (m.type === 'delete_file') {
+        return `${playerTag},\n\nVazaram documentos críticos para o servidor de ${m.targetHostname} (${m.targetIp}).\nInvada a máquina deles, localize o arquivo "${m.fileName}" (${m.fileSizeMb} MB) e exclua-o permanentemente do disco antes que terceiros façam cópias.\n\nPagamento: $${m.rewardCash} mediante verificação de exclusão.\n\n— ${m.hirer} [${m.hirerIp}]`;
+      }
+      if (m.type === 'install_virus') {
+        return `${playerTag},\n\nQueremos infiltrar a máquina de ${m.targetHostname} (${m.targetIp}).\nSuba o vírus "${m.virusFilename}" para o disco da vítima e clique em Rodar (⚙️) para deixá-lo ativo em segundo plano.\n\nPagamento: $${m.rewardCash} assim que nosso scanner confirmar o processo "${m.virusFilename}" rodando em ${m.targetIp}.\n\n— ${m.hirer} [${m.hirerIp}]`;
+      }
+      if (m.type === 'drain_funds') {
+        return `${playerTag},\n\nRastreamos fundos ilícitos guardados no servidor ${m.targetHostname} (${m.targetIp}).\nEntre como root e drene a reserva financeira local ou a carteira BTC deles.\n\nPagamento extra do contrato: $${m.rewardCash}.\n\n— ${m.hirer} [${m.hirerIp}]`;
+      }
+      return `${playerTag},\n\nPrecisamos tirar ${m.targetHostname} (${m.targetIp}) do ar com um ataque de sobrecarga DDoS.\n\nPagamento: $${m.rewardCash}.\n\n— ${m.hirer} [${m.hirerIp}]`;
+    }
+
+    buildStoryRichHtml(m, playerTag) {
+      const ipLink = `<span class="msn-hl-ip" onclick="window.internetEngine.openIp('${esc(m.targetIp)}', 'invadir')">${esc(m.targetIp)}</span>`;
+      const moneySpan = `<span class="msn-hl-money">$${m.rewardCash.toLocaleString('pt-BR')}</span>`;
+
+      if (m.type === 'steal_data') {
+        return `<strong>${esc(playerTag)}</strong>, nós da <strong>${esc(m.hirer)}</strong> temos uma proposta para você. Precisamos que você invada os servidores de <strong>${esc(m.targetHostname)}</strong> e baixe o arquivo <span class="msn-hl-file">${esc(m.fileName)}</span> (${m.fileSizeMb} MB) para o seu computador. Você receberá ${moneySpan} assim que o trabalho for verificado. Acesse o alvo em ${ipLink}. Faça tudo em silêncio, limpe seu IP da log e lembre-se: se você for pego, nunca ouvimos falar de você.`;
+      }
+      if (m.type === 'delete_file') {
+        return `<strong>${esc(playerTag)}</strong>, vazaram registros internos que jamais poderiam sair da <strong>${esc(m.hirer)}</strong> e agora estão guardados no servidor de <strong>${esc(m.targetHostname)}</strong>. Invada ${ipLink}, localize o arquivo <span class="msn-hl-file">${esc(m.fileName)}</span> (${m.fileSizeMb} MB) e <strong>exclua-o permanentemente</strong> do disco da vítima. Você receberá ${moneySpan} assim que verificarmos que o arquivo não existe mais lá.`;
+      }
+      if (m.type === 'install_virus') {
+        return `<strong>${esc(playerTag)}</strong>, nós do <strong>${esc(m.hirer)}</strong> precisamos comprometer a infraestrutura de <strong>${esc(m.targetHostname)}</strong>. Invada o servidor em ${ipLink}, faça upload do vírus <span class="msn-hl-virus">${esc(m.virusFilename)}</span> e execute-o para deixá-lo <strong>rodando em segundo plano</strong> na máquina da vítima. Pagamos ${moneySpan} assim que nossa varredura confirmar que o vírus está ativo lá dentro.`;
+      }
+      if (m.type === 'drain_funds') {
+        return `<strong>${esc(playerTag)}</strong>, a <strong>${esc(m.hirer)}</strong> localizou reservas ocultas em <strong>${esc(m.targetHostname)}</strong> (${ipLink}). Quebre o acesso root e execute a drenagem da reserva financeira ou carteira BTC deles. Além do valor saqueado, depositaremos ${moneySpan} pela confirmação do serviço.`;
+      }
+      return `<strong>${esc(playerTag)}</strong>, a <strong>${esc(m.hirer)}</strong> autorizou um ataque de sobrecarga DDoS contra <strong>${esc(m.targetHostname)}</strong> (${ipLink}). Reúna pelo menos <strong>${m.requiredGbps} Gbps</strong> (ou Certificação #4) e derrube o mainframe alvo para receber ${moneySpan}.`;
     }
 
     getPlayerAllowedTier() {
@@ -794,10 +874,18 @@
       return 1;
     }
 
+    setSubTab(tab) {
+      this.subTab = tab || 'available';
+      this.lastVerifyFeedback = null;
+      this.renderUI();
+    }
+
     acceptMission(missionId) {
       this.ensureLoaded();
       if (this.state.activeMission) {
-        return { success: false, message: 'Você já possui um contrato em andamento! Conclua ou aborte-o antes de aceitar outro.' };
+        this.subTab = 'current';
+        this.renderUI();
+        return { success: false, message: 'Você já possui uma missão em andamento! Conclua ou abandone-a na aba Missão Atual.' };
       }
       const found = this.state.pool.find((m) => m.id === missionId);
       if (!found) return { success: false, message: 'Contrato não encontrado no quadro.' };
@@ -810,12 +898,33 @@
         };
       }
 
-      this.state.activeMission = { ...found, acceptedAt: new Date().toLocaleTimeString(), progressDone: false };
+      const nowStr = new Date().toISOString().slice(0, 19).replace('T', ' ');
+      this.state.activeMission = {
+        ...found,
+        acceptedAt: nowStr,
+        downloadedToLocal: false,
+        deletedOnRemote: false,
+        drainedConfirmed: false,
+        progressDone: false
+      };
       this.state.pool = this.state.pool.filter((m) => m.id !== missionId);
+      this.subTab = 'current';
+      this.lastVerifyFeedback = null;
       this.save();
 
+      // Envia de verdade a mensagem por E-mail na Caixa de Entrada do jogador!
+      const playerTag = (window.currentProfile && window.currentProfile.hacker_tag) || 'Operador';
+      if (window.mailEngine && typeof window.mailEngine.pushSystemMail === 'function') {
+        window.mailEngine.pushSystemMail(
+          `${found.hirer} <${found.hirerEmail || 'contrato@rede.hc'}>`,
+          `[Missão ${found.id}] ${found.badge} — Alvo ${found.targetIp}`,
+          this.buildPlainEmailBody(found, playerTag),
+          'story'
+        );
+      }
+
       if (typeof window.addLocalLog === 'function') {
-        window.addLocalLog('MISSION', `Contrato ${found.id} (${found.badge}) aceito de ${found.hirer} -> Alvo ${found.targetIp}`, 'info');
+        window.addLocalLog('MISSION', `Missão ${found.id} (${found.badge}) recebida por e-mail de ${found.hirer} -> Alvo ${found.targetIp}`, 'info');
       }
       if (typeof window.renderHome === 'function') window.renderHome();
       this.renderUI();
@@ -837,41 +946,145 @@
         badge: m.badge,
         hirer: m.hirer,
         targetIp: m.targetIp,
-        status: 'ABORTOU',
+        targetHostname: m.targetHostname,
+        objectiveStr: m.fileName || m.virusFilename || m.badge,
+        status: 'ABANDONADA',
         rewardStr: `-${penalty} REP`,
         at: new Date().toLocaleTimeString()
       });
       this.state.activeMission = null;
-      if (this.state.pool.length < 3) this.generatePool();
+      this.subTab = 'available';
+      this.lastVerifyFeedback = null;
+      if (this.state.pool.length < 4) this.generatePool();
       this.save();
 
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       this.renderUI();
     }
 
+    // Verifica de verdade se o jogador cumpriu exatamente o objetivo pedido no servidor da vítima!
+    verifyActiveMissionStatus() {
+      this.ensureLoaded();
+      const m = this.state.activeMission;
+      if (!m) return { verified: false, reason: 'Nenhuma missão ativa.' };
+
+      const hacked = window.hackedDb ? !!window.hackedDb.getEntry(m.targetIp) : false;
+
+      if (m.type === 'steal_data') {
+        const hasDownloaded = !!m.downloadedToLocal ||
+          (Array.isArray(this.state.downloadedFiles) && this.state.downloadedFiles.some((f) => f.ip === m.targetIp && f.fileName === m.fileName));
+        if (!hasDownloaded) {
+          return {
+            verified: false,
+            hacked,
+            reason: `Arquivo "${m.fileName}" ainda NÃO foi baixado para o seu computador. Conecte em ${m.targetIp}, abra "Arquivos & Programas" e clique no ícone de Download (⬇️) ao lado de ${m.fileName}!`
+          };
+        }
+        return { verified: true, hacked: true, detail: `Arquivo ${m.fileName} (${m.fileSizeMb} MB) verificado no seu computador!` };
+      }
+
+      if (m.type === 'delete_file') {
+        const wasDeleted = !!m.deletedOnRemote ||
+          (Array.isArray(this.state.deletedFiles) && this.state.deletedFiles.some((f) => f.ip === m.targetIp && f.fileName === m.fileName)) ||
+          !!(window.internetEngine && window.internetEngine.deletedHostFiles && window.internetEngine.deletedHostFiles.get(m.targetIp)?.has(m.fileName));
+        if (!wasDeleted) {
+          return {
+            verified: false,
+            hacked,
+            reason: `O arquivo "${m.fileName}" AINDA existe no servidor ${m.targetIp}! Entre no PC da vítima e clique no ícone de Lixeira (🗑️) ao lado de ${m.fileName} para apagá-lo.`
+          };
+        }
+        return { verified: true, hacked: true, detail: `Confirmado: ${m.fileName} foi permanentemente apagado de ${m.targetIp}!` };
+      }
+
+      if (m.type === 'install_virus') {
+        const runningList = window.softwareEngine ? window.softwareEngine.getRemoteVirusesOnIp(m.targetIp) : [];
+        const stagedList = window.softwareEngine ? window.softwareEngine.getStagedVirusesOnIp(m.targetIp) : [];
+        const isRunning = runningList.some((rv) => rv.virusKey === m.virusKey);
+        if (!isRunning) {
+          const isOnlyStaged = stagedList.some((sv) => sv.virusKey === m.virusKey);
+          return {
+            verified: false,
+            hacked,
+            reason: isOnlyStaged
+              ? `Quase lá! Você subiu ${m.virusFilename} para ${m.targetIp}, mas ainda falta clicar na engrenagem Rodar (⚙️) para deixá-lo em execução na vítima!`
+              : `O vírus "${m.virusFilename}" ainda NÃO está rodando em ${m.targetIp}. Invada o alvo, faça upload de ${m.virusFilename} e clique em Rodar (⚙️)!`
+          };
+        }
+        return { verified: true, hacked: true, detail: `Scanner confirmou: ${m.virusFilename} está ativo e rodando em ${m.targetIp}!` };
+      }
+
+      if (m.type === 'drain_funds') {
+        const drained = !!m.drainedConfirmed || !!(window.internetEngine && window.internetEngine.drainedNpcIps && window.internetEngine.drainedNpcIps.has(m.targetIp));
+        if (!drained) {
+          return {
+            verified: false,
+            hacked,
+            reason: `Os fundos de ${m.targetIp} ainda não foram esvaziados. Conecte como root em ${m.targetIp} e clique em Drenar Reserva / Roubar Carteira!`
+          };
+        }
+        return { verified: true, hacked: true, detail: `Cofre de ${m.targetIp} esvaziado com sucesso!` };
+      }
+
+      if (m.type === 'ddos_takedown') {
+        if (!m.progressDone) {
+          return {
+            verified: false,
+            hacked,
+            reason: `Execute o disparo de sobrecarga DDoS contra ${m.targetIp} para concluir este contrato.`
+          };
+        }
+        return { verified: true, hacked: true, detail: `Alvo ${m.targetIp} derrubado por DDoS!` };
+      }
+
+      return { verified: !!m.progressDone, hacked, reason: 'Objetivo ainda pendente.' };
+    }
+
+    verifyAndClaimActiveMission() {
+      this.ensureLoaded();
+      const m = this.state.activeMission;
+      if (!m) return { success: false, message: 'Nenhuma missão ativa.' };
+
+      if (m.type === 'ddos_takedown' && !m.progressDone) {
+        return this.executeMissionDdos();
+      }
+
+      const check = this.verifyActiveMissionStatus();
+      if (!check.verified) {
+        this.lastVerifyFeedback = { ok: false, text: check.reason };
+        this.renderUI();
+        if (typeof window.showToast === 'function') window.showToast(check.reason);
+        return { success: false, message: check.reason };
+      }
+
+      this.lastVerifyFeedback = null;
+      return this.completeActiveMission();
+    }
+
     // Arquivos dinâmicos injetados no /root do alvo enquanto a missão está ativa!
     getMissionFilesForHost(ip) {
       this.ensureLoaded();
       const files = [];
-      // Arquivo fixo do servidor tutorial
       if (ip === TUTORIAL_TARGET_IP) {
         files.push({
           name: 'dossie_tankado.txt',
           size: '12 KB',
+          sizeMb: 1,
           content: 'Prova de intrusão Numataka. Extraia este arquivo e apague seu IP na aba Logs!',
           isTutorial: true,
           canDelete: false
         });
       }
       const m = this.state.activeMission;
-      if (m && m.targetIp === ip && m.fileName && !m.progressDone) {
+      if (m && m.targetIp === ip && m.fileName && !m.deletedOnRemote) {
         files.push({
           name: m.fileName,
-          size: '48 KB',
+          size: `${m.fileSizeMb || 28} MB`,
+          sizeMb: m.fileSizeMb || 28,
           content: m.fileContent,
           missionId: m.id,
-          canDelete: m.type === 'delete_file',
-          canSteal: m.type === 'steal_data'
+          canDelete: true,
+          canSteal: true
         });
       }
       return files;
@@ -893,13 +1106,34 @@
 
       const m = this.state.activeMission;
       if (m && m.targetIp === ip && m.fileName === fileName) {
-        if ((m.type === 'delete_file' && actionKind === 'delete') || (m.type === 'steal_data' && actionKind === 'read')) {
-          m.progressDone = true;
+        if (actionKind === 'read') {
+          m.downloadedToLocal = true;
+          this.state.downloadedFiles = [
+            { ip, fileName, at: new Date().toLocaleTimeString() },
+            ...(this.state.downloadedFiles || []).filter((x) => !(x.ip === ip && x.fileName === fileName))
+          ];
           this.save();
-          if (actionKind === 'delete' && window.safenetFbiEngine) {
+          if (typeof window.showToast === 'function') {
+            window.showToast(`✓ Arquivo ${fileName} baixado para o seu PC! Vá em Missões → Missão Atual para verificar e receber $${m.rewardCash}!`);
+          }
+          this.renderUI();
+          return { success: true, downloaded: true };
+        }
+        if (actionKind === 'delete') {
+          m.deletedOnRemote = true;
+          this.state.deletedFiles = [
+            { ip, fileName, at: new Date().toLocaleTimeString() },
+            ...(this.state.deletedFiles || [])
+          ];
+          this.save();
+          if (window.safenetFbiEngine) {
             window.safenetFbiEngine.evaluatePlayerCrime('Sabotagem e destruição de arquivo corporativo', 1200, ip);
           }
-          return this.completeActiveMission();
+          if (typeof window.showToast === 'function') {
+            window.showToast(`✓ Arquivo ${fileName} excluído de ${ip}! Vá em Missões → Missão Atual para verificar e receber $${m.rewardCash}!`);
+          }
+          this.renderUI();
+          return { success: true, deleted: true };
         }
       }
       return { success: true };
@@ -908,10 +1142,14 @@
     notifyHostDrained(ip) {
       this.ensureLoaded();
       const m = this.state.activeMission;
-      if (m && m.targetIp === ip && m.type === 'drain_funds' && !m.progressDone) {
+      if (m && m.targetIp === ip && m.type === 'drain_funds') {
+        m.drainedConfirmed = true;
         m.progressDone = true;
         this.save();
-        this.completeActiveMission();
+        if (typeof window.showToast === 'function') {
+          window.showToast(`✓ Cofre de ${ip} drenado! Vá em Missões → Missão Atual para receber o pagamento do contrato!`);
+        }
+        this.renderUI();
       }
     }
 
@@ -920,7 +1158,6 @@
       const m = this.state.activeMission;
       if (!m || m.type !== 'check_balance') return { success: false, message: 'Nenhuma auditoria ativa.' };
 
-      // Exigir que o alvo tenha sido invadido no Hacked Database primeiro (anti-chute)
       const hacked = window.hackedDb ? window.hackedDb.getEntry(m.targetIp) : null;
       if (!hacked) {
         return { success: false, message: `Invada ${m.targetIp} primeiro para inspecionar o saldo real!` };
@@ -945,7 +1182,7 @@
         return {
           success: false,
           code: 'NO_DDOS_BREAKER',
-          message: 'Seu DDoS_Breaker.vbrk está DESATIVADO na sua RAM! Instale-o na aba Software & Vírus antes de lançar um ataque DDoS.'
+          message: 'Seu DDoS_Breaker.vbrk está DESATIVADO na sua RAM! Instale-o na aba Programas antes de lançar um ataque DDoS.'
         };
       }
 
@@ -975,7 +1212,14 @@
       if (!m) return { success: false };
 
       if (window.currentWallet) {
-        window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + m.rewardCash).toFixed(2);
+        const payFn = () => {
+          window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + m.rewardCash).toFixed(2);
+        };
+        if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+          window.integrityGuard.runAuthorized(payFn);
+        } else {
+          payFn();
+        }
       }
       if (m.rewardSats > 0 && window.bitcoinEngine) {
         window.bitcoinEngine.creditSats(m.rewardSats, 'MISSION-BTC', `Bônus cripto do contrato ${m.id} (${m.hirer})`);
@@ -990,23 +1234,37 @@
         id: m.id,
         badge: m.badge,
         hirer: m.hirer,
+        hirerIp: m.hirerIp,
         targetIp: m.targetIp,
+        targetHostname: m.targetHostname,
+        objectiveStr: m.fileName || m.virusFilename || m.badge,
         status: 'CONCLUÍDA',
-        rewardStr: `${fmtUsd(m.rewardCash)}${btcTxt} (+${m.repReward} REP)`,
+        rewardStr: `$${m.rewardCash.toLocaleString('pt-BR')}${btcTxt} (+${m.repReward} REP)`,
         at: new Date().toLocaleTimeString()
       });
+
+      if (window.mailEngine && typeof window.mailEngine.pushSystemMail === 'function') {
+        window.mailEngine.pushSystemMail(
+          `${m.hirer} <${m.hirerEmail || 'pagamento@rede.hc'}>`,
+          `[Pagamento Liberado] Missão ${m.id} Verificada (+$${m.rewardCash})`,
+          `Serviço verificado com sucesso em ${m.targetIp} (${m.targetHostname}).\nTransferimos $${m.rewardCash.toLocaleString('pt-BR')}${btcTxt} para sua conta e apagamos nosso vínculo.\n\n— ${m.hirer}`,
+          'system'
+        );
+      }
+
       this.state.activeMission = null;
+      this.subTab = 'completed';
       if (this.state.pool.length < 4) this.generatePool();
       this.save();
 
       if (typeof window.addLocalLog === 'function') {
-        window.addLocalLog('MISSION-OK', `Contrato ${m.id} (${m.hirer}) cumprido! Pagamento: ${fmtUsd(m.rewardCash)}${btcTxt}`, 'success');
+        window.addLocalLog('MISSION-OK', `Contrato ${m.id} (${m.hirer}) verificado e pago! +$${m.rewardCash}${btcTxt}`, 'success');
       }
       if (window.hackerAudio) window.hackerAudio.playMoneyCollect();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       this.renderUI();
       if (typeof window.showToast === 'function') {
-        window.showToast(`Missão concluída! Recebido ${fmtUsd(m.rewardCash)}${btcTxt}!`);
+        window.showToast(`✓ Missão verificada e concluída! Recebido $${m.rewardCash.toLocaleString('pt-BR')}${btcTxt}!`);
       }
       return { success: true, rewardCash: m.rewardCash, rewardSats: m.rewardSats };
     }
@@ -1020,22 +1278,19 @@
       const tutInfo = window.tutorialEngine ? window.tutorialEngine.getCurrentStepInfo() : { completed: true };
       const maxTier = this.getPlayerAllowedTier();
       const active = this.state.activeMission;
-      const myRep = (window.currentProfile && window.currentProfile.reputation) || 100;
-
+      const playerTag = (window.currentProfile && window.currentProfile.hacker_tag) || 'Operador';
       const dynamicCount = window.dynamicContractsEngine ? window.dynamicContractsEngine.contracts.length : 6;
-      const activeDynamicCount = window.dynamicContractsEngine ? window.dynamicContractsEngine.activeContracts.length : 0;
 
-      const tierPct = Math.min(100, Math.round((maxTier / 3) * 100));
-      const r = 46;
-      const cCirc = +(2 * Math.PI * r).toFixed(2);
-      const offset = +(cCirc - (tierPct / 100) * cCirc).toFixed(2);
+      if (!this.subTab) {
+        this.subTab = active ? 'current' : 'available';
+      }
 
       const tutBannerHtml = tutInfo.completed ? '' : `
-        <div class="hc-card" style="padding:14px 18px;border-color:rgba(95,211,154,0.42);background:rgba(18,129,79,0.12);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">
+        <div class="hc-card" style="padding:12px 16px;border-color:rgba(95,211,154,0.42);background:rgba(18,129,79,0.12);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">
           <div style="max-width:720px;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
               <span class="hc-badge success">${esc(tutInfo.badge)}</span>
-              <strong style="font-size:14.5px;">${esc(tutInfo.title)}</strong>
+              <strong style="font-size:14px;">${esc(tutInfo.title)}</strong>
             </div>
             <p style="font-size:12.5px;color:var(--hc-text-2);margin:0;">${esc(tutInfo.desc)}</p>
           </div>
@@ -1045,25 +1300,30 @@
         </div>
       `;
 
+      // 3 Abas Superiores idênticas à Foto 1: Missões Disponíveis | Missão Atual | Missões Concluídas (+ Facções à direita)
       const topFrameBarHtml = `
         <div class="soft-tabs-bar">
-          <div class="soft-tabs-left" role="tablist" aria-label="Categorias de Missões">
-            <button type="button" id="tabCampaignMissions" class="soft-tab-btn ${this.mainTab !== 'dynamic' ? 'active' : ''}" onclick="window.missionsEngine.mainTab='campaign';window.missionsEngine.renderUI();">
-              ${ic('crosshair')} <span>Quadro de Contratos</span>
+          <div class="soft-tabs-left" role="tablist" aria-label="Abas de Missões">
+            <button type="button" id="tabMsnAvailable" class="soft-tab-btn ${this.mainTab !== 'dynamic' && this.subTab === 'available' ? 'active' : ''}"
+              onclick="window.missionsEngine.mainTab='campaign';window.missionsEngine.setSubTab('available');">
+              ${ic('folder')} <span>Missões Disponíveis (${this.state.pool.length})</span>
             </button>
-            <button type="button" id="tabDynamicContracts" class="soft-tab-btn ${this.mainTab === 'dynamic' ? 'active' : ''}" onclick="window.missionsEngine.mainTab='dynamic';window.missionsEngine.renderUI();">
-              ${ic('file-text')} <span>Facções (${dynamicCount})${activeDynamicCount > 0 ? ` · ${activeDynamicCount} ativo` : ''}</span>
+            <button type="button" id="tabMsnCurrent" class="soft-tab-btn ${this.mainTab !== 'dynamic' && this.subTab === 'current' ? 'active' : ''}"
+              onclick="window.missionsEngine.mainTab='campaign';window.missionsEngine.setSubTab('current');">
+              ${ic('mail')} <span>Missão Atual${active ? ' ●' : ''}</span>
+            </button>
+            <button type="button" id="tabMsnCompleted" class="soft-tab-btn ${this.mainTab !== 'dynamic' && this.subTab === 'completed' ? 'active' : ''}"
+              onclick="window.missionsEngine.mainTab='campaign';window.missionsEngine.setSubTab('completed');">
+              ${ic('circle-check')} <span>Missões Concluídas (${this.state.completedCount || 0})</span>
             </button>
           </div>
 
-          ${this.mainTab !== 'dynamic' ? `
-            <div class="soft-drive-pills" role="group" aria-label="Filtrar por nível">
-              <button type="button" class="soft-drive-pill ${this.filterTier === 0 ? 'active' : ''}" onclick="window.missionsEngine.filterTier=0;window.missionsEngine.renderUI();">Todos</button>
-              <button type="button" class="soft-drive-pill ${this.filterTier === 1 ? 'active' : ''}" onclick="window.missionsEngine.filterTier=1;window.missionsEngine.renderUI();">Nível 1</button>
-              <button type="button" class="soft-drive-pill ${this.filterTier === 2 ? 'active' : ''}" onclick="window.missionsEngine.filterTier=2;window.missionsEngine.renderUI();">Nível 2</button>
-              <button type="button" class="soft-drive-pill ${this.filterTier === 3 ? 'active' : ''}" onclick="window.missionsEngine.filterTier=3;window.missionsEngine.renderUI();">Nível 3</button>
-            </div>
-          ` : ''}
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button type="button" id="tabDynamicContracts" class="soft-drive-pill ${this.mainTab === 'dynamic' ? 'active' : ''}"
+              onclick="window.missionsEngine.mainTab=(window.missionsEngine.mainTab==='dynamic'?'campaign':'dynamic');window.missionsEngine.renderUI();">
+              Facções (${dynamicCount})
+            </button>
+          </div>
         </div>
       `;
 
@@ -1071,7 +1331,7 @@
         container.innerHTML = `
           <div style="display:flex;flex-direction:column;gap:14px;">
             ${tutBannerHtml}
-            <div class="soft-frame">
+            <div class="soft-frame" id="missionsExplorerMain">
               ${topFrameBarHtml}
               <div style="padding:16px;">${window.dynamicContractsEngine.renderHtml()}</div>
             </div>
@@ -1080,159 +1340,253 @@
         return;
       }
 
-      let activeHtml = '';
-      if (active) {
-        const btcTag = active.rewardSats > 0 ? ` + ${(active.rewardSats / 100000000).toFixed(5)} BTC` : '';
-        let actionControl = `
-          <button type="button" class="hc-btn primary sm" onclick="window.internetEngine.openIp('${esc(active.targetIp)}', 'invadir')">
-            Abrir ${esc(active.targetIp)} →
-          </button>
-        `;
-        if (active.type === 'check_balance') {
-          actionControl = `
-            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-              <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(active.targetIp)}', 'invadir')">Inspecionar ${esc(active.targetIp)}</button>
-              <input type="number" id="missionBalanceInput" class="hc-input mono" style="width:155px;height:30px;font-size:12px;" placeholder="Saldo visto ($)">
-              <button type="button" id="btnSubmitBalanceMission" class="hc-btn primary sm" onclick="window.handleMissionBalanceSubmit()">Confirmar</button>
+      let bodyContentHtml = '';
+
+      // ABA 2: MISSÃO ATUAL (Layout E-mail + Mini-História à esquerda | Informações da Missão à direita — igual à Foto 1!)
+      if (this.subTab === 'current') {
+        if (!active) {
+          bodyContentHtml = `
+            <div style="padding:36px 20px;text-align:center;">
+              <div style="font-size:15px;font-weight:600;color:var(--hc-text);margin-bottom:6px;">Nenhuma missão ativa no momento</div>
+              <p style="font-size:13px;color:var(--hc-text-2);margin:0 auto 14px;max-width:52ch;">Abra <strong>Missões Disponíveis</strong> para ler as propostas enviadas pelos contratantes e aceitar um serviço.</p>
+              <button type="button" class="hc-btn primary sm" onclick="window.missionsEngine.setSubTab('available')">Ver Missões Disponíveis →</button>
             </div>
           `;
-        } else if (active.type === 'ddos_takedown') {
-          actionControl = `
-            <button type="button" id="btnExecMissionDdos" class="hc-btn primary sm" onclick="window.handleMissionDdos()">Disparar DDoS em ${esc(active.targetIp)}</button>
+        } else {
+          const verif = this.verifyActiveMissionStatus();
+          const btcBonusStr = active.rewardSats > 0 ? ` + ${(active.rewardSats / 100000000).toFixed(5)} BTC` : '';
+          const objRowLabel = active.type === 'install_virus' ? 'Vírus Exigido' : (active.fileName ? 'Arquivo Alvo' : 'Operação');
+          const objRowVal = active.type === 'install_virus'
+            ? `<span class="msn-hl-virus">${esc(active.virusFilename)}</span> <span style="color:var(--hc-text-3);">rodando ativo</span>`
+            : (active.fileName
+                ? `<span class="msn-hl-file">${esc(active.fileName)}</span> <span style="color:var(--hc-text-3);">${active.fileSizeMb || 28} MB (${active.type === 'delete_file' ? 'Excluir' : 'Baixar'})</span>`
+                : esc(active.badge));
+
+          bodyContentHtml = `
+            <div style="padding:18px 20px;">
+              <div class="msn-current-layout" id="currentMissionMailLayout">
+                <!-- Coluna Esquerda: Mensagem / E-mail com Mini-História do Contratante -->
+                <div class="msn-mail-box">
+                  <div class="msn-mail-header">
+                    <div class="msn-sender-avatar" aria-hidden="true">${ic(active.hirerIcon || 'terminal')}</div>
+                    <div>
+                      <div class="msn-mail-meta">
+                        Enviado por: <strong style="color:var(--hc-text-2);">${esc(active.hirer)}</strong> em ${esc(active.acceptedAt || active.sentAt)} · IP: ${esc(active.hirerIp || '239.231.94.245')}
+                      </div>
+                      <div class="msn-mail-story">
+                        ${this.buildStoryRichHtml(active, playerTag)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Caixa de Verificação Real da Missão -->
+                  <div class="msn-verify-box ${verif.verified ? 'is-ready' : ''}" id="missionVerifyBox">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+                      <div style="font-size:12.5px;">
+                        <strong style="color:${verif.verified ? 'var(--hc-accent-text)' : 'var(--hc-warning-text)'};">
+                          ${verif.verified ? '✓ Verificação Concluída — Objetivo confirmado!' : '⏳ Verificação Automática Pendente'}
+                        </strong>
+                        <div style="color:var(--hc-text-2);margin-top:3px;">
+                          ${esc(verif.verified ? verif.detail : verif.reason)}
+                        </div>
+                      </div>
+                      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button type="button" id="btnOpenMissionTargetIp" class="hc-btn ghost sm"
+                          onclick="window.internetEngine.openIp('${esc(active.targetIp)}', '${verif.hacked ? 'entrar' : 'invadir'}')">
+                          ${ic('globe')} Ir para ${esc(active.targetIp)}
+                        </button>
+                        <button type="button" id="btnVerifyAndClaimMission" class="hc-btn primary sm"
+                          onclick="window.handleVerifyMission()">
+                          ${ic('circle-check')} ${verif.verified ? `Entregar & Receber $${active.rewardCash}` : 'Verificar Cumprimento'}
+                        </button>
+                      </div>
+                    </div>
+                    ${this.lastVerifyFeedback && !this.lastVerifyFeedback.ok ? `
+                      <div style="font-size:12px;color:#ff8e88;border-top:1px solid var(--hc-border);padding-top:8px;">
+                        ⚠️ ${esc(this.lastVerifyFeedback.text)}
+                      </div>
+                    ` : ''}
+                  </div>
+
+                  <div>
+                    <button type="button" id="btnAbortActiveMission" class="hc-btn sm" style="background:rgba(208,68,58,0.16);border-color:rgba(229,83,75,0.4);color:#ff8e88;"
+                      onclick="window.missionsEngine.abortActiveMission()">
+                      Abandonar Missão
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Coluna Direita: Tabela Informações da Missão (Idêntica à Foto 1) -->
+                <aside class="msn-info-card" aria-label="Informações da Missão">
+                  <div class="msn-info-head">
+                    ${ic('sparkles')} <span>Informações da Missão</span>
+                  </div>
+                  <table class="msn-info-table">
+                    <tbody>
+                      <tr>
+                        <th>Vítima</th>
+                        <td>
+                          <span class="msn-hl-ip" onclick="window.internetEngine.openIp('${esc(active.targetIp)}', 'invadir')">${esc(active.targetIp)}</span>
+                          <span style="color:var(--hc-text-3);font-family:var(--hc-font-sans);margin-left:4px;">${esc(active.targetHostname)}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <th>${esc(objRowLabel)}</th>
+                        <td>${objRowVal}</td>
+                      </tr>
+                      <tr>
+                        <th>Verificação</th>
+                        <td>
+                          <span class="hc-badge ${verif.verified ? 'success' : 'warn'}">${verif.verified ? '✓ Confirmado' : 'Pendente'}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <th>Recompensa</th>
+                        <td><span class="msn-hl-money">$${active.rewardCash.toLocaleString('pt-BR')}${esc(btcBonusStr)}</span> <span style="color:var(--hc-text-3);font-size:11px;">+${active.repReward} REP</span></td>
+                      </tr>
+                      <tr>
+                        <th>Contratante</th>
+                        <td>${esc(active.hirerIp || '239.231.94.245')} <span style="color:var(--hc-text-3);font-family:var(--hc-font-sans);margin-left:4px;">${esc(active.hirer)}</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </aside>
+              </div>
+            </div>
           `;
         }
+      }
+      // ABA 3: MISSÕES CONCLUÍDAS
+      else if (this.subTab === 'completed') {
+        const hist = this.state.history || [];
+        const histRows = hist.length === 0
+          ? `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--hc-text-3);">Nenhuma missão concluída ainda. Aceite um contrato em Missões Disponíveis!</td></tr>`
+          : hist.map((h) => `
+              <tr>
+                <td class="soft-col-ver" style="width:95px;color:var(--hc-text-3);">${esc(h.at)}</td>
+                <td>
+                  <strong>${esc(h.hirer)}</strong>
+                  <span class="hc-badge ${h.status === 'CONCLUÍDA' ? 'success' : 'danger'}" style="margin-left:6px;">${esc(h.badge)}</span>
+                </td>
+                <td class="soft-col-size" style="width:140px;">${esc(h.targetIp)}</td>
+                <td class="soft-col-size" style="width:160px;color:var(--hc-text-2);">${esc(h.objectiveStr || h.badge)}</td>
+                <td class="soft-col-size" style="width:150px;color:${h.status === 'CONCLUÍDA' ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};font-weight:600;">${esc(h.rewardStr)}</td>
+              </tr>
+            `).join('');
 
-        activeHtml = `
-          <div class="hc-card" style="padding:13px 16px;border-color:var(--hc-accent);background:var(--hc-inset);">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;">
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                <span class="hc-badge success">Em Andamento</span>
-                <strong>${esc(active.hirer)}</strong>
-                <span class="mono" style="color:var(--hc-accent-text);font-size:12.5px;">${esc(active.targetIp)}</span>
-              </div>
-              <strong class="mono" style="color:var(--hc-accent-text);font-size:13px;">${fmtUsd(active.rewardCash)}${btcTag}</strong>
+        bodyContentHtml = `
+          <div style="padding:14px 16px;">
+            <div class="soft-table-wrap">
+              <table class="soft-table clean-hw-table">
+                <thead>
+                  <tr>
+                    <th class="soft-col-ver" style="width:95px;">Hora</th>
+                    <th>Contratante &amp; Tipo</th>
+                    <th class="soft-col-size" style="width:140px;">Vítima</th>
+                    <th class="soft-col-size" style="width:160px;">Arquivo / Vírus</th>
+                    <th class="soft-col-size" style="width:150px;">Resultado</th>
+                  </tr>
+                </thead>
+                <tbody>${histRows}</tbody>
+              </table>
             </div>
-            <p style="font-size:12.5px;color:var(--hc-text-2);margin:0 0 10px;">${esc(active.brief)}</p>
+          </div>
+        `;
+      }
+      // ABA 1: MISSÕES DISPONÍVEIS (Propostas por E-mail prontas para aceitar)
+      else {
+        const typeIconMap = {
+          delete_file: ['trash-2', 'attack'],
+          steal_data: ['download', 'defense'],
+          install_virus: ['bug', 'virus'],
+          check_balance: ['search', 'stealth'],
+          drain_funds: ['landmark', 'virus'],
+          ddos_takedown: ['zap', 'virus']
+        };
+
+        const poolFiltered = this.state.pool.filter((m) => this.filterTier === 0 || m.tier === this.filterTier);
+        const poolRows = poolFiltered.map((m) => {
+          const locked = m.tier > maxTier;
+          const [icName, glyphCls] = typeIconMap[m.type] || ['mail', 'attack'];
+          const rewardShort = `$${m.rewardCash.toLocaleString('pt-BR')}${m.rewardSats > 0 ? ' + BTC' : ''}`;
+          const targetObjLabel = m.fileName
+            ? `${m.type === 'delete_file' ? 'Deletar' : 'Roubar'} ${m.fileName}`
+            : (m.virusFilename ? `Rodar ${m.virusFilename}` : m.badge);
+
+          return `
+            <tr class="${locked ? 'row-hidden' : ''}">
+              <td class="soft-col-icon">
+                <span class="soft-mini-glyph kind-${glyphCls}"
+                  data-tip-title="${esc(m.hirer)} · ${esc(m.badge)}"
+                  data-tip-meta="${esc(rewardShort)}"
+                  data-tip-desc="${esc(m.brief)}">
+                  ${ic(icName)}
+                </span>
+              </td>
+              <td>
+                <span class="soft-name-trigger" tabindex="0"
+                  data-tip-title="Mensagem de ${esc(m.hirer)}"
+                  data-tip-meta="Nível ${m.tier}"
+                  data-tip-desc="${esc(m.brief)}">
+                  <strong style="font-family:var(--hc-font-sans);color:var(--hc-text);">${esc(m.hirer)}</strong>
+                  <span class="hc-badge ${m.tier === 3 ? 'danger' : (m.tier === 2 ? 'warn' : 'info')}">${esc(targetObjLabel)}</span>
+                </span>
+                <div style="font-size:11.5px;color:var(--hc-text-3);margin-top:2px;">
+                  Vítima: <span class="mono" style="color:var(--hc-text-2);">${esc(m.targetIp)}</span> (${esc(m.targetHostname)})
+                </div>
+              </td>
+              <td class="soft-col-size" style="width:125px;color:var(--hc-accent-text);font-weight:700;white-space:nowrap;">${esc(rewardShort)}</td>
+              <td class="soft-col-acts">
+                <div class="soft-icon-actions">
+                  <button type="button" class="soft-icon-act ic-info" aria-label="Resumo da proposta de ${esc(m.hirer)}"
+                    data-tip-title="Proposta por E-mail" data-tip-meta="Nível ${m.tier}" data-tip-desc="${esc(m.brief)}">
+                    ${ic('info')}
+                  </button>
+                  <button type="button" id="btnAcceptMission_${m.type}_${esc(m.id)}" class="soft-icon-act ic-run btn-accept-msn-${m.type}" ${locked || active ? 'disabled' : ''}
+                    aria-label="Aceitar missão de ${esc(m.hirer)}"
+                    data-tip-title="${locked ? `Requer Nível ${m.tier}` : (active ? 'Conclua ou abandone sua Missão Atual primeiro' : 'Aceitar e abrir mensagem completa')}"
+                    data-tip-meta="${esc(rewardShort)}"
+                    data-tip-desc="Recebe a proposta completa por e-mail e abre a aba Missão Atual com todos os dados do alvo."
+                    onclick="window.handleAcceptMission('${esc(m.id)}')">
+                    ${ic(locked ? 'lock' : 'play')}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        bodyContentHtml = `
+          <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-              ${actionControl}
-              <button type="button" class="hc-btn ghost sm" style="color:var(--hc-danger-text);" onclick="window.missionsEngine.abortActiveMission()">Abortar</button>
+              <span style="font-size:12.5px;color:var(--hc-text-2);">Escolha um contrato abaixo: o contratante enviará um <strong>e-mail cifrado</strong> com a história, o arquivo ou vírus exato e os dados da vítima.</span>
+              <button type="button" class="hc-btn ghost sm" onclick="window.missionsEngine.generatePool();window.missionsEngine.renderUI();">
+                ${ic('refresh-cw')} Atualizar Propostas
+              </button>
+            </div>
+            <div class="soft-table-wrap" role="region" aria-label="Missões disponíveis">
+              <table class="soft-table clean-hw-table">
+                <thead>
+                  <tr>
+                    <th class="soft-col-icon"></th>
+                    <th>Contratante, Objetivo &amp; Vítima</th>
+                    <th class="soft-col-size" style="width:125px;">Recompensa</th>
+                    <th class="soft-col-acts">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>${poolRows}</tbody>
+              </table>
             </div>
           </div>
         `;
       }
 
-      const typeIconMap = {
-        delete_file: ['trash-2', 'attack'],
-        steal_data: ['download', 'defense'],
-        check_balance: ['search', 'stealth'],
-        drain_funds: ['landmark', 'virus'],
-        ddos_takedown: ['zap', 'virus']
-      };
-
-      const poolFiltered = this.state.pool.filter((m) => this.filterTier === 0 || m.tier === this.filterTier);
-      const poolRows = poolFiltered.map((m) => {
-        const locked = m.tier > maxTier;
-        const [icName, glyphCls] = typeIconMap[m.type] || ['crosshair', 'attack'];
-        const rewardShort = `$ ${m.rewardCash.toLocaleString('pt-BR')}${m.rewardSats > 0 ? ' + BTC' : ''}`;
-
-        return `
-          <tr class="${locked ? 'row-hidden' : ''}">
-            <td class="soft-col-icon">
-              <span class="soft-mini-glyph kind-${glyphCls}"
-                data-tip-title="${esc(m.badge)} · Nível ${m.tier}"
-                data-tip-meta="${esc(rewardShort)}"
-                data-tip-desc="${esc(m.brief)}">
-                ${ic(icName)}
-              </span>
-            </td>
-            <td>
-              <span class="soft-name-trigger" tabindex="0"
-                data-tip-title="${esc(m.hirer)} — ${esc(m.badge)}"
-                data-tip-meta="Nível ${m.tier}"
-                data-tip-desc="${esc(m.brief)}">
-                <strong style="font-family:var(--hc-font-sans);color:var(--hc-text);">${esc(m.hirer)}</strong>
-                <span class="hc-badge ${m.tier === 3 ? 'danger' : (m.tier === 2 ? 'warn' : 'info')}">${esc(m.badge)}</span>
-              </span>
-            </td>
-            <td class="soft-col-size" style="width:140px;color:var(--hc-text-2);">${esc(m.targetIp)}</td>
-            <td class="soft-col-size" style="width:125px;color:var(--hc-accent-text);white-space:nowrap;">${esc(rewardShort)}</td>
-            <td class="soft-col-acts">
-              <div class="soft-icon-actions">
-                <button type="button" class="soft-icon-act ic-info" aria-label="Briefing de ${esc(m.hirer)}"
-                  data-tip-title="Objetivo do Contrato" data-tip-meta="Nível ${m.tier}" data-tip-desc="${esc(m.brief)}">
-                  ${ic('info')}
-                </button>
-                <button type="button" class="soft-icon-act ic-move" aria-label="Inspecionar IP ${esc(m.targetIp)}"
-                  data-tip-title="Ver alvo na Internet" data-tip-meta="${esc(m.targetIp)}" data-tip-desc="${esc(m.targetHostname)}"
-                  onclick="window.internetEngine.openIp('${esc(m.targetIp)}')">
-                  ${ic('globe')}
-                </button>
-                <button type="button" id="btnAcceptMission_${m.type}" class="soft-icon-act ic-run" ${locked || active ? 'disabled' : ''}
-                  aria-label="Aceitar contrato de ${esc(m.hirer)}"
-                  data-tip-title="${locked ? `Requer Nível ${m.tier}` : (active ? 'Conclua ou aborte a missão atual' : 'Aceitar este contrato')}"
-                  data-tip-meta="${esc(rewardShort)}"
-                  data-tip-desc="${esc(m.brief)}"
-                  onclick="window.handleAcceptMission('${esc(m.id)}')">
-                  ${ic(locked ? 'lock' : 'play')}
-                </button>
-              </div>
-            </td>
-          </tr>
-        `;
-      }).join('');
-
       container.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:14px;">
           ${tutBannerHtml}
-
           <div class="soft-frame" id="missionsExplorerMain">
             ${topFrameBarHtml}
-
-            <div class="soft-explorer-shell">
-              <div class="soft-main-col">
-                ${activeHtml}
-                <div class="soft-table-wrap" role="region" aria-label="Contratos disponíveis">
-                  <table class="soft-table clean-hw-table">
-                    <thead>
-                      <tr>
-                        <th class="soft-col-icon"></th>
-                        <th>Contratante &amp; Operação</th>
-                        <th class="soft-col-size" style="width:140px;">Alvo</th>
-                        <th class="soft-col-size" style="width:125px;">Pagamento</th>
-                        <th class="soft-col-acts">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>${poolRows}</tbody>
-                  </table>
-                </div>
-              </div>
-
-              <aside class="soft-side-bar">
-                <div class="soft-donut-wrap">
-                  <svg class="soft-donut-svg" viewBox="0 0 116 116" aria-label="Nível de Acesso ${maxTier} de 3">
-                    <circle cx="58" cy="58" r="${r}" fill="none" stroke="#222832" stroke-width="8"></circle>
-                    <circle cx="58" cy="58" r="${r}" fill="none" stroke="#35b877" stroke-width="8"
-                      stroke-linecap="round" stroke-dasharray="${cCirc}" stroke-dashoffset="${offset}" transform="rotate(-90 58 58)"></circle>
-                    <text x="58" y="63" text-anchor="middle" fill="#ebeff4" font-family="var(--hc-font-mono)" font-size="18" font-weight="700">Nv.${maxTier}</text>
-                  </svg>
-                  <div class="soft-donut-title">Nível de Acesso</div>
-                  <div class="soft-donut-numbers"><span class="used">${this.state.completedCount || 0}</span> concluídas</div>
-                </div>
-
-                <div class="soft-bays-box">
-                  <div class="soft-bay-row"><span>Acesso Atual</span><span style="color:var(--hc-accent-text);">Nível ${maxTier} / 3</span></div>
-                  <div class="soft-bay-row"><span>Reputação</span><span>${myRep.toLocaleString('pt-BR')} REP</span></div>
-                  <div class="soft-bay-row"><span>Concluídas</span><span>${this.state.completedCount || 0}</span></div>
-                </div>
-
-                <div class="soft-tool-tiles">
-                  <button type="button" class="soft-tool-tile span-2" onclick="window.missionsEngine.generatePool();window.missionsEngine.renderUI();">
-                    ${ic('refresh-cw')}
-                    <span>Renovar Contratos</span>
-                  </button>
-                </div>
-              </aside>
-            </div>
+            ${bodyContentHtml}
           </div>
         </div>
       `;
@@ -1253,8 +1607,12 @@
   window.handleAcceptMission = function (missionId) {
     const res = window.missionsEngine.acceptMission(missionId);
     if (!res.success) alert(res.message);
-    else if (typeof window.showToast === 'function') window.showToast(`Contrato aceito! Invada ${res.mission.targetIp}.`);
+    else if (typeof window.showToast === 'function') window.showToast(`Nova mensagem de ${res.mission.hirer}! Confira os detalhes em Missão Atual.`);
     return res;
+  };
+
+  window.handleVerifyMission = function () {
+    return window.missionsEngine.verifyAndClaimActiveMission();
   };
 
   window.handleMissionBalanceSubmit = function () {
