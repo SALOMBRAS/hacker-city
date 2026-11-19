@@ -1723,20 +1723,20 @@
         return { ok: true, role };
       }
 
-      // Método 'password' (Força-Bruta / Login SSH Root): exige Cracker.crc ativo >= Firewall.fwl E >= Hasher.hash!
+      // Método 'password' (Força-Bruta / Login SSH Root): exige Cracker.crc no disco (HD/SSD/NVMe) >= Firewall.fwl E >= Hasher.hash!
       const crcVer = this.getPlayerCrackerVer();
       if (crcVer <= 0) {
         return {
           ok: false,
-          code: 'NO_CRACKER_RUNNING',
-          reason: 'Acesso SSH negado: mantenha seu Cracker.crc ATIVO na RAM para sustentar a descriptografia da sessão remota!'
+          code: 'NO_CRACKER_OWNED',
+          reason: 'Acesso SSH negado: você não possui nenhum Quebrador de Senha (Cracker.crc) visível nas unidades HD/SSD/NVMe do seu computador!'
         };
       }
       if (crcVer < reqFwl) {
         return {
           ok: false,
           code: 'BLOCKED_BY_FIREWALL',
-          reason: `BLOQUEADO PELO FIREWALL! O Firewall.fwl (v${reqFwl.toFixed(1)}) de ${host.hostname} bloqueou seu hash de descriptografia de rede (seu Cracker.crc é v${crcVer.toFixed(1)}). Evolua para >= v${reqFwl.toFixed(1)}!`
+          reason: `BLOQUEADO PELO FIREWALL! O Firewall.fwl (v${reqFwl.toFixed(1)}) de ${host.hostname} bloqueou seu hash de descriptografia (seu Cracker.crc é v${crcVer.toFixed(1)}). Evolua para >= v${reqFwl.toFixed(1)}!`
         };
       }
       if (crcVer < reqHasher) {
@@ -1764,7 +1764,149 @@
       return false;
     }
 
-    startBruteforce() {
+    ensureMiniPcRoot() {
+      let el = document.getElementById('miniPcCrackerBackdrop');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'miniPcCrackerBackdrop';
+        el.className = 'minipc-backdrop';
+        el.addEventListener('click', (ev) => {
+          if (ev.target === el) this.closeCrackerMiniPc();
+        });
+        document.body.appendChild(el);
+      }
+      return el;
+    }
+
+    closeCrackerMiniPc() {
+      this.miniPcOpen = false;
+      const el = document.getElementById('miniPcCrackerBackdrop');
+      if (el) el.classList.remove('open');
+    }
+
+    // Abre o Mini-PC mostrando todos os quebradores/hashes disponíveis nas unidades HD, SSD e NVMe do computador do jogador!
+    openCrackerMiniPc(driveFilter = null) {
+      const host = this.resolveHost(this.currentIp);
+      if (!host || host.notFound || host.kind === 'self') return { opened: false };
+      if (driveFilter) this.miniPcDriveFilter = driveFilter;
+      if (!this.miniPcDriveFilter) this.miniPcDriveFilter = 'all';
+
+      const reqFwl = host.firewallVer || 1.0;
+      const reqHasher = host.hasherVer || 1.0;
+      const reqMin = Math.max(reqFwl, reqHasher);
+      const cpuFactor = this.getCpuSpeedFactor();
+
+      const allHashes = window.softwareEngine
+        ? window.softwareEngine.getCrackerHashesOnMyPc(false)
+        : [{ id: 'main_cracker', filename: 'Cracker.crc', title: 'Quebrador de Senhas', version: 1.0, sizeMb: 20, drive: 'hd', driveName: 'HD', driveSpeedMult: 1.0 }];
+      const bays = window.softwareEngine
+        ? window.softwareEngine.getDriveBaysSummary()
+        : {
+            hd: { label: 'HD', speedLabel: '1.00x', usedMb: 58, capMb: 217 },
+            ssd: { label: 'SSD', speedLabel: '1.12x', usedMb: 26, capMb: 91 },
+            nvme: { label: 'NVMe', speedLabel: '1.25x', usedMb: 12, capMb: 42 }
+          };
+
+      const filteredHashes = this.miniPcDriveFilter === 'all'
+        ? allHashes
+        : allHashes.filter((h) => h.drive === this.miniPcDriveFilter);
+
+      let markedBest = false;
+      const listHtml = filteredHashes.length === 0
+        ? `<div class="hc-empty-box" style="padding:24px 14px;">
+             <strong>Nenhum hash/cracker nesta unidade (${this.miniPcDriveFilter.toUpperCase()})</strong>
+             <p>Alterne para "Todas" ou mova seu Cracker.crc para cá na aba Programas &amp; Proteção.</p>
+           </div>`
+        : filteredHashes.map((h) => {
+            const ok = h.version >= reqFwl && h.version >= reqHasher;
+            const totalSpeed = +(cpuFactor * (h.driveSpeedMult || 1.0)).toFixed(2);
+            const verAdv = 1 + Math.max(0, h.version - reqMin) * 0.45;
+            const estSec = Math.max(1.2, Math.min(9.5, +((2.4 * reqMin) / Math.max(0.6, totalSpeed * verAdv)).toFixed(1)));
+            const isBestBtn = ok && !markedBest;
+            if (isBestBtn) markedBest = true;
+
+            return `
+              <div class="minipc-hash-item ${ok ? 'compatible' : ''}">
+                <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;">
+                  <div class="soft-app-icon kind-attack">${HC.icon('key-round')}</div>
+                  <div style="min-width:0;">
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                      <strong style="font-size:13.5px;">${esc(h.title)}</strong>
+                      <span class="mono" style="font-size:11.5px;color:var(--hc-text-3);">${esc(h.filename)}</span>
+                      <span class="hc-badge ${ok ? 'success' : ''}">v${h.version.toFixed(1)}</span>
+                      <span class="soft-drive-tag drv-${h.drive}">${h.driveName} · ${(h.driveSpeedMult || 1.0).toFixed(2)}x</span>
+                    </div>
+                    <div style="font-size:11.5px;color:var(--hc-text-3);margin-top:2px;">
+                      ${h.sizeMb} MB · ${ok ? `<span style="color:var(--hc-accent-text);">Alcança defesa do alvo · Tempo estimado ~${estSec}s</span>` : `<span style="color:var(--hc-danger-text);">Alvo exige no mínimo v${reqMin.toFixed(1)}</span>`}
+                    </div>
+                  </div>
+                </div>
+                <button type="button" ${isBestBtn ? 'id="btnMiniPcUseBest"' : ''} class="hc-btn ${ok ? 'primary' : ''} sm" ${!ok ? 'disabled' : ''}
+                  onclick="window.internetEngine.confirmBruteforceWithHash('${esc(h.id)}')">
+                  ${ok ? 'Usar este' : 'Fraco'}
+                </button>
+              </div>
+            `;
+          }).join('');
+
+      const modal = this.ensureMiniPcRoot();
+      modal.innerHTML = `
+        <div class="minipc-window" id="miniPcCrackerWindow" role="dialog" aria-modal="true" aria-label="Mini-PC Escolher Quebrador de Senha">
+          <div class="minipc-titlebar">
+            <div class="minipc-title-left">
+              <div class="minipc-title-icon">${HC.icon('hard-drive')}</div>
+              <div>
+                <strong style="font-size:14.5px;">Mini-PC · Escolher Hash de Quebrar Senha</strong>
+                <div style="font-size:11.5px;color:var(--hc-text-3);">
+                  Alvo <span class="mono" style="color:var(--hc-accent-text);">${esc(host.ip)}</span> (${esc(host.hostname)}) · Exige &gt;= <span class="mono">v${reqMin.toFixed(1)}</span> · Roda em 2º plano
+                </div>
+              </div>
+            </div>
+            <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.closeCrackerMiniPc()">Fechar ✕</button>
+          </div>
+
+          <div class="minipc-body">
+            <div class="minipc-drives-bar" role="tablist" aria-label="Unidades do seu computador">
+              <button type="button" class="minipc-drive-tab ${this.miniPcDriveFilter === 'all' ? 'active' : ''}" onclick="window.internetEngine.openCrackerMiniPc('all')">
+                <span class="minipc-drive-name">Todas (${allHashes.length})</span>
+                <span class="minipc-drive-sub">HD + SSD + NVMe</span>
+              </button>
+              <button type="button" class="minipc-drive-tab ${this.miniPcDriveFilter === 'hd' ? 'active' : ''}" onclick="window.internetEngine.openCrackerMiniPc('hd')">
+                <span class="minipc-drive-name">HD · ${bays.hd.speedLabel}</span>
+                <span class="minipc-drive-sub">${bays.hd.usedMb}/${bays.hd.capMb} MB</span>
+              </button>
+              <button type="button" class="minipc-drive-tab ${this.miniPcDriveFilter === 'ssd' ? 'active' : ''}" onclick="window.internetEngine.openCrackerMiniPc('ssd')">
+                <span class="minipc-drive-name">SSD · ${bays.ssd.speedLabel}</span>
+                <span class="minipc-drive-sub">${bays.ssd.usedMb}/${bays.ssd.capMb} MB</span>
+              </button>
+              <button type="button" class="minipc-drive-tab ${this.miniPcDriveFilter === 'nvme' ? 'active' : ''}" onclick="window.internetEngine.openCrackerMiniPc('nvme')">
+                <span class="minipc-drive-name">NVMe · ${bays.nvme.speedLabel}</span>
+                <span class="minipc-drive-sub">${bays.nvme.usedMb}/${bays.nvme.capMb} MB</span>
+              </button>
+            </div>
+
+            <div class="minipc-hash-list">
+              ${listHtml}
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:11.5px;color:var(--hc-text-3);padding-top:4px;border-top:1px solid var(--hc-border);">
+              <span>Dica: mova seu Cracker para o SSD ou NVMe em <strong>Programas &amp; Proteção</strong> para quebrar senhas mais rápido.</span>
+              <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.closeCrackerMiniPc();window.navTo('winSoftware');">Abrir Meu PC</button>
+            </div>
+          </div>
+        </div>
+      `;
+      this.miniPcOpen = true;
+      modal.classList.add('open');
+      return { opened: true, hashesCount: allHashes.length };
+    }
+
+    confirmBruteforceWithHash(hashId) {
+      this.closeCrackerMiniPc();
+      return this.startBruteforce({ hashId });
+    }
+
+    startBruteforce(opts = {}) {
       if (this.isCracking) return { started: false };
       const host = this.resolveHost(this.currentIp);
       if (host.notFound) return { started: false };
@@ -1781,19 +1923,34 @@
         return { started: false, code: 'HOST_OFFLINE' };
       }
 
-      const crcVer = this.getPlayerCrackerVer();
+      // Quando o jogador clica em "Quebrar senha", abre o Mini-PC (HD / SSD / NVMe) p/ escolher qual hash usar!
+      if (!opts || (!opts.hashId && !opts.directBest)) {
+        return this.openCrackerMiniPc();
+      }
+
+      const hashes = window.softwareEngine
+        ? window.softwareEngine.getCrackerHashesOnMyPc(false)
+        : [{ id: 'main_cracker', filename: 'Cracker.crc', version: this.getPlayerCrackerVer(), driveName: 'HD', driveSpeedMult: 1.0 }];
+
+      const chosen = opts.hashId
+        ? (hashes.find((x) => x.id === opts.hashId) || hashes[0])
+        : hashes[0];
+
+      const crcVer = chosen ? chosen.version : 0;
+      const driveMult = chosen ? (chosen.driveSpeedMult || 1.0) : 1.0;
+      const driveName = chosen ? (chosen.driveName || 'HD') : 'HD';
       const reqFwl = host.firewallVer || 1.0;
       const reqHasher = host.hasherVer || 1.0;
 
       if (crcVer <= 0) {
-        const msg = 'Seu Cracker.crc está DESATIVADO na RAM! Ative-o na aba Software & Vírus.';
+        const msg = 'Você não possui nenhum Cracker.crc visível no seu disco (HD/SSD/NVMe)! Baixe grátis no Download Center.';
         alert(msg);
         return { started: false, code: 'CRACKER_OFF', message: msg };
       }
 
       // 1) Portão Estrito do Firewall.fwl do Alvo contra Descriptografia de Rede / Força-Bruta!
       if (crcVer < reqFwl) {
-        const msg = `FIREWALL DO ALVO MAIS FORTE! O Firewall.fwl (v${reqFwl.toFixed(1)}) de ${host.hostname} bloqueou sua descriptografia de rede e pacotes de força-bruta! Seu Cracker.crc atual (v${crcVer.toFixed(1)}) precisa ser evoluído para >= v${reqFwl.toFixed(1)} (CPU rápida NÃO substitui versão!).`;
+        const msg = `FIREWALL DO ALVO MAIS FORTE! O Firewall.fwl (v${reqFwl.toFixed(1)}) de ${host.hostname} bloqueou seu hash! Seu ${chosen?.filename || 'Cracker.crc'} (v${crcVer.toFixed(1)}) precisa ser >= v${reqFwl.toFixed(1)}.`;
         if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
         alert(msg);
         return { started: false, code: 'BLOCKED_BY_FIREWALL', message: msg };
@@ -1801,7 +1958,7 @@
 
       // 2) Portão Estrito do Hasher.hash do Alvo contra Quebra de Senha!
       if (crcVer < reqHasher) {
-        const msg = `HASHER DO ALVO MAIS FORTE! O Hasher.hash (v${reqHasher.toFixed(1)}) de ${host.hostname} bloqueou sua força-bruta! Seu Cracker.crc atual (v${crcVer.toFixed(1)}) precisa ser evoluído para >= v${reqHasher.toFixed(1)}.`;
+        const msg = `HASHER DO ALVO MAIS FORTE! O Hasher.hash (v${reqHasher.toFixed(1)}) de ${host.hostname} bloqueou sua força-bruta! Seu ${chosen?.filename || 'Cracker.crc'} (v${crcVer.toFixed(1)}) precisa ser >= v${reqHasher.toFixed(1)}.`;
         if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
         alert(msg);
         return { started: false, code: 'BLOCKED_BY_HASHER', message: msg };
@@ -1809,7 +1966,9 @@
 
       this.isCracking = true;
       this.crackPct = 0;
-      const speedFactor = this.getCpuSpeedFactor();
+      this.activeCrackDriveName = driveName;
+      this.activeCrackVer = crcVer;
+      const speedFactor = +(this.getCpuSpeedFactor() * driveMult).toFixed(2);
       const verAdvantage = 1 + Math.max(0, crcVer - Math.max(reqHasher, reqFwl)) * 0.45;
       const idealSec = Math.max(1.2, Math.min(9.5, +((2.4 * Math.max(reqHasher, reqFwl)) / Math.max(0.6, speedFactor * verAdvantage)).toFixed(1)));
       this.activeCrackPid = null;
@@ -1818,7 +1977,7 @@
         const enq = window.taskManager.enqueue({
           dedupeKey: `bf_ssh_${host.ip}`,
           title: `Quebrar senha root (${host.hostname})`,
-          subtitle: `Cracker.crc v${crcVer.toFixed(1)} vs FW v${reqFwl.toFixed(1)} / HASH v${reqHasher.toFixed(1)} · Vel CPU ${speedFactor}x`,
+          subtitle: `${chosen?.filename || 'Cracker.crc'} v${crcVer.toFixed(1)} [${driveName}] vs FW v${reqFwl.toFixed(1)} / HASH v${reqHasher.toFixed(1)} · ${speedFactor}x`,
           targetIp: host.ip,
           queueKind: 'cpu',
           category: 'Ataque',
@@ -1873,6 +2032,48 @@
         }
       }, 130);
       return { started: true, idealSec };
+    }
+
+    createRemoteNoteOnHost(ip) {
+      if (!this.remoteCustomNotes) this.remoteCustomNotes = new Map();
+      const title = window.prompt('Nome do arquivo .txt para criar no PC invadido:', 'aviso_hacker');
+      if (!title) return;
+      const body = window.prompt('Conteúdo da nota .txt:', 'Servidor auditado.');
+      if (body === null) return;
+      const cleanName = title.trim().replace(/[^a-zA-Z0-9_-]/g, '_') || 'nota';
+      const arr = this.remoteCustomNotes.get(ip) || [];
+      arr.unshift({ name: `${cleanName}.txt`, content: body, size: '1 KB', sizeMb: 1, isCustomNote: true });
+      this.remoteCustomNotes.set(ip, arr);
+      const visibleIp = window.bounceEngine
+        ? window.bounceEngine.routeConnectionAndGetVisibleIp(ip).visibleIp
+        : (window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0');
+      this.appendServerLog(ip, `${visibleIp} created file /root/${cleanName}.txt`);
+      if (typeof window.showToast === 'function') window.showToast(`Arquivo ${cleanName}.txt criado em ${ip}!`);
+      this.render();
+    }
+
+    createRemoteFolderOnHost(ip) {
+      if (!this.remoteCustomFolders) this.remoteCustomFolders = new Map();
+      const name = window.prompt('Nome da pasta para criar neste servidor:', 'temp_cache');
+      if (!name) return;
+      const clean = name.trim().replace(/[^a-zA-Z0-9_-]/g, '_') || 'pasta';
+      const arr = this.remoteCustomFolders.get(ip) || [];
+      arr.push({ id: 'rf_' + Date.now(), name: clean });
+      this.remoteCustomFolders.set(ip, arr);
+      const visibleIp = window.bounceEngine
+        ? window.bounceEngine.routeConnectionAndGetVisibleIp(ip).visibleIp
+        : (window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0');
+      this.appendServerLog(ip, `${visibleIp} created folder /root/${clean}/`);
+      if (typeof window.showToast === 'function') window.showToast(`Pasta /${clean} criada em ${ip}!`);
+      this.render();
+    }
+
+    deleteRemoteStagedVirus(ip, virusKey) {
+      if (!window.softwareEngine || !window.softwareEngine.state || !window.softwareEngine.state.stagedRemoteViruses) return;
+      window.softwareEngine.state.stagedRemoteViruses[ip] = (window.softwareEngine.state.stagedRemoteViruses[ip] || []).filter((x) => x.virusKey !== virusKey);
+      window.softwareEngine.save();
+      if (typeof window.showToast === 'function') window.showToast('Arquivo enviado removido do disco remoto.');
+      this.render();
     }
 
     startExploitAttack() {
@@ -2820,32 +3021,9 @@
           ? window.softwareEngine.inspectRemoteHostResources(host)
           : { cpuMhz: 1000, netMbps: 10, antivirusVer: 1.0, hddTotalMb: 250, hddUsedMb: 120, hddFreeMb: 130, ramTotalMb: 128, ramUsedMb: 64, ramFreeMb: 64 };
         const dynamicFiles = window.missionsEngine ? window.missionsEngine.getMissionFilesForHost(host.ip) : [];
-        const allFiles = [...dynamicFiles, ...(host.files || [])];
-
-        const filesHtml = allFiles.map((f) => {
-          const safeId = esc(f.name.replace(/[^a-zA-Z0-9]/g, '_'));
-          const isStaticDeletable = !f.missionId && !f.isTutorial && (f.sizeMb || 0) > 0;
-          return `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.85rem; background: var(--hc-inset); border: 1px solid ${f.missionId || f.isTutorial ? 'rgba(53,184,119,0.45)' : 'var(--hc-border)'}; border-radius: 7px; gap: 8px; flex-wrap: wrap;">
-              <div>
-                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                  <strong style="font-family: var(--hc-font-mono); font-size: 0.84rem;">${esc(f.name)}</strong>
-                  ${f.missionId ? `<span class="hc-badge warn">ALVO DE MISSÃO</span>` : (f.isTutorial ? `<span class="hc-badge success">ALVO TUTORIAL</span>` : `<span class="hc-badge info">${esc(f.size)}</span>`)}
-                </div>
-                <div style="font-size: 0.76rem; color: var(--hc-text-2);">${esc(f.content)}</div>
-              </div>
-              <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button type="button" id="btnReadFile_${safeId}" class="hc-btn ${f.isTutorial || f.canSteal ? 'primary' : 'ghost'} sm" onclick="window.handleRemoteFileAction('${esc(host.ip)}', '${esc(f.name)}', 'read')">Ler / Extrair</button>
-                ${f.canDelete
-                  ? `<button type="button" id="btnDeleteFile_${safeId}" class="hc-btn primary sm" style="background:var(--hc-danger);border-color:var(--hc-danger);" onclick="window.handleRemoteFileAction('${esc(host.ip)}', '${esc(f.name)}', 'delete')">Apagar Arquivo</button>`
-                  : ''}
-                ${isStaticDeletable
-                  ? `<button type="button" id="btnFreeSpace_${safeId}" class="hc-btn ghost sm" style="color:var(--hc-danger-text);" onclick="window.internetEngine.deleteStaticRemoteFile('${esc(host.ip)}', '${esc(f.name)}')">Apagar (Liberar ${f.sizeMb} MB)</button>`
-                  : ''}
-              </div>
-            </div>
-          `;
-        }).join('');
+        const customNotes = (this.remoteCustomNotes && this.remoteCustomNotes.get(host.ip)) || [];
+        const customFolders = (this.remoteCustomFolders && this.remoteCustomFolders.get(host.ip)) || [];
+        const allFiles = [...customNotes, ...dynamicFiles, ...(host.files || [])];
 
         const remoteBtcSats = window.bitcoinEngine ? window.bitcoinEngine.getRemoteHostWalletSats(host) : 0;
         const remoteBtcStr = (remoteBtcSats / 100000000).toFixed(8);
@@ -2856,80 +3034,258 @@
           ? window.softwareEngine.activeUploadJob
           : null;
 
+        const stealables = window.stealthXhdEngine ? window.stealthXhdEngine.getStealableSoftwaresOnHost(host) : [];
+        const stealableKeys = new Set(stealables.map((s) => s.softKey));
+
+        // Programas nativos da vítima (Firewall, Hasher, Antivírus) + binários baixáveis
+        const remoteSoftRows = [];
+
+        // 1) Pastas remotas
+        customFolders.forEach((rf) => {
+          remoteSoftRows.push(`
+            <tr>
+              <td>
+                <div class="soft-app-cell">
+                  <div class="soft-app-icon kind-folder">${HC.icon('folder')}</div>
+                  <div class="soft-app-meta">
+                    <div class="soft-app-name-row"><span class="soft-app-title">${esc(rf.name)}/</span></div>
+                    <div class="soft-app-sub">Pasta remota</div>
+                  </div>
+                </div>
+              </td>
+              <td>—</td>
+              <td class="soft-size-cell">0 MB</td>
+              <td>
+                <div class="soft-actions-cell">
+                  <button type="button" class="soft-act-btn act-del" onclick="window.internetEngine.remoteCustomFolders.set('${esc(host.ip)}', (window.internetEngine.remoteCustomFolders.get('${esc(host.ip)}')||[]).filter(x=>x.id!=='${esc(rf.id)}'));window.internetEngine.render();">${HC.icon('trash-2')} Apagar</button>
+                </div>
+              </td>
+            </tr>
+          `);
+        });
+
+        // 2) Vírus que você subiu p/ o disco da vítima e aguardam clicar em Rodar
+        stagedOnTarget.forEach((sv) => {
+          remoteSoftRows.push(`
+            <tr>
+              <td>
+                <div class="soft-app-cell">
+                  <div class="soft-app-icon kind-virus">${HC.icon('bug')}</div>
+                  <div class="soft-app-meta">
+                    <div class="soft-app-name-row">
+                      <span class="soft-app-title">${esc(sv.friendlyTitle || sv.filename)}</span>
+                      <span class="soft-app-ext">${esc(sv.filename)}</span>
+                      <span class="hc-badge warning">No disco (parado)</span>
+                    </div>
+                    <div class="soft-app-sub">Subido por você · Clique em Rodar p/ ativar (${sv.ramMb} MB RAM)</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="soft-ver-badge v-tier2">${(sv.versionInt / 10).toFixed(1)}</span></td>
+              <td class="soft-size-cell">${sv.sizeMb} MB</td>
+              <td>
+                <div class="soft-actions-cell">
+                  <button type="button" class="soft-act-btn act-run" onclick="window.internetEngine.executeStagedVirusOnCurrentHost('${esc(sv.virusKey)}')">${HC.icon('play')} Rodar</button>
+                  <button type="button" class="soft-act-btn act-del" onclick="window.internetEngine.deleteRemoteStagedVirus('${esc(host.ip)}', '${esc(sv.virusKey)}')">${HC.icon('trash-2')} Apagar</button>
+                </div>
+              </td>
+            </tr>
+          `);
+        });
+
+        // 3) Vírus seus já em execução na memória da vítima
+        installedOnTarget.forEach((iv) => {
+          const isHid = (iv.hiddenWithVer || 0) > 0;
+          remoteSoftRows.push(`
+            <tr class="row-running ${isHid ? 'row-hidden' : ''}">
+              <td>
+                <div class="soft-app-cell">
+                  <div class="soft-app-icon kind-virus">${HC.icon('bug')}</div>
+                  <div class="soft-app-meta">
+                    <div class="soft-app-name-row">
+                      <span class="soft-app-title">${esc(iv.filename)}</span>
+                      <span class="hc-badge success">Rodando</span>
+                      ${isHid ? `<span class="hc-badge violet">Escondido v${iv.hiddenWithVer.toFixed(1)}</span>` : ''}
+                    </div>
+                    <div class="soft-app-sub">Seu vírus ativo neste PC (${iv.ramMb || 12} MB RAM)</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="soft-ver-badge v-tier2">${(iv.versionInt / 10).toFixed(1)}</span></td>
+              <td class="soft-size-cell">${iv.sizeMb || 18} MB</td>
+              <td>
+                <div class="soft-actions-cell">
+                  ${window.stealthXhdEngine
+                    ? `<button type="button" class="soft-act-btn" onclick="window.stealthXhdEngine.hideRemoteVirusWithHider(${iv.id});window.internetEngine.render();">${HC.icon('eye-off')} Esconder</button>`
+                    : ''}
+                  <button type="button" class="soft-act-btn act-del" onclick="window.softwareEngine.removeRemoteVirus(${iv.id});window.internetEngine.render();">${HC.icon('trash-2')} Apagar</button>
+                </div>
+              </td>
+            </tr>
+          `);
+        });
+
+        // 4) Softwares e recompensas disponíveis para Download no PC invadido
+        stealables.forEach((st) => {
+          const def = window.softwareEngine ? window.softwareEngine.getDefinition(st.softKey) : null;
+          const sizeMb = window.softwareEngine ? window.softwareEngine.getItemSizeMb(st.softKey, st.versionInt) : 18;
+          remoteSoftRows.push(`
+            <tr>
+              <td>
+                <div class="soft-app-cell">
+                  <div class="soft-app-icon kind-${def?.iconKind || 'attack'}">${HC.icon(def?.icon || 'package')}</div>
+                  <div class="soft-app-meta">
+                    <div class="soft-app-name-row">
+                      <span class="soft-app-title">${esc(def?.friendlyTitle || st.filename)}</span>
+                      <span class="soft-app-ext">${esc(st.filename)}</span>
+                      <span class="hc-badge info">${esc(st.sourceBadge)}</span>
+                    </div>
+                    <div class="soft-app-sub">Aplicativo instalado neste servidor</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="soft-ver-badge v-tier2">${(st.versionInt / 10).toFixed(1)}</span></td>
+              <td class="soft-size-cell">${sizeMb} MB</td>
+              <td>
+                <div class="soft-actions-cell">
+                  <button type="button" id="btnStealSoft_${esc(st.softKey)}" class="soft-act-btn act-dl" onclick="window.handleDownloadRemoteSoft('${esc(host.ip)}', '${esc(st.softKey)}', ${st.versionInt})">
+                    ${HC.icon('download')} Download
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `);
+        });
+
+        // 5) Programas de sistema da própria vítima (Firewall, Hasher, Antivírus) caso ainda não listados acima
+        const nativeDefs = [
+          { softKey: 'firewall', ver: host.firewallVer || 1.0, icon: 'shield', kind: 'defense', name: 'Escudo de Rede', fn: 'Firewall.fwl' },
+          { softKey: 'hasher', ver: host.hasherVer || 1.0, icon: 'lock', kind: 'defense', name: 'Cofre de Senha', fn: 'Hasher.hash' },
+          ...(specs.antivirusVer > 0 ? [{ softKey: 'antivirus', ver: specs.antivirusVer, icon: 'shield-check', kind: 'defense', name: 'Antivírus', fn: 'Antivirus.av' }] : [])
+        ];
+        nativeDefs.forEach((nd) => {
+          if (stealableKeys.has(nd.softKey)) return;
+          const verInt = Math.round(nd.ver * 10);
+          const sz = window.softwareEngine ? window.softwareEngine.getItemSizeMb(nd.softKey, verInt) : 18;
+          remoteSoftRows.push(`
+            <tr class="row-running">
+              <td>
+                <div class="soft-app-cell">
+                  <div class="soft-app-icon kind-${nd.kind}">${HC.icon(nd.icon)}</div>
+                  <div class="soft-app-meta">
+                    <div class="soft-app-name-row">
+                      <span class="soft-app-title">${esc(nd.name)}</span>
+                      <span class="soft-app-ext">${esc(nd.fn)}</span>
+                      <span class="hc-badge success">Rodando</span>
+                    </div>
+                    <div class="soft-app-sub">Defesa residente desta máquina</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="soft-ver-badge v-tier1">${nd.ver.toFixed(1)}</span></td>
+              <td class="soft-size-cell">${sz} MB</td>
+              <td>
+                <div class="soft-actions-cell">
+                  <button type="button" class="soft-act-btn act-dl" onclick="window.handleDownloadRemoteSoft('${esc(host.ip)}', '${esc(nd.softKey)}', ${verInt})">
+                    ${HC.icon('download')} Download
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `);
+        });
+
+        // 6) Arquivos, contratos e notas .txt no disco da vítima
+        allFiles.forEach((f) => {
+          const safeId = esc(f.name.replace(/[^a-zA-Z0-9]/g, '_'));
+          const isStaticDeletable = !f.missionId && !f.isTutorial && ((f.sizeMb || 0) > 0 || f.isCustomNote);
+          remoteSoftRows.push(`
+            <tr>
+              <td>
+                <div class="soft-app-cell">
+                  <div class="soft-app-icon kind-text">${HC.icon('file-text')}</div>
+                  <div class="soft-app-meta">
+                    <div class="soft-app-name-row">
+                      <span class="soft-app-title">${esc(f.name)}</span>
+                      ${f.missionId ? `<span class="hc-badge warning">Missão</span>` : (f.isTutorial ? `<span class="hc-badge success">Tutorial</span>` : '')}
+                    </div>
+                    <div class="soft-app-sub">${esc(f.content)}</div>
+                  </div>
+                </div>
+              </td>
+              <td>—</td>
+              <td class="soft-size-cell">${esc(f.size || (f.sizeMb ? f.sizeMb + ' MB' : '1 MB'))}</td>
+              <td>
+                <div class="soft-actions-cell">
+                  <button type="button" id="btnReadFile_${safeId}" class="soft-act-btn act-dl" onclick="window.handleRemoteFileAction('${esc(host.ip)}', '${esc(f.name)}', 'read')">
+                    ${HC.icon('download')} ${f.canSteal || f.missionId ? 'Download' : 'Ler'}
+                  </button>
+                  ${f.canDelete
+                    ? `<button type="button" id="btnDeleteFile_${safeId}" class="soft-act-btn act-del" onclick="window.handleRemoteFileAction('${esc(host.ip)}', '${esc(f.name)}', 'delete')">${HC.icon('trash-2')} Apagar</button>`
+                    : ''}
+                  ${isStaticDeletable
+                    ? `<button type="button" id="btnFreeSpace_${safeId}" class="soft-act-btn act-del" onclick="window.internetEngine.deleteStaticRemoteFile('${esc(host.ip)}', '${esc(f.name)}')">${HC.icon('trash-2')} Apagar</button>`
+                    : ''}
+                </div>
+              </td>
+            </tr>
+          `);
+        });
+
+        const seekerRevealed = window.stealthXhdEngine ? window.stealthXhdEngine.revealedHosts.has(host.ip) : false;
+        const seekerClaimed = window.stealthXhdEngine ? window.stealthXhdEngine.claimedHiddenLoot.has(host.ip) : false;
+        const donutHtml = window.softwareEngine
+          ? window.softwareEngine.renderDonutSvg(specs.hddUsedMb, specs.hddTotalMb, 'Disco da Vítima')
+          : '';
+
         subContent = `
           <div style="display: flex; flex-direction: column; gap: 12px;">
             ${role !== 'root'
-              ? `<div style="padding:0.65rem 0.9rem;background:rgba(216,155,56,0.1);border:1px solid var(--hc-warning);border-radius:7px;font-size:0.78rem;color:var(--hc-warning);">
-                   <strong>Atenção (Permissão Parcial ${role.toUpperCase()}):</strong> ${role === 'ftp' ? 'Exploit FTP permite somente Download/Upload e Logs (não executa vírus nem deleta arquivos).' : 'Exploit SSH permite Execução/Delete e Logs, mas NÃO faz Download/Upload de novos binários.'} Use ambos os Exploits (FTP + SSH &gt;= Firewall) ou Força-Bruta para ter <strong>ROOT</strong>!
+              ? `<div style="padding:10px 12px;background:rgba(216,155,56,0.1);border:1px solid var(--hc-warning);border-radius:8px;font-size:12px;color:var(--hc-warning);">
+                   <strong>Permissão parcial (${role.toUpperCase()}):</strong> ${role === 'ftp' ? 'Somente Download/Upload e Logs.' : 'Somente Execução/Exclusão e Logs.'}
                  </div>`
               : ''}
 
-            <!-- Painel Físico da Máquina Invadida -->
-            <div id="remoteTargetSpecsCard" class="hc-card" style="padding: 0.85rem 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 10px; font-family: var(--hc-font-mono); font-size: 0.77rem;">
-              <div>
-                <div style="color:var(--hc-text-3);font-size:0.68rem;">CPU &amp; INTERNET DA VÍTIMA</div>
-                <strong>${specs.cpuMhz.toLocaleString('pt-BR')} MHz · ${specs.netMbps} Mbps</strong>
+            <!-- Barra rápida de Upload e Execução de Vírus (mantém IDs do Tutorial!) -->
+            <div id="remoteVirusDeployCard" class="hc-card" style="padding: 12px 14px; border-color: rgba(53, 184, 119, 0.35);">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+                <span class="hc-eyebrow">Enviar Vírus do Seu PC para ${esc(host.ip)}</span>
+                <span class="mono" style="font-size:11px;color:var(--hc-text-3);">Sua banda: ${window.softwareEngine ? window.softwareEngine.getPlayerNetMbps() : 1} Mbps</span>
               </div>
-              <div>
-                <div style="color:var(--hc-text-3);font-size:0.68rem;">HD LIVRE NA VÍTIMA (CABE VÍRUS?)</div>
-                <strong style="color:${specs.hddFreeMb < 45 ? 'var(--hc-warning)' : 'var(--hc-accent-text)'};">${specs.hddFreeMb} MB livres</strong>
-                <span style="color:var(--hc-text-3);">(${specs.hddUsedMb}/${specs.hddTotalMb}MB)</span>
-              </div>
-              <div>
-                <div style="color:var(--hc-text-3);font-size:0.68rem;">RAM LIVRE NA VÍTIMA (RODA?)</div>
-                <strong style="color:${specs.ramFreeMb < 30 ? 'var(--hc-warning)' : 'var(--hc-accent-text)'};">${specs.ramFreeMb} MB livres</strong>
-                <span style="color:var(--hc-text-3);">(${specs.ramUsedMb}/${specs.ramTotalMb}MB)</span>
-              </div>
-              <div>
-                <div style="color:var(--hc-text-3);font-size:0.68rem;">ANTIVÍRUS DA VÍTIMA</div>
-                <strong style="color:${specs.antivirusVer > 0 ? 'var(--hc-danger-text)' : 'var(--hc-accent-text)'};">
-                  ${specs.antivirusVer > 0 ? `Antivirus.av v${specs.antivirusVer.toFixed(1)}` : 'Sem Antivírus (Seguro!)'}
-                </strong>
-              </div>
-            </div>
-
-            <!-- Fluxo Real em 2 Etapas: 1) Subir o Vírus pro HD da Vítima -> 2) Executar o Vírus no PC da Vítima -->
-            <div id="remoteVirusDeployCard" class="hc-card" style="padding: 0.95rem 1.1rem; border-color: rgba(53, 184, 119, 0.38);">
-              <div class="hc-eyebrow" style="margin-bottom: 6px;">1️⃣ Subir Vírus pro PC da Vítima &amp; 2️⃣ Executar na Memória Dela (Sua Internet: ${window.softwareEngine ? window.softwareEngine.getPlayerNetMbps() : 1} Mbps)</div>
               ${virusOpts.length === 0
-                ? `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:0.8rem;color:var(--hc-warning);">
-                     <span>Você ainda não possui nenhum vírus baixado no seu HD! Baixe a amostra abaixo (se estiver no treino) ou invada as máquinas de <strong>Puzzle</strong> (<code>109.64.200.10</code>).</span>
-                     <button type="button" class="hc-btn primary sm" onclick="window.internetEngine.navigate('109.64.200.10')">Ir p/ First Puzzle →</button>
+                ? `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px;color:var(--hc-text-2);">
+                     <span>Você ainda não baixou vírus para o seu PC. Descubra-os nos Enigmas da rede!</span>
+                     <button type="button" class="hc-btn sm" onclick="window.internetEngine.navigate('109.64.200.10')">Ver Enigma →</button>
                    </div>`
                 : `<div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                     <select id="remoteVirusSelect" class="form-input" style="flex: 1; min-width: 250px; font-family: var(--hc-font-mono); font-size: 0.79rem;">
+                     <select id="remoteVirusSelect" class="hc-input mono" style="flex: 1; min-width: 220px; height: 34px; font-size: 12px;">
                        ${virusOpts.map((vo) => `<option value="${vo.key}">${esc(vo.filename)} (${vo.versionStr}) — ${esc(vo.extraLabel)}</option>`).join('')}
                      </select>
                      <button type="button" id="btnUploadVirusStage" class="hc-btn primary sm" ${upJob ? 'disabled' : ''} onclick="window.internetEngine.stageSelectedVirusToCurrentHost()">
-                       ${upJob ? 'Subindo Arquivo...' : '1️⃣ Subir pro PC da Vítima'}
+                       ${upJob ? 'Subindo...' : '1️⃣ Subir pro PC da Vítima'}
                      </button>
-                     <button type="button" id="btnDeployRemoteVirus" class="hc-btn ghost sm" ${upJob ? 'disabled' : ''} onclick="window.internetEngine.deploySelectedVirusToCurrentHost()" title="Atalho: sobe e já executa se tiver ROOT">
-                       Subir + Executar Direto
+                     <button type="button" id="btnDeployRemoteVirus" class="hc-btn ghost sm" ${upJob ? 'disabled' : ''} onclick="window.internetEngine.deploySelectedVirusToCurrentHost()">
+                       Subir + Rodar
                      </button>
                    </div>`}
               ${upJob ? `
                 <div style="margin-top:8px;">
-                  <div style="display:flex;justify-content:space-between;font-family:var(--hc-font-mono);font-size:0.75rem;margin-bottom:4px;">
-                    <span>Subindo ${esc(upJob.filename)} para o disco da vítima...</span>
-                    <strong id="sshVirusUploadPctLbl" style="color:var(--hc-accent-text);">${upJob.pct}% (${upJob.sizeMb} MB)</strong>
+                  <div style="display:flex;justify-content:space-between;font-family:var(--hc-font-mono);font-size:11.5px;margin-bottom:4px;">
+                    <span>Transferindo ${esc(upJob.filename)}...</span>
+                    <strong id="sshVirusUploadPctLbl" style="color:var(--hc-accent-text);">${upJob.pct}%</strong>
                   </div>
-                  <div style="height:8px;background:var(--hc-inset);border-radius:999px;overflow:hidden;">
-                    <div id="sshVirusUploadBarFill" style="height:100%;width:${upJob.pct}%;background:var(--hc-accent);transition:width 0.18s linear;"></div>
-                  </div>
+                  <div class="hc-progress"><span id="sshVirusUploadBarFill" style="width:${upJob.pct}%;"></span></div>
                 </div>
               ` : ''}
 
               ${stagedOnTarget.length > 0 ? `
-                <div id="stagedVirusesBox" style="margin-top:10px;padding:10px 12px;background:rgba(240,168,58,0.11);border:1px solid var(--hc-warning);border-radius:8px;display:flex;flex-direction:column;gap:8px;">
-                  <div style="font-size:0.78rem;color:var(--hc-warning);font-weight:700;">
-                    📦 Arquivo(s) já subido(s) no HD da vítima — clique em EXECUTAR para ativar na memória dela:
+                <div id="stagedVirusesBox" style="margin-top:10px;padding:10px 12px;background:rgba(240,168,58,0.1);border:1px solid var(--hc-warning);border-radius:8px;display:flex;flex-direction:column;gap:6px;">
+                  <div style="font-size:12px;color:var(--hc-warning-text);font-weight:600;">
+                    Arquivo subido no disco da vítima — clique para rodar na memória dela:
                   </div>
                   ${stagedOnTarget.map((sv) => `
-                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:0.8rem;">
-                      <div>
-                        <strong style="font-family:var(--hc-font-mono);color:#fff;">/root/${esc(sv.filename)}</strong>
-                        <span class="hc-badge warn" style="margin-left:6px;">${window.softwareEngine.fmtVer(sv.versionInt)} · ${sv.sizeMb}MB HD · Usa ${sv.ramMb}MB RAM</span>
-                      </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;">
+                      <strong class="mono">/root/${esc(sv.filename)} (${window.softwareEngine.fmtVer(sv.versionInt)})</strong>
                       <button type="button" id="btnExecStagedVirus_${esc(sv.virusKey)}" class="hc-btn primary sm" onclick="window.internetEngine.executeStagedVirusOnCurrentHost('${esc(sv.virusKey)}')">
                         2️⃣ ▶ Executar no PC da Vítima
                       </button>
@@ -2938,73 +3294,88 @@
                 </div>
               ` : ''}
 
-              ${installedOnTarget.length > 0
-                ? `<div id="runningVirusesOnTargetBox" style="margin-top: 8px; padding: 8px 10px; background: rgba(53,184,119,0.10); border: 1px solid rgba(53,184,119,0.35); border-radius: 7px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; font-size: 0.78rem;">
-                     <span style="color: var(--hc-accent-text); font-family: var(--hc-font-mono);">
-                       🟢 Rodando e gerando lucro neste PC: <strong>${installedOnTarget.map((iv) => `${esc(iv.filename)} (${window.softwareEngine.fmtVer(iv.versionInt)})`).join(' · ')}</strong>
-                     </span>
-                     ${myIpExposed
-                       ? `<button type="button" class="hc-btn sm" style="border-color:var(--hc-warning);color:var(--hc-warning);" onclick="window.internetEngine.sshSubTab='logs'; window.internetEngine.render();">
-                            ⚠️ Apagar Meu IP da Log Antes de Sair →
-                          </button>`
-                       : `<span class="hc-badge success">✓ Seu IP já está limpo da log!</span>`}
-                   </div>`
-                : `<div style="margin-top: 6px; font-size: 0.74rem; color: var(--hc-text-3);">Regra: Seu vírus precisa ser mais forte (&gt;) que o Antivírus da vítima para não ser apagado!</div>`}
-            </div>
-
-            <!-- Saque de Reserva $ HC & Carteira Bitcoin wallet.dat -->
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button type="button" id="btnDrainRemoteVault" class="hc-btn primary sm" ${host.bankBalance <= 0 ? 'disabled style="opacity:0.45;"' : ''} onclick="window.internetEngine.drainRemoteHostFunds()">
-                Drenar Reserva Local ($ ${host.bankBalance} HC)
-              </button>
-              <button type="button" id="btnDrainRemoteBtc" class="hc-btn sm" style="border-color: var(--hc-warning); color: var(--hc-warning); ${remoteBtcSats <= 0 ? 'opacity:0.4;pointer-events:none;' : ''}" onclick="window.internetEngine.drainCurrentHostBtcWallet()">
-                ${remoteBtcSats > 0 ? `Roubar wallet.dat (+${remoteBtcStr} BTC)` : 'wallet.dat vazia (0 BTC)'}
-              </button>
-              ${host.kind === 'bot'
-                ? `<button type="button" class="hc-btn sm" onclick="enslaveBotToC2('${esc(host.ip)}')">Anexar Bot na Central Botnet C2</button>`
-                : ''}
-            </div>
-
-            <!-- Softwares no HD do Alvo & Seeker.skr -->
-            ${window.stealthXhdEngine ? (() => {
-              const stealables = window.stealthXhdEngine.getStealableSoftwaresOnHost(host);
-              const seekerRevealed = window.stealthXhdEngine.revealedHosts.has(host.ip);
-              const seekerClaimed = window.stealthXhdEngine.claimedHiddenLoot.has(host.ip);
-              return `
-                <div class="hc-card" style="padding:0.9rem 1.05rem;display:flex;flex-direction:column;gap:8px;">
-                  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-                    <div class="hc-eyebrow">Softwares Binários & Arquivos Ocultos no Alvo</div>
-                    ${!seekerRevealed
-                      ? `<button type="button" id="btnRunRemoteSeeker" class="hc-btn ghost sm" onclick="window.handleRunRemoteSeeker('${esc(host.ip)}')">🔍 Rodar Seeker.skr (v${window.stealthXhdEngine.getSeekerVer().toFixed(1)})</button>`
-                      : (!seekerClaimed
-                          ? `<button type="button" id="btnClaimHiddenVault" class="hc-btn primary sm" onclick="window.handleClaimHiddenVault('${esc(host.ip)}')">💎 Extrair Cofre Oculto (.secret_vault.enc)</button>`
-                          : `<span class="hc-badge success">Cofre Oculto Extraído</span>`)}
-                  </div>
-                  ${stealables.length === 0
-                    ? (host.kind === 'puzzle'
-                        ? `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:0.79rem;color:var(--hc-warning);">
-                             <span>Resolva primeiro o Enigma na aba <strong>Página</strong> deste servidor para destravar os vírus/softwares básicos aqui no HD!</span>
-                             <button type="button" class="hc-btn primary sm" onclick="window.internetEngine.switchTab('pagina')">Ir Resolver Enigma →</button>
-                           </div>`
-                        : `<div style="font-size:0.77rem;color:var(--hc-text-3);">Nenhum binário superior destravado para download neste host.</div>`)
-                    : stealables.map((st) => `
-                        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--hc-inset);border:1px solid var(--hc-border);border-radius:7px;gap:8px;flex-wrap:wrap;font-size:0.8rem;">
-                          <div>
-                            <strong style="font-family:var(--hc-font-mono);color:var(--hc-accent-text);">${esc(st.filename)}</strong>
-                            <span class="hc-badge success" style="margin-left:6px;">v${(st.versionInt / 10).toFixed(1)}</span>
-                            <span class="hc-badge info" style="margin-left:4px;">${esc(st.sourceBadge)}</span>
-                          </div>
-                          <button type="button" id="btnStealSoft_${esc(st.softKey)}" class="hc-btn primary sm" onclick="window.handleDownloadRemoteSoft('${esc(host.ip)}', '${esc(st.softKey)}', ${st.versionInt})">
-                            ⬇ Baixar p/ Meu PC (Grátis)
-                          </button>
-                        </div>
-                      `).join('')}
+              ${installedOnTarget.length > 0 && myIpExposed ? `
+                <div id="runningVirusesOnTargetBox" style="margin-top:8px;padding:8px 10px;background:rgba(53,184,119,0.1);border:1px solid rgba(53,184,119,0.3);border-radius:7px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;">
+                  <span style="color:var(--hc-accent-text);">Vírus rodando neste PC! Não esqueça de limpar seu IP da log.</span>
+                  <button type="button" class="hc-btn sm" style="border-color:var(--hc-warning);color:var(--hc-warning);" onclick="window.internetEngine.sshSubTab='logs'; window.internetEngine.render();">
+                    Ir p/ Logs ⚠️
+                  </button>
                 </div>
-              `;
-            })() : ''}
+              ` : ''}
+            </div>
 
-            <div class="hc-eyebrow">Arquivos em /root (${allFiles.length})</div>
-            <div style="display: flex; flex-direction: column; gap: 8px;">${filesHtml || '<div style="color:var(--hc-text-3);font-size:0.82rem;">Diretório vazio.</div>'}</div>
+            <!-- Gerenciador de Programas & Arquivos do PC da Vítima (Mesmo Estilo Limpo!) -->
+            <div class="soft-frame" id="remoteTargetSpecsCard">
+              <div class="soft-explorer-shell" style="min-height:360px;">
+                <div class="soft-main-col">
+                  ${host.kind === 'puzzle' && stealables.length === 0 ? `
+                    <div class="soft-breadcrumb-bar" style="border-color:var(--hc-warning);color:var(--hc-warning-text);">
+                      <span>Resolva o Enigma na aba <strong>Página</strong> para liberar o download do software recompensa aqui!</span>
+                      <button type="button" class="hc-btn primary sm" onclick="window.internetEngine.switchTab('pagina')">Resolver Enigma →</button>
+                    </div>
+                  ` : ''}
+                  <div class="soft-table-wrap" role="region" aria-label="Programas no PC invadido">
+                    <table class="soft-table">
+                      <thead>
+                        <tr>
+                          <th>Aplicativo / Arquivo no PC</th>
+                          <th>Versão</th>
+                          <th>Tamanho</th>
+                          <th class="col-actions">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${remoteSoftRows.join('')}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <aside class="soft-side-bar">
+                  ${donutHtml}
+
+                  <div class="soft-bays-box">
+                    <div class="soft-bay-row"><span>Disco Livre</span><span style="color:var(--hc-accent-text);">${specs.hddFreeMb} MB</span></div>
+                    <div class="soft-bay-row"><span>RAM Livre</span><span style="color:var(--hc-accent-text);">${specs.ramFreeMb}/${specs.ramTotalMb} MB</span></div>
+                    <div class="soft-bay-row"><span>CPU / Rede</span><span>${specs.cpuMhz}MHz · ${specs.netMbps}Mb</span></div>
+                    <div class="soft-bay-row"><span>Antivírus</span><span>${specs.antivirusVer > 0 ? 'v' + specs.antivirusVer.toFixed(1) : 'Ausente'}</span></div>
+                  </div>
+
+                  <div class="soft-tool-tiles">
+                    <button type="button" class="soft-tool-tile" onclick="window.internetEngine.createRemoteNoteOnHost('${esc(host.ip)}')">
+                      ${HC.icon('file-plus')}
+                      <span>Novo .txt</span>
+                    </button>
+                    <button type="button" class="soft-tool-tile" onclick="window.internetEngine.createRemoteFolderOnHost('${esc(host.ip)}')">
+                      ${HC.icon('folder-plus')}
+                      <span>Criar pasta</span>
+                    </button>
+                    ${window.stealthXhdEngine ? (!seekerRevealed
+                      ? `<button type="button" id="btnRunRemoteSeeker" class="soft-tool-tile span-2" onclick="window.handleRunRemoteSeeker('${esc(host.ip)}')">
+                           ${HC.icon('eye')}
+                           <span>Revelar Ocultos (Seeker v${window.stealthXhdEngine.getSeekerVer().toFixed(1)})</span>
+                         </button>`
+                      : (!seekerClaimed
+                          ? `<button type="button" id="btnClaimHiddenVault" class="soft-tool-tile span-2" style="border-color:var(--hc-accent);color:var(--hc-accent-text);" onclick="window.handleClaimHiddenVault('${esc(host.ip)}')">
+                               ${HC.icon('sparkles')}
+                               <span>Extrair Cofre Oculto</span>
+                             </button>`
+                          : '')) : ''}
+                  </div>
+
+                  <div style="display:flex;flex-direction:column;gap:6px;width:100%;">
+                    <button type="button" id="btnDrainRemoteVault" class="hc-btn ${host.bankBalance > 0 ? 'primary' : 'ghost'} sm block" ${host.bankBalance <= 0 ? 'disabled' : ''} onclick="window.internetEngine.drainRemoteHostFunds()">
+                      Saque Local ($ ${host.bankBalance})
+                    </button>
+                    ${remoteBtcSats > 0 ? `
+                      <button type="button" id="btnDrainRemoteBtc" class="hc-btn sm block" style="border-color:var(--hc-warning);color:var(--hc-warning-text);" onclick="window.internetEngine.drainCurrentHostBtcWallet()">
+                        Roubar ${remoteBtcStr} BTC
+                      </button>
+                    ` : ''}
+                  </div>
+                </aside>
+              </div>
+            </div>
           </div>
         `;
       } else {
@@ -3301,14 +3672,14 @@
               <div class="inet-attack-icon">${HC.icon('key-round', 'lg')}</div>
               <strong style="font-size: 15px; color: var(--hc-text);">Ataque força-bruta</strong>
               <div class="inet-attack-reqs">
-                <span title="Seu Quebrador de Senhas vs Exigido" style="color: ${canBruteforce ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};">
-                  ${HC.icon('key-round')} ${crcVer > 0 ? crcVer.toFixed(1) : 'OFF'} / ${reqBfMin.toFixed(1)}
+                <span title="Seu melhor Hash/Cracker no disco vs Exigido" style="color: ${canBruteforce ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};">
+                  ${HC.icon('key-round')} ${crcVer > 0 ? crcVer.toFixed(1) : '0.0'} / ${reqBfMin.toFixed(1)}
                 </span>
               </div>
               <div style="font-size: 12px; color: var(--hc-text-3); min-height: 32px;">
                 ${canBruteforce
-                  ? `Descobre a senha root (velocidade ${speedFactor}x)`
-                  : (crcVer <= 0 ? 'Ative o Cracker em Programas' : `Requer Cracker v${reqBfMin.toFixed(1)} ou superior`)}
+                  ? `Roda em 2º plano · Escolha qual hash usar (HD/SSD/NVMe)`
+                  : (crcVer <= 0 ? 'Baixe um Cracker no Download Center' : `Requer Cracker v${reqBfMin.toFixed(1)} ou superior`)}
               </div>
               <button type="button" id="btnInetBruteforce" class="hc-btn ${canBruteforce ? 'primary' : ''} block" onclick="window.internetEngine.startBruteforce()">
                 Quebrar senha
