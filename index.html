@@ -1934,36 +1934,28 @@
         }
       };
 
-      try {
-        const { data: rpcData, error: rpcErr } = await supabase.rpc('buy_black_market_item', {
-          p_item_type: `hardware_${category}_${itemId}`,
-          p_cost: price
-        });
+      // Aplica imediatamente na UI (zero atraso visual) e sincroniza em background caso sessão cloud real
+      deductAuthorized(currentWallet.balance - price);
+      applyUpgradeToTarget();
+      window.addLocalLog('HARDWARE', `Upgrade instalado em ${targetMachineId} (${category.toUpperCase()} -> ${itemId}): -$ ${price}.00 HC`, 'info');
+      if (window.hackerAudio) window.hackerAudio.playCashChime();
+      showToast('Peça comprada e instalada com sucesso!');
+      updateHudDisplays();
+      updateHardwareDisplay();
 
-        if (rpcErr) {
-          deductAuthorized(currentWallet.balance - price);
-        } else if (rpcData && rpcData.new_balance !== undefined) {
-          deductAuthorized(rpcData.new_balance);
-        } else {
-          deductAuthorized(currentWallet.balance - price);
-        }
-
-        applyUpgradeToTarget();
-        window.addLocalLog('HARDWARE', `Upgrade instalado em ${targetMachineId} (${category.toUpperCase()} -> ${itemId}): -$ ${price}.00 HC`, 'info');
-        if (window.hackerAudio) window.hackerAudio.playCashChime();
-        showToast('Peça comprada e instalada com sucesso!');
-        updateHudDisplays();
-        loadBankTransactions();
-        updateHardwareDisplay();
-
-      } catch (err) {
-        deductAuthorized(currentWallet.balance - price);
-        applyUpgradeToTarget();
-        window.addLocalLog('HARDWARE', `Upgrade instalado em ${targetMachineId} (${category.toUpperCase()} -> ${itemId}): -$ ${price}.00 HC`, 'info');
-        if (window.hackerAudio) window.hackerAudio.playCashChime();
-        showToast('Peça comprada e instalada com sucesso!');
-        updateHudDisplays();
-        updateHardwareDisplay();
+      const isRealUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(String((currentProfile && currentProfile.id) || ''));
+      if (isRealUuid && window.supabase && typeof supabase.rpc === 'function') {
+        try {
+          const { data: rpcData, error: rpcErr } = await supabase.rpc('buy_black_market_item', {
+            p_item_type: `hardware_${category}_${itemId}`,
+            p_cost: price
+          });
+          if (!rpcErr && rpcData && rpcData.new_balance !== undefined) {
+            deductAuthorized(rpcData.new_balance);
+            updateHudDisplays();
+          }
+          loadBankTransactions();
+        } catch (err) {}
       }
     }
 

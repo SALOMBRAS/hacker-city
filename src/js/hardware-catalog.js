@@ -595,13 +595,13 @@ class HardwareEngine {
                     data-tip-title="Consumo de ${esc(m.name)}" data-tip-meta="${m.watts} Watts"
                     data-tip-desc="Carga atual: ${m.loadPct}% · RAM em uso: ${m.usedRamMb}/${m.ramMb} MB · Disco ocupado: ${m.usedHddMb}/${m.hddMb} MB.">
                     <span class="lbl">Consumo &amp; Uso</span>
-                    <span class="val power">⚡ ${m.watts} W · ${m.loadPct}% uso</span>
+                    <span class="val power">${ic('zap')} ${m.watts} W · ${m.loadPct}% uso</span>
                   </div>
                   <div class="hw-mc-stat-pill" tabindex="0"
                     data-tip-title="Gasto de ${esc(m.name)}" data-tip-meta="$${m.dailyCost}/dia"
                     data-tip-desc="${esc(m.costBreakdown)} · Projeção mensal: $${m.monthlyCost.toLocaleString('pt-BR')}/mês.">
                     <span class="lbl">Gasto Operacional</span>
-                    <span class="val cost">💸 $${m.dailyCost}/dia · $${m.monthlyCost}/mês</span>
+                    <span class="val cost">${ic('coins')} $${m.dailyCost}/dia · $${m.monthlyCost}/mês</span>
                   </div>
                 </div>
               </div>

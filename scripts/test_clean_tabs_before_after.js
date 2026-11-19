@@ -51,9 +51,9 @@ fs.mkdirSync(OUT, { recursive: true });
   const hwCheck = await page.evaluate(() => ({
     hasFrame: !!document.getElementById('hardwareExplorerMain'),
     hasDonut: !!document.querySelector('#hardwareExplorerMain .soft-donut-svg'),
-    rows: document.querySelectorAll('#hardwareExplorerMain .soft-table tbody tr').length
+    cards: document.querySelectorAll('#hardwareExplorerMain .hw-machine-card').length
   }));
-  assert(hwCheck.hasFrame && hwCheck.hasDonut && hwCheck.rows === 4, 'Hardware deve exibir Meu Servidor em tabela limpa + Donut');
+  assert(hwCheck.hasFrame && hwCheck.hasDonut && hwCheck.cards >= 2, 'Hardware deve exibir PC Principal + VPS + Donut');
   await page.screenshot({ path: path.join(OUT, '02_hardware_depois.png') });
   console.log('📸 02_hardware_depois.png');
 

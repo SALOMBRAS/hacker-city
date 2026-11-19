@@ -1156,10 +1156,10 @@ body:has(#hcSpotlightRoot.active) #miniPcCrackerBackdrop.open {
   background: var(--hc-inset);
   border: 1px solid var(--hc-border);
   border-radius: 8px;
-  padding: 10px 11px;
+  padding: 9px 9px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   min-width: 0;
   transition: border-color 0.13s ease, background 0.13s ease;
 }
@@ -1170,8 +1170,8 @@ body:has(#hcSpotlightRoot.active) #miniPcCrackerBackdrop.open {
 }
 
 .hw-tile-ico {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 7px;
   display: grid;
   place-items: center;
@@ -1182,8 +1182,8 @@ body:has(#hcSpotlightRoot.active) #miniPcCrackerBackdrop.open {
 }
 
 .hw-tile-ico svg {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
 }
 
 .hw-tile-ico.is-disk {
@@ -1225,7 +1225,7 @@ body:has(#hcSpotlightRoot.active) #miniPcCrackerBackdrop.open {
 
 .hw-tile-val {
   font-family: var(--hc-font-mono);
-  font-size: 14.5px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--hc-text);
   white-space: nowrap;
@@ -1432,8 +1432,17 @@ body:has(#hcSpotlightRoot.active) #miniPcCrackerBackdrop.open {
 
 .hw-mc-stat-pill .val {
   font-family: var(--hc-font-mono);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hw-mc-stat-pill .val svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
 }
 
 .hw-mc-stat-pill .val.power {
