@@ -1093,13 +1093,17 @@
       if (window.botRegistry) {
         const bot = window.botRegistry.getBotByIp(ip);
         if (bot) {
-          const online = window.botScheduler ? window.botScheduler.isBotOnline(ip) : true;
-          const cpuMhz = Math.round((bot.hardware.cpuCores || 1) * (bot.hardware.cpuClock || 1.2) * 550);
-          const netMbps = bot.tier === 3 ? 250 : (bot.tier === 2 ? 35 : 3);
+          const shiftOnline = window.botScheduler ? window.botScheduler.isBotOnline(ip) : true;
+          const ddosHealth = window.ddosOverloadEngine ? window.ddosOverloadEngine.getTargetHealthPct(ip) : 100;
+          const ddosFwPen = window.ddosOverloadEngine ? window.ddosOverloadEngine.getTargetFirewallPenalty(ip) : 0;
+          const hMult = Math.max(0.25, ddosHealth / 100);
+          const cpuMhz = Math.max(200, Math.round((bot.hardware.cpuCores || 1) * (bot.hardware.cpuClock || 1.2) * 550 * hMult));
+          const netMbps = Math.max(1, +( (bot.tier === 3 ? 250 : (bot.tier === 2 ? 35 : 3)) * hMult ).toFixed(1));
           const hddTotalMb = bot.tier === 3 ? 2048 : (bot.tier === 2 ? 520 : 180);
           const ramTotalMb = bot.tier === 3 ? 1024 : (bot.tier === 2 ? 384 : 128);
           const avVer = bot.tier === 3 ? 2.5 : (bot.tier === 2 ? 1.5 : 1.0);
-          const defVer = bot.tier === 3 ? 2.5 : (bot.tier === 2 ? 1.5 : 1.0);
+          const baseDefVer = bot.tier === 3 ? 2.5 : (bot.tier === 2 ? 1.5 : 1.0);
+          const effFwVer = Math.max(1.0, +(baseDefVer - ddosFwPen).toFixed(1));
           const rawBal = bot.bankAccount ? bot.bankAccount.balance : 0;
           const scaledBal = rawBal > 0 ? Math.max(35, Math.round(rawBal * 0.22)) : 0;
 
@@ -1108,21 +1112,22 @@
             hostname: `PC de ${bot.handle}`,
             kind: 'bot',
             isOperatorPlayer: true,
-            badge: online ? '🟢 Jogador Online' : '○ Jogador Offline',
-            online,
+            badge: shiftOnline ? '🟢 Jogador Online' : '○ Jogador Offline (PC Ligado)',
+            online: true,
             tier: bot.tier,
             securityLevel: bot.tier,
             cpuMhz,
             netMbps,
+            hardwareHealthPct: ddosHealth,
             hddTotalMb,
             hddOsBaseMb: Math.round(hddTotalMb * 0.58),
             ramTotalMb,
             ramOsBaseMb: Math.round(ramTotalMb * 0.55),
-            hasherVer: defVer,
-            firewallVer: defVer,
+            hasherVer: baseDefVer,
+            firewallVer: effFwVer,
             antivirusVer: avVer,
             rootPassword: deterministicPassword(bot.ip + '::' + bot.handle),
-            cpuSpec: `${cpuMhz} MHz · ${netMbps} Mbps · HDD ${hddTotalMb}MB · AV v${avVer.toFixed(1)}`,
+            cpuSpec: `${cpuMhz} MHz · ${netMbps} Mbps · Saúde ${ddosHealth}% · AV v${avVer.toFixed(1)}`,
             bankBalance: scaledBal,
             botRef: bot,
             files: (bot.vfs || [])
@@ -1132,15 +1137,19 @@
         }
       }
 
-      // 4. É um jogador humano real descoberto na malha Online / Supabase Realtime?
+      // 4. É um jogador humano real descoberto na malha Online / Supabase Realtime / Diretório Offline?
       const liveHuman = window.onlineEngine ? window.onlineEngine.getHumanPlayerByIp(ip) : null;
       if (liveHuman) {
         const rep = Number(liveHuman.reputation || 100);
+        const ddosHealth = window.ddosOverloadEngine
+          ? window.ddosOverloadEngine.getTargetHealthPct(ip)
+          : Number(liveHuman.hardwareHealthPct ?? 100);
+        const hMult = Math.max(0.25, ddosHealth / 100);
         const hs = Number(liveHuman.hasherVer || 1.0);
         const fw = Number(liveHuman.firewallVer || 1.0);
         const av = Number(liveHuman.antivirusVer || 1.0);
-        const cpuMhz = Number(liveHuman.cpuMhz || 1200);
-        const netMbps = Number(liveHuman.netMbps || 10);
+        const cpuMhz = Math.max(200, Math.round(Number(liveHuman.cpuMhz || 1200) * hMult));
+        const netMbps = Math.max(1, +(Number(liveHuman.netMbps || 10) * hMult).toFixed(1));
         const hddMb = Number(liveHuman.hddTotalMb || (rep >= 1000 ? 2048 : 640));
         const ramMb = Number(liveHuman.ramTotalMb || (rep >= 1000 ? 1024 : 384));
         const pwdEpoch = Number(liveHuman.pwdEpoch || 1);
@@ -1154,7 +1163,7 @@
           humanUserId: liveHuman.userId,
           humanTag: liveHuman.hackerTag,
           customWebPage: liveHuman.customWebPage || null,
-          badge: liveHuman.onlineNow ? '🟢 Jogador Online' : '○ Jogador Offline',
+          badge: liveHuman.onlineNow ? '🟢 Jogador Online' : '○ Jogador Offline (PC Ligado)',
           online: true,
           reputation: rep,
           newbieProtected: rep < 100,
@@ -1162,6 +1171,7 @@
           securityLevel: rep >= 1000 ? 2 : 1,
           cpuMhz,
           netMbps,
+          hardwareHealthPct: ddosHealth,
           hddTotalMb: hddMb,
           hddOsBaseMb: Math.round(hddMb * 0.52),
           ramTotalMb: ramMb,
@@ -1170,7 +1180,7 @@
           firewallVer: fw,
           antivirusVer: av,
           rootPassword: deterministicPassword(ip + '::' + liveHuman.userId + (pwdEpoch > 1 ? '::ep' + pwdEpoch : '')),
-          cpuSpec: `${cpuMhz.toLocaleString('pt-BR')} MHz · ${netMbps} Mbps · FW v${fw.toFixed(1)} · HASH v${hs.toFixed(1)} · AV v${av.toFixed(1)}`,
+          cpuSpec: `${cpuMhz.toLocaleString('pt-BR')} MHz · ${netMbps} Mbps · Saúde ${ddosHealth}% · FW v${fw.toFixed(1)} · HASH v${hs.toFixed(1)}`,
           bankBalance: this.drainedNpcIps.has(ip) ? 0 : Math.min(450, Math.max(85, Math.round(rep * 0.22))),
           files: [
             { name: 'operador_profile.dat', size: '14 MB', sizeMb: 14, content: `Operador real ${liveHuman.hackerTag} (${rep} REP · Classe ${(liveHuman.specialty || 'exploiter').toUpperCase()})` }
@@ -1650,10 +1660,20 @@
       if (typeof window.addLocalLog === 'function') {
         window.addLocalLog('HACK-OK', `Invasão concluída em ${host.ip} (${host.hostname}) via ${method} [permissão: ${sshRole.toUpperCase()}]`, 'warning');
       }
+
+      // Verificar se este alvo tinha a cabeça a prêmio no Quadro de Vingança por Nick!
+      let bountyMsg = '';
+      if (window.playerBountyEngine) {
+        const bRes = window.playerBountyEngine.checkAndClaimBountyForHost(host, 'Invasão Root');
+        if (bRes && bRes.claimed) {
+          bountyMsg = ` 💀 RECOMPENSA CAPTURADA: +$ ${bRes.rewardCash.toLocaleString('pt-BR')} HC!`;
+        }
+      }
+
       if (window.hackerAudio) window.hackerAudio.playCashChime();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       if (typeof window.showToast === 'function') {
-        window.showToast(`Invasão bem-sucedida em ${host.ip}! Permissão obtida: ${sshRole.toUpperCase()}.`);
+        window.showToast(`Invasão bem-sucedida em ${host.ip}! Permissão obtida: ${sshRole.toUpperCase()}.${bountyMsg}`);
       }
 
       this.currentIp = host.ip;
@@ -2814,6 +2834,30 @@
               </button>
             </div>
           </div>
+
+          ${window.ddosOverloadEngine ? (() => {
+            const myDdosGbps = window.ddosOverloadEngine.getPlayerTotalDdosGbps();
+            const reqDdosGbps = window.ddosOverloadEngine.getTargetMitigationGbps(host);
+            const targetHwPct = window.ddosOverloadEngine.getTargetHealthPct(host.ip);
+            const canDdos = myDdosGbps >= reqDdosGbps;
+            return `
+              <div id="cardAttackDdosOverload" class="hc-card" style="padding:0.9rem 1.05rem;margin-top:10px;border-color:${canDdos ? 'rgba(240,168,58,0.45)' : 'var(--hc-border)'};display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+                <div style="flex:1;min-width:250px;">
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <strong style="font-size:0.9rem;">💥 Sobrecarga DDoS (Danificar Peças Físicas do Alvo)</strong>
+                    <span class="hc-badge ${targetHwPct < 100 ? 'danger' : 'info'}">Saúde do Alvo: ${targetHwPct}%</span>
+                  </div>
+                  <div style="font-size:0.76rem;color:var(--hc-text-2);margin-top:3px;">
+                    Queima circuitos do PC alvo (deixando a CPU e Internet dele lentas até ele pagar o conserto!).
+                    Seu Poder DDoS: <strong style="color:${canDdos ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};">${myDdosGbps} Gbps</strong> vs Mitigação do Escudo dele: <strong>${reqDdosGbps} Gbps</strong>.
+                  </div>
+                </div>
+                <button type="button" id="btnInetLaunchDdosStrike" class="hc-btn ${canDdos ? 'primary' : 'ghost'} sm" style="${canDdos ? 'background:var(--hc-danger);border-color:var(--hc-danger);' : ''}" onclick="window.ddosOverloadEngine.launchDdosOverloadOnHost('${esc(host.ip)}')">
+                  💥 Disparar Sobrecarga DDoS
+                </button>
+              </div>
+            `;
+          })() : ''}
 
           <div class="inet-portscan-bar">
             <div>

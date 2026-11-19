@@ -82,8 +82,15 @@
         }
       });
 
-      window.addEventListener('pagehide', () => flushNow(false));
-      window.addEventListener('beforeunload', () => flushNow(false));
+      const leaveMesh = () => {
+        flushNow(false);
+        if (this.realtimeChannel) {
+          try { this.realtimeChannel.untrack(); } catch (e) {}
+          try { window.supabase.removeChannel(this.realtimeChannel); } catch (e) {}
+        }
+      };
+      window.addEventListener('pagehide', leaveMesh);
+      window.addEventListener('beforeunload', leaveMesh);
     }
 
     initLocalCrossTabBus() {
@@ -132,6 +139,9 @@
       const ddosGbps = window.softwareEngine ? window.softwareEngine.getPendingHarvestSummary().totalGbps : 0;
       const cpuMhz = window.softwareEngine ? window.softwareEngine.getPlayerCpuMhz() : 800;
       const netMbps = window.softwareEngine ? window.softwareEngine.getPlayerNetMbps() : 1;
+      const hardwareHealthPct = window.hardwareEngine && typeof window.hardwareEngine.getHealthPct === 'function'
+        ? window.hardwareEngine.getHealthPct()
+        : 100;
       const myClan = window.clanEngine ? window.clanEngine.getMyClan() : null;
 
       return {
@@ -152,6 +162,7 @@
         ddosGbps,
         cpuMhz,
         netMbps,
+        hardwareHealthPct,
         clanTag: myClan ? myClan.tag : null,
         clanObj: myClan || null,
         onlineNow: true,
@@ -376,8 +387,8 @@
         window.softwareEngine.state.activeTransitions = { ...(window.softwareEngine.transitions || {}) };
       }
 
-      return {
-        v: 3,
+      const rawSnap = {
+        v: 4,
         savedAt: Date.now(),
         userId: uid,
         walletBalance: +(Number(window.currentWallet.balance || 0)).toFixed(2),
@@ -435,6 +446,9 @@
         } : null,
         billsPaid
       };
+      return window.integrityGuard && typeof window.integrityGuard.signSnapshot === 'function'
+        ? window.integrityGuard.signSnapshot(rawSnap)
+        : rawSnap;
     }
 
     applyMasterSnapshot(snap, liveDbWalletBalance = null) {
@@ -449,16 +463,23 @@
           targetBalance = Math.max(0, +(targetBalance + dbDelta).toFixed(2));
         }
       }
-      window.currentWallet.balance = targetBalance;
-      if (liveDbWalletBalance != null) {
-        this.lastDbWalletBalance = Number(liveDbWalletBalance);
-      }
+      const applyCoreVals = () => {
+        window.currentWallet.balance = targetBalance;
+        if (liveDbWalletBalance != null) {
+          this.lastDbWalletBalance = Number(liveDbWalletBalance);
+        }
 
-      if (snap.reputation != null) {
-        window.currentProfile.reputation = Math.max(Number(window.currentProfile.reputation || 0), Number(snap.reputation));
-      }
-      if (snap.heatLevel != null) {
-        window.currentProfile.heat_level = Math.min(5, Math.max(1, Number(snap.heatLevel)));
+        if (snap.reputation != null) {
+          window.currentProfile.reputation = Math.max(Number(window.currentProfile.reputation || 0), Number(snap.reputation));
+        }
+        if (snap.heatLevel != null) {
+          window.currentProfile.heat_level = Math.min(5, Math.max(1, Number(snap.heatLevel)));
+        }
+      };
+      if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+        window.integrityGuard.runAuthorized(applyCoreVals);
+      } else {
+        applyCoreVals();
       }
 
       if (snap.netId && window.networkIdentity) {
@@ -654,6 +675,9 @@
       try {
         localStorage.setItem(this.masterSaveKey(snap.userId), JSON.stringify(snap));
       } catch (e) {}
+      if (window.offlinePvpMailbox && typeof window.offlinePvpMailbox.upsertPublicDirectoryEntry === 'function') {
+        window.offlinePvpMailbox.upsertPublicDirectoryEntry(this.buildMyPublicPeerDescriptor());
+      }
       return snap;
     }
 
@@ -679,8 +703,7 @@
 
       this.broadcastLocalPresence();
 
-      const isLocalDemo = String(snap.userId || '').startsWith('local-') || String(snap.userId || '').startsWith('uid-');
-      if (!window.supabase || isLocalDemo) {
+      if (!window.supabase) {
         this.syncStatus = 'local_only';
         this.lastSyncedAt = new Date().toLocaleTimeString();
         this.updateHudSyncChip();
@@ -690,13 +713,19 @@
       this.syncStatus = 'syncing';
       this.updateHudSyncChip();
       const me = this.buildMyPublicPeerDescriptor();
+      const isInstantOp = String(snap.userId || '').startsWith('local-') ||
+        String(snap.userId || '').startsWith('uid-') ||
+        !!sessionStorage.getItem('HC_TAB_INSTANT_SESSION');
 
       let cloudSaved = false;
 
-      // 1) Tentar Stored Procedure dedicada sync_account_snapshot (quando migration SQL aplicada)
+      // 1) Tentar Stored Procedure Anti-Cheat sync_account_snapshot_secure (funciona p/ Auth e 1-Clique!)
       if (this.cloudTablesAvailable !== false && typeof window.supabase.rpc === 'function') {
         try {
-          const { data, error } = await window.supabase.rpc('sync_account_snapshot', {
+          const { data, error } = await window.supabase.rpc('sync_account_snapshot_secure', {
+            p_operator_key: String(snap.userId),
+            p_hacker_tag: me.hackerTag,
+            p_specialty: me.specialty,
             p_wallet_balance: snap.walletBalance,
             p_reputation: snap.reputation,
             p_heat_level: snap.heatLevel,
@@ -708,12 +737,24 @@
             p_antivirus_ver: me.antivirusVer,
             p_cpu_mhz: me.cpuMhz,
             p_net_mbps: me.netMbps,
+            p_hdd_total_mb: me.hddTotalMb,
+            p_ram_total_mb: me.ramTotalMb,
+            p_hardware_health_pct: me.hardwareHealthPct ?? 100,
             p_clan_tag: me.clanTag,
+            p_custom_web_page: me.customWebPage,
+            p_public_syslog: (window.systemLogs || []).slice(0, 18),
             p_save_payload: snap
           });
           if (!error && data && data.success) {
             this.cloudTablesAvailable = true;
-            this.lastDbWalletBalance = snap.walletBalance;
+            if (data.cheat_blocked && window.integrityGuard) {
+              window.integrityGuard.runAuthorized(() => {
+                if (data.synced_balance != null) window.currentWallet.balance = Number(data.synced_balance);
+                if (data.synced_rep != null) window.currentProfile.reputation = Number(data.synced_rep);
+              });
+              if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+            }
+            this.lastDbWalletBalance = Number(window.currentWallet.balance || snap.walletBalance);
             cloudSaved = true;
           } else if (error && (error.code === 'PGRST202' || String(error.message || '').includes('Could not find'))) {
             this.cloudTablesAvailable = false;
@@ -721,32 +762,34 @@
         } catch (e) {}
       }
 
-      // 2) Fallback nativo universal: Supabase Auth user_metadata + sincronização direta em profiles & wallets!
-      try {
-        if (window.supabase.auth && typeof window.supabase.auth.updateUser === 'function') {
-          const { error: uErr } = await window.supabase.auth.updateUser({
-            data: { hc_save_v2: snap }
-          });
-          if (!uErr) cloudSaved = true;
-        }
-        if (this.cloudTablesAvailable === false) {
-          await Promise.allSettled([
-            window.supabase.from('profiles').update({
-              reputation: snap.reputation,
-              heat_level: snap.heatLevel
-            }).eq('id', snap.userId),
-            window.supabase.from('wallets').update({
-              balance: snap.walletBalance
-            }).eq('user_id', snap.userId)
-          ]);
-          this.lastDbWalletBalance = snap.walletBalance;
-        }
-      } catch (e) {}
+      // 2) Fallback nativo p/ contas autenticadas via Supabase Auth (user_metadata + profiles & wallets)
+      if (!isInstantOp) {
+        try {
+          if (window.supabase.auth && typeof window.supabase.auth.updateUser === 'function') {
+            const { error: uErr } = await window.supabase.auth.updateUser({
+              data: { hc_save_v2: snap }
+            });
+            if (!uErr) cloudSaved = true;
+          }
+          if (this.cloudTablesAvailable === false) {
+            await Promise.allSettled([
+              window.supabase.from('profiles').update({
+                reputation: snap.reputation,
+                heat_level: snap.heatLevel
+              }).eq('id', snap.userId),
+              window.supabase.from('wallets').update({
+                balance: snap.walletBalance
+              }).eq('user_id', snap.userId)
+            ]);
+            this.lastDbWalletBalance = snap.walletBalance;
+          }
+        } catch (e) {}
+      }
 
-      // 3) Atualizar presença ao vivo no canal Realtime
+      // 3) Atualizar presença ao vivo no canal Global Realtime WebSocket ('hc-mmo-world')!
       this.trackRealtimePresence();
 
-      this.syncStatus = cloudSaved ? 'synced' : 'local_only';
+      this.syncStatus = (cloudSaved || this.realtimeChannel) ? 'synced' : 'local_only';
       this.lastSyncedAt = new Date().toLocaleTimeString();
       this.updateHudSyncChip();
       if (window.winManager && window.winManager.current === 'winOnline') {
@@ -763,40 +806,58 @@
       let localSnap = null;
       try {
         const raw = localStorage.getItem(this.masterSaveKey(userId));
-        if (raw) localSnap = JSON.parse(raw);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (window.integrityGuard && typeof window.integrityGuard.verifySnapshot === 'function') {
+            const ver = window.integrityGuard.verifySnapshot(parsed);
+            if (ver.valid) {
+              localSnap = parsed;
+            } else {
+              // Save local adulterado manualmente no F12/Application: descarta valores forjados!
+              localSnap = null;
+              try { localStorage.removeItem(this.masterSaveKey(userId)); } catch (e) {}
+            }
+          } else {
+            localSnap = parsed;
+          }
+        }
       } catch (e) {}
 
       let cloudSnap = null;
-      const isLocalDemo = String(userId || '').startsWith('local-') || String(userId || '').startsWith('uid-');
+      const isInstantOp = String(userId || '').startsWith('local-') ||
+        String(userId || '').startsWith('uid-') ||
+        !!sessionStorage.getItem('HC_TAB_INSTANT_SESSION');
 
-      if (window.supabase && !isLocalDemo) {
-        // 1) Checar player_cloud_saves se existir
+      if (window.supabase) {
+        // 1) Checar player_cloud_saves por operator_key (funciona p/ Auth e p/ 1-Clique com UUID!)
         if (this.cloudTablesAvailable !== false) {
           try {
             const { data, error } = await window.supabase
               .from('player_cloud_saves')
               .select('save_payload, wallet_balance')
-              .eq('user_id', userId)
+              .eq('operator_key', String(userId))
               .maybeSingle();
             if (!error && data && data.save_payload && data.save_payload.savedAt) {
               this.cloudTablesAvailable = true;
               cloudSnap = data.save_payload;
-            } else if (error && error.code === 'PGRST205') {
+            } else if (error && (error.code === 'PGRST205' || error.code === '42703')) {
               this.cloudTablesAvailable = false;
             }
           } catch (e) {}
         }
 
-        // 2) Checar Supabase Auth user_metadata.hc_save_v2
-        try {
-          const { data: uData } = await window.supabase.auth.getUser();
-          const metaSnap = uData?.user?.user_metadata?.hc_save_v2;
-          if (metaSnap && metaSnap.savedAt) {
-            if (!cloudSnap || metaSnap.savedAt > cloudSnap.savedAt) {
-              cloudSnap = metaSnap;
+        // 2) Checar Supabase Auth user_metadata.hc_save_v2 (para contas Auth)
+        if (!isInstantOp) {
+          try {
+            const { data: uData } = await window.supabase.auth.getUser();
+            const metaSnap = uData?.user?.user_metadata?.hc_save_v2;
+            if (metaSnap && metaSnap.savedAt) {
+              if (!cloudSnap || metaSnap.savedAt > cloudSnap.savedAt) {
+                cloudSnap = metaSnap;
+              }
             }
-          }
-        } catch (e) {}
+          } catch (e) {}
+        }
       }
 
       // Escolher o snapshot mais recente entre Local e Nuvem!
@@ -813,7 +874,16 @@
       }
 
       await this.connectMultiplayerMesh();
-      this.syncStatus = isLocalDemo ? 'local_only' : 'synced';
+      if (window.offlinePvpMailbox && typeof window.offlinePvpMailbox.flushPendingForCurrentPlayer === 'function') {
+        await window.offlinePvpMailbox.flushPendingForCurrentPlayer();
+      }
+      if (window.clanCloudChatEngine) {
+        window.clanCloudChatEngine.syncClansFromCloud();
+      }
+      if (window.playerBountyEngine) {
+        window.playerBountyEngine.syncFromCloud();
+      }
+      this.syncStatus = this.realtimeChannel ? 'synced' : 'local_only';
       this.lastSyncedAt = new Date().toLocaleTimeString();
       this.updateHudSyncChip();
     }
@@ -827,9 +897,19 @@
         try { this.localBus.postMessage({ type: 'PRESENCE_REQUEST' }); } catch (e) {}
       }
 
+      const uid = window.currentProfile ? window.currentProfile.id : null;
+
+      // 0. Carregar jogadores registrados no diretório persistente local (permite PvP contra jogadores OFFLINE!)
+      if (window.offlinePvpMailbox && typeof window.offlinePvpMailbox.getKnownDirectoryPeers === 'function') {
+        window.offlinePvpMailbox.getKnownDirectoryPeers(uid).forEach((savedPeer) => {
+          this.registerDiscoveredPeer({ ...savedPeer, onlineNow: false }, false);
+        });
+      }
+
       if (!window.supabase || !window.currentProfile) return;
-      const uid = window.currentProfile.id;
-      const isLocalDemo = String(uid).startsWith('local-') || String(uid).startsWith('uid-');
+      const isInstantOp = String(uid).startsWith('local-') ||
+        String(uid).startsWith('uid-') ||
+        !!sessionStorage.getItem('HC_TAB_INSTANT_SESSION');
 
       // 1. Carregar todos os operadores reais cadastrados em public.profiles!
       try {
@@ -864,19 +944,20 @@
         }
       } catch (e) {}
 
-      // 2. Se player_cloud_saves existir (em sessão autenticada na nuvem), enriquecer IPs públicos e defesas exatas!
-      if (!isLocalDemo && this.cloudTablesAvailable === true) {
+      // 2. Se player_cloud_saves existir, enriquecer IPs públicos, defesas e integridade de TODOS os operadores (Auth e 1-Clique)!
+      if (this.cloudTablesAvailable !== false) {
         try {
           const { data: saves, error: sErr } = await window.supabase
             .from('player_cloud_saves')
-            .select('user_id, hacker_tag, public_ip, specialty, reputation, heat_level, best_soft_ver, ddos_gbps, firewall_ver, hasher_ver, antivirus_ver, cpu_mhz, net_mbps, clan_tag, last_seen_at')
+            .select('operator_key, user_id, hacker_tag, public_ip, specialty, reputation, heat_level, best_soft_ver, ddos_gbps, firewall_ver, hasher_ver, antivirus_ver, cpu_mhz, net_mbps, hardware_health_pct, clan_tag, last_seen_at')
             .limit(60);
           if (!sErr && Array.isArray(saves)) {
             this.cloudTablesAvailable = true;
             saves.forEach((sv) => {
-              if (sv.user_id === uid) return;
+              const peerKey = sv.operator_key || sv.user_id;
+              if (!peerKey || peerKey === uid) return;
               this.registerDiscoveredPeer({
-                userId: sv.user_id,
+                userId: peerKey,
                 hackerTag: sv.hacker_tag,
                 specialty: sv.specialty,
                 publicIp: sv.public_ip,
@@ -889,17 +970,18 @@
                 antivirusVer: Number(sv.antivirus_ver || 1.0),
                 cpuMhz: Number(sv.cpu_mhz || 800),
                 netMbps: Number(sv.net_mbps || 1),
+                hardwareHealthPct: Number(sv.hardware_health_pct ?? 100),
                 clanTag: sv.clan_tag || null
               }, false);
             });
-          } else if (sErr && sErr.code === 'PGRST205') {
+          } else if (sErr && (sErr.code === 'PGRST205' || sErr.code === '42703')) {
             this.cloudTablesAvailable = false;
           }
         } catch (e) {}
       }
 
-      // 3. Ler beacons recentes de diretório e fila PvP/Mail via chat_messages (canal oculto 'hc_pvp' / 'hc_dir')
-      if (!isLocalDemo) {
+      // 3. Ler beacons recentes de diretório e fila PvP/Mail via chat_messages (apenas sessões autenticadas c/ JWT; 1-Clique usa Realtime + pvp_network_events!)
+      if (!isInstantOp) {
         try {
           const { data: netMsgs } = await window.supabase
             .from('chat_messages')
@@ -925,7 +1007,6 @@
                     clanTag: pkt.cl || null
                   }, false);
                 } else if (row.channel === 'hc_pvp' && pkt && pkt.pktId) {
-                  // Entregar apenas pacotes recentes (< 12h) que ainda não foram processados por este cliente
                   const seenKey = `HC_PKT_ACK_${uid}_${pkt.pktId}`;
                   if (!localStorage.getItem(seenKey)) {
                     const hit = this.handleIncomingPacket(pkt, true);
@@ -940,8 +1021,8 @@
         } catch (e) {}
       }
 
-      // 4. Conectar ao Canal Supabase Realtime 'hc-mmo-world' (Presence + Broadcast <80ms)
-      if (!isLocalDemo && typeof window.supabase.channel === 'function') {
+      // 4. Conectar 100% dos Operadores (Auth E Entrada 1-Clique!) ao Canal Global Supabase Realtime 'hc-mmo-world' (<80ms entre casas/redes!)
+      if (typeof window.supabase.channel === 'function') {
         if (this.realtimeChannel) {
           try { window.supabase.removeChannel(this.realtimeChannel); } catch (e) {}
         }
@@ -960,6 +1041,9 @@
             (presList || []).forEach((peer) => {
               if (peer && peer.userId && peer.userId !== uid) {
                 this.registerDiscoveredPeer(peer, true);
+                if (window.offlinePvpMailbox) {
+                  window.offlinePvpMailbox.upsertPublicDirectoryEntry(peer);
+                }
               }
             });
           });
@@ -977,8 +1061,12 @@
 
         ch.subscribe(async (status) => {
           if (status === 'SUBSCRIBED') {
+            this.syncStatus = 'synced';
             this.trackRealtimePresence();
-            this.publishDirectoryBeacon();
+            if (!isInstantOp) {
+              this.publishDirectoryBeacon();
+            }
+            this.updateHudSyncChip();
           }
         });
 
@@ -997,7 +1085,7 @@
     async publishDirectoryBeacon() {
       if (!window.supabase || !window.currentProfile) return;
       const uid = String(window.currentProfile.id || '');
-      if (uid.startsWith('local-') || uid.startsWith('uid-')) return;
+      if (uid.startsWith('local-') || uid.startsWith('uid-') || !!sessionStorage.getItem('HC_TAB_INSTANT_SESSION')) return;
 
       const lastBeaconKey = `HC_LAST_DIR_BEACON_${uid}`;
       const me = this.buildMyPublicPeerDescriptor();
@@ -1036,6 +1124,11 @@
       };
       this.processedPacketIds.add(pkt.pktId);
 
+      // 0) Enfileirar na Caixa Postal Offline Persistente (garante entrega mesmo se a vítima estiver com o navegador fechado!)
+      if (window.offlinePvpMailbox && typeof window.offlinePvpMailbox.enqueuePacket === 'function') {
+        window.offlinePvpMailbox.enqueuePacket(pkt);
+      }
+
       // 1) Entrega instantânea entre abas/janelas locais (< 5ms)
       if (this.localBus) {
         try { this.localBus.postMessage({ type: 'PVP_PACKET', packet: pkt }); } catch (e) {}
@@ -1052,24 +1145,27 @@
         } catch (e) {}
       }
 
-      // 3) Persistência na nuvem p/ caso o alvo esteja offline ou recarregue!
+      // 3) Persistência na nuvem p/ caso o alvo esteja offline ou em outra rede!
       const uid = String(window.currentProfile.id || '');
-      const isLocalDemo = uid.startsWith('local-') || uid.startsWith('uid-');
-      if (window.supabase && !isLocalDemo) {
+      const isInstantOp = uid.startsWith('local-') ||
+        uid.startsWith('uid-') ||
+        !!sessionStorage.getItem('HC_TAB_INSTANT_SESSION');
+
+      if (window.supabase) {
         if (this.cloudTablesAvailable) {
           try {
             await window.supabase.from('pvp_network_events').insert({
-              sender_id: pkt.senderId,
+              sender_key: String(pkt.senderId),
               sender_tag: pkt.senderTag,
               sender_visible_ip: pkt.visibleIp || '0.0.0.0',
-              target_user_id: pkt.targetUserId || null,
+              target_operator_key: pkt.targetUserId ? String(pkt.targetUserId) : null,
               target_tag: pkt.targetTag || null,
               target_ip: pkt.targetIp || null,
               event_kind: pkt.kind,
               payload: pkt
             });
           } catch (e) {}
-        } else {
+        } else if (!isInstantOp) {
           try {
             const compactWire = JSON.stringify({
               pktId: pkt.pktId,
@@ -1109,9 +1205,15 @@
       if (pkt.kind === 'PVP_VIRUS_HIDE') return `Camuflagem Hider v${Number(pkt.d?.hiddenWithVer || 1).toFixed(1)} aplicada em ${pkt.targetIp}`;
       if (pkt.kind === 'PVP_AV_PURGED') return `Antivirus.av de ${pkt.d?.victimIp || pkt.visibleIp} expurgou seu vírus (${pkt.d?.fn || 'Malware'})`;
       if (pkt.kind === 'PVP_WIPE_LOG') return `Rastro de ${pkt.visibleIp} limpo em ${pkt.targetIp}:/var/log/syslog`;
+      if (pkt.kind === 'PVP_EDIT_LOG') return `Log editada / farpa deixada em ${pkt.targetIp}:/var/log/syslog`;
       if (pkt.kind === 'PVP_DRAIN_WALLET') return `Drenagem PvP de $ ${pkt.d?.amt || 0} HC em ${pkt.targetIp}`;
+      if (pkt.kind === 'PVP_DDOS_DAMAGE') return `Sobrecarga DDoS (${pkt.d?.gbps || 1} Gbps) causou -${pkt.d?.damagePct || 35}% de dano às peças de ${pkt.targetIp}`;
       if (pkt.kind === 'P2P_MAIL') return `E-mail criptografado de ${pkt.senderTag} → ${pkt.targetTag}: "${pkt.d?.sub || ''}"`;
       if (pkt.kind === 'CLAN_WAR_STRIKE') return `Ataque DDoS de Guerra [${pkt.d?.fromClan}] → [${pkt.d?.toClan}] (+${pkt.d?.pts} pts)`;
+      if (pkt.kind === 'CLAN_SYNC') return `Clã global [${pkt.d?.clan?.tag || '?'}] sincronizado na rede`;
+      if (pkt.kind === 'CLAN_CHAT_MSG') return `Mensagem no Chat Privado do Clã #[${pkt.d?.clanTag || '?'}]`;
+      if (pkt.kind === 'BOUNTY_POSTED') return `Contrato de Vingança publicado contra "${pkt.d?.bounty?.targetTag || '?'}" ($ ${pkt.d?.bounty?.rewardCash || 0} HC)`;
+      if (pkt.kind === 'BOUNTY_CLAIMED') return `Vingança cumprida contra "${pkt.d?.targetTag || '?'}" por ${pkt.d?.claimedByTag || 'Caçador'}`;
       return `Pacote ${pkt.kind}`;
     }
 
@@ -1123,13 +1225,15 @@
       const myId = window.currentProfile.id;
       const myTag = (window.currentProfile.hacker_tag || '').toLowerCase();
       const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '';
+      const myClan = window.clanEngine ? window.clanEngine.getMyClan() : null;
 
       const isForMeById = pkt.targetUserId && pkt.targetUserId === myId;
       const isForMeByTag = pkt.targetTag && pkt.targetTag.toLowerCase() === myTag;
       const isForMeByIp = pkt.targetIp && pkt.targetIp === myIp;
-      const isGlobalClanHit = pkt.kind === 'CLAN_WAR_STRIKE';
+      const isGlobalBroadcast = ['CLAN_WAR_STRIKE', 'CLAN_SYNC', 'BOUNTY_POSTED', 'BOUNTY_CLAIMED'].includes(pkt.kind);
+      const isMyClanChat = pkt.kind === 'CLAN_CHAT_MSG' && myClan && pkt.d?.clanTag === myClan.tag;
 
-      if (!isForMeById && !isForMeByTag && !isForMeByIp && !isGlobalClanHit) {
+      if (!isForMeById && !isForMeByTag && !isForMeByIp && !isGlobalBroadcast && !isMyClanChat) {
         return false;
       }
 
@@ -1313,6 +1417,80 @@
         );
         if (!silentReplay && typeof window.showToast === 'function') {
           window.showToast(`Novo e-mail recebido de ${pkt.senderTag}!`);
+        }
+      }
+
+      // 6) Sobrecarga DDoS Real danificando fisicamente o Hardware do PC (exige conserto em Peças do PC)!
+      if (pkt.kind === 'PVP_DDOS_DAMAGE' && isForMeByIp && window.hardwareEngine) {
+        const dmg = Number(pkt.d?.damagePct || 35);
+        const res = window.hardwareEngine.applyDdosDamage(dmg, pkt.visibleIp || pkt.senderTag);
+        if (window.mailEngine) {
+          window.mailEngine.pushSystemMail(
+            'Hardware Monitor <sensors@localhost.hc>',
+            `ALERTA CRÍTICO: Sobrecarga DDoS queimou circuitos (${res.healthPct}% saúde)`,
+            `Uma rajada DDoS (${pkt.d?.gbps || 1} Gbps) disparada de ${pkt.visibleIp || 'origem oculta'} danificou suas peças!\nIntegridade atual: ${res.healthPct}%. Abra "Melhorar Peças do PC" para consertar ($ ${res.repairCost} HC) e recuperar 100% da velocidade.`,
+            'war'
+          );
+        }
+        if (!silentReplay) {
+          if (window.hackerAudio && typeof window.hackerAudio.playErrorBuzz === 'function') window.hackerAudio.playErrorBuzz();
+          if (typeof window.showToast === 'function') {
+            window.showToast(`💥 SOBRECARGA DDoS! Suas peças caíram para ${res.healthPct}% de saúde! Conserte em Peças do PC.`);
+          }
+        }
+      }
+
+      // 7) Sincronização Global de Clãs & Tesouraria Coletiva!
+      if (pkt.kind === 'CLAN_SYNC' && pkt.d?.clan && window.clanCloudChatEngine) {
+        window.clanCloudChatEngine.saveGlobalClan(pkt.d.clan);
+        window.clanCloudChatEngine.mergeGlobalClansIntoEngine();
+        if (window.clanEngine) {
+          window.clanEngine.save();
+          if (window.winManager && window.winManager.current === 'winClan') {
+            window.clanEngine.renderUI();
+          }
+        }
+      }
+
+      // 8) Mensagem em Tempo Real no Chat Privado do Clã #[TAG]!
+      if (pkt.kind === 'CLAN_CHAT_MSG' && isMyClanChat && pkt.d?.msg && window.clanCloudChatEngine) {
+        window.clanCloudChatEngine.appendClanMessageLocal(pkt.d.clanTag, pkt.d.msg);
+        if (window.winManager && window.winManager.current === 'winClan' && window.clanEngine) {
+          window.clanEngine.renderUI();
+        } else if (!silentReplay && typeof window.showToast === 'function') {
+          window.showToast(`💬 [${pkt.d.clanTag}] ${pkt.d.msg.senderTag}: ${String(pkt.d.msg.text || '').slice(0, 60)}`);
+        }
+      }
+
+      // 9) Novo Contrato de Vingança por Nick publicado na rede!
+      if (pkt.kind === 'BOUNTY_POSTED' && pkt.d?.bounty && window.playerBountyEngine) {
+        window.playerBountyEngine.mergeRemoteBounty(pkt.d.bounty);
+        if (window.winManager && window.winManager.current === 'winFbi' && window.safenetFbiEngine) {
+          window.safenetFbiEngine.renderUI();
+        }
+      }
+
+      // 10) Contrato de Vingança cumprido por um Caçador de Recompensas!
+      if (pkt.kind === 'BOUNTY_CLAIMED' && pkt.d?.bountyId && window.playerBountyEngine) {
+        window.playerBountyEngine.mergeRemoteBounty({
+          id: pkt.d.bountyId,
+          status: 'claimed',
+          claimedByTag: pkt.d.claimedByTag,
+          claimedTargetIp: pkt.d.targetIp
+        });
+        if ((isForMeById || isForMeByTag) && window.mailEngine) {
+          window.mailEngine.pushSystemMail(
+            'Sindicato de Caçadores <bounties@darknet.hc>',
+            `💀 VINGANÇA EXECUTADA: ${pkt.d.targetTag} foi derrubado!`,
+            `Seu contrato foi cumprido!\n\nO caçador ${pkt.d.claimedByTag} rastreou ${pkt.d.targetTag} no IP ${pkt.d.targetIp} e executou o serviço via ${pkt.d.method || 'Invasão'}.\nO prêmio em custódia ($ ${pkt.d.rewardCash} HC) foi liberado ao caçador.`,
+            'war'
+          );
+          if (!silentReplay && typeof window.showToast === 'function') {
+            window.showToast(`💀 VINGANÇA CUMPRIDA! ${pkt.d.claimedByTag} derrubou ${pkt.d.targetTag} [${pkt.d.targetIp}]!`);
+          }
+        }
+        if (window.winManager && window.winManager.current === 'winFbi' && window.safenetFbiEngine) {
+          window.safenetFbiEngine.renderUI();
         }
       }
 

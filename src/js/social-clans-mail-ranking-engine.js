@@ -376,6 +376,9 @@
         activeWar: null, // { enemyId, enemyName, enemyTag, enemyServerIp, ourScore, enemyScore, bountyPool }
         warsWonByPlayer: 0
       };
+      if (window.clanCloudChatEngine && typeof window.clanCloudChatEngine.mergeGlobalClansIntoEngine === 'function') {
+        window.clanCloudChatEngine.mergeGlobalClansIntoEngine();
+      }
       return this.state;
     }
 
@@ -399,6 +402,9 @@
 
     getAllClansSorted() {
       this.ensureLoaded();
+      if (window.clanCloudChatEngine && typeof window.clanCloudChatEngine.mergeGlobalClansIntoEngine === 'function') {
+        window.clanCloudChatEngine.mergeGlobalClansIntoEngine();
+      }
       return [...this.state.clans].sort((a, b) => b.powerScore - a.powerScore);
     }
 
@@ -458,6 +464,9 @@
         );
       }
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+      if (window.clanCloudChatEngine) {
+        window.clanCloudChatEngine.publishClanSync(newClan);
+      }
       if (window.onlineEngine) {
         window.onlineEngine.trackRealtimePresence();
         window.onlineEngine.publishDirectoryBeacon();
@@ -469,6 +478,7 @@
 
     joinClan(clanId) {
       this.ensureLoaded();
+      if (window.clanCloudChatEngine) window.clanCloudChatEngine.mergeGlobalClansIntoEngine();
       if (this.getMyClan()) return { success: false, message: 'Você já pertence a um clã!' };
       const clan = this.state.clans.find((c) => c.id === clanId);
       if (!clan) return { success: false, message: 'Clã não encontrado.' };
@@ -477,6 +487,11 @@
       clan.powerScore += 120;
       this.state.myClanId = clan.id;
       this.save();
+      if (window.clanCloudChatEngine) window.clanCloudChatEngine.publishClanSync(clan);
+      if (window.onlineEngine) {
+        window.onlineEngine.trackRealtimePresence();
+        window.onlineEngine.scheduleSave(true);
+      }
 
       if (typeof window.addLocalLog === 'function') {
         window.addLocalLog('CLAN-JOIN', `Você ingressou no clã [${clan.tag}] ${clan.name}`, 'info');
@@ -493,6 +508,11 @@
       this.state.myClanId = null;
       this.state.activeWar = null;
       this.save();
+      if (window.clanCloudChatEngine) window.clanCloudChatEngine.publishClanSync(my);
+      if (window.onlineEngine) {
+        window.onlineEngine.trackRealtimePresence();
+        window.onlineEngine.scheduleSave(true);
+      }
       this.renderUI();
     }
 
@@ -510,6 +530,8 @@
       my.treasury += amt;
       my.powerScore += Math.round(amt * 0.25);
       this.save();
+      if (window.clanCloudChatEngine) window.clanCloudChatEngine.publishClanSync(my);
+      if (window.onlineEngine) window.onlineEngine.scheduleSave(true);
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       this.renderUI();
       return { success: true, message: `+$ ${amt.toLocaleString('pt-BR')} HC depositados no cofre do clã [${my.tag}]!` };
@@ -659,12 +681,14 @@
                 <div style="font-size:0.8rem;color:var(--hc-text-3);margin-top:4px;">Cofre do Clã: <strong style="color:var(--hc-warning);font-family:var(--hc-font-mono);">$ ${my.treasury.toLocaleString('pt-BR')} HC</strong> · Poder: <strong>${my.powerScore} pts</strong></div>
               </div>
               <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button type="button" class="hc-btn sm" onclick="window.handleDepositClan(100)">Depositar $ 100</button>
+                <button type="button" id="btnClanDeposit100" class="hc-btn sm" onclick="window.handleDepositClan(100)">Depositar $ 100</button>
                 <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(my.serverIp)}')">Abrir Servidor do Clã</button>
                 <button type="button" class="hc-btn ghost sm" style="color:var(--hc-danger-text);" onclick="window.clanEngine.leaveClan()">Sair do Clã</button>
               </div>
             </div>
           </div>
+
+          ${window.clanCloudChatEngine ? window.clanCloudChatEngine.renderClanChatCardHtml(my) : ''}
 
           ${war ? `
             <div class="hc-card" style="padding:1.2rem;border-color:var(--hc-danger);background:rgba(208,68,58,0.08);">

@@ -36,48 +36,155 @@ const HARDWARE_CATALOG = {
 class HardwareEngine {
   constructor() {
     this.catalog = HARDWARE_CATALOG;
+    this.userId = null;
     this.current = this.loadRig();
   }
 
-  loadRig() {
+  storageKey(uidOverride = null) {
+    const uid = uidOverride || (window.currentProfile && window.currentProfile.id) || null;
+    return uid ? `HC_HARDWARE_RIG_${uid}` : 'HC_HARDWARE_RIG';
+  }
+
+  ensureForProfile(uidOverride = null) {
+    const uid = uidOverride || (window.currentProfile && window.currentProfile.id) || 'guest';
+    if (this.userId === uid && this.current) return this.current;
+    this.userId = uid;
+    this.current = this.loadRig(uid);
+    return this.current;
+  }
+
+  loadRig(uidOverride = null) {
     const defaults = {
       cpu: 'celeron_800',
       ram: 'ram_256mb',
       hdd: 'hdd_350mb',
-      network: 'net_56k'
+      network: 'net_56k',
+      healthPct: 100,
+      lastDdosBy: null
     };
     try {
-      const saved = localStorage.getItem('HC_HARDWARE_RIG');
-      if (saved) return { ...defaults, ...JSON.parse(saved) };
+      const key = this.storageKey(uidOverride);
+      const saved = localStorage.getItem(key) || (!uidOverride ? localStorage.getItem('HC_HARDWARE_RIG') : null);
+      if (saved) {
+        const parsed = { ...defaults, ...JSON.parse(saved) };
+        parsed.healthPct = Math.max(15, Math.min(100, Math.round(Number(parsed.healthPct ?? 100))));
+        return parsed;
+      }
     } catch (e) {}
     return defaults;
   }
 
   saveRig(rig) {
+    this.ensureForProfile();
     this.current = { ...this.current, ...rig };
+    this.current.healthPct = Math.max(15, Math.min(100, Math.round(Number(this.current.healthPct ?? 100))));
     try {
-      localStorage.setItem('HC_HARDWARE_RIG', JSON.stringify(this.current));
+      localStorage.setItem(this.storageKey(), JSON.stringify(this.current));
     } catch (e) {}
   }
 
+  getHealthPct() {
+    this.ensureForProfile();
+    return Math.max(15, Math.min(100, Math.round(Number(this.current.healthPct ?? 100))));
+  }
+
+  getHealthMultiplier() {
+    return +(Math.max(0.25, this.getHealthPct() / 100)).toFixed(2);
+  }
+
+  getEffectiveCpuMhz() {
+    return Math.max(200, Math.round(this.getCpu().mhz * this.getHealthMultiplier()));
+  }
+
+  getEffectiveNetMbps() {
+    return Math.max(0.5, +(this.getNetwork().mbps * this.getHealthMultiplier()).toFixed(1));
+  }
+
+  getRepairCost() {
+    const health = this.getHealthPct();
+    if (health >= 100) return 0;
+    const missing = 100 - health;
+    const hwValue = (this.getCpu().price || 0) + (this.getRam().price || 0) + (this.getHdd().price || 0) + (this.getNetwork().price || 0);
+    const tierFactor = 1 + hwValue / 12000;
+    return Math.max(60, Math.round(missing * 4.5 * tierFactor));
+  }
+
+  applyDdosDamage(damagePct = 35, attackerLabel = 'Enxame DDoS') {
+    this.ensureForProfile();
+    const prev = this.getHealthPct();
+    const dmg = Math.max(8, Math.min(65, Math.round(Number(damagePct || 35))));
+    const next = Math.max(20, prev - dmg);
+    this.saveRig({ healthPct: next, lastDdosBy: attackerLabel });
+
+    if (typeof window.addLocalLog === 'function') {
+      window.addLocalLog(
+        'DDOS-HARDWARE',
+        `SOBRECARGA DDoS (${attackerLabel}) queimou circuitos do seu PC! Integridade caiu de ${prev}% para ${next}% (CPU e Internet reduzidas até consertar!).`,
+        'danger'
+      );
+    }
+    if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+    if (typeof window.updateHardwareDisplay === 'function') window.updateHardwareDisplay();
+    if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+    return { prevHealth: prev, healthPct: next, repairCost: this.getRepairCost() };
+  }
+
+  repairHardware() {
+    this.ensureForProfile();
+    const health = this.getHealthPct();
+    if (health >= 100) {
+      return { success: false, message: 'Suas peças já estão com 100% de integridade!' };
+    }
+    const cost = this.getRepairCost();
+    if (!window.currentWallet || parseFloat(window.currentWallet.balance) < cost) {
+      return { success: false, message: `Saldo insuficiente! O conserto das peças custa $ ${cost.toLocaleString('pt-BR')} HC.` };
+    }
+
+    const deductFn = () => {
+      window.currentWallet.balance = Math.max(0, +(parseFloat(window.currentWallet.balance) - cost).toFixed(2));
+    };
+    if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+      window.integrityGuard.runAuthorized(deductFn);
+    } else {
+      deductFn();
+    }
+
+    this.saveRig({ healthPct: 100, lastDdosBy: null });
+    if (typeof window.addLocalLog === 'function') {
+      window.addLocalLog('HARDWARE-REPAIR', `Peças danificadas por DDoS consertadas (100% integridade): -$ ${cost} HC`, 'success');
+    }
+    if (window.hackerAudio && typeof window.hackerAudio.playCashChime === 'function') {
+      window.hackerAudio.playCashChime();
+    }
+    if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+    if (typeof window.updateHardwareDisplay === 'function') window.updateHardwareDisplay();
+    if (window.onlineEngine) window.onlineEngine.scheduleSave(true);
+    return { success: true, cost, healthPct: 100, message: `🔧 Peças consertadas! Integridade restaurada para 100% (-$ ${cost} HC).` };
+  }
+
   getCpu() {
+    this.ensureForProfile();
     return this.catalog.cpu.find((c) => c.id === this.current.cpu) || this.catalog.cpu[0];
   }
 
   getRam() {
+    this.ensureForProfile();
     return this.catalog.ram.find((r) => r.id === this.current.ram) || this.catalog.ram[0];
   }
 
   getHdd() {
+    this.ensureForProfile();
     return this.catalog.hdd.find((h) => h.id === this.current.hdd) || this.catalog.hdd[0];
   }
 
   getNetwork() {
+    this.ensureForProfile();
     return this.catalog.network.find((n) => n.id === this.current.network) || this.catalog.network[0];
   }
 
   getCooldownMs() {
-    return this.getCpu().cooldown_ms || 4000;
+    const base = this.getCpu().cooldown_ms || 4000;
+    return Math.round(base / this.getHealthMultiplier());
   }
 
   getBannerText() {
@@ -85,28 +192,61 @@ class HardwareEngine {
     const ram = this.getRam();
     const hdd = this.getHdd();
     const net = this.getNetwork();
-    return `${cpu.mhz}MHz CPU // ${ram.ramMb}MB RAM // ${hdd.hddMb}MB HDD // NET ${net.mbps}Mbps`;
+    const health = this.getHealthPct();
+    return `${this.getEffectiveCpuMhz()}MHz CPU${health < 100 ? ` (${health}% SAÚDE!)` : ''} // ${ram.ramMb}MB RAM // ${hdd.hddMb}MB HDD // NET ${this.getEffectiveNetMbps()}Mbps`;
   }
 
   renderWorkbench(containerId, currentBalance) {
     const el = document.getElementById(containerId);
     if (!el) return;
+    this.ensureForProfile();
 
     const cpu = this.getCpu();
     const ram = this.getRam();
     const hdd = this.getHdd();
     const net = this.getNetwork();
+    const healthPct = this.getHealthPct();
+    const effCpu = this.getEffectiveCpuMhz();
+    const effNet = this.getEffectiveNetMbps();
+    const repairCost = this.getRepairCost();
+    const canRepair = healthPct < 100 && currentBalance >= repairCost;
     const usedHdd = window.softwareEngine ? window.softwareEngine.getUsedHddMb() : 0;
     const usedRam = window.softwareEngine ? window.softwareEngine.getUsedRamMb() : 0;
 
+    const healthColor = healthPct >= 85 ? 'var(--hc-accent)' : (healthPct >= 55 ? 'var(--hc-warning)' : 'var(--hc-danger)');
+
     let html = `
+      <div id="hardwareHealthCard" class="hc-card" style="padding: 1.05rem 1.15rem; margin-bottom: 1rem; border-color: ${healthPct < 100 ? 'var(--hc-danger)' : 'rgba(53, 184, 119, 0.38)'}; background: ${healthPct < 100 ? 'rgba(208, 68, 58, 0.08)' : 'transparent'};">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px;">
+          <div>
+            <div class="hc-eyebrow">Integridade Física das Peças (Proteção contra Sobrecarga DDoS)</div>
+            <div style="font-size:0.9rem;margin-top:2px;">
+              Saúde atual do PC: <strong id="hwHealthPctLabel" style="color:${healthPct < 100 ? 'var(--hc-danger-text)' : 'var(--hc-accent-text)'};font-family:var(--hc-font-mono);">${healthPct}%</strong>
+              ${healthPct < 100
+                ? `<span style="color:var(--hc-warning);font-size:0.8rem;margin-left:8px;">⚠️ Danificado por DDoS${this.current.lastDdosBy ? ` (${this.current.lastDdosBy})` : ''}! Sua CPU e Internet estão operando em marcha reduzida!</span>`
+                : `<span style="color:var(--hc-text-2);font-size:0.8rem;margin-left:8px;">✓ Todas as peças operando a 100% da velocidade nominal.</span>`}
+            </div>
+          </div>
+          <div>
+            ${healthPct < 100
+              ? `<button type="button" id="btnRepairHardware" ${!canRepair ? 'disabled' : ''} onclick="window.handleRepairHardware()" class="hc-btn ${canRepair ? 'primary' : 'ghost'} sm" style="${canRepair ? 'background:var(--hc-warning);border-color:var(--hc-warning);color:#101418;font-weight:700;' : ''}">
+                   🔧 Consertar Peças Danificadas ($ ${repairCost.toLocaleString('pt-BR')} HC)
+                 </button>`
+              : `<span class="hc-badge success">✓ Peças Intactas (100%)</span>`}
+          </div>
+        </div>
+        <div style="height:9px;background:var(--hc-inset);border-radius:999px;overflow:hidden;border:1px solid var(--hc-border);">
+          <div style="height:100%;width:${healthPct}%;background:${healthColor};transition:width 0.25s ease;"></div>
+        </div>
+      </div>
+
       <div class="hc-card" style="padding: 1.15rem; margin-bottom: 1.25rem; border-color: rgba(53, 184, 119, 0.35);">
         <div class="hc-eyebrow" style="margin-bottom: 0.45rem;">Ficha Física Atual do Seu PC</div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-family: var(--hc-font-mono); font-size: 0.82rem;">
-          <div><span style="color:var(--hc-text-3);">CPU:</span> <strong>${cpu.mhz.toLocaleString('pt-BR')} MHz</strong></div>
+          <div><span style="color:var(--hc-text-3);">CPU EFETIVA:</span> <strong style="color:${healthPct < 100 ? 'var(--hc-warning)' : 'var(--hc-text)'};">${effCpu.toLocaleString('pt-BR')} MHz</strong>${healthPct < 100 ? ` <span style="color:var(--hc-text-3);font-size:0.73rem;">(de ${cpu.mhz} MHz)</span>` : ''}</div>
           <div><span style="color:var(--hc-text-3);">RAM:</span> <strong>${usedRam} / ${ram.ramMb} MB</strong></div>
           <div><span style="color:var(--hc-text-3);">DISCO (HDD):</span> <strong>${usedHdd} / ${hdd.hddMb} MB</strong></div>
-          <div><span style="color:var(--hc-text-3);">INTERNET:</span> <strong>${net.mbps} Mbit/s</strong> (~${(net.mbps / 8).toFixed(2)} MB/s)</div>
+          <div><span style="color:var(--hc-text-3);">INTERNET EFETIVA:</span> <strong style="color:${healthPct < 100 ? 'var(--hc-warning)' : 'var(--hc-text)'};">${effNet} Mbit/s</strong> (~${(effNet / 8).toFixed(2)} MB/s)</div>
         </div>
       </div>
     `;
@@ -162,3 +302,15 @@ class HardwareEngine {
 
 window.HARDWARE_CATALOG = HARDWARE_CATALOG;
 window.hardwareEngine = new HardwareEngine();
+
+window.handleRepairHardware = function () {
+  if (!window.hardwareEngine) return null;
+  const res = window.hardwareEngine.repairHardware();
+  if (!res.success) {
+    if (window.hackerAudio && typeof window.hackerAudio.playErrorBuzz === 'function') window.hackerAudio.playErrorBuzz();
+    if (typeof window.showToast === 'function') window.showToast('⚠️ ' + res.message);
+    return res;
+  }
+  if (typeof window.showToast === 'function') window.showToast(res.message);
+  return res;
+};

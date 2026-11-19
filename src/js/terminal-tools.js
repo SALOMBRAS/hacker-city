@@ -320,18 +320,23 @@ class TerminalToolsEngine {
     };
   }
 
-  // Multiplicador de Potência de CPU baseado no HardwareEngine
+  // Multiplicador de Potência de CPU baseado no HardwareEngine (reduzido se o PC sofreu dano de Sobrecarga DDoS!)
   getCpuMultiplier() {
     if (!window.hardwareEngine) return 1.0;
     const cpu = window.hardwareEngine.getCpu();
+    const healthMult = typeof window.hardwareEngine.getHealthMultiplier === 'function'
+      ? window.hardwareEngine.getHealthMultiplier()
+      : 1.0;
+    let base = 1.0;
     switch (cpu.id) {
-      case 'celeron_800': return 1.0;
-      case 'pentium_4': return 1.25;
-      case 'core_2_quad': return 1.75;
-      case 'xeon_server': return 2.5;
-      case 'quantum_core': return 4.0;
-      default: return 1.0;
+      case 'celeron_800': base = 1.0; break;
+      case 'pentium_4': base = 1.25; break;
+      case 'core_2_quad': base = 1.75; break;
+      case 'xeon_server': base = 2.5; break;
+      case 'quantum_core': base = 4.0; break;
+      default: base = 1.0;
     }
+    return +(Math.max(0.25, base * healthMult)).toFixed(2);
   }
 
   // Verifica se o terminal está com aplicativo /use ativo no momento

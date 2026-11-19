@@ -42,6 +42,7 @@
   <script src="src/js/fs-stealth-xhd-bounce-engine.js"></script>
   <script src="src/js/multi-banks-account-hack-engine.js"></script>
   <script src="src/js/social-clans-mail-ranking-engine.js"></script>
+  <script src="src/js/mmo-anticheat-clans-bounty-ddos.js"></script>
   <script src="src/js/online-cloud-pvp-engine.js"></script>
   <script src="src/js/interactive-tour-ux-engine.js"></script>
 </head>
@@ -895,6 +896,7 @@
       const remoteTraces = [];
       if (window.botAI && window.botAI.syslogRegistry) {
         window.botAI.syslogRegistry.forEach((lines, ip) => {
+          if (ip === myIp) return;
           const pending = window.botAI.pendingAttacks ? window.botAI.pendingAttacks.get(ip) : null;
           const meaningfulLines = (lines || []).filter((l) => !l.includes('systemd[1]: sshd.service initialized'));
           if (meaningfulLines.length > 0 || pending) {
@@ -960,6 +962,10 @@
             const isTaunt = entry.tag === 'FARPA-INVASOR' || entry.tag === 'FARPA-PVP';
             const isSloppyIntrusion = entry.tag === 'INTRUSION-IP-EXPOSTO' || entry.tag === 'PVP-INTRUSION' || entry.tag === 'HUNTER-BLOCKED';
             const foreignIp = isSloppyIntrusion ? extractForeignIp(entry.msg) : null;
+            const tauntNick = (isTaunt && window.playerBountyEngine)
+              ? window.playerBountyEngine.extractNickFromTauntMsg(entry.msg)
+              : '';
+            const safeReason = String(entry.msg || '').replace(/['"\\]/g, '').slice(0, 85);
             return `
               <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--hc-border); font-size: 0.82rem; background: ${isTaunt ? 'rgba(208,68,58,0.11)' : 'transparent'};">
                 <div style="display: flex; align-items: center; gap: 0.6rem; min-width: 0; flex-wrap: wrap;">
@@ -968,7 +974,10 @@
                   ${isTaunt ? `<span class="hc-badge warn">IP APAGADO PELO INVASOR</span>` : ''}
                   <span style="color: ${isTaunt ? '#f5c26b' : 'var(--hc-text)'}; font-weight: ${isTaunt ? '600' : '400'}; font-family: var(--hc-font-mono); word-break: break-word;">${escapeHtml(entry.msg)}</span>
                 </div>
-                <div style="display:flex;gap:6px;flex-shrink:0;">
+                <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
+                  ${isTaunt && window.playerBountyEngine
+                    ? `<button type="button" class="hc-btn primary sm btn-bounty-from-taunt" style="padding:0.2rem 0.6rem;font-size:0.72rem;background:var(--hc-danger);border-color:var(--hc-danger);" onclick="window.playerBountyEngine.openQuickBountyModal('${escapeHtml(tauntNick)}', '${escapeHtml(safeReason)}')">💀 Colocar Cabeça a Prêmio</button>`
+                    : ''}
                   ${foreignIp
                     ? `<button type="button" class="hc-btn primary sm" style="padding:0.2rem 0.55rem;font-size:0.72rem;" onclick="window.internetEngine.openIp('${escapeHtml(foreignIp)}', 'invadir')">Contra-Atacar ${escapeHtml(foreignIp)} →</button>`
                     : ''}
@@ -1253,6 +1262,8 @@
 
         if (wErr) throw wErr;
         currentWallet = wal;
+        if (window.integrityGuard) window.integrityGuard.protectSessionObjects(currentProfile, currentWallet);
+        if (window.hardwareEngine) window.hardwareEngine.ensureForProfile(userId);
 
         // Oculta tela de login e abre Desktop
         document.getElementById('authOverlay').style.display = 'none';
@@ -1295,9 +1306,20 @@
         if (raw) savedMeta = JSON.parse(raw);
       } catch (e) {}
 
+      const genUuid = () => {
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+          return crypto.randomUUID();
+        }
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+          const r = (Math.random() * 16) | 0;
+          const v = c === 'x' ? r : (r & 0x3) | 0x8;
+          return v.toString(16);
+        });
+      };
+
       const reuseSaved = savedMeta && (!customTag || savedMeta.hacker_tag === customTag);
-      const uid = reuseSaved ? savedMeta.id : ('local-op-' + Math.floor(10000 + Math.random() * 89999));
-      const tag = customTag || (reuseSaved && savedMeta.hacker_tag) || ('Operador_' + uid.slice(-4));
+      const uid = reuseSaved ? savedMeta.id : genUuid();
+      const tag = customTag || (reuseSaved && savedMeta.hacker_tag) || ('Operador_' + uid.slice(0, 4).toUpperCase());
       const acc = (reuseSaved && savedMeta.account_number) || ('HC-' + Math.floor(1000 + Math.random() * 8999) + '-77');
 
       currentProfile = {
@@ -1315,6 +1337,8 @@
         account_number: acc,
         balance: 500.0
       };
+      if (window.integrityGuard) window.integrityGuard.protectSessionObjects(currentProfile, currentWallet);
+      if (window.hardwareEngine) window.hardwareEngine.ensureForProfile(uid);
 
       try {
         const metaJson = JSON.stringify({ id: uid, hacker_tag: tag, account_number: acc });
