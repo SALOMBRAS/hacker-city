@@ -459,7 +459,18 @@
 
 .whois-search-row {
   display: flex;
+  align-items: center;
   gap: 8px;
+}
+
+.whois-search-row .hc-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.whois-search-row .hc-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .whois-section-label {
