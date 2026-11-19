@@ -4121,10 +4121,11 @@
   };
 
   window.handleRemoteFileAction = function (ip, fileName, actionKind) {
+    let msnRes = null;
     if (window.missionsEngine) {
-      window.missionsEngine.notifyRemoteFileAction(ip, fileName, actionKind);
+      msnRes = window.missionsEngine.notifyRemoteFileAction(ip, fileName, actionKind);
     }
-    if (typeof window.showToast === 'function') {
+    if ((!msnRes || (!msnRes.downloaded && !msnRes.deleted)) && typeof window.showToast === 'function') {
       window.showToast(
         actionKind === 'delete'
           ? `Arquivo ${fileName} deletado de ${ip}! Lembre-se de limpar o syslog!`
