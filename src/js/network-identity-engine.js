@@ -818,6 +818,239 @@
       files: [
         { name: 'readme_operador.txt', size: '8 MB', sizeMb: 8, content: 'Bem-vindo à prova prática de Ensei Tankado. Extraia o dossiê e limpe seu IP na aba Logs!' }
       ]
+    },
+    '71.4.20.2': {
+      ip: '71.4.20.2',
+      domain: 'whois2.hc',
+      hostname: 'Second Whois — Diretório Regional II',
+      kind: 'whois',
+      whoisTier: 2,
+      badge: 'Diretório II',
+      tier: 2,
+      securityLevel: 2,
+      cpuMhz: 4800,
+      netMbps: 500,
+      hddTotalMb: 2048,
+      hddOsBaseMb: 900,
+      ramTotalMb: 1024,
+      ramOsBaseMb: 440,
+      hasherVer: 2.5,
+      firewallVer: 2.5,
+      antivirusVer: 2.5,
+      cpuSpec: '4.800 MHz · 500 Mbps · AV v2.5',
+      bankBalance: 0,
+      files: [
+        { name: 'tier2_registry.txt', size: '18 MB', sizeMb: 18, content: 'Índice regional II: HEBC Bank 77.3.10.44 | KronoTech 189.40.7.12 | Puzzle #5 109.64.200.22' }
+      ]
+    },
+    '71.4.20.3': {
+      ip: '71.4.20.3',
+      domain: 'whois3.hc',
+      hostname: 'Third Whois — Diretório Internacional III',
+      kind: 'whois',
+      whoisTier: 3,
+      badge: 'Diretório III',
+      tier: 3,
+      securityLevel: 3,
+      cpuMhz: 8400,
+      netMbps: 1000,
+      hddTotalMb: 4096,
+      hddOsBaseMb: 1800,
+      ramTotalMb: 2048,
+      ramOsBaseMb: 900,
+      hasherVer: 4.5,
+      firewallVer: 4.5,
+      antivirusVer: 4.5,
+      cpuSpec: '8.400 MHz · 1.000 Mbps · AV v4.5',
+      bankBalance: 0,
+      files: [
+        { name: 'tier3_registry.txt', size: '24 MB', sizeMb: 24, content: 'Índice III: Bitcoin Market 144.202.44.8 | OmniDyne 192.99.44.80 | Safenet 109.64.211.37' }
+      ]
+    },
+    '71.4.20.4': {
+      ip: '71.4.20.4',
+      domain: 'whois4.hc',
+      hostname: 'Fourth Whois — Backbone Restrito IV',
+      kind: 'whois',
+      whoisTier: 4,
+      badge: 'Diretório IV',
+      tier: 4,
+      securityLevel: 4,
+      cpuMhz: 16000,
+      netMbps: 2500,
+      hddTotalMb: 8192,
+      hddOsBaseMb: 3600,
+      ramTotalMb: 4096,
+      ramOsBaseMb: 1800,
+      hasherVer: 6.5,
+      firewallVer: 6.5,
+      antivirusVer: 6.5,
+      cpuSpec: '16.000 MHz · 2.500 Mbps · AV v6.5',
+      bankBalance: 0,
+      files: [
+        { name: 'tier4_backbone.txt', size: '32 MB', sizeMb: 32, content: 'Índice IV: Swiss Offshore 77.3.12.15 | EvilCorp 209.141.55.10 | FBI 161.89.1.1 | NSA 161.89.2.1' }
+      ]
+    },
+    '144.202.44.8': {
+      ip: '144.202.44.8',
+      domain: 'btc.hc',
+      hostname: 'Bitcoin Market Exchange',
+      kind: 'btc_market',
+      badge: 'Câmbio Cripto',
+      tier: 3,
+      securityLevel: 3,
+      cpuMhz: 9600,
+      netMbps: 1000,
+      hddTotalMb: 4096,
+      hddOsBaseMb: 1900,
+      ramTotalMb: 2048,
+      ramOsBaseMb: 920,
+      hasherVer: 3.5,
+      firewallVer: 3.5,
+      antivirusVer: 4.0,
+      cpuSpec: '9.600 MHz · 1.000 Mbps · AV v4.0',
+      bankBalance: 1650,
+      files: [
+        { name: 'cold_reserve_audit.log', size: '54 MB', sizeMb: 54, content: 'Livro público de liquidez BTC/HC e ordens instantâneas.' }
+      ]
+    },
+    '58.40.12.9': {
+      ip: '58.40.12.9',
+      domain: 'corvocinza.hc',
+      hostname: 'Corvo Cinza Logística',
+      kind: 'empresa',
+      badge: 'Empresa',
+      tier: 1,
+      securityLevel: 1,
+      cpuMhz: 2800,
+      netMbps: 120,
+      hddTotalMb: 640,
+      hddOsBaseMb: 310,
+      ramTotalMb: 512,
+      ramOsBaseMb: 210,
+      hasherVer: 1.5,
+      firewallVer: 1.5,
+      antivirusVer: 1.5,
+      cpuSpec: '2.800 MHz · 120 Mbps · HDD 640MB · AV v1.5',
+      bankBalance: 340,
+      files: [
+        { name: 'rotas_carga_sul.csv', size: '28 MB', sizeMb: 28, content: 'Manifesto de frotas e contratos corporativos de transporte.' }
+      ]
+    },
+    '187.22.5.60': {
+      ip: '187.22.5.60',
+      domain: 'boteco.hc',
+      hostname: 'Boteco h4x0r',
+      kind: 'underground',
+      badge: 'Comunidade',
+      tier: 1,
+      securityLevel: 1,
+      cpuMhz: 2400,
+      netMbps: 100,
+      hddTotalMb: 512,
+      hddOsBaseMb: 240,
+      ramTotalMb: 384,
+      ramOsBaseMb: 180,
+      hasherVer: 1.5,
+      firewallVer: 1.5,
+      antivirusVer: 1.0,
+      cpuSpec: '2.400 MHz · 100 Mbps · HDD 512MB · AV v1.0',
+      bankBalance: 260,
+      files: [
+        { name: 'receitas_underground.txt', size: '14 MB', sizeMb: 14, content: 'Anotações da galera: o Second Whois fica em 71.4.20.2 e a corretora BTC em 144.202.44.8!' }
+      ]
+    },
+    '189.40.7.12': {
+      ip: '189.40.7.12',
+      domain: 'kronotech.hc',
+      hostname: 'KronoTech Sistemas',
+      kind: 'empresa',
+      badge: 'Corporação',
+      tier: 2,
+      securityLevel: 2,
+      cpuMhz: 6400,
+      netMbps: 400,
+      hddTotalMb: 2048,
+      hddOsBaseMb: 920,
+      ramTotalMb: 1024,
+      ramOsBaseMb: 460,
+      hasherVer: 2.5,
+      firewallVer: 2.5,
+      antivirusVer: 2.5,
+      cpuSpec: '6.400 MHz · 400 Mbps · HDD 2GB · AV v2.5',
+      bankBalance: 680,
+      files: [
+        { name: 'folha_executiva.xls', size: '48 MB', sizeMb: 48, content: 'Pagamentos processados via HEBC Clearing Bank (77.3.10.44).' }
+      ]
+    },
+    '192.99.44.80': {
+      ip: '192.99.44.80',
+      domain: 'omnidyne.hc',
+      hostname: 'OmniDyne Defense Systems',
+      kind: 'empresa',
+      badge: 'Defesa Militar',
+      tier: 3,
+      securityLevel: 3,
+      cpuMhz: 12000,
+      netMbps: 1000,
+      hddTotalMb: 8192,
+      hddOsBaseMb: 3600,
+      ramTotalMb: 4096,
+      ramOsBaseMb: 1800,
+      hasherVer: 4.5,
+      firewallVer: 4.5,
+      antivirusVer: 4.5,
+      cpuSpec: '12.000 MHz · 1.000 Mbps · HDD 8GB · AV v4.5',
+      bankBalance: 1450,
+      files: [
+        { name: 'telemetry_sat.bin', size: '96 MB', sizeMb: 96, content: 'Dados criptografados de defesa orbital e contratos governamentais.' }
+      ]
+    },
+    '209.141.55.10': {
+      ip: '209.141.55.10',
+      domain: 'evilcorp.hc',
+      hostname: 'EvilCorp Conglomerate',
+      kind: 'empresa',
+      badge: 'MegaCorp',
+      tier: 4,
+      securityLevel: 4,
+      cpuMhz: 20000,
+      netMbps: 5000,
+      hddTotalMb: 32768,
+      hddOsBaseMb: 14000,
+      ramTotalMb: 8192,
+      ramOsBaseMb: 3800,
+      hasherVer: 7.0,
+      firewallVer: 7.0,
+      antivirusVer: 7.0,
+      cpuSpec: '20.000 MHz · 5.000 Mbps · HDD 32GB · AV v7.0',
+      bankBalance: 4200,
+      files: [
+        { name: 'offshore_accounts.vault', size: '240 MB', sizeMb: 240, content: 'Reservas globais depositadas no Swiss Offshore Vault (77.3.12.15).' }
+      ]
+    },
+    '161.89.2.1': {
+      ip: '161.89.2.1',
+      domain: 'nsa.gov.internal',
+      hostname: 'NSA — National Security Agency',
+      kind: 'federal',
+      badge: 'Agência Sigilosa',
+      tier: 5,
+      securityLevel: 5,
+      cpuMhz: 32000,
+      netMbps: 10000,
+      hddTotalMb: 65536,
+      hddOsBaseMb: 30000,
+      ramTotalMb: 32768,
+      ramOsBaseMb: 14000,
+      hasherVer: 9.5,
+      firewallVer: 9.5,
+      antivirusVer: 9.5,
+      cpuSpec: '32.000 MHz · 10.000 Mbps · FW v9.5 · AV v9.5',
+      bankBalance: 0,
+      files: [
+        { name: 'prism_backbone_tap.dat', size: '640 MB', sizeMb: 640, content: 'Monitoramento global de cabos submarinos e interceptação óptica.' }
+      ]
     }
   };
 
@@ -886,42 +1119,41 @@
   };
 
   const IMPORTANT_BOOKMARKS = [
-    { ip: '198.51.100.42', label: 'Alvo Tutorial Numataka' },
-    { ip: '109.64.200.10', label: 'First Puzzle (Trilha de Enigmas)' },
-    { ip: '71.4.5.1', label: 'HC Telecom ISP (Trocar IP)' },
-    { ip: '71.4.20.1', label: 'First Whois' },
-    { ip: '203.17.88.40', label: 'Farofa Systems' },
+    { ip: '71.4.20.1', label: 'First Whois (Diretório)' },
     { ip: '33.8.2.71', label: 'Download Center' },
-    { ip: '77.3.9.21', label: 'First Bank / Colchão HC' },
-    { ip: '77.3.10.44', label: 'HEBC Clearing Bank' },
-    { ip: '77.3.12.15', label: 'Swiss Offshore Vault' },
-    { ip: '185.220.101.9', label: 'Blackmarket Onion' },
-    { ip: '133.70.13.37', label: 'Rádio Pirata 1337 FM' },
+    { ip: '109.64.200.10', label: 'First Puzzle' },
+    { ip: '71.4.5.1', label: 'HC Telecom ISP' },
+    { ip: '77.3.9.21', label: 'Banco Colchão' },
+    { ip: '144.202.44.8', label: 'Bitcoin Market' },
+    { ip: '203.17.88.40', label: 'Farofa Systems' },
+    { ip: '187.22.5.60', label: 'Boteco h4x0r' },
     { ip: '109.64.211.37', label: 'Safenet Authority' },
-    { ip: '161.89.1.1', label: 'FBI Mainframe Central' }
+    { ip: '161.89.1.1', label: 'FBI Mainframe' }
   ];
 
   class InternetBrowserEngine {
     constructor() {
-      this.currentIp = '203.17.88.40';
+      this.currentIp = '71.4.20.1';
       this.activeTab = 'pagina'; // 'pagina' | 'entrar' | 'invadir'
       this.sshSubTab = 'logs';   // 'logs' | 'files' | 'hw'
-      this.history = ['203.17.88.40'];
+      this.history = ['71.4.20.1'];
       this.historyIdx = 0;
-      this.recentIps = ['203.17.88.40', '71.4.5.1', '71.4.20.1', '33.8.2.71'];
-      this.favorites = new Set(['71.4.5.1', '203.17.88.40']);
+      this.recentIps = ['71.4.20.1', '203.17.88.40', '77.3.9.21', '33.8.2.71', '133.70.13.37'];
+      this.favorites = new Set(['71.4.20.1', '77.3.9.21', '203.17.88.40', '58.40.12.9']);
       this.portScannedIps = new Set();
       this.drainedNpcIps = new Set();
-      this.deletedHostFiles = new Map(); // ip -> Set(fileName)
-      this.deletedHostFileMb = new Map(); // ip -> number (compatibilidade extra)
-      this.defacedPages = new Map(); // ip -> string
+      this.deletedHostFiles = new Map();
+      this.deletedHostFileMb = new Map();
+      this.defacedPages = new Map();
       this.activeSshIp = null;
-      this.activeSshMethod = 'password'; // 'password' | 'exploit'
-      this.activeSshRole = 'root';       // 'root' | 'ftp' | 'ssh'
+      this.activeSshMethod = 'password';
+      this.activeSshRole = 'root';
       this.isCracking = false;
       this.crackPct = 0;
       this.cloudPlayersByIp = {};
       this.whoisQueryResult = null;
+      this.whoisCategory = 'overview'; // 'overview' | 'services' | 'targets' | 'puzzles' | 'players'
+      this.whoisSearch = '';
     }
 
     async syncCloudPlayers() {
@@ -963,7 +1195,11 @@
         if (q === npc.domain || q === npc.ip) return npc.ip;
       }
       if (q === 'isp' || q === 'telecom' || q === 'meuip') return '71.4.5.1';
-      if (q === 'whois') return '71.4.20.1';
+      if (q === 'whois' || q === 'home' || q === 'about:home' || q === '1.2.3.4') return '71.4.20.1';
+      if (q === 'whois2') return '71.4.20.2';
+      if (q === 'whois3') return '71.4.20.3';
+      if (q === 'whois4') return '71.4.20.4';
+      if (q === 'btc' || q === 'bitcoin') return '144.202.44.8';
       if (q === 'download' || q === 'dc') return '33.8.2.71';
       if (q === 'bank' || q === 'banco') return '77.3.9.21';
       if (q === 'hebc' || q === 'hebc.hc') return '77.3.10.44';
@@ -1326,20 +1562,68 @@
       }
     }
 
+    goHome() {
+      this.navigate('71.4.20.1', 'pagina');
+    }
+
     switchTab(tab) {
       this.activeTab = tab;
       this.render();
     }
 
     toggleFavoriteCurrent() {
-      if (this.favorites.has(this.currentIp)) {
-        this.favorites.delete(this.currentIp);
+      this.toggleFavoriteIp(this.currentIp);
+    }
+
+    toggleFavoriteIp(ip, ev) {
+      if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation();
+      if (!ip) return;
+      if (this.favorites.has(ip)) {
+        this.favorites.delete(ip);
       } else {
-        this.favorites.add(this.currentIp);
+        this.favorites.add(ip);
       }
-      if (window.hackedDb) window.hackedDb.toggleFavorite(this.currentIp);
+      if (window.hackedDb) window.hackedDb.toggleFavorite(ip);
       if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
       this.render();
+    }
+
+    setWhoisCategory(cat) {
+      this.whoisCategory = cat || 'overview';
+      this.render();
+    }
+
+    setWhoisSearch(val) {
+      this.whoisSearch = String(val || '');
+      this.render();
+      const inp = document.getElementById('whoisQueryInput');
+      if (inp) {
+        inp.focus();
+        const len = inp.value.length;
+        try { inp.setSelectionRange(len, len); } catch (e) {}
+      }
+    }
+
+    getHostIconName(host) {
+      if (!host) return 'server';
+      switch (host.kind) {
+        case 'whois': return 'search';
+        case 'isp': return 'wifi';
+        case 'download': return 'download';
+        case 'banco': return 'landmark';
+        case 'btc_market': return 'bitcoin';
+        case 'darknet': return 'package';
+        case 'puzzle': return 'lock';
+        case 'federal':
+        case 'fbi_mainframe': return 'shield-alert';
+        case 'empresa': return 'building-2';
+        case 'underground': return 'zap';
+        case 'clan': return 'users';
+        case 'player':
+        case 'bot': return 'user';
+        case 'self': return 'cpu';
+        default: return 'server';
+      }
     }
 
     runPortScan() {
@@ -2202,58 +2486,59 @@
         `;
       }
 
-      // 3. First Whois (71.4.20.1)
+      // 3. Diretórios Públicos WHOIS (First, Second, Third e Fourth Whois: 71.4.20.1 -> .4)
       if (host.kind === 'whois') {
-        const w = this.whoisQueryResult;
+        return this.renderWhoisDirectoryHtml(host);
+      }
+
+      // 3b. Bitcoin Market Exchange Público (144.202.44.8)
+      if (host.kind === 'btc_market') {
+        const btcRate = window.bitcoinEngine ? window.bitcoinEngine.priceUsd : 64250;
+        const myBtc = window.bitcoinEngine ? window.bitcoinEngine.getFormattedBtc() : '0.00000000';
+        const myCash = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
         return `
           <div style="display: flex; flex-direction: column; gap: 14px;">
-            <div class="hc-card" style="padding: 1.15rem;">
-              <div class="hc-eyebrow" style="margin-bottom: 0.4rem;">Consulta Pública WHOIS & Roteamento ASN</div>
-              <p style="font-size: 0.84rem; color: var(--hc-text-2); margin-bottom: 0.75rem;">Inspecione qualquer endereço IPv4 para identificar titular, categoria, status online e blindagem antes de atacar.</p>
-              <div style="display: flex; gap: 8px;">
-                <input type="text" id="whoisQueryInput" class="form-input" style="font-family: var(--hc-font-mono);" placeholder="Ex: 203.17.88.40, 149.56.28.11, 10.110.1.14..." value="${w ? esc(w.ip) : ''}" onkeydown="if(event.key==='Enter') window.internetEngine.runWhoisLookup()">
-                <button type="button" class="hc-btn primary" onclick="window.internetEngine.runWhoisLookup()">Consultar IP</button>
+            <div class="hc-stat-strip">
+              <div class="hc-stat-cell">
+                <div class="hc-stat-label">Cotação 1 BTC</div>
+                <div class="hc-stat-value">$${btcRate.toLocaleString('pt-BR')}</div>
+                <div class="hc-stat-sub ok">Liquidez imediata</div>
               </div>
-              ${w ? (w.notFound
-                ? `<div style="margin-top: 0.85rem; padding: 0.75rem; background: var(--hc-inset); border: 1px solid var(--hc-danger); border-radius: 8px; color: var(--hc-danger-text); font-size: 0.82rem;">${esc(w.ip)}: ${esc(w.reason)}</div>`
-                : `<div style="margin-top: 0.85rem; padding: 0.85rem; background: var(--hc-inset); border: 1px solid var(--hc-border-strong); border-radius: 8px; font-family: var(--hc-font-mono); font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
-                     <div>
-                       <div>IP: <strong style="color: var(--hc-accent-text);">${esc(w.ip)}</strong> · Status: <strong>${w.online ? 'ONLINE' : 'OFFLINE'}</strong></div>
-                       <div>Entidade: ${esc(w.hostname)} [${esc(w.badge)}] · Segurança Nível ${w.securityLevel}</div>
-                     </div>
-                     <button type="button" class="hc-btn primary sm" onclick="window.internetEngine.navigate('${esc(w.ip)}')">Visitar IP →</button>
-                   </div>`)
-                : ''}
+              <div class="hc-stat-cell">
+                <div class="hc-stat-label">Sua Carteira BTC</div>
+                <div class="hc-stat-value">${String(myBtc).slice(0, 8)}</div>
+                <div class="hc-stat-sub">Chave sincronizada</div>
+              </div>
+              <div class="hc-stat-cell">
+                <div class="hc-stat-label">Saldo Bancário</div>
+                <div class="hc-stat-value" style="color: var(--hc-accent-text);">$${myCash.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}</div>
+                <div class="hc-stat-sub">Conta principal</div>
+              </div>
+              <div class="hc-stat-cell">
+                <div class="hc-stat-label">Segurança do Host</div>
+                <div class="hc-stat-value">FW v${(host.firewallVer || 3.5).toFixed(1)}</div>
+                <div class="hc-stat-sub">Servidor de câmbio</div>
+              </div>
             </div>
 
-            <div class="hc-card" style="padding: 1rem;">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
-                <div class="hc-eyebrow">🟢 Jogadores Online na Rede Agora</div>
-                <button type="button" class="hc-btn ghost sm" onclick="navTo('winOnline')">Ver Todos os Jogadores Online →</button>
+            <div class="hc-split-card">
+              <div class="hc-split-main">
+                <div>
+                  <div class="hc-eyebrow">Comprar Bitcoin com Dólares</div>
+                  <p style="font-size: 12.5px; color: var(--hc-text-2); margin: 4px 0 12px;">Converta saldo bancário em BTC para proteger patrimônio ou operar de forma anônima.</p>
+                  <div style="display: flex; gap: 8px;">
+                    <input type="number" id="inetBtcBuyUsd" class="hc-input mono" placeholder="Valor em dólares (ex: 250)" min="10" value="100">
+                    <button type="button" class="hc-btn primary" onclick="window.handleInetBtcTrade('buy')">Comprar BTC</button>
+                  </div>
+                </div>
               </div>
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px; margin-bottom: 10px;">
-                ${((window.onlineEngine ? window.onlineEngine.getUnifiedOnlinePlayers() : []).slice(0, 8)).map((hp) => `
-                  <button type="button" class="inet-bm-item" style="background: var(--hc-inset); border-color: rgba(53,184,119,0.45);" onclick="window.internetEngine.navigate('${esc(hp.publicIp)}')">
-                    <div>
-                      <span class="inet-bm-ip">${esc(hp.publicIp)}</span>
-                      <span class="inet-bm-label">🟢 ${esc(hp.hackerTag)} (${(hp.reputation || 100).toLocaleString('pt-BR')} REP)</span>
-                    </div>
-                    <span style="color: var(--hc-accent-text);">→</span>
-                  </button>
-                `).join('')}
-              </div>
-
-              <div class="hc-eyebrow" style="margin-bottom: 0.5rem;">Diretório de Empresas, Bancos &amp; Enigmas</div>
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px;">
-                ${IMPORTANT_BOOKMARKS.map((b) => `
-                  <button type="button" class="inet-bm-item" style="background: var(--hc-inset); border-color: var(--hc-border);" onclick="window.internetEngine.navigate('${b.ip}')">
-                    <div>
-                      <span class="inet-bm-ip">${b.ip}</span>
-                      <span class="inet-bm-label">${esc(b.label)}</span>
-                    </div>
-                    <span style="color: var(--hc-text-3);">→</span>
-                  </button>
-                `).join('')}
+              <div class="hc-split-side">
+                <div class="hc-eyebrow">Vender Bitcoin por Dólares</div>
+                <p style="font-size: 12.5px; color: var(--hc-text-2); margin: 2px 0 8px;">Liquide seus Bitcoins minerados direto para sua conta corrente.</p>
+                <div style="display: flex; gap: 8px;">
+                  <input type="text" id="inetBtcSellAmt" class="hc-input mono" placeholder="Qtd BTC (ex: 0.0010)" value="0.0010">
+                  <button type="button" class="hc-btn" onclick="window.handleInetBtcTrade('sell')">Vender</button>
+                </div>
               </div>
             </div>
           </div>
@@ -2772,9 +3057,201 @@
       `;
     }
 
+    renderWhoisDirectoryHtml(host) {
+      const currentTier = host.whoisTier || 1;
+      const myCrc = this.getPlayerCrackerVer();
+      const q = (this.whoisSearch || '').trim().toLowerCase();
+      const w = this.whoisQueryResult;
+
+      // Catálogo completo de IPs públicos (para acessar & usar e para invadir)
+      const publicServices = [
+        { ip: '33.8.2.71', name: 'Download Center', role: 'service', iconCls: 'service', icon: 'download', tier: 1, useLabel: 'Baixar utilitários gratuitos v1.0 (Antivírus, Analyzer, Cracker)', fw: 1.0 },
+        { ip: '71.4.5.1', name: 'HC Telecom ISP', role: 'service', iconCls: 'service', icon: 'wifi', tier: 1, useLabel: 'Consultar e renovar seu endereço IP público (1 troca grátis/semana)', fw: 3.0 },
+        { ip: '77.3.9.21', name: 'Banco Colchão', role: 'service', iconCls: 'bank', icon: 'landmark', tier: 1, useLabel: 'Abrir conta, transferir dinheiro ou quebrar senhas de contas bancárias', fw: 2.5 },
+        { ip: '185.220.101.9', name: 'Blackmarket Store', role: 'service', iconCls: 'service', icon: 'package', tier: 1, useLabel: 'Adquirir kits táticos e limpadores de alerta policial', fw: 1.5 },
+        { ip: '77.3.10.44', name: 'HEBC Clearing Bank', role: 'service', iconCls: 'bank', icon: 'landmark', tier: 2, useLabel: 'Banco comercial corporativo para contas secundárias e transferências', fw: 4.0 },
+        { ip: '144.202.44.8', name: 'Bitcoin Market Exchange', role: 'service', iconCls: 'service', icon: 'bitcoin', tier: 3, useLabel: 'Comprar e vender Bitcoins na cotação em tempo real', fw: 3.5 },
+        { ip: '109.64.211.37', name: 'Safenet Authority', role: 'service', iconCls: 'gov', icon: 'shield', tier: 3, useLabel: 'Consultar IPs rastreados por transferências e invasões sem limpeza', fw: 3.5 },
+        { ip: '77.3.12.15', name: 'Swiss Offshore Vault', role: 'service', iconCls: 'bank', icon: 'landmark', tier: 4, useLabel: 'Cofre bancário suíço de alto sigilo para proteger grandes valores', fw: 6.0 },
+        { ip: '161.89.1.1', name: 'FBI Mainframe Central', role: 'service', iconCls: 'gov', icon: 'shield-alert', tier: 4, useLabel: 'Mural federal de procurados e terminal restrito de dossiês criminais', fw: 9.0 }
+      ];
+
+      const publicTargets = [
+        { ip: '198.51.100.42', name: 'Treinamento Numataka', role: 'target', iconCls: 'corp', icon: 'building-2', tier: 1, useLabel: 'Servidor inicial de treino sem antivírus · Reserva $65', fw: 1.0 },
+        { ip: '133.70.13.37', name: 'Rádio Pirata 1337 FM', role: 'target', iconCls: 'corp', icon: 'zap', tier: 1, useLabel: 'Estação comunitária · Boa para treinar upload de vírus · Reserva $110', fw: 1.0 },
+        { ip: '203.17.88.40', name: 'Farofa Systems', role: 'target', iconCls: 'corp', icon: 'building-2', tier: 1, useLabel: 'Empresa de software B2B · Logs com pistas de outros IPs · Reserva $185', fw: 1.0 },
+        { ip: '187.22.5.60', name: 'Boteco h4x0r', role: 'target', iconCls: 'corp', icon: 'message-square', tier: 1, useLabel: 'Ponto de encontro underground · Antivírus básico v1.0 · Reserva $260', fw: 1.5 },
+        { ip: '58.40.12.9', name: 'Corvo Cinza Logística', role: 'target', iconCls: 'corp', icon: 'building-2', tier: 2, useLabel: 'Transportadora corporativa · Boa largura de banda para vírus · Reserva $340', fw: 1.5 },
+        { ip: '189.40.7.12', name: 'KronoTech Sistemas', role: 'target', iconCls: 'corp', icon: 'cpu', tier: 2, useLabel: 'Corporação de médio porte · Pagamentos no HEBC Bank · Reserva $680', fw: 2.5 },
+        { ip: '192.99.44.80', name: 'OmniDyne Defense', role: 'target', iconCls: 'gov', icon: 'radar', tier: 3, useLabel: 'Contratante militar com link gigabit · Reserva $1.450', fw: 4.5 },
+        { ip: '209.141.55.10', name: 'EvilCorp Conglomerate', role: 'target', iconCls: 'corp', icon: 'building-2', tier: 4, useLabel: 'Conglomerado global de alta segurança · Reserva $4.200', fw: 7.0 },
+        { ip: '161.89.2.1', name: 'NSA Signal Intelligence', role: 'target', iconCls: 'gov', icon: 'shield-alert', tier: 4, useLabel: 'Agência de inteligência de sinais · Desafio máximo de força-bruta', fw: 9.5 }
+      ];
+
+      const puzzleNodes = (window.puzzleTrailEngine ? window.puzzleTrailEngine.getAllNodes() : []).slice(0, 8).map((p) => {
+        const solved = window.puzzleTrailEngine ? window.puzzleTrailEngine.isSolved(p.index) : false;
+        const pTier = p.index <= 2 ? 1 : (p.index <= 4 ? 2 : (p.index <= 6 ? 3 : 4));
+        return {
+          ip: p.ip,
+          name: `${p.hostname}`,
+          role: 'puzzle',
+          iconCls: 'puzzle',
+          icon: 'lock',
+          tier: pTier,
+          solved,
+          useLabel: `${solved ? 'Enigma resolvido · Entre para baixar o software liberado' : 'Resolva o enigma na página pública para destravar vírus e softwares grátis'}`,
+          fw: 1.0
+        };
+      });
+
+      const onlinePlayers = ((window.onlineEngine ? window.onlineEngine.getUnifiedOnlinePlayers() : []).slice(0, 8)).map((hp) => ({
+        ip: hp.publicIp,
+        name: hp.hackerTag,
+        role: 'player',
+        iconCls: '',
+        icon: 'user',
+        tier: 1,
+        useLabel: `Operador ativo na rede · ${(hp.reputation || 100).toLocaleString('pt-BR')} REP`,
+        fw: Number(hp.firewallVer || 1.0)
+      }));
+
+      const matchQuery = (item) => {
+        if (!q) return true;
+        return item.ip.toLowerCase().includes(q) ||
+               item.name.toLowerCase().includes(q) ||
+               item.useLabel.toLowerCase().includes(q);
+      };
+
+      const filterByTier = (list) => {
+        if (q || this.whoisCategory !== 'overview') return list.filter(matchQuery);
+        return list.filter((it) => it.tier === currentTier || (currentTier === 1 && it.tier === 1));
+      };
+
+      const renderRow = (item, primaryAccess) => {
+        const saved = window.hackedDb ? window.hackedDb.getEntry(item.ip) : null;
+        const isFav = this.favorites.has(item.ip);
+        const canCrack = myCrc > 0 && myCrc >= item.fw;
+        return `
+          <div class="whois-row">
+            <div class="whois-row-main">
+              <div class="whois-row-icon ${item.iconCls || ''}">${HC.icon(item.icon)}</div>
+              <div class="whois-row-info">
+                <div class="whois-row-top">
+                  <span class="whois-row-ip" onclick="window.internetEngine.navigate('${esc(item.ip)}', 'pagina')">${esc(item.ip)}</span>
+                  <span class="whois-row-name">${esc(item.name)}</span>
+                  ${saved ? '<span class="hc-badge success">Acesso salvo</span>' : ''}
+                  ${item.solved ? '<span class="hc-badge violet">Enigma concluído</span>' : ''}
+                  <span class="hc-badge ${canCrack ? 'success' : ''}" title="Versão do Firewall deste servidor">FW v${item.fw.toFixed(1)}</span>
+                </div>
+                <div class="whois-row-desc">${esc(item.useLabel)}</div>
+              </div>
+            </div>
+            <div class="whois-row-actions">
+              <button type="button" class="hc-btn ${primaryAccess ? 'primary' : ''} sm" onclick="window.internetEngine.navigate('${esc(item.ip)}', 'pagina')">
+                ${primaryAccess ? 'Acessar' : 'Ver site'}
+              </button>
+              <button type="button" class="hc-btn ${primaryAccess ? 'ghost' : 'primary'} sm" style="${primaryAccess ? 'border-color:var(--hc-border);' : ''}" onclick="window.internetEngine.navigate('${esc(item.ip)}', 'invadir')">
+                Invadir
+              </button>
+              <button type="button" class="inet-bm-star ${isFav ? 'fav' : ''}" onclick="window.internetEngine.toggleFavoriteIp('${esc(item.ip)}', event)" title="${isFav ? 'Remover dos favoritos' : 'Salvar nos favoritos'}">
+                ${isFav ? '★' : '☆'}
+              </button>
+            </div>
+          </div>
+        `;
+      };
+
+      let contentBlocks = '';
+      if (this.whoisCategory === 'services') {
+        const list = publicServices.filter(matchQuery);
+        contentBlocks = `<div class="whois-list">${list.map((i) => renderRow(i, true)).join('') || '<div style="padding:20px;text-align:center;color:var(--hc-text-3);">Nenhum serviço encontrado.</div>'}</div>`;
+      } else if (this.whoisCategory === 'targets') {
+        const list = publicTargets.filter(matchQuery);
+        contentBlocks = `<div class="whois-list">${list.map((i) => renderRow(i, false)).join('') || '<div style="padding:20px;text-align:center;color:var(--hc-text-3);">Nenhum alvo encontrado.</div>'}</div>`;
+      } else if (this.whoisCategory === 'puzzles') {
+        const list = puzzleNodes.filter(matchQuery);
+        contentBlocks = `<div class="whois-list">${list.map((i) => renderRow(i, true)).join('') || '<div style="padding:20px;text-align:center;color:var(--hc-text-3);">Nenhum enigma encontrado.</div>'}</div>`;
+      } else if (this.whoisCategory === 'players') {
+        const list = onlinePlayers.filter(matchQuery);
+        contentBlocks = `<div class="whois-list">${list.map((i) => renderRow(i, false)).join('') || '<div style="padding:20px;text-align:center;color:var(--hc-text-3);">Nenhum operador encontrado.</div>'}</div>`;
+      } else {
+        const srvFiltered = filterByTier(publicServices);
+        const trgFiltered = [...filterByTier(puzzleNodes.slice(0, 2)), ...filterByTier(publicTargets)];
+        contentBlocks = `
+          <div class="whois-section-label">
+            <span class="hc-eyebrow">Serviços públicos — para acessar e usar</span>
+            <span style="font-size: 11.5px; color: var(--hc-text-3);">${srvFiltered.length} servidores</span>
+          </div>
+          <div class="whois-list">
+            ${srvFiltered.map((i) => renderRow(i, true)).join('')}
+          </div>
+
+          <div class="whois-section-label" style="margin-top: 6px;">
+            <span class="hc-eyebrow">Enigmas &amp; servidores corporativos — para invadir</span>
+            <span style="font-size: 11.5px; color: var(--hc-text-3);">${trgFiltered.length} alvos</span>
+          </div>
+          <div class="whois-list">
+            ${trgFiltered.map((i) => renderRow(i, i.role === 'puzzle')).join('')}
+          </div>
+        `;
+      }
+
+      const whoisTiers = [
+        ['71.4.20.1', 1, 'First Whois'],
+        ['71.4.20.2', 2, 'Second Whois'],
+        ['71.4.20.3', 3, 'Third Whois'],
+        ['71.4.20.4', 4, 'Fourth Whois']
+      ];
+
+      return `
+        <div class="whois-portal">
+          <div class="whois-top-bar">
+            <div class="whois-tier-pills" role="group" aria-label="Diretórios Whois">
+              ${whoisTiers.map(([tIp, tNum, tLbl]) => `
+                <button type="button" class="whois-tier-btn ${currentTier === tNum && this.whoisCategory === 'overview' && !q ? 'active' : ''}" onclick="window.internetEngine.whoisCategory='overview'; window.internetEngine.whoisSearch=''; window.internetEngine.navigate('${tIp}', 'pagina');">
+                  ${tLbl}
+                </button>
+              `).join('')}
+            </div>
+            <span style="font-size: 12px; color: var(--hc-text-3);">Seu Cracker ativo: <strong class="mono" style="color: var(--hc-accent-text);">${myCrc > 0 ? 'v' + myCrc.toFixed(1) : 'Desligado'}</strong></span>
+          </div>
+
+          <div class="whois-search-row">
+            <input type="text" id="whoisQueryInput" class="hc-input" placeholder="Filtrar sites por nome ou consultar qualquer IPv4 (ex: 77.3.9.21, 149.56.28.11)..." value="${esc(this.whoisSearch || (w ? w.ip : ''))}" oninput="window.internetEngine.setWhoisSearch(this.value)" onkeydown="if(event.key==='Enter') window.internetEngine.runWhoisLookup()">
+            <button type="button" class="hc-btn" onclick="window.internetEngine.runWhoisLookup()">Consultar IP</button>
+          </div>
+
+          ${w ? (w.notFound
+            ? `<div class="hc-card" style="padding: 12px 14px; border-color: var(--hc-danger); color: var(--hc-danger-text); font-size: 12.5px;"><strong>${esc(w.ip)}:</strong> ${esc(w.reason)}</div>`
+            : `<div class="hc-card" style="padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+                 <div style="font-size: 12.5px;">
+                   <span class="mono" style="color: var(--hc-accent-text); font-weight: 600;">${esc(w.ip)}</span> · <strong>${esc(w.hostname)}</strong>
+                   <span class="hc-badge" style="margin-left: 6px;">${esc(w.badge)}</span>
+                   <span class="mono" style="color: var(--hc-text-3); margin-left: 8px;">FW v${(w.firewallVer || 1.0).toFixed(1)}</span>
+                 </div>
+                 <div style="display: flex; gap: 6px;">
+                   <button type="button" class="hc-btn sm" onclick="window.internetEngine.navigate('${esc(w.ip)}', 'pagina')">Acessar</button>
+                   <button type="button" class="hc-btn primary sm" onclick="window.internetEngine.navigate('${esc(w.ip)}', 'invadir')">Invadir</button>
+                 </div>
+               </div>`)
+            : ''}
+
+          <div class="hc-tabs">
+            <button type="button" class="hc-tab ${this.whoisCategory === 'overview' ? 'active' : ''}" onclick="window.internetEngine.setWhoisCategory('overview')">Visão Geral</button>
+            <button type="button" class="hc-tab ${this.whoisCategory === 'services' ? 'active' : ''}" onclick="window.internetEngine.setWhoisCategory('services')">Para Acessar &amp; Usar (${publicServices.length})</button>
+            <button type="button" class="hc-tab ${this.whoisCategory === 'targets' ? 'active' : ''}" onclick="window.internetEngine.setWhoisCategory('targets')">Empresas &amp; Alvos (${publicTargets.length})</button>
+            <button type="button" class="hc-tab ${this.whoisCategory === 'puzzles' ? 'active' : ''}" onclick="window.internetEngine.setWhoisCategory('puzzles')">Enigmas (${puzzleNodes.length})</button>
+            <button type="button" class="hc-tab ${this.whoisCategory === 'players' ? 'active' : ''}" onclick="window.internetEngine.setWhoisCategory('players')">Operadores Online (${onlinePlayers.length})</button>
+          </div>
+
+          ${contentBlocks}
+        </div>
+      `;
+    }
+
     renderInvadirTab(host) {
       if (host.kind === 'self') {
-        return `<div class="hc-card" style="padding: 1.2rem; color: var(--hc-warning);">Você não pode invadir o seu próprio IP público (${esc(host.ip)}).</div>`;
+        return `<div class="hc-card" style="padding: 18px; color: var(--hc-text-2);">Este é o seu próprio endereço IP (${esc(host.ip)}). Use o menu lateral para gerenciar seu computador.</div>`;
       }
 
       const crcVer = this.getPlayerCrackerVer();
@@ -2782,6 +3259,9 @@
       const sshVer = this.getPlayerSshExploitVer();
       const speedFactor = this.getCpuSpeedFactor();
       const portScanActive = window.softwareEngine ? window.softwareEngine.isPortScanActive() : true;
+      const scanVer = (window.softwareEngine && window.softwareEngine.ensureLoaded().inventory.scan)
+        ? ((window.softwareEngine.ensureLoaded().inventory.scan.versionInt || 10) / 10)
+        : 1.0;
 
       const reqHasher = host.hasherVer || 1.0;
       const reqFwl = host.firewallVer || 1.0;
@@ -2791,109 +3271,93 @@
       const canFtpExp = ftpVer > 0 && ftpVer >= reqFwl;
       const canSshExp = sshVer > 0 && sshVer >= reqFwl;
       const canAnyExp = canFtpExp || canSshExp;
-      const predictedExpRole = (canFtpExp && canSshExp) ? 'ROOT Completo (FTP+SSH)' : (canFtpExp ? 'Apenas FTP (Porta 21)' : 'Apenas SSH (Porta 22)');
 
       const scanned = this.portScannedIps.has(host.ip);
       const saved = window.hackedDb ? window.hackedDb.getEntry(host.ip) : null;
       const targetAv = host.antivirusVer !== undefined ? host.antivirusVer : 0;
-      const myBestVirusVer = window.softwareEngine
-        ? Math.max(0, ...['vspam', 'vwarez', 'vminer', 'vbank', 'vddos'].map((vk) => {
-            const st = window.softwareEngine.ensureLoaded().inventory[vk];
-            return st && st.owned ? (st.versionInt || 0) / 10 : 0;
-          }))
-        : 0;
       const canEnterSomehow = canBruteforce || canAnyExp;
 
       return `
-        <div>
-          <!-- Painel Didático: Comparação Direta Seus Programas vs Programas da Vítima -->
-          <div id="inetHostDefenseCompareBox" class="hc-card" style="padding: 0.9rem 1.05rem; margin-bottom: 12px; border-color: ${canEnterSomehow ? 'rgba(53,184,119,0.45)' : 'rgba(208,68,58,0.5)'}; background: ${canEnterSomehow ? 'rgba(53,184,119,0.06)' : 'rgba(208,68,58,0.07)'};">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
-              <strong style="font-size: 0.86rem;">
-                🔍 Comparação de Força: Seus Aplicativos vs Proteção de ${esc(host.hostname)}
-              </strong>
-              ${saved
-                ? `<span class="hc-badge success">✓ Senha já descoberta (${esc(saved.sshUser || 'root')}: ${esc(saved.password)})</span>`
-                : `<span class="hc-badge ${canEnterSomehow ? 'success' : 'danger'}">${canEnterSomehow ? '✅ VOCÊ CONSEGUE INVADIR!' : '❌ PROTEÇÃO DELE É MAIS FORTE QUE SEU ATAQUE!'}</span>`}
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 8px; font-size: 0.77rem;">
-              <div style="background: var(--hc-inset); padding: 7px 10px; border-radius: 7px; border: 1px solid var(--hc-border);">
-                <div style="color: var(--hc-text-3); font-size: 0.69rem;">1. SEU QUEBRADOR vs ESCUDO &amp; COFRE DELE</div>
-                <div style="margin-top: 2px;">
-                  Seu: <strong style="color:${canBruteforce ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};">${crcVer > 0 ? 'v' + crcVer.toFixed(1) : 'Desligado'}</strong>
-                  · Dele: <strong>Escudo v${reqFwl.toFixed(1)}</strong> + <strong>Cofre v${reqHasher.toFixed(1)}</strong>
-                </div>
-              </div>
-              <div style="background: var(--hc-inset); padding: 7px 10px; border-radius: 7px; border: 1px solid var(--hc-border);">
-                <div style="color: var(--hc-text-3); font-size: 0.69rem;">2. SUAS CHAVES SEM SENHA vs ESCUDO DELE</div>
-                <div style="margin-top: 2px;">
-                  Suas: <strong style="color:${canAnyExp ? 'var(--hc-accent-text)' : 'var(--hc-text-2)'};">FTP ${ftpVer > 0 ? 'v' + ftpVer.toFixed(1) : 'OFF'} / SSH ${sshVer > 0 ? 'v' + sshVer.toFixed(1) : 'OFF'}</strong>
-                  · Dele: <strong>v${reqFwl.toFixed(1)}</strong>
-                </div>
-              </div>
-              <div style="background: var(--hc-inset); padding: 7px 10px; border-radius: 7px; border: 1px solid var(--hc-border);">
-                <div style="color: var(--hc-text-3); font-size: 0.69rem;">3. SEU VÍRUS vs ANTIVÍRUS DELE</div>
-                <div style="margin-top: 2px;">
-                  Seu Vírus: <strong>${myBestVirusVer > 0 ? 'v' + myBestVirusVer.toFixed(1) : 'Nenhum ainda'}</strong>
-                  · Antivírus dele: <strong style="color:${targetAv <= 0 ? 'var(--hc-accent-text)' : 'var(--hc-warning)'};">${targetAv > 0 ? 'v' + targetAv.toFixed(1) : 'Sem Antivírus'}</strong>
-                </div>
-              </div>
-            </div>
-          </div>
-
+        <div class="inet-attack-wrap">
           ${this.isCracking ? `
-            <div class="hc-card" style="padding: 1rem; margin-bottom: 14px; border-color: var(--hc-accent);">
-              <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-family: var(--hc-font-mono); font-size: 0.82rem; margin-bottom: 6px;">
-                <span>QUEBRANDO HASH ROOT (Cracker.crc v${crcVer.toFixed(1)} · Velocidade CPU ${speedFactor}x)...</span>
+            <div class="hc-card" style="padding: 14px 16px; border-color: var(--hc-accent);">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-family: var(--hc-font-mono); font-size: 12.5px; margin-bottom: 8px;">
+                <span>Quebrando senha root (Cracker v${crcVer.toFixed(1)} · ${speedFactor}x)...</span>
                 <div style="display:flex;align-items:center;gap:8px;">
                   <strong id="inetCrackPctLabel" style="color: var(--hc-accent-text);">${this.crackPct}%</strong>
                   ${this.activeCrackPid && window.attackMinigame
-                    ? `<button type="button" id="btnOpenVaultFromCrack" class="hc-btn primary sm" onclick="window.attackMinigame.openForProcess(${this.activeCrackPid})">⚡ Cortar Tempo (Cofre)</button>`
+                    ? `<button type="button" id="btnOpenVaultFromCrack" class="hc-btn primary sm" onclick="window.attackMinigame.openForProcess(${this.activeCrackPid})">Acelerar no Cofre</button>`
                     : ''}
                 </div>
               </div>
-              <div style="height: 10px; background: var(--hc-inset); border-radius: 999px; overflow: hidden; border: 1px solid var(--hc-border);">
-                <div id="inetCrackBarFill" style="height: 100%; width: ${this.crackPct}%; background: var(--hc-accent); transition: width 0.12s linear;"></div>
-              </div>
+              <div class="hc-progress"><span id="inetCrackBarFill" style="width: ${this.crackPct}%;"></span></div>
             </div>
           ` : ''}
 
+          <div class="inet-attack-heading">Escolha seu método de ataque:</div>
+
           <div class="inet-attack-grid">
-            <div class="inet-attack-card" id="cardAttackBruteforce">
-              <div class="inet-attack-icon">${HC.icon('key-round')}</div>
-              <strong style="font-size: 0.95rem;">Quebrar Senha (Força-Bruta)</strong>
-              <div style="font-size: 0.77rem; color: var(--hc-text-2);">
-                Testa senhas até descobrir a chave principal deste PC. Seu <strong>Quebrador de Senhas</strong> (<code>${crcVer > 0 ? 'v' + crcVer.toFixed(1) : 'Desligado'}</code>) precisa ser igual ou maior que o <code>Escudo v${reqFwl.toFixed(1)}</code> e o <code>Cofre v${reqHasher.toFixed(1)}</code> do alvo.
-                <span style="color:${canBruteforce ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};display:block;margin-top:3px;font-weight:600;">
-                  ${crcVer <= 0
-                    ? '● BLOQUEADO: Ligue seu Quebrador de Senhas (Cracker) na memória!'
-                    : (crcVer < reqFwl
-                        ? `● BLOQUEADO PELO ESCUDO (Firewall v${reqFwl.toFixed(1)}) — Evolua seu Cracker p/ >= v${reqBfMin.toFixed(1)}`
-                        : (crcVer < reqHasher
-                            ? `● BLOQUEADO PELO COFRE (Hasher v${reqHasher.toFixed(1)}) — Evolua seu Cracker p/ >= v${reqBfMin.toFixed(1)}`
-                            : `● Pronto para invadir! (Velocidade do seu PC: ${speedFactor}x)`))}
+            <div class="inet-attack-card ${canBruteforce ? 'ready' : ''}" id="cardAttackBruteforce">
+              <div class="inet-attack-icon">${HC.icon('key-round', 'lg')}</div>
+              <strong style="font-size: 15px; color: var(--hc-text);">Ataque força-bruta</strong>
+              <div class="inet-attack-reqs">
+                <span title="Seu Quebrador de Senhas vs Exigido" style="color: ${canBruteforce ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};">
+                  ${HC.icon('key-round')} ${crcVer > 0 ? crcVer.toFixed(1) : 'OFF'} / ${reqBfMin.toFixed(1)}
                 </span>
               </div>
-              <button type="button" id="btnInetBruteforce" class="hc-btn primary" style="margin-top: 6px; width: 100%; justify-content: center;" onclick="window.internetEngine.startBruteforce()">
-                🔑 Quebrar Senha Agora
+              <div style="font-size: 12px; color: var(--hc-text-3); min-height: 32px;">
+                ${canBruteforce
+                  ? `Descobre a senha root (velocidade ${speedFactor}x)`
+                  : (crcVer <= 0 ? 'Ative o Cracker em Programas' : `Requer Cracker v${reqBfMin.toFixed(1)} ou superior`)}
+              </div>
+              <button type="button" id="btnInetBruteforce" class="hc-btn ${canBruteforce ? 'primary' : ''} block" onclick="window.internetEngine.startBruteforce()">
+                Quebrar senha
               </button>
             </div>
 
-            <div class="inet-attack-card" id="cardAttackExploit">
-              <div class="inet-attack-icon">${HC.icon('zap')}</div>
-              <strong style="font-size: 0.95rem;">Entrar por Brecha (Sem Senha)</strong>
-              <div style="font-size: 0.77rem; color: var(--hc-text-2);">
-                Pula a senha entrando direto por falhas nas portas! Exige passar no <strong>Scanner de Portas</strong> antes e ter Invasores <code>FTP ${ftpVer > 0 ? 'v' + ftpVer.toFixed(1) : 'OFF'}</code> / <code>SSH ${sshVer > 0 ? 'v' + sshVer.toFixed(1) : 'OFF'}</code> &gt;= <code>Firewall v${reqFwl.toFixed(1)}</code>.
-                <span style="color:${canAnyExp ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};display:block;margin-top:3px;font-weight:600;">
-                  ${canAnyExp
-                    ? `● Capaz de furar Escudo → Libera: ${predictedExpRole}`
-                    : `● BLOQUEADO PELO ESCUDO (Firewall v${reqFwl.toFixed(1)}) — Exige Exploit >= v${reqFwl.toFixed(1)}`}
-                </span>
+            <div class="inet-attack-card ${canAnyExp ? 'ready' : ''}" id="cardAttackExploit">
+              <div class="inet-attack-icon">${HC.icon('terminal', 'lg')}</div>
+              <strong style="font-size: 15px; color: var(--hc-text);">Ataque exploit</strong>
+              <div class="inet-attack-reqs">
+                <span style="color: ${canFtpExp ? 'var(--hc-accent-text)' : 'var(--hc-text-3)'};">FTP ${ftpVer > 0 ? ftpVer.toFixed(1) : '0.0'}</span>
+                <span>·</span>
+                <span style="color: ${canSshExp ? 'var(--hc-accent-text)' : 'var(--hc-text-3)'};">SSH ${sshVer > 0 ? sshVer.toFixed(1) : '0.0'}</span>
               </div>
-              <button type="button" id="btnInetExploit" class="hc-btn" style="margin-top: 6px; width: 100%; justify-content: center;" onclick="window.internetEngine.startExploitAttack()">
-                ⚡ Entrar por Brecha (${canFtpExp && canSshExp ? 'Acesso Total' : (canFtpExp ? 'Arquivos' : 'Comandos')})
+              <div style="font-size: 12px; color: var(--hc-text-3); min-height: 32px;">
+                ${canAnyExp
+                  ? `Entra sem senha após rodar o Port scan`
+                  : `Requer Exploit v${reqFwl.toFixed(1)}+ e Port scan`}
+              </div>
+              <button type="button" id="btnInetExploit" class="hc-btn ${canAnyExp ? 'primary' : ''} block" onclick="window.internetEngine.startExploitAttack()">
+                Explorar brecha
               </button>
             </div>
+          </div>
+
+          <div class="inet-portscan-bar">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <span class="mono" style="font-size: 12.5px; font-weight: 600; color: var(--hc-text); display: inline-flex; align-items: center; gap: 6px;">
+                ${HC.icon('radar')} Port scan · v${scanVer.toFixed(1)}
+              </span>
+              <span class="mono" style="font-size: 11.5px; color: var(--hc-text-3);">
+                ${!portScanActive
+                  ? 'Desligado na memória'
+                  : (scanned
+                      ? `21/ftp ${canFtpExp ? 'aberta' : 'FW v' + reqFwl.toFixed(1)} · 22/ssh ${canSshExp ? 'aberta' : 'FW v' + reqFwl.toFixed(1)}`
+                      : 'Portas ainda não escaneadas')}
+              </span>
+            </div>
+            <button type="button" id="btnInetPortScan" class="hc-btn sm" onclick="window.internetEngine.runPortScan()">Rodar port scan</button>
+          </div>
+
+          <!-- Resumo compacto de defesa do alvo (mantém #inetHostDefenseCompareBox para o Tour) -->
+          <div id="inetHostDefenseCompareBox" class="hc-card" style="padding: 11px 15px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--hc-inset);">
+            <div style="font-size: 12px; color: var(--hc-text-2);">
+              Defesa do alvo: <strong class="mono">Firewall v${reqFwl.toFixed(1)}</strong> · <strong class="mono">Hasher v${reqHasher.toFixed(1)}</strong> · <strong class="mono">${targetAv > 0 ? 'AV v' + targetAv.toFixed(1) : 'Sem AV'}</strong>
+            </div>
+            ${saved
+              ? `<span class="hc-badge success" style="cursor:pointer;" onclick="window.internetEngine.switchTab('entrar')">Senha salva: ${esc(saved.password)} →</span>`
+              : `<span class="hc-badge ${canEnterSomehow ? 'success' : 'warning'}">${canEnterSomehow ? 'Alcance compatível' : 'Defesa superior'}</span>`}
           </div>
 
           ${window.ddosOverloadEngine ? (() => {
@@ -2902,40 +3366,16 @@
             const targetHwPct = window.ddosOverloadEngine.getTargetHealthPct(host.ip);
             const canDdos = myDdosGbps >= reqDdosGbps;
             return `
-              <div id="cardAttackDdosOverload" class="hc-card" style="padding:0.9rem 1.05rem;margin-top:10px;border-color:${canDdos ? 'rgba(240,168,58,0.45)' : 'var(--hc-border)'};display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-                <div style="flex:1;min-width:250px;">
-                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                    <strong style="font-size:0.9rem;">💥 Sobrecarga DDoS (Danificar Peças Físicas do Alvo)</strong>
-                    <span class="hc-badge ${targetHwPct < 100 ? 'danger' : 'info'}">Saúde do Alvo: ${targetHwPct}%</span>
-                  </div>
-                  <div style="font-size:0.76rem;color:var(--hc-text-2);margin-top:3px;">
-                    Queima circuitos do PC alvo (deixando a CPU e Internet dele lentas até ele pagar o conserto!).
-                    Seu Poder DDoS: <strong style="color:${canDdos ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};">${myDdosGbps} Gbps</strong> vs Mitigação do Escudo dele: <strong>${reqDdosGbps} Gbps</strong>.
-                  </div>
+              <div id="cardAttackDdosOverload" class="hc-card" style="padding: 11px 15px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--hc-inset);">
+                <div style="font-size: 12px; color: var(--hc-text-2);">
+                  <strong>Sobrecarga DDoS</strong> · Seu poder: <span class="mono" style="color:${canDdos ? 'var(--hc-accent-text)' : 'var(--hc-text)'};">${myDdosGbps} Gbps</span> / Mitigação <span class="mono">${reqDdosGbps} Gbps</span> (Saúde ${targetHwPct}%)
                 </div>
-                <button type="button" id="btnInetLaunchDdosStrike" class="hc-btn ${canDdos ? 'primary' : 'ghost'} sm" style="${canDdos ? 'background:var(--hc-danger);border-color:var(--hc-danger);' : ''}" onclick="window.ddosOverloadEngine.launchDdosOverloadOnHost('${esc(host.ip)}')">
-                  💥 Disparar Sobrecarga DDoS
+                <button type="button" id="btnInetLaunchDdosStrike" class="hc-btn ${canDdos ? 'danger' : 'ghost'} sm" onclick="window.ddosOverloadEngine.launchDdosOverloadOnHost('${esc(host.ip)}')">
+                  Disparar DDoS
                 </button>
               </div>
             `;
           })() : ''}
-
-          <div class="inet-portscan-bar">
-            <div>
-              <strong style="font-size: 0.86rem;">PortScan.scan (${!portScanActive ? 'DESATIVADO NA RAM' : (scanned ? 'Concluído' : 'Pendente')})</strong>
-              <div style="font-size: 0.77rem; color: var(--hc-text-2); font-family: var(--hc-font-mono); margin-top: 2px;">
-                ${scanned
-                  ? `21/ftp [${canFtpExp ? 'VULNERÁVEL' : 'BLINDADA FW v' + reqFwl.toFixed(1)}] · 22/ssh [${canSshExp ? 'VULNERÁVEL' : 'BLINDADA FW v' + reqFwl.toFixed(1)}] · AV ${host.antivirusVer > 0 ? 'v' + host.antivirusVer.toFixed(1) : 'Ausente'}`
-                  : 'Execute o PortScan.scan antes do Ataque Exploit para sondar vulnerabilidades nas portas 21 e 22.'}
-              </div>
-            </div>
-            <div style="display: flex; gap: 8px;">
-              <button type="button" id="btnInetPortScan" class="hc-btn sm" onclick="window.internetEngine.runPortScan()">Rodar PortScan.scan</button>
-              ${host.kind === 'bot'
-                ? `<button type="button" class="hc-btn ghost sm" onclick="openWindow('winCracker'); window.renderCrackerUI('crackerAppBody', '${esc(host.ip)}');">Abrir no HC Cracker Pro</button>`
-                : ''}
-            </div>
-          </div>
         </div>
       `;
     }
@@ -2946,16 +3386,27 @@
 
       const host = this.resolveHost(this.currentIp);
       const isFav = this.favorites.has(this.currentIp);
+      const isAtHome = this.currentIp === '71.4.20.1' && this.activeTab === 'pagina';
 
-      let bodyHtml = '';
+      // Status compacto de Rota/Bounce na barra de endereço
+      let routeProtected = false;
+      let routeHopsCount = 0;
+      if (window.bounceEngine && host && !host.notFound && host.kind !== 'self') {
+        window.bounceEngine.ensureLoaded();
+        const validHops = window.bounceEngine.state.enabled ? window.bounceEngine.getValidHopsForTarget(host.ip) : [];
+        routeProtected = window.bounceEngine.state.enabled && validHops.length > 0;
+        routeHopsCount = validHops.length;
+      }
+
+      let mainPanelHtml = '';
       if (host.notFound) {
-        bodyHtml = `
+        mainPanelHtml = `
           <div class="inet-viewport">
-            <div class="hc-card" style="padding: 2rem; text-align: center;">
-              <span class="hc-badge danger">ERR_HOST_UNREACHABLE (404)</span>
-              <h3 style="margin: 0.65rem 0 0.35rem;">Não foi possível conectar a <code>${esc(host.ip)}</code></h3>
-              <p style="color: var(--hc-text-2); font-size: 0.86rem; margin-bottom: 1rem;">${esc(host.reason)}</p>
-              <button type="button" class="hc-btn primary" onclick="window.internetEngine.navigate('71.4.20.1')">Abrir Diretório First Whois (71.4.20.1)</button>
+            <div class="hc-empty-box" style="padding: 48px 20px;">
+              <div class="hc-empty-icon">${HC.icon('globe')}</div>
+              <strong>Servidor não encontrado (${esc(host.ip)})</strong>
+              <p>${esc(host.reason)}</p>
+              <button type="button" class="hc-btn primary" style="margin-top: 8px;" onclick="window.internetEngine.goHome()">Voltar ao First Whois</button>
             </div>
           </div>
         `;
@@ -2964,20 +3415,19 @@
           ? this.renderPublicPageTab(host)
           : (this.activeTab === 'entrar' ? this.renderLoginOrRootTab(host) : this.renderInvadirTab(host));
 
-        const bounceBar = (window.bounceEngine && host.kind !== 'self')
-          ? window.bounceEngine.renderInternetBounceBarHtml(host.ip)
+        const connectedDot = this.activeSshIp === host.ip
+          ? `<span style="width:6px;height:6px;border-radius:50%;background:var(--hc-success);display:inline-block;"></span>`
           : '';
 
-        bodyHtml = `
-          ${bounceBar}
+        mainPanelHtml = `
           <div class="inet-host-banner">
             <div class="inet-host-id">
-              <div class="inet-host-icon">${HC.icon(host.kind === 'isp' ? 'wifi' : (host.kind === 'banco' ? 'landmark' : 'server'))}</div>
+              <div class="inet-host-icon">${HC.icon(this.getHostIconName(host), 'lg')}</div>
               <div>
                 <div class="inet-ip-row">
                   <span class="inet-ip-code">${esc(host.ip)}</span>
-                  <button type="button" class="inet-fav-btn ${isFav ? 'active' : ''}" onclick="window.internetEngine.toggleFavoriteCurrent()" title="Favoritar IP">${isFav ? '★' : '☆'}</button>
-                  <span class="hc-badge info">${esc(host.badge)}</span>
+                  <button type="button" class="inet-fav-btn ${isFav ? 'active' : ''}" onclick="window.internetEngine.toggleFavoriteCurrent()" title="${isFav ? 'Remover dos favoritos' : 'Salvar nos favoritos'}">${isFav ? '★' : '☆'}</button>
+                  <span class="hc-badge">${esc(host.badge)}</span>
                 </div>
                 <div class="inet-host-name">${esc(host.hostname)}</div>
               </div>
@@ -2988,72 +3438,82 @@
           </div>
 
           <div class="inet-tabs" id="inetBrowserTabs">
-            <button type="button" id="btnInetTabPagina" class="inet-tab ${this.activeTab === 'pagina' ? 'active' : ''}" onclick="window.internetEngine.switchTab('pagina')">${HC.icon('globe')} <span>1. Ver Site</span></button>
-            <button type="button" id="btnInetTabEntrar" class="inet-tab ${this.activeTab === 'entrar' ? 'active' : ''}" onclick="window.internetEngine.switchTab('entrar')">${HC.icon('terminal')} <span>2. Entrar no PC${this.activeSshIp === host.ip ? ' (Conectado!)' : ''}</span></button>
-            <button type="button" id="btnInetTabInvadir" class="inet-tab ${this.activeTab === 'invadir' ? 'active' : ''}" onclick="window.internetEngine.switchTab('invadir')">${HC.icon('zap')} <span>3. Invadir PC</span></button>
+            <button type="button" id="btnInetTabPagina" class="inet-tab ${this.activeTab === 'pagina' ? 'active' : ''}" onclick="window.internetEngine.switchTab('pagina')">${HC.icon('globe')} <span>Página</span></button>
+            <button type="button" id="btnInetTabEntrar" class="inet-tab ${this.activeTab === 'entrar' ? 'active' : ''}" onclick="window.internetEngine.switchTab('entrar')">${HC.icon('terminal')} <span>Entrar</span> ${connectedDot}</button>
+            <button type="button" id="btnInetTabInvadir" class="inet-tab ${this.activeTab === 'invadir' ? 'active' : ''}" onclick="window.internetEngine.switchTab('invadir')">${HC.icon('zap')} <span>Invadir</span></button>
           </div>
 
           <div class="inet-viewport">${tabBody}</div>
         `;
       }
 
+      const renderSideEntry = (ip, customLabel) => {
+        const h = this.resolveHost(ip);
+        const label = customLabel || (h && !h.notFound ? h.hostname : ip);
+        const fav = this.favorites.has(ip);
+        const isCurrent = ip === this.currentIp;
+        return `
+          <div class="inet-side-row ${isCurrent ? 'current' : ''}">
+            <button type="button" class="inet-bm-item" onclick="window.internetEngine.navigate('${esc(ip)}')">
+              <span class="inet-bm-mini-icon">${HC.icon(this.getHostIconName(h))}</span>
+              <span class="inet-bm-text">
+                <span class="inet-bm-ip">${esc(ip)}</span>
+                <span class="inet-bm-label">${esc(label)}</span>
+              </span>
+            </button>
+            <button type="button" class="inet-bm-star ${fav ? 'fav' : ''}" onclick="window.internetEngine.toggleFavoriteIp('${esc(ip)}', event)" title="${fav ? 'Remover favorito' : 'Adicionar favorito'}">${fav ? '★' : '☆'}</button>
+          </div>
+        `;
+      };
+
       const favList = Array.from(this.favorites);
 
       container.innerHTML = `
-        <div class="inet-shell">
-          <div class="inet-main-panel">
-            <div class="inet-navbar">
-              <button type="button" class="inet-nav-btn" ${this.historyIdx <= 0 ? 'disabled' : ''} onclick="window.internetEngine.goBack()" title="Voltar">${HC.icon('arrow-left')}</button>
-              <button type="button" class="inet-nav-btn" ${this.historyIdx >= this.history.length - 1 ? 'disabled' : ''} onclick="window.internetEngine.goForward()" title="Avançar">${HC.icon('arrow-right')}</button>
-              <button type="button" class="inet-nav-btn" onclick="window.internetEngine.render()" title="Recarregar">${HC.icon('refresh-cw')}</button>
-              <div class="inet-addr-wrap">
-                ${HC.icon('globe')}
-                <input type="text" id="inetAddressInput" class="inet-addr-input" value="${esc(this.currentIp)}" placeholder="Digite qualquer IP ou domínio (ex: 71.4.5.1, 203.17.88.40)..." onkeydown="if(event.key==='Enter') window.internetEngine.navigate(this.value)">
-              </div>
-              <button type="button" id="btnInetGo" class="inet-go-btn" onclick="window.internetEngine.navigate(document.getElementById('inetAddressInput').value)">Ir</button>
+        <div class="inet-browser-frame">
+          <div class="inet-navbar">
+            <button type="button" class="inet-nav-btn" ${this.historyIdx <= 0 ? 'disabled' : ''} onclick="window.internetEngine.goBack()" title="Voltar">${HC.icon('arrow-left')}</button>
+            <button type="button" class="inet-nav-btn" ${this.historyIdx >= this.history.length - 1 ? 'disabled' : ''} onclick="window.internetEngine.goForward()" title="Avançar">${HC.icon('arrow-right')}</button>
+            <button type="button" class="inet-nav-btn" onclick="window.internetEngine.render()" title="Recarregar">${HC.icon('refresh-cw')}</button>
+            <button type="button" id="btnInetHomeWhois" class="inet-nav-btn ${isAtHome ? 'active-home' : ''}" onclick="window.internetEngine.goHome()" title="Página inicial — Diretório Público First Whois (71.4.20.1)">${HC.icon('house')}</button>
+
+            <div class="inet-addr-wrap">
+              ${HC.icon('globe')}
+              <input type="text" id="inetAddressInput" class="inet-addr-input" value="${esc(this.currentIp)}" placeholder="Digite um IP ou domínio (ex: 71.4.20.1, 203.17.88.40)..." onkeydown="if(event.key==='Enter') window.internetEngine.navigate(this.value)">
+              ${window.bounceEngine ? `
+                <button type="button" id="btnOpenBounceBuilder" class="inet-route-chip ${routeProtected ? 'protected' : ''}" onclick="window.bounceEngine.openBuilderModal()" title="${routeProtected ? 'Disfarce de IP ativo — clique para ajustar saltos' : 'Conexão direta — clique para configurar disfarce de IP'}">
+                  ${HC.icon('shield')}
+                  <span>${routeProtected ? `${routeHopsCount} salto${routeHopsCount > 1 ? 's' : ''}` : 'Rota direta'}</span>
+                </button>
+              ` : ''}
             </div>
-            ${bodyHtml}
+
+            <button type="button" id="btnInetGo" class="inet-go-btn" onclick="window.internetEngine.navigate(document.getElementById('inetAddressInput').value)">Ir</button>
           </div>
 
-          <aside class="inet-side">
-            <div>
-              <div class="inet-side-group-title">★ Favoritos</div>
-              ${favList.length === 0
-                ? `<div style="font-size: 0.76rem; color: var(--hc-text-3); padding: 4px 6px;">Clique na estrela ao lado de um IP.</div>`
-                : favList.map((fIp) => {
-                    const fh = this.resolveHost(fIp);
-                    return `
-                      <button type="button" class="inet-bm-item ${fIp === this.currentIp ? 'current' : ''}" onclick="window.internetEngine.navigate('${esc(fIp)}')">
-                        <div>
-                          <span class="inet-bm-ip">${esc(fIp)}</span>
-                          <span class="inet-bm-label">${esc(fh.hostname || fIp)}</span>
-                        </div>
-                        <span style="color: var(--hc-warning);">★</span>
-                      </button>`;
-                  }).join('')}
+          <div class="inet-shell">
+            <div class="inet-main-panel">
+              ${mainPanelHtml}
             </div>
 
-            <div>
-              <div class="inet-side-group-title">IPs Importantes</div>
-              ${IMPORTANT_BOOKMARKS.map((b) => `
-                <button type="button" class="inet-bm-item ${b.ip === this.currentIp ? 'current' : ''}" onclick="window.internetEngine.navigate('${b.ip}')">
-                  <div>
-                    <span class="inet-bm-ip">${b.ip}</span>
-                    <span class="inet-bm-label">${esc(b.label)}</span>
-                  </div>
-                </button>
-              `).join('')}
-            </div>
+            <aside class="inet-side" aria-label="Favoritos e histórico">
+              <div>
+                <div class="inet-side-group-title">${HC.icon('star')} <span>Favoritos</span></div>
+                ${favList.length === 0
+                  ? `<div style="font-size: 11.5px; color: var(--hc-text-3); padding: 4px 8px;">Clique na estrela ☆ ao lado de qualquer IP.</div>`
+                  : favList.map((fIp) => renderSideEntry(fIp)).join('')}
+              </div>
 
-            <div>
-              <div class="inet-side-group-title">Visitados Recentemente</div>
-              ${this.recentIps.map((rIp) => `
-                <button type="button" class="inet-bm-item ${rIp === this.currentIp ? 'current' : ''}" onclick="window.internetEngine.navigate('${esc(rIp)}')">
-                  <span class="inet-bm-ip">${esc(rIp)}</span>
-                </button>
-              `).join('')}
-            </div>
-          </aside>
+              <div>
+                <div class="inet-side-group-title">${HC.icon('landmark')} <span>IPs Importantes</span></div>
+                ${IMPORTANT_BOOKMARKS.map((b) => renderSideEntry(b.ip, b.label)).join('')}
+              </div>
+
+              <div>
+                <div class="inet-side-group-title">${HC.icon('clock')} <span>Visitados Recentemente</span></div>
+                ${this.recentIps.map((rIp) => renderSideEntry(rIp)).join('')}
+              </div>
+            </aside>
+          </div>
         </div>
       `;
     }
@@ -3127,6 +3587,25 @@
     const res = window.stealthXhdEngine.claimHiddenSecretFile(host);
     if (!res.success) alert(res.message);
     return res;
+  };
+
+  window.handleInetBtcTrade = async function (mode) {
+    if (!window.bitcoinEngine) return;
+    let res;
+    if (mode === 'buy') {
+      const val = document.getElementById('inetBtcBuyUsd')?.value;
+      res = await window.bitcoinEngine.buyBtcWithCash(val);
+    } else {
+      const val = document.getElementById('inetBtcSellAmt')?.value;
+      res = window.bitcoinEngine.sellBtcForCash(val);
+    }
+    if (!res || !res.success) {
+      if (window.showToast) window.showToast((res && res.message) || 'Operação não concluída.');
+      return;
+    }
+    if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+    if (window.internetEngine) window.internetEngine.render();
+    if (window.showToast) window.showToast(res.message);
   };
 
   // Atalho global Ctrl+K / Cmd+K para focar a busca rápida de IP na Topbar

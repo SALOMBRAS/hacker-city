@@ -141,21 +141,8 @@
   color: var(--hc-accent-text);
 }
 
-/* ---------- Navegador Internet por IP (2 Colunas: Host + Diretório Lateral) ---------- */
-.inet-shell {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 275px;
-  gap: 16px;
-  align-items: start;
-}
-
-@media (max-width: 1020px) {
-  .inet-shell {
-    grid-template-columns: 1fr;
-  }
-}
-
-.inet-main-panel {
+/* ---------- Navegador Internet Unificado (Barra Superior de Ponta a Ponta + 2 Colunas Internas) ---------- */
+.inet-browser-frame {
   background: var(--hc-surface);
   border: 1px solid var(--hc-border);
   border-radius: 12px;
@@ -165,9 +152,9 @@
 .inet-navbar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  background: var(--hc-inset);
+  gap: 6px;
+  padding: 10px 14px;
+  background: #12161c;
   border-bottom: 1px solid var(--hc-border);
 }
 
@@ -176,20 +163,32 @@
   height: 32px;
   display: grid;
   place-items: center;
-  background: var(--hc-surface-2);
-  border: 1px solid var(--hc-border);
-  border-radius: 7px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
   color: var(--hc-text-2);
   cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.13s ease, color 0.13s ease;
+}
+
+.inet-nav-btn svg {
+  width: 15px;
+  height: 15px;
 }
 
 .inet-nav-btn:hover:not(:disabled) {
+  background: var(--hc-surface-2);
   color: var(--hc-text);
-  border-color: var(--hc-border-strong);
+}
+
+.inet-nav-btn.active-home {
+  color: var(--hc-accent-text);
+  background: var(--hc-accent-soft);
 }
 
 .inet-nav-btn:disabled {
-  opacity: 0.35;
+  opacity: 0.3;
   cursor: default;
 }
 
@@ -198,15 +197,24 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 34px;
-  padding: 0 12px;
-  background: var(--hc-surface);
-  border: 1px solid var(--hc-border-strong);
-  border-radius: 7px;
+  height: 36px;
+  padding: 0 10px 0 12px;
+  background: var(--hc-inset);
+  border: 1px solid var(--hc-border);
+  border-radius: 8px;
+  min-width: 0;
+  transition: border-color 0.14s ease;
 }
 
 .inet-addr-wrap:focus-within {
   border-color: var(--hc-accent);
+}
+
+.inet-addr-wrap > svg {
+  width: 14px;
+  height: 14px;
+  color: var(--hc-text-3);
+  flex-shrink: 0;
 }
 
 .inet-addr-input {
@@ -219,20 +227,73 @@
   font-size: 13.5px;
 }
 
+/* Indicador compacto de Rota/Bounce dentro da barra de endereço */
+.inet-route-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 5px;
+  border: 1px solid var(--hc-border);
+  background: var(--hc-surface-2);
+  color: var(--hc-text-3);
+  font-family: var(--hc-font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color 0.13s ease, color 0.13s ease;
+}
+.inet-route-chip:hover {
+  color: var(--hc-text);
+  border-color: var(--hc-border-strong);
+}
+.inet-route-chip.protected {
+  background: var(--hc-accent-soft);
+  border-color: rgba(95, 211, 154, 0.3);
+  color: var(--hc-accent-text);
+}
+.inet-route-chip svg {
+  width: 12px;
+  height: 12px;
+}
+
 .inet-go-btn {
-  height: 34px;
+  height: 36px;
   padding: 0 16px;
   background: var(--hc-accent);
   border: 1px solid var(--hc-accent);
-  border-radius: 7px;
+  border-radius: 8px;
   color: #fff;
   font-weight: 600;
   font-size: 13px;
   cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.13s ease;
 }
 
 .inet-go-btn:hover {
   background: var(--hc-accent-hover);
+}
+
+/* Corpo dividido internamente: Conteúdo do Servidor (Esquerda) | Favoritos & IPs (Direita) */
+.inet-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 284px;
+  min-height: 540px;
+}
+
+@media (max-width: 1040px) {
+  .inet-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+.inet-main-panel {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Cabeçalho do Host Conectado */
@@ -241,25 +302,27 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 16px 20px 12px;
+  padding: 18px 22px 14px;
   flex-wrap: wrap;
 }
 
 .inet-host-id {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 13px;
+  min-width: 0;
 }
 
 .inet-host-icon {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 10px;
-  background: var(--hc-surface-2);
-  border: 1px solid var(--hc-border-strong);
+  background: var(--hc-inset);
+  border: 1px solid var(--hc-border);
   display: grid;
   place-items: center;
   color: var(--hc-accent-text);
+  flex-shrink: 0;
 }
 
 .inet-ip-row {
@@ -277,17 +340,24 @@
 }
 
 .inet-fav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: 0;
   color: var(--hc-text-3);
   cursor: pointer;
-  padding: 2px 4px;
+  padding: 2px;
   font-size: 15px;
   line-height: 1;
+  transition: color 0.12s ease, transform 0.12s ease;
 }
-
+.inet-fav-btn:hover {
+  color: var(--hc-text);
+  transform: scale(1.08);
+}
 .inet-fav-btn.active {
-  color: var(--hc-warning);
+  color: var(--hc-success);
 }
 
 .inet-host-name {
@@ -299,8 +369,9 @@
 /* Abas Página / Entrar / Invadir */
 .inet-tabs {
   display: flex;
-  gap: 4px;
-  padding: 0 20px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 22px;
   border-bottom: 1px solid var(--hc-border);
 }
 
@@ -312,10 +383,17 @@
   background: transparent;
   border: 0;
   border-bottom: 2px solid transparent;
-  color: var(--hc-text-2);
+  margin-bottom: -1px;
+  color: var(--hc-text-3);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
+  transition: color 0.13s ease;
+}
+
+.inet-tab svg {
+  width: 15px;
+  height: 15px;
 }
 
 .inet-tab:hover {
@@ -323,56 +401,266 @@
 }
 
 .inet-tab.active {
-  color: var(--hc-accent-text);
-  border-bottom-color: var(--hc-accent);
+  color: var(--hc-text);
+  border-bottom-color: var(--hc-success);
   font-weight: 600;
 }
 
 .inet-viewport {
-  padding: 20px;
+  padding: 22px;
+  flex: 1;
 }
 
-/* Cartões de Método de Ataque (aba Invadir) */
+/* ---------- Menu Inicial de IPs Públicos (Diretório Whois I–IV) ---------- */
+.whois-portal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.whois-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.whois-tier-pills {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  background: var(--hc-inset);
+  border: 1px solid var(--hc-border);
+  border-radius: 8px;
+}
+
+.whois-tier-btn {
+  height: 28px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--hc-text-3);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.13s ease, color 0.13s ease;
+}
+.whois-tier-btn:hover {
+  color: var(--hc-text);
+}
+.whois-tier-btn.active {
+  background: var(--hc-surface-2);
+  color: var(--hc-accent-text);
+  font-weight: 600;
+}
+
+.whois-search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.whois-search-row .hc-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.whois-search-row .hc-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.whois-section-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.whois-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--hc-border);
+  border-radius: 10px;
+  background: var(--hc-inset);
+  overflow: hidden;
+}
+
+.whois-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--hc-border-subtle);
+  transition: background 0.12s ease;
+}
+.whois-row:last-child {
+  border-bottom: 0;
+}
+.whois-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.whois-row-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.whois-row-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--hc-surface);
+  border: 1px solid var(--hc-border);
+  display: grid;
+  place-items: center;
+  color: var(--hc-text-2);
+  flex-shrink: 0;
+}
+.whois-row-icon.service { color: var(--hc-accent-text); background: var(--hc-accent-soft); border-color: rgba(95, 211, 154, 0.2); }
+.whois-row-icon.bank    { color: var(--hc-info-text);   background: var(--hc-info-bg);   border-color: rgba(75, 143, 224, 0.22); }
+.whois-row-icon.puzzle  { color: var(--hc-violet-text); background: var(--hc-violet-bg); border-color: rgba(143, 131, 232, 0.22); }
+.whois-row-icon.gov     { color: var(--hc-danger-text); background: var(--hc-danger-bg); border-color: rgba(208, 68, 58, 0.24); }
+.whois-row-icon.corp    { color: var(--hc-warning-text); background: var(--hc-warning-bg); border-color: rgba(240, 160, 58, 0.22); }
+
+.whois-row-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.whois-row-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.whois-row-ip {
+  font-family: var(--hc-font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--hc-accent-text);
+  cursor: pointer;
+}
+.whois-row-ip:hover {
+  text-decoration: underline;
+}
+
+.whois-row-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--hc-text);
+}
+
+.whois-row-desc {
+  font-size: 12px;
+  color: var(--hc-text-3);
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+.whois-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+  .whois-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .whois-row-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* ---------- Aba Invadir Limpa (Centralizada estilo Referência) ---------- */
+.inet-attack-wrap {
+  max-width: 600px;
+  margin: 6px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.inet-attack-heading {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--hc-text-2);
+  margin: 4px 0 4px;
+}
+
 .inet-attack-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
-  margin-bottom: 14px;
+}
+
+@media (max-width: 620px) {
+  .inet-attack-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .inet-attack-card {
   background: var(--hc-inset);
   border: 1px solid var(--hc-border);
   border-radius: 10px;
-  padding: 18px 16px;
+  padding: 22px 18px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 8px;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  gap: 10px;
+  transition: border-color 0.14s ease, background 0.14s ease;
 }
 
 .inet-attack-card:hover {
+  border-color: var(--hc-border-strong);
+  background: #141920;
+}
+
+.inet-attack-card.ready:hover {
   border-color: var(--hc-accent);
-  background: var(--hc-surface-2);
 }
 
 .inet-attack-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: var(--hc-accent-soft);
+  width: 46px;
+  height: 46px;
+  border-radius: 11px;
+  background: var(--hc-surface-2);
+  border: 1px solid var(--hc-border);
   color: var(--hc-accent-text);
   display: grid;
   place-items: center;
+}
+
+.inet-attack-reqs {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--hc-font-mono);
+  font-size: 12px;
+  color: var(--hc-text-2);
 }
 
 .inet-portscan-bar {
   background: var(--hc-inset);
   border: 1px solid var(--hc-border);
   border-radius: 10px;
-  padding: 12px 16px;
+  padding: 11px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -380,48 +668,93 @@
   flex-wrap: wrap;
 }
 
-/* Sidebar Direita da Internet (Favoritos / IPs Importantes / Recentes) */
+/* ---------- Sidebar Direita Integrada (Favoritos / IPs Importantes / Recentes) ---------- */
 .inet-side {
-  background: var(--hc-surface);
-  border: 1px solid var(--hc-border);
-  border-radius: 12px;
-  padding: 14px;
+  border-left: 1px solid var(--hc-border);
+  background: #12161c;
+  padding: 16px 12px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
+}
+
+@media (max-width: 1040px) {
+  .inet-side {
+    border-left: 0;
+    border-top: 1px solid var(--hc-border);
+  }
 }
 
 .inet-side-group-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-family: var(--hc-font-mono);
-  font-size: 10.5px;
+  font-size: 10px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   color: var(--hc-text-3);
+  padding: 0 8px;
   margin-bottom: 6px;
+}
+.inet-side-group-title svg {
+  width: 12px;
+  height: 12px;
+}
+
+.inet-side-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 7px;
+  padding-right: 4px;
+  transition: background 0.12s ease;
+}
+.inet-side-row:hover {
+  background: var(--hc-surface-2);
+}
+.inet-side-row.current {
+  background: #12291e;
 }
 
 .inet-bm-item {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 7px 9px;
+  gap: 9px;
+  padding: 6px 8px;
   background: transparent;
-  border: 1px solid transparent;
+  border: 0;
   border-radius: 7px;
   text-align: left;
   cursor: pointer;
 }
 
-.inet-bm-item:hover {
-  background: var(--hc-surface-2);
-  border-color: var(--hc-border);
+.inet-bm-mini-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--hc-surface);
+  border: 1px solid var(--hc-border);
+  display: grid;
+  place-items: center;
+  color: var(--hc-text-3);
+  flex-shrink: 0;
+}
+.inet-bm-mini-icon svg {
+  width: 13px;
+  height: 13px;
+}
+.inet-side-row.current .inet-bm-mini-icon {
+  color: var(--hc-accent-text);
+  border-color: rgba(95, 211, 154, 0.25);
 }
 
-.inet-bm-item.current {
-  background: var(--hc-accent-soft);
-  border-color: rgba(18, 165, 104, 0.35);
+.inet-bm-text {
+  min-width: 0;
+  flex: 1;
 }
 
 .inet-bm-ip {
@@ -430,12 +763,37 @@
   font-weight: 600;
   color: var(--hc-accent-text);
   display: block;
+  line-height: 1.2;
 }
 
 .inet-bm-label {
   font-size: 11.5px;
-  color: var(--hc-text-2);
+  color: var(--hc-text-3);
   display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 1px;
+}
+
+.inet-bm-star {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 5px;
+  color: var(--hc-text-3);
+  cursor: pointer;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.inet-bm-star:hover {
+  color: var(--hc-text);
+}
+.inet-bm-star.fav {
+  color: var(--hc-success);
 }
 
 /* Sessão SSH Root Remota */
