@@ -1,6 +1,7 @@
 /**
- * Suíte E2E Visual — Missão de Invasão a Câmera de Segurança (CFTV) &
- * Console NVR Ao Vivo com 6 Modelos Distintos de Vídeos Reais (.webm / .mp4)!
+ * Suíte E2E Visual Completa — Missões de Invasão a Câmeras de Segurança:
+ * 1) Desativar as Câmeras de uma Empresa para Ajudar um Roubo (Apagão CFTV + Sem Sinal)
+ * 2) Apagar Gravações Comprometedoras do DVR de uma Empresa (/var/nvr/recordings + Playback Ao Vivo)
  */
 const puppeteer = require('puppeteer');
 const path = require('path');
@@ -11,7 +12,7 @@ const OUT_DIR = path.join(__dirname, '..', 'evidencias', 'cctv-security-cameras'
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
 (async () => {
-  console.log('🚀 Iniciando Validação E2E de Missão de Invasão a Câmeras de Segurança + 6 Modelos de Vídeo Ao Vivo...');
+  console.log('🚀 Iniciando Validação E2E: (1) Desativar Câmeras p/ Roubo & (2) Apagar Gravações do DVR de Empresas...');
   const browser = await puppeteer.launch({
     headless: 'new',
     defaultViewport: { width: 1440, height: 900 },
@@ -30,60 +31,60 @@ fs.mkdirSync(OUT_DIR, { recursive: true });
     sessionStorage.clear();
     localStorage.setItem('HC_DISABLE_AUTO_TOUR', '1');
     window.DISABLE_AUTO_TOUR = true;
-    await window.enterInstantOperatorMode('GhostCam_01');
+    await window.enterInstantOperatorMode('GhostHeist_01');
     const toast = document.getElementById('globalToast');
     if (toast) toast.style.display = 'none';
     window.navTo('winMissions');
   });
   await new Promise((r) => setTimeout(r, 350));
 
-  // 1. Aba Missões Disponíveis exibindo contratos de Invasão a Câmera CFTV
-  const poolCheck = await page.evaluate(() => {
+  // 1. Verificar quadro de Missões Disponíveis com Desativar Câmeras p/ Roubo e Apagar Gravação do DVR
+  const poolInfo = await page.evaluate(() => {
     const pool = window.missionsEngine.ensureLoaded().pool;
-    const cctvMissions = pool.filter((m) => m.type === 'cctv_hack');
+    const disableMsn = pool.find((m) => m.cctvObjective === 'disable_all');
+    const wipeMsn = pool.find((m) => m.cctvObjective === 'wipe_recording');
     return {
       totalPool: pool.length,
-      cctvCount: cctvMissions.length,
-      firstCctvId: cctvMissions[0]?.id,
-      firstTargetIp: cctvMissions[0]?.targetIp,
-      firstCamCode: cctvMissions[0]?.camCode
+      cctvCount: pool.filter((m) => m.type === 'cctv_hack').length,
+      disableId: disableMsn?.id,
+      disableIp: disableMsn?.targetIp,
+      wipeId: wipeMsn?.id,
+      wipeIp: wipeMsn?.targetIp,
+      wipeFile: wipeMsn?.dvrFileName
     };
   });
 
-  console.log('📋 Contratos CFTV no Quadro:', poolCheck);
-  assert.ok(poolCheck.cctvCount >= 3, 'Deve conter pelo menos 3 contratos distintos de invasão a câmeras CFTV');
-  await page.screenshot({ path: path.join(OUT_DIR, '01_missoes_disponiveis_cctv.png') });
+  console.log('📋 Contratos CFTV (Roubo & Queima de DVR):', poolInfo);
+  assert.ok(poolInfo.cctvCount >= 4, 'Quadro possui pelo menos 4 contratos CFTV variados');
+  assert.ok(poolInfo.disableId && poolInfo.wipeId, 'Possui tanto Desativar Câmeras p/ Roubo quanto Apagar Gravação do DVR');
+  await page.screenshot({ path: path.join(OUT_DIR, '01_missoes_disponiveis_roubo_e_dvr.png') });
 
-  // 2. Aceitar a Missão CFTV #1 (Farofa Systems S.A. -> CAM-03 Sala da Diretoria) e testar bloqueio antes de gravar
+  // =========================================================================
+  // FLUXO 1: DESATIVAR AS CÂMERAS DA EMPRESA PARA AJUDAR UM ROUBO (203.17.88.40)
+  // =========================================================================
   await page.evaluate((id) => {
     window.handleAcceptMission(id);
     const toast = document.getElementById('globalToast');
     if (toast) toast.style.display = 'none';
-  }, poolCheck.firstCctvId);
-  await new Promise((r) => setTimeout(r, 280));
+  }, poolInfo.disableId);
+  await new Promise((r) => setTimeout(r, 260));
 
-  const prematureVerify = await page.evaluate(() => {
+  const earlyDisableCheck = await page.evaluate(() => {
     const res = window.handleVerifyMission();
     const toast = document.getElementById('globalToast');
     if (toast) toast.style.display = 'none';
     return res;
   });
-  assert.strictEqual(prematureVerify.success, false, 'Não pode aprovar a missão antes de invadir e gravar a câmera alvo');
+  assert.strictEqual(earlyDisableCheck.success, false, 'Bloqueia entrega enquanto as câmeras da empresa ainda estão ligadas');
+  await page.screenshot({ path: path.join(OUT_DIR, '02_missao_desativar_cameras_para_roubo.png') });
 
-  await page.screenshot({ path: path.join(OUT_DIR, '02_missao_atual_email_historia_cctv.png') });
-
-  // 3. Clicar em "Abrir CFTV (203.17.88.40)" -> Quebrar senha no Mini-PC -> Abre automaticamente o Mosaico 4x Ao Vivo!
+  // Invadir 203.17.88.40 -> abre o Mosaico 4x Ao Vivo com os vídeos reais rodando!
   await page.click('#btnOpenMissionTargetIp');
-  await new Promise((r) => setTimeout(r, 300));
-
-  // Abrir Mini-PC de Quebra de Senha e iniciar força-bruta
-  await page.evaluate(() => {
-    window.internetEngine.openCrackerMiniPc();
-  });
   await new Promise((r) => setTimeout(r, 250));
+  await page.evaluate(() => window.internetEngine.openCrackerMiniPc());
+  await new Promise((r) => setTimeout(r, 220));
   await page.click('#btnMiniPcUseBest');
 
-  // Aguardar conclusão da quebra de senha (~2.8s) e carregamento dos vídeos reais (.webm/.mp4)
   await page.waitForFunction(
     () => window.internetEngine && window.internetEngine.activeSshIp === '203.17.88.40' && window.internetEngine.sshSubTab === 'cctv',
     { timeout: 12000 }
@@ -91,72 +92,94 @@ fs.mkdirSync(OUT_DIR, { recursive: true });
   await page.waitForFunction(
     () => {
       const vids = Array.from(document.querySelectorAll('#cctvCompanyMosaicGrid video'));
-      return vids.length === 4 && vids.every((v) => v.readyState >= 2 && v.videoWidth === 640 && v.videoHeight === 360);
+      return vids.length === 4 && vids.every((v) => v.readyState >= 2 && v.videoWidth === 640);
     },
     { timeout: 10000 }
   );
-  await new Promise((r) => setTimeout(r, 650));
+  await new Promise((r) => setTimeout(r, 600));
   await page.evaluate(() => {
     const toast = document.getElementById('globalToast');
     if (toast) toast.style.display = 'none';
+    document.getElementById('cctvLiveConsoleRoot')?.scrollIntoView({ block: 'start' });
   });
+  await new Promise((r) => setTimeout(r, 150));
+  await page.screenshot({ path: path.join(OUT_DIR, '03_cameras_ao_vivo_antes_do_apagao.png') });
 
-  const mosaicVideoStats = await page.evaluate(() => {
-    const vids = Array.from(document.querySelectorAll('#cctvCompanyMosaicGrid video'));
-    return vids.map((v) => ({
-      w: v.videoWidth,
-      h: v.videoHeight,
-      readyState: v.readyState,
-      time: +v.currentTime.toFixed(2),
-      src: v.currentSrc.split('/').pop()
-    }));
-  });
-  console.log('📹 Mosaico 4x da Farofa Systems S.A. (Vídeos Reais Rodando):', mosaicVideoStats);
-  assert.strictEqual(mosaicVideoStats.length, 4, 'Deve exibir 4 câmeras simultâneas da empresa invadida');
-  assert.ok(mosaicVideoStats.every((v) => v.w === 640 && v.h === 360), 'Todos os 4 vídeos têm resolução nativa 640x360');
-
-  await page.screenshot({ path: path.join(OUT_DIR, '03_mosaico_4_cameras_ao_vivo_empresa.png') });
-
-  // 4. Focar na CAM-03 (Sala da Diretoria Executiva), aplicar Zoom PTZ, Gravar Prova (.mp4) e Injetar Loop Falso!
-  await page.click('#btnJumpMissionCam');
-  await new Promise((r) => setTimeout(r, 450));
-
-  await page.evaluate(() => {
-    window.cctvEngine.adjustPtz(0, 0, 0.4); // Zoom 1.4x
-  });
-  await page.click('#btnCaptureCctvEvidence');
-  await new Promise((r) => setTimeout(r, 250));
-  await page.click('#btnInjectCctvLoop');
+  // Clicar em "Desativar Todas as Câmeras (Ajudar Roubo)"!
+  await page.click('#btnDisableAllCompanyCams');
   await new Promise((r) => setTimeout(r, 350));
+  await page.evaluate(() => {
+    document.getElementById('cctvLiveConsoleRoot')?.scrollIntoView({ block: 'start' });
+  });
 
-  const singleCamCheck = await page.evaluate(() => {
-    const vid = document.getElementById('cctvPrimaryVideo');
+  const blackoutState = await page.evaluate(() => {
+    const disabledOverlays = document.querySelectorAll('#cctvCompanyMosaicGrid .cctv-disabled-overlay').length;
+    const allOff = window.cctvEngine.areAllCamerasDisabled('203.17.88.40');
     const verif = window.missionsEngine.verifyActiveMissionStatus();
     const logs = window.internetEngine.getServerLogs('203.17.88.40');
     return {
-      videoReady: vid ? vid.readyState : 0,
-      videoSrc: vid ? vid.currentSrc.split('/').pop() : '',
-      zoomText: document.getElementById('cctvZoomLabel')?.textContent || '',
-      looped: window.cctvEngine.isCameraLooped('203.17.88.40', 'CAM-03'),
-      captured: window.cctvEngine.hasCapturedCamera('203.17.88.40', 'CAM-03'),
-      missionVerified: verif.verified,
-      rtspLoggedInSyslog: logs.some((l) => l.includes('RTSP/554'))
+      disabledOverlays,
+      allOff,
+      verified: verif.verified,
+      loggedBlackout: logs.some((l) => l.includes('FULL_CCTV_BLACKOUT'))
     };
   });
-  console.log('🎯 Câmera Individual CAM-03 + Gravação & Loop:', singleCamCheck);
-  assert.ok(singleCamCheck.captured, 'Prova em vídeo (.mp4) de CAM-03 capturada com sucesso');
-  assert.ok(singleCamCheck.looped, 'Loop falso injetado com sucesso em CAM-03');
-  assert.ok(singleCamCheck.missionVerified, 'Missão CFTV verificada automaticamente após capturar a câmera certa');
-  assert.ok(singleCamCheck.rtspLoggedInSyslog, 'Acesso RTSP/554 registrado no /var/log/syslog do servidor invadido');
+  console.log('⛔ Apagão CFTV p/ Ajudar Roubo:', blackoutState);
+  assert.strictEqual(blackoutState.disabledOverlays, 4, 'Todas as 4 telas exibem SEM SINAL / CÂMERA DESATIVADA');
+  assert.ok(blackoutState.allOff && blackoutState.verified, 'Missão de desativar câmeras confirmada imediatamente');
+  assert.ok(blackoutState.loggedBlackout, 'Syslog registra FULL_CCTV_BLACKOUT');
 
-  await page.screenshot({ path: path.join(OUT_DIR, '04_camera_individual_hd_ptz_gravacao_e_loop.png') });
+  await page.screenshot({ path: path.join(OUT_DIR, '04_apagao_total_cameras_desativadas_roubo.png') });
 
-  // 5. Testar Lente Visão Noturna IR + Galeria Completa dos 6 Modelos Distintos de Vídeo CFTV!
-  await page.click('#btnCctvModeAll6');
+  // Receber recompensa de $1.050 da Missão #1!
+  const claimHeist = await page.evaluate(() => {
+    window.navTo('winMissions');
+    window.missionsEngine.setSubTab('current');
+    const b0 = window.currentWallet.balance;
+    window.handleVerifyMission();
+    return { delta: +(window.currentWallet.balance - b0).toFixed(2), completed: window.missionsEngine.state.completedCount };
+  });
+  assert.strictEqual(claimHeist.delta, 1050, 'Recebeu $1.050 por desativar as câmeras para o roubo');
+
+  // =========================================================================
+  // FLUXO 2: APAGAR GRAVAÇÃO COMPROMETEDORA DO DVR DA EMPRESA (194.88.14.202)
+  // =========================================================================
+  await page.evaluate((id) => {
+    window.missionsEngine.setSubTab('available');
+    window.handleAcceptMission(id);
+    const toast = document.getElementById('globalToast');
+    if (toast) toast.style.display = 'none';
+  }, poolInfo.wipeId);
+  await new Promise((r) => setTimeout(r, 280));
+
+  const earlyWipeCheck = await page.evaluate(() => {
+    const res = window.handleVerifyMission();
+    const toast = document.getElementById('globalToast');
+    if (toast) toast.style.display = 'none';
+    return res;
+  });
+  assert.strictEqual(earlyWipeCheck.success, false, 'Bloqueia entrega enquanto a gravação comprometedora ainda está no DVR');
+  await page.screenshot({ path: path.join(OUT_DIR, '05_missao_apagar_gravacao_comprometedora_dvr.png') });
+
+  // Invadir Meridian BioLabs S.A. (194.88.14.202) e abrir a aba Gravações DVR!
+  await page.click('#btnOpenMissionTargetIp');
+  await new Promise((r) => setTimeout(r, 250));
+  await page.evaluate(() => window.internetEngine.openCrackerMiniPc());
+  await new Promise((r) => setTimeout(r, 220));
+  await page.click('#btnMiniPcUseBest');
+
+  await page.waitForFunction(
+    () => window.internetEngine && window.internetEngine.activeSshIp === '194.88.14.202' && window.internetEngine.sshSubTab === 'cctv',
+    { timeout: 12000 }
+  );
+  await new Promise((r) => setTimeout(r, 350));
+
+  // Clicar em "Abrir Gravações do DVR ->"
+  await page.click('#btnJumpMissionDvr');
   await page.waitForFunction(
     () => {
-      const vids = Array.from(document.querySelectorAll('#cctvAllModelsGrid video'));
-      return vids.length === 6 && vids.every((v) => v.readyState >= 2 && v.videoWidth === 640);
+      const v = document.querySelector('#cctvDvrArchiveView video');
+      return v && v.readyState >= 2 && v.videoWidth === 640;
     },
     { timeout: 10000 }
   );
@@ -164,50 +187,49 @@ fs.mkdirSync(OUT_DIR, { recursive: true });
   await page.evaluate(() => {
     const toast = document.getElementById('globalToast');
     if (toast) toast.style.display = 'none';
+    document.getElementById('cctvLiveConsoleRoot')?.scrollIntoView({ block: 'start' });
   });
+  await new Promise((r) => setTimeout(r, 150));
 
-  const all6Check = await page.evaluate(() => {
-    const vids = Array.from(document.querySelectorAll('#cctvAllModelsGrid video'));
-    return vids.map((v) => v.currentSrc.split('/').pop());
-  });
-  console.log('🎬 Todos os 6 Modelos Distintos de Vídeos CFTV Ativos:', all6Check);
-  assert.strictEqual(new Set(all6Check).size, 6, 'Os 6 modelos de vídeo são arquivos distintos e carregados');
+  await page.screenshot({ path: path.join(OUT_DIR, '06_painel_gravacoes_dvr_com_playback_ao_vivo.png') });
 
-  await page.screenshot({ path: path.join(OUT_DIR, '05_galeria_6_modelos_videos_cftv_corporativos.png') });
+  // Excluir a gravação alvo DVR_CAM01_Invasao_Lab_03h12.mp4 e formatar o DVR!
+  await page.click('#btnDeleteDvr_DVR_CAM01_Invasao_Lab_03h12_mp4');
+  await new Promise((r) => setTimeout(r, 280));
 
-  // Capturar também o Modo Visão Noturna IR no Mosaico
-  await page.click('#btnCctvFilterIr');
-  await page.click('#btnCctvModeMosaic');
-  await new Promise((r) => setTimeout(r, 450));
-  await page.screenshot({ path: path.join(OUT_DIR, '06_modo_visao_noturna_ir_cftv.png') });
+  const afterSingleDelete = await page.evaluate(() => ({
+    deletedTarget: window.cctvEngine.isRecordingDeleted('194.88.14.202', 'DVR_CAM01_Invasao_Lab_03h12.mp4'),
+    missionVerified: window.missionsEngine.verifyActiveMissionStatus().verified
+  }));
+  assert.ok(afterSingleDelete.deletedTarget && afterSingleDelete.missionVerified, 'Excluir a gravação alvo já valida imediatamente a missão');
 
-  // 6. Voltar em Missões -> Entregar e Receber $920!
-  await page.evaluate(() => {
+  // Testar também o botão "Apagar Todas (Formatar DVR)" p/ deixar 0/4 vídeos no disco!
+  await page.click('#btnWipeAllDvrRecordings');
+  await new Promise((r) => setTimeout(r, 300));
+  await page.screenshot({ path: path.join(OUT_DIR, '07_dvr_formatado_sem_provas.png') });
+
+  // Voltar em Missões e resgatar os $1.180 + BTC!
+  const claimWipe = await page.evaluate(() => {
     window.navTo('winMissions');
     window.missionsEngine.setSubTab('current');
-  });
-  await new Promise((r) => setTimeout(r, 250));
-  const claimCheck = await page.evaluate(() => {
-    const balBefore = window.currentWallet.balance;
+    const b0 = window.currentWallet.balance;
     window.handleVerifyMission();
+    const toast = document.getElementById('globalToast');
+    if (toast) toast.style.display = 'none';
     return {
-      balBefore,
-      newBalance: window.currentWallet.balance,
-      delta: +(window.currentWallet.balance - balBefore).toFixed(2),
-      completedCount: window.missionsEngine.state.completedCount,
-      lastStatus: window.missionsEngine.state.history[0]?.status
+      delta: +(window.currentWallet.balance - b0).toFixed(2),
+      completedCount: window.missionsEngine.state.completedCount
     };
   });
-  await new Promise((r) => setTimeout(r, 200));
-  console.log('💰 Pagamento da Missão de Invasão a Câmera:', claimCheck);
-  assert.strictEqual(claimCheck.delta, 920, 'Recompensa exata de $920 creditada na carteira com sucesso');
-  assert.strictEqual(claimCheck.completedCount, 1, 'Contador de missões concluídas incrementado');
-  assert.strictEqual(claimCheck.lastStatus, 'CONCLUÍDA', 'Histórico registra missão CFTV concluída');
+  console.log('💰 Pagamento Queima de Arquivo DVR:', claimWipe);
+  assert.strictEqual(claimWipe.delta, 1180, 'Recebeu $1.180 por apagar a gravação comprometedora da empresa');
+  assert.strictEqual(claimWipe.completedCount, 2, '2 missões CFTV concluídas no histórico');
 
-  await page.screenshot({ path: path.join(OUT_DIR, '07_missao_cctv_concluida_e_paga.png') });
+  await new Promise((r) => setTimeout(r, 220));
+  await page.screenshot({ path: path.join(OUT_DIR, '08_historico_duas_missoes_cctv_concluidas.png') });
 
   assert.strictEqual(pageErrors.length, 0, `Zero erros JS na página (encontrados: ${pageErrors.join('; ')})`);
 
   await browser.close();
-  console.log('🎉 TODOS OS TESTES DE INVASÃO A CÂMERAS DE SEGURANÇA AO VIVO + 6 MODELOS DE VÍDEO PASSARAM 100%!');
+  console.log('🎉 TODOS OS TESTES DE DESATIVAR CÂMERAS P/ ROUBO & APAGAR GRAVAÇÕES DO DVR PASSARAM 100%!');
 })();

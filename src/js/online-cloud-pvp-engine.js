@@ -452,7 +452,9 @@
         quitineteBilling,
         cctvState: window.cctvEngine && window.cctvEngine.state ? {
           capturedClips: (window.cctvEngine.state.capturedClips || []).slice(0, 20),
-          loopedCameras: { ...(window.cctvEngine.state.loopedCameras || {}) }
+          loopedCameras: { ...(window.cctvEngine.state.loopedCameras || {}) },
+          disabledCameras: { ...(window.cctvEngine.state.disabledCameras || {}) },
+          deletedRecordings: { ...(window.cctvEngine.state.deletedRecordings || {}) }
         } : null
       };
       return window.integrityGuard && typeof window.integrityGuard.signSnapshot === 'function'
@@ -635,7 +637,9 @@
         window.cctvEngine.userId = uid;
         window.cctvEngine.state = {
           capturedClips: Array.isArray(snap.cctvState.capturedClips) ? snap.cctvState.capturedClips : [],
-          loopedCameras: snap.cctvState.loopedCameras && typeof snap.cctvState.loopedCameras === 'object' ? snap.cctvState.loopedCameras : {}
+          loopedCameras: snap.cctvState.loopedCameras && typeof snap.cctvState.loopedCameras === 'object' ? snap.cctvState.loopedCameras : {},
+          disabledCameras: snap.cctvState.disabledCameras && typeof snap.cctvState.disabledCameras === 'object' ? snap.cctvState.disabledCameras : {},
+          deletedRecordings: snap.cctvState.deletedRecordings && typeof snap.cctvState.deletedRecordings === 'object' ? snap.cctvState.deletedRecordings : {}
         };
         window.cctvEngine.save();
       }

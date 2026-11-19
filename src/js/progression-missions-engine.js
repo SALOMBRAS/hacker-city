@@ -656,7 +656,8 @@
     { ip: '185.220.101.9', hostname: 'Blackmarket Onion', tier: 2, balanceHint: 420 },
     { ip: '77.3.9.21', hostname: 'Banco Colchão & Clearing HC', tier: 3, balanceHint: 1150 },
     { ip: '194.88.14.202', hostname: 'Meridian BioLabs S.A.', tier: 1, balanceHint: 290 },
-    { ip: '172.66.40.18', hostname: 'Aegis Security & Vaults S.A.', tier: 1, balanceHint: 310 }
+    { ip: '172.66.40.18', hostname: 'Aegis Security & Vaults S.A.', tier: 1, balanceHint: 310 },
+    { ip: '189.40.7.12', hostname: 'KronoTech Sistemas', tier: 2, balanceHint: 680 }
   ];
 
   class MissionsBoardEngine {
@@ -702,10 +703,10 @@
         };
         this.generatePool();
       }
-      // Garante que contratos legados tenham hirerIp e as novas missões de Câmera de Segurança (CFTV)
-      const hasCctvInPoolOrActive = this.state.pool.some((m) => m.type === 'cctv_hack') ||
+      // Garante que contratos legados tenham as novas missões de Desativar Câmeras p/ Roubo e Apagar Gravações do DVR
+      const hasHeistCctv = this.state.pool.some((m) => m.cctvObjective === 'disable_all' || m.cctvObjective === 'wipe_recording') ||
         (this.state.activeMission && this.state.activeMission.type === 'cctv_hack');
-      if ((this.state.pool.length > 0 && !this.state.pool[0].hirerIp) || !hasCctvInPoolOrActive) {
+      if ((this.state.pool.length > 0 && !this.state.pool[0].hirerIp) || !hasHeistCctv) {
         this.generatePool();
       }
       return this.state;
@@ -723,31 +724,32 @@
       const templates = [
         {
           type: 'cctv_hack',
-          badge: 'Invadir Câmera CFTV',
+          badge: 'Desativar Câmeras p/ Roubo',
           tier: 1,
-          hirerIdx: 2,
+          hirerIdx: 3,
           targetIdx: 0,
-          camCode: 'CAM-03',
-          camRoom: 'Sala da Diretoria Executiva',
-          cctvObjective: 'capture',
-          rewardCash: 920,
+          camCode: 'TODAS (4x)',
+          camRoom: 'Circuito Completo do Prédio',
+          cctvObjective: 'disable_all',
+          rewardCash: 1050,
           rewardSats: 0,
-          repReward: 95,
-          brief: 'Invadir 203.17.88.40 (Farofa Systems S.A.), abrir o painel Câmeras Ao Vivo (CFTV) na CAM-03 (Sala da Diretoria) e gravar o vídeo ao vivo (.mp4) como prova.'
+          repReward: 105,
+          brief: 'Ajude o roubo ao cofre da Farofa Systems S.A. (203.17.88.40): invada o servidor, abra Câmeras Ao Vivo (CFTV) e desative todas as 4 câmeras da empresa para deixar os seguranças no escuro.'
         },
         {
           type: 'cctv_hack',
-          badge: 'Sabotar CFTV Ao Vivo',
+          badge: 'Apagar Gravação do DVR',
           tier: 1,
-          hirerIdx: 3,
+          hirerIdx: 2,
           targetIdx: 6,
           camCode: 'CAM-01',
           camRoom: 'Laboratório Limpo P&D Nível 3',
-          cctvObjective: 'loop',
-          rewardCash: 1100,
-          rewardSats: 25000,
-          repReward: 110,
-          brief: 'Invadir o NVR da Meridian BioLabs S.A. (194.88.14.202), abrir Câmeras Ao Vivo na CAM-01 (Laboratório Limpo P&D) e injetar um Loop Falso para cegar a segurança.'
+          dvrFileName: 'DVR_CAM01_Invasao_Lab_03h12.mp4',
+          cctvObjective: 'wipe_recording',
+          rewardCash: 1180,
+          rewardSats: 30000,
+          repReward: 115,
+          brief: 'Um aliado foi filmado sem máscara em 194.88.14.202 (Meridian BioLabs S.A.): invada o NVR, abra Gravações do DVR e apague o vídeo DVR_CAM01_Invasao_Lab_03h12.mp4 antes da perícia!'
         },
         {
           type: 'steal_data',
@@ -792,17 +794,31 @@
         },
         {
           type: 'cctv_hack',
-          badge: 'Vigiar Doca CFTV',
+          badge: 'Cortar Câmera da Doca',
           tier: 2,
           hirerIdx: 5,
           targetIdx: 3,
           camCode: 'CAM-01',
           camRoom: 'Doca Sul & Pátio de Contêineres',
-          cctvObjective: 'capture',
-          rewardCash: 1480,
+          cctvObjective: 'disable_cam',
+          rewardCash: 1490,
           rewardSats: 55000,
           repReward: 135,
-          brief: 'Invadir 58.40.12.9 (Corvo Cinza Logística), abrir a câmera ao vivo CAM-01 (Doca Subterrânea & AGV) e capturar a gravação da carga.'
+          brief: 'Invadir 58.40.12.9 (Corvo Cinza Logística), abrir Câmeras Ao Vivo (CFTV) e desativar a câmera CAM-01 da doca subterrânea para cobrir a retirada do caminhão.'
+        },
+        {
+          type: 'cctv_hack',
+          badge: 'Formatar DVR da Empresa',
+          tier: 2,
+          hirerIdx: 4,
+          targetIdx: 8,
+          camCode: 'DVR COMPLETO',
+          camRoom: 'Todas as 4 Gravações Salvas',
+          cctvObjective: 'wipe_all_dvr',
+          rewardCash: 1650,
+          rewardSats: 75000,
+          repReward: 150,
+          brief: 'Invadir 189.40.7.12 (KronoTech Sistemas), abrir Gravações do DVR e apagar todas as gravações do assalto noturno ao subsolo.'
         },
         {
           type: 'install_virus',
@@ -859,6 +875,7 @@
           targetHostname: tgt.hostname,
           camCode: tpl.camCode || null,
           camRoom: tpl.camRoom || null,
+          dvrFileName: tpl.dvrFileName || null,
           cctvObjective: tpl.cctvObjective || null,
           cctvVerified: false,
           fileName: tpl.fileName || null,
@@ -883,10 +900,17 @@
 
     buildPlainEmailBody(m, playerTag) {
       if (m.type === 'cctv_hack') {
-        const actTxt = m.cctvObjective === 'loop'
-          ? `injetar um Loop Falso no sinal de vídeo da câmera ${m.camCode} (${m.camRoom})`
-          : `assistir e gravar o vídeo ao vivo (.mp4) da câmera ${m.camCode} (${m.camRoom})`;
-        return `${playerTag},\n\nNós da ${m.hirer} precisamos de acesso visual imediato às câmeras internas de ${m.targetHostname} (${m.targetIp}).\nInvada o servidor deles, abra a aba "Câmeras Ao Vivo (CFTV)" e vá até ${m.camCode} (${m.camRoom}) para ${actTxt}.\n\nPagamento: $${m.rewardCash} assim que confirmarmos a operação no NVR.\nNão esqueça de apagar seu IP da log antes de sair!\n\n— ${m.hirer} [${m.hirerIp}]`;
+        if (m.cctvObjective === 'disable_all') {
+          return `${playerTag},\n\nNossa equipe está pronta para invadir o prédio da ${m.targetHostname} (${m.targetIp}) e arrombar o cofre agora, mas as câmeras internas estão transmitindo ao vivo para a guarita.\nInvada ${m.targetIp}, abra "Câmeras Ao Vivo (CFTV)" e clique em "Desativar Todas as Câmeras" para deixar os seguranças cegos durante o roubo!\n\nPagamento: $${m.rewardCash} assim que o circuito inteiro estiver desligado.\nLimpe seu IP da log na saída!\n\n— ${m.hirer} [${m.hirerIp}]`;
+        }
+        if (m.cctvObjective === 'disable_cam') {
+          return `${playerTag},\n\nVamos retirar uma carga milionária pela doca da ${m.targetHostname} (${m.targetIp}) em poucos minutos.\nInvada o servidor deles, entre em "Câmeras Ao Vivo (CFTV)" e desative a câmera ${m.camCode} (${m.camRoom}) para cobrir nossa saída.\n\nPagamento: $${m.rewardCash}.\n\n— ${m.hirer} [${m.hirerIp}]`;
+        }
+        if (m.cctvObjective === 'wipe_recording' || m.cctvObjective === 'wipe_all_dvr') {
+          const targetRec = m.cctvObjective === 'wipe_all_dvr' ? 'todas as gravações do DVR' : `a gravação "${m.dvrFileName}"`;
+          return `${playerTag},\n\nDeu ruim ontem à noite na ${m.targetHostname} (${m.targetIp}): as câmeras gravaram nossa equipe e o vídeo está salvo no disco do NVR deles!\nAntes que a polícia baixe as imagens, invada ${m.targetIp}, abra "Câmeras Ao Vivo (CFTV) -> Gravações DVR" e apague permanentemente ${targetRec}.\n\nPagamento: $${m.rewardCash} assim que o arquivo não existir mais lá.\n\n— ${m.hirer} [${m.hirerIp}]`;
+        }
+        return `${playerTag},\n\nInvada ${m.targetHostname} (${m.targetIp}), abra "Câmeras Ao Vivo (CFTV)" na câmera ${m.camCode} e conclua a operação solicitada.\nPagamento: $${m.rewardCash}.\n\n— ${m.hirer} [${m.hirerIp}]`;
       }
       if (m.type === 'steal_data') {
         return `${playerTag},\n\nNós da ${m.hirer} temos uma proposta confidencial para você.\nPrecisamos que você acesse os servidores de ${m.targetHostname} (${m.targetIp}) e baixe uma cópia do arquivo "${m.fileName}" (${m.fileSizeMb} MB) para o seu computador.\n\nPagamento: $${m.rewardCash} quando confirmarmos que o arquivo está salvo com você.\nFaça isso em silêncio, apague seu IP da log e lembre-se: se for pego, nós não conhecemos você.\n\n— ${m.hirer} [${m.hirerIp}]`;
@@ -908,10 +932,19 @@
       const moneySpan = `<span class="msn-hl-money">$${m.rewardCash.toLocaleString('pt-BR')}</span>`;
 
       if (m.type === 'cctv_hack') {
-        if (m.cctvObjective === 'loop') {
-          return `<strong>${esc(playerTag)}</strong>, nossa equipe de campo vai entrar nas instalações da <strong>${esc(m.targetHostname)}</strong>, mas o circuito de câmeras está monitorando tudo ao vivo. Invada o NVR deles em ${ipLink}, abra o console <strong>Câmeras Ao Vivo (CFTV)</strong>, selecione <span class="msn-hl-file">${esc(m.camCode)} · ${esc(m.camRoom)}</span> e clique em <strong>Injetar Loop Falso</strong> para cegar os vigilantes. Pagaremos ${moneySpan} na hora que o sinal estiver em loop!`;
+        if (m.cctvObjective === 'disable_all') {
+          return `<strong>${esc(playerTag)}</strong>, nossa equipe tática está posicionada na esquina pronta para entrar na <strong>${esc(m.targetHostname)}</strong> e limpar o cofre, mas os vigilantes estão de olho nas telas. Invada o NVR deles em ${ipLink}, abra <strong>Câmeras Ao Vivo (CFTV)</strong>, confira o movimento e clique em <span class="msn-hl-file">Desativar Todas as Câmeras (Ajudar Roubo)</span> para cortar todo o circuito de vídeo! Pagamos ${moneySpan} no instante em que todas as câmeras ficarem sem sinal.`;
         }
-        return `<strong>${esc(playerTag)}</strong>, recebemos informações de movimentação secreta dentro da <strong>${esc(m.targetHostname)}</strong> e precisamos do flagrante em vídeo. Invada o servidor em ${ipLink}, entre em <strong>Câmeras Ao Vivo (CFTV)</strong>, abra a câmera <span class="msn-hl-file">${esc(m.camCode)} · ${esc(m.camRoom)}</span> ao vivo e clique em <strong>Gravar Prova Ao Vivo (.mp4)</strong>. Depositaremos ${moneySpan} assim que a gravação estiver salva com você!`;
+        if (m.cctvObjective === 'disable_cam') {
+          return `<strong>${esc(playerTag)}</strong>, vamos retirar um carregamento roubado pela doca da <strong>${esc(m.targetHostname)}</strong> agora mesmo. Invada ${ipLink}, entre em <strong>Câmeras Ao Vivo (CFTV)</strong> e <strong>desative a câmera</strong> <span class="msn-hl-file">${esc(m.camCode)} · ${esc(m.camRoom)}</span> (ou apague todo o circuito CFTV) para que nosso furgão passe invisível. Você recebe ${moneySpan} assim que o sinal cair!`;
+        }
+        if (m.cctvObjective === 'wipe_recording') {
+          return `<strong>${esc(playerTag)}</strong>, um dos nossos operadores entrou ontem de madrugada na <strong>${esc(m.targetHostname)}</strong> sem máscara e a câmera do teto gravou o rosto dele inteiro! Antes que a segurança entregue o backup para o FBI, invada ${ipLink}, abra <strong>Câmeras Ao Vivo (CFTV) → Gravações DVR</strong> e <strong>apague permanentemente o arquivo</strong> <span class="msn-hl-file">${esc(m.dvrFileName)}</span>. Depositamos ${moneySpan} assim que essa prova for destruída!`;
+        }
+        if (m.cctvObjective === 'wipe_all_dvr') {
+          return `<strong>${esc(playerTag)}</strong>, fizemos um assalto silencioso no subsolo da <strong>${esc(m.targetHostname)}</strong>, mas todas as câmeras registraram a ação no disco do NVR deles. Invada ${ipLink}, entre em <strong>Câmeras Ao Vivo (CFTV) → Gravações DVR</strong> e clique em <span class="msn-hl-file">Apagar Todas (Formatar DVR)</span> para queimar 100% das gravações da empresa! Recompensa: ${moneySpan}.`;
+        }
+        return `<strong>${esc(playerTag)}</strong>, invada o servidor da <strong>${esc(m.targetHostname)}</strong> em ${ipLink}, entre em <strong>Câmeras Ao Vivo (CFTV)</strong> na câmera <span class="msn-hl-file">${esc(m.camCode)} · ${esc(m.camRoom)}</span> e conclua a ação solicitada para receber ${moneySpan}.`;
       }
       if (m.type === 'steal_data') {
         return `<strong>${esc(playerTag)}</strong>, nós da <strong>${esc(m.hirer)}</strong> temos uma proposta para você. Precisamos que você invada os servidores de <strong>${esc(m.targetHostname)}</strong> e baixe o arquivo <span class="msn-hl-file">${esc(m.fileName)}</span> (${m.fileSizeMb} MB) para o seu computador. Você receberá ${moneySpan} assim que o trabalho for verificado. Acesse o alvo em ${ipLink}. Faça tudo em silêncio, limpe seu IP da log e lembre-se: se você for pego, nunca ouvimos falar de você.`;
@@ -1033,27 +1066,46 @@
       const hacked = window.hackedDb ? !!window.hackedDb.getEntry(m.targetIp) : false;
 
       if (m.type === 'cctv_hack') {
-        const doneByEngine = window.cctvEngine
-          ? (m.cctvObjective === 'loop'
-              ? window.cctvEngine.isCameraLooped(m.targetIp, m.camCode)
-              : window.cctvEngine.hasCapturedCamera(m.targetIp, m.camCode))
-          : false;
+        const obj = m.cctvObjective || 'disable_all';
+        let doneByEngine = false;
+        let pendingMsg = '';
+        let okMsg = '';
+
+        if (window.cctvEngine) {
+          if (obj === 'disable_all') {
+            doneByEngine = window.cctvEngine.areAllCamerasDisabled(m.targetIp, m.targetHostname);
+            pendingMsg = `As câmeras de ${m.targetIp} ainda estão LIGADAS! Invada ${m.targetIp}, abra "Câmeras Ao Vivo (CFTV)" e clique em "Desativar Todas as Câmeras (Ajudar Roubo)"!`;
+            okMsg = `Circuito CFTV de ${m.targetHostname} (${m.targetIp}) 100% desativado — equipe liberada para o roubo!`;
+          } else if (obj === 'disable_cam') {
+            doneByEngine = window.cctvEngine.isCameraDisabled(m.targetIp, m.camCode) ||
+              window.cctvEngine.areAllCamerasDisabled(m.targetIp, m.targetHostname);
+            pendingMsg = `A câmera ${m.camCode} (${m.camRoom}) ainda está transmitindo em ${m.targetIp}! Abra "Câmeras Ao Vivo (CFTV)" e desative ${m.camCode} (ou desative todas).`;
+            okMsg = `Sinal de ${m.camCode} (${m.camRoom}) cortado com sucesso em ${m.targetIp}!`;
+          } else if (obj === 'wipe_recording') {
+            doneByEngine = window.cctvEngine.isRecordingDeleted(m.targetIp, m.dvrFileName) ||
+              window.cctvEngine.areAllRecordingsDeleted(m.targetIp, m.targetHostname);
+            pendingMsg = `A gravação "${m.dvrFileName}" AINDA está salva no DVR de ${m.targetIp}! Abra "Câmeras Ao Vivo (CFTV) -> Gravações DVR" e clique na lixeira para apagá-la!`;
+            okMsg = `Confirmado: a gravação ${m.dvrFileName} foi permanentemente destruída do DVR de ${m.targetIp}!`;
+          } else if (obj === 'wipe_all_dvr') {
+            doneByEngine = window.cctvEngine.areAllRecordingsDeleted(m.targetIp, m.targetHostname);
+            pendingMsg = `Ainda existem gravações salvas no DVR de ${m.targetIp}! Abra "Câmeras Ao Vivo (CFTV) -> Gravações DVR" e clique em "Apagar Todas (Formatar DVR)"!`;
+            okMsg = `HD do DVR de ${m.targetHostname} (${m.targetIp}) 100% formatado e sem provas!`;
+          } else if (obj === 'loop') {
+            doneByEngine = window.cctvEngine.isCameraLooped(m.targetIp, m.camCode);
+            pendingMsg = `Invada ${m.targetIp}, abra ${m.camCode} em "Câmeras Ao Vivo (CFTV)" e injete o Loop Falso!`;
+            okMsg = `Loop fantasma ativo em ${m.camCode} (${m.targetIp})!`;
+          } else {
+            doneByEngine = window.cctvEngine.hasCapturedCamera(m.targetIp, m.camCode);
+            pendingMsg = `Invada ${m.targetIp}, abra ${m.camCode} em "Câmeras Ao Vivo (CFTV)" e salve a gravação!`;
+            okMsg = `Vídeo ao vivo capturado de ${m.camCode} (${m.targetIp})!`;
+          }
+        }
+
         const verified = !!m.cctvVerified || doneByEngine;
         if (!verified) {
-          const reqAction = m.cctvObjective === 'loop' ? 'Injetar Loop Falso' : 'Gravar Prova Ao Vivo (.mp4)';
-          return {
-            verified: false,
-            hacked,
-            reason: `Invada ${m.targetIp}, clique em "Câmeras Ao Vivo (CFTV)", abra ${m.camCode} (${m.camRoom}) e clique em "${reqAction}"!`
-          };
+          return { verified: false, hacked, reason: pendingMsg };
         }
-        return {
-          verified: true,
-          hacked: true,
-          detail: m.cctvObjective === 'loop'
-            ? `Loop fantasma confirmado na câmera ${m.camCode} (${m.camRoom}) de ${m.targetIp}!`
-            : `Vídeo ao vivo de ${m.camCode} (${m.camRoom}) capturado com sucesso em ${m.targetIp}!`
-        };
+        return { verified: true, hacked: true, detail: okMsg };
       }
 
       if (m.type === 'steal_data') {
@@ -1225,19 +1277,18 @@
       return { success: true };
     }
 
-    notifyCctvAction(ip, camCode, actionKind) {
+    notifyCctvAction(ip, targetKey, actionKind) {
       this.ensureLoaded();
       const m = this.state.activeMission;
       if (!m || m.type !== 'cctv_hack' || m.targetIp !== ip) return;
-      if (m.camCode && m.camCode !== camCode) return;
 
-      const wanted = m.cctvObjective || 'capture';
-      if (actionKind === wanted) {
+      const check = this.verifyActiveMissionStatus();
+      if (check.verified) {
         m.cctvVerified = true;
         m.progressDone = true;
         this.save();
         if (typeof window.showToast === 'function') {
-          window.showToast(`✓ Objetivo CFTV cumprido em ${camCode}! Vá em Missões → Missão Atual para receber $${m.rewardCash}!`);
+          window.showToast(`✓ Objetivo CFTV concluído! Vá em Missões → Missão Atual para receber $${m.rewardCash}!`);
         }
         this.renderUI();
       }
@@ -1460,10 +1511,17 @@
           const verif = this.verifyActiveMissionStatus();
           const btcBonusStr = active.rewardSats > 0 ? ` + ${(active.rewardSats / 100000000).toFixed(5)} BTC` : '';
           const objRowLabel = active.type === 'cctv_hack'
-            ? 'Câmera Alvo (CFTV)'
+            ? (active.dvrFileName ? 'Gravação no DVR' : 'Alvo no CFTV')
             : (active.type === 'install_virus' ? 'Vírus Exigido' : (active.fileName ? 'Arquivo Alvo' : 'Operação'));
           const objRowVal = active.type === 'cctv_hack'
-            ? `<span class="msn-hl-file">${esc(active.camCode)} · ${esc(active.camRoom)}</span> <span style="color:var(--hc-text-3);">(${active.cctvObjective === 'loop' ? 'Injetar Loop' : 'Gravar Vídeo'})</span>`
+            ? (active.dvrFileName
+                ? `<span class="msn-hl-file">${esc(active.dvrFileName)}</span> <span style="color:var(--hc-text-3);">(Apagar do DVR)</span>`
+                : `<span class="msn-hl-file">${esc(active.camCode)} · ${esc(active.camRoom)}</span> <span style="color:var(--hc-text-3);">(${
+                    active.cctvObjective === 'disable_all' ? 'Desativar Todas' :
+                    active.cctvObjective === 'disable_cam' ? 'Desativar Câmera' :
+                    active.cctvObjective === 'wipe_all_dvr' ? 'Formatar DVR' :
+                    active.cctvObjective === 'loop' ? 'Injetar Loop' : 'Gravar Vídeo'
+                  })</span>`)
             : (active.type === 'install_virus'
                 ? `<span class="msn-hl-virus">${esc(active.virusFilename)}</span> <span style="color:var(--hc-text-3);">rodando ativo</span>`
                 : (active.fileName
@@ -1621,7 +1679,10 @@
           const [icName, glyphCls] = typeIconMap[m.type] || ['mail', 'attack'];
           const rewardShort = `$${m.rewardCash.toLocaleString('pt-BR')}${m.rewardSats > 0 ? ' + BTC' : ''}`;
           const targetObjLabel = m.type === 'cctv_hack'
-            ? `${m.camCode} · ${m.cctvObjective === 'loop' ? 'Loop CFTV' : 'Gravar CFTV'}`
+            ? (m.cctvObjective === 'disable_all' ? 'Desativar Câmeras (Roubo)' :
+               m.cctvObjective === 'disable_cam' ? `Desativar ${m.camCode} (Fuga)` :
+               m.cctvObjective === 'wipe_recording' ? `Apagar ${m.dvrFileName}` :
+               m.cctvObjective === 'wipe_all_dvr' ? 'Formatar Gravações DVR' : m.badge)
             : (m.fileName
                 ? `${m.type === 'delete_file' ? 'Deletar' : 'Roubar'} ${m.fileName}`
                 : (m.virusFilename ? `Rodar ${m.virusFilename}` : m.badge));
