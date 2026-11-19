@@ -979,11 +979,17 @@
 
     getPlayerNetMbps() {
       if (!window.hardwareEngine) return 1;
+      if (typeof window.hardwareEngine.getEffectiveNetMbps === 'function') {
+        return window.hardwareEngine.getEffectiveNetMbps();
+      }
       return window.hardwareEngine.getNetwork().mbps || 1;
     }
 
     getPlayerCpuMhz() {
       if (!window.hardwareEngine) return 800;
+      if (typeof window.hardwareEngine.getEffectiveCpuMhz === 'function') {
+        return window.hardwareEngine.getEffectiveCpuMhz();
+      }
       return window.hardwareEngine.getCpu().mhz || 800;
     }
 

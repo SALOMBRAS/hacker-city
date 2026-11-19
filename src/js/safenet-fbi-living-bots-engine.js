@@ -403,29 +403,33 @@
               </div>
             `).join('');
         bodyHtml = `<div style="display:flex;flex-direction:column;gap:8px;">${sRows}</div>`;
+      } else if (this.activeTab === 'bounties') {
+        bodyHtml = window.playerBountyEngine ? window.playerBountyEngine.renderBountyTabHtml() : '';
       } else {
         bodyHtml = window.livingBotsEngine ? window.livingBotsEngine.renderLiveWorldHtml() : '';
       }
+
+      const openP2pBounties = window.playerBountyEngine ? window.playerBountyEngine.getOpenBounties().length : 0;
 
       container.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:14px;">
           ${statusAlert}
 
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:12px;">
             <div class="hc-card" style="padding:0.95rem 1.1rem;">
               <div class="hc-stat-label">Procurados do FBI</div>
               <div class="hc-stat-value" style="color:var(--hc-danger-text);">${this.fbiWantedList.length}</div>
             </div>
             <div class="hc-card" style="padding:0.95rem 1.1rem;">
-              <div class="hc-stat-label">Mira da Safenet</div>
-              <div class="hc-stat-value" style="color:var(--hc-warning);">${this.safenetList.length}</div>
+              <div class="hc-stat-label">Vingança por Nick (P2P)</div>
+              <div class="hc-stat-value" style="color:var(--hc-warning);">${openP2pBounties}</div>
             </div>
             <div class="hc-card" style="padding:0.95rem 1.1rem;">
               <div class="hc-stat-label">Seu Poder de DDoS Atual</div>
-              <div class="hc-stat-value" style="font-family:var(--hc-font-mono);color:var(--hc-accent-text);">${myGbps} Gbps</div>
+              <div class="hc-stat-value" style="font-family:var(--hc-font-mono);color:var(--hc-accent-text);">${window.ddosOverloadEngine ? window.ddosOverloadEngine.getPlayerTotalDdosGbps() : myGbps} Gbps</div>
             </div>
             <div class="hc-card" style="padding:0.95rem 1.1rem;">
-              <div class="hc-stat-label">Bots Online Jogando</div>
+              <div class="hc-stat-label">Jogadores &amp; Bots Ativos</div>
               <div class="hc-stat-value">${window.livingBotsEngine ? window.livingBotsEngine.getOnlineBotsCount() : 30}</div>
             </div>
           </div>
@@ -435,11 +439,14 @@
               <button type="button" class="hc-btn sm ${this.activeTab === 'fbi' ? 'primary' : 'ghost'}" onclick="window.safenetFbiEngine.activeTab='fbi';window.safenetFbiEngine.renderUI();">
                 Procurados do FBI (${this.fbiWantedList.length})
               </button>
+              <button type="button" id="tabPlayerBounties" class="hc-btn sm ${this.activeTab === 'bounties' ? 'primary' : 'ghost'}" onclick="window.safenetFbiEngine.activeTab='bounties';window.safenetFbiEngine.renderUI();">
+                🎯 Vingança por Nick (${openP2pBounties})
+              </button>
               <button type="button" class="hc-btn sm ${this.activeTab === 'safenet' ? 'primary' : 'ghost'}" onclick="window.safenetFbiEngine.activeTab='safenet';window.safenetFbiEngine.renderUI();">
                 Mira da Safenet (${this.safenetList.length})
               </button>
               <button type="button" id="tabLiveBotsWorld" class="hc-btn sm ${this.activeTab === 'liveworld' ? 'primary' : 'ghost'}" onclick="window.safenetFbiEngine.activeTab='liveworld';window.safenetFbiEngine.renderUI();">
-                Bots Online, Caçadas & Ranking Vivo
+                Bots Online, Caçadas &amp; Ranking Vivo
               </button>
             </div>
             <button type="button" id="btnTriggerWorldStep" class="hc-btn ghost sm" onclick="window.livingBotsEngine.simulateWorldStep(true)">
