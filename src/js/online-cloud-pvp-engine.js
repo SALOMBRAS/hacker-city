@@ -1503,29 +1503,13 @@
 
     updateHudSyncChip() {
       let chip = document.getElementById('hudCloudSyncBadge');
-      const stats = document.querySelector('.topbar-stats');
-      if (!chip && stats) {
-        chip = document.createElement('button');
-        chip.type = 'button';
-        chip.id = 'hudCloudSyncBadge';
-        chip.className = 'stat-chip';
-        chip.style.cssText = 'cursor:pointer;border-color:rgba(53,184,119,0.38);';
-        chip.onclick = () => {
-          if (typeof window.navTo === 'function') window.navTo('winOnline');
-        };
-        stats.insertBefore(chip, stats.firstChild);
-      }
       if (!chip) return;
 
       const onlineCount = 1 + this.getUnifiedOnlinePlayers().length;
-      const dotColor = this.syncStatus === 'syncing'
-        ? '#e5b84b'
-        : (this.syncStatus === 'synced' ? '#35b877' : '#35b877');
-      const label = this.syncStatus === 'syncing'
-        ? 'Salvando...'
-        : `${onlineCount} Online`;
-      chip.title = `Save Automático (${this.syncStatus === 'synced' ? 'Nuvem + Local' : 'Instantâneo Anti-F5'}) · Último save: ${this.lastSyncedAt || 'agora'} · Clique p/ ver Jogadores Online`;
-      chip.innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:${dotColor};display:inline-block;"></span><span class="val" style="font-size:0.75rem;">${esc(label)}</span>`;
+      const dotColor = this.syncStatus === 'syncing' ? '#f0a03a' : '#35b877';
+      const label = this.syncStatus === 'syncing' ? 'Salvando...' : `${onlineCount} online`;
+      chip.title = `Save Automático (${this.syncStatus === 'synced' ? 'Nuvem + Local' : 'Instantâneo Anti-F5'}) · Clique para ver Jogadores Online`;
+      chip.innerHTML = `<span style="width:6px;height:6px;border-radius:50%;background:${dotColor};display:inline-block;"></span><span>${esc(label)}</span>`;
     }
 
     renderOnlineHubUI(containerId = 'onlineAppBody') {
