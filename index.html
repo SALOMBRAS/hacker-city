@@ -44,6 +44,7 @@
   <script src="src/js/social-clans-mail-ranking-engine.js"></script>
   <script src="src/js/mmo-anticheat-clans-bounty-ddos.js"></script>
   <script src="src/js/online-cloud-pvp-engine.js"></script>
+  <script src="src/js/conn-manager-engine.js"></script>
   <script src="src/js/interactive-tour-ux-engine.js"></script>
 </head>
 <body>
@@ -259,6 +260,7 @@
           <div class="nav-sublist">
             <button type="button" class="nav-item" data-win="winBrowser" onclick="navTo('winBrowser')"><i data-icon="globe"></i><span>Navegar por IPs</span></button>
             <button type="button" class="nav-item" data-win="winOnline" onclick="navTo('winOnline')"><i data-icon="wifi"></i><span>Jogadores Online</span></button>
+            <button type="button" class="nav-item" id="navBtnConnManager" data-win="winConnManager" onclick="window.openConnManagerModal()"><i data-icon="zap"></i><span>Monitor de Conexões</span><span id="navConnAlertBadge" class="hc-badge danger" style="margin-left:auto;display:none;font-size:0.65rem;padding:1px 6px;">0</span></button>
             <button type="button" class="nav-item" data-win="winHackedDb" onclick="navTo('winHackedDb')"><i data-icon="database"></i><span>Senhas Descobertas</span></button>
             <button type="button" class="nav-item" data-win="winMissions" onclick="navTo('winMissions')"><i data-icon="target"></i><span>Trabalhos &amp; Missões</span></button>
             <button type="button" class="nav-item" data-win="winFbi" onclick="navTo('winFbi')"><i data-icon="shield-alert"></i><span>Polícia &amp; Recompensas</span></button>
