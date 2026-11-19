@@ -751,7 +751,7 @@
     <!-- JANELA 9: HARDWARE RIG & UPGRADES -->
     <div class="window-frame" id="winHardware" style="width: 660px; height: 490px; top: 90px; left: 240px; display: none;">
       <div class="window-header" onmousedown="dragWindowStart(event, 'winHardware')">
-        <div><div class="window-title">Hardware</div><p class="page-sub">Monte e melhore o seu PC.</p></div>
+        <div><div class="window-title">Hardware &amp; VPS</div><p class="page-sub">Acompanhe o potencial total das suas máquinas ou veja separado a potência, o consumo (W) e o gasto diário do seu PC Principal e de cada VPS.</p></div>
         <div class="window-controls">
           <button class="btn-win btn-win-close" onclick="closeWindow('winHardware')"></button>
         </div>
@@ -1905,12 +1905,34 @@
       }
     }
 
-    async function buyHardwareUpgrade(category, itemId, price) {
+    async function buyHardwareUpgrade(category, itemId, price, targetMachineId = 'pc_main') {
       if (!currentWallet || currentWallet.balance < price) {
         if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
         alert('Saldo insuficiente na conta bancária!');
         return;
       }
+
+      const applyUpgradeToTarget = () => {
+        if (!targetMachineId || targetMachineId === 'pc_main') {
+          window.hardwareEngine.saveRig({ [category]: itemId });
+        } else if (window.lanServersEngine && window.hardwareEngine) {
+          const catList = window.hardwareEngine.catalog[category] || [];
+          const found = catList.find((x) => x.id === itemId);
+          if (found) {
+            const val = window.hardwareEngine.getItemSpecVal(category, found);
+            window.lanServersEngine.upgradeServerSpec(targetMachineId, category, val, itemId);
+          }
+        }
+      };
+
+      const deductAuthorized = (newBal) => {
+        const fn = () => { currentWallet.balance = Math.max(0, newBal); };
+        if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+          window.integrityGuard.runAuthorized(fn);
+        } else {
+          fn();
+        }
+      };
 
       try {
         const { data: rpcData, error: rpcErr } = await supabase.rpc('buy_black_market_item', {
@@ -1919,27 +1941,27 @@
         });
 
         if (rpcErr) {
-          currentWallet.balance = Math.max(0, currentWallet.balance - price);
+          deductAuthorized(currentWallet.balance - price);
         } else if (rpcData && rpcData.new_balance !== undefined) {
-          currentWallet.balance = rpcData.new_balance;
+          deductAuthorized(rpcData.new_balance);
         } else {
-          currentWallet.balance = Math.max(0, currentWallet.balance - price);
+          deductAuthorized(currentWallet.balance - price);
         }
 
-        window.hardwareEngine.saveRig({ [category]: itemId });
-        window.addLocalLog('HARDWARE', `Upgrade instalado (${category.toUpperCase()} -> ${itemId}): -$ ${price}.00 HC`, 'info');
+        applyUpgradeToTarget();
+        window.addLocalLog('HARDWARE', `Upgrade instalado em ${targetMachineId} (${category.toUpperCase()} -> ${itemId}): -$ ${price}.00 HC`, 'info');
         if (window.hackerAudio) window.hackerAudio.playCashChime();
-        showToast('Peça de Hardware comprada e instalada no Rig!');
+        showToast('Peça comprada e instalada com sucesso!');
         updateHudDisplays();
         loadBankTransactions();
         updateHardwareDisplay();
 
       } catch (err) {
-        currentWallet.balance = Math.max(0, currentWallet.balance - price);
-        window.hardwareEngine.saveRig({ [category]: itemId });
-        window.addLocalLog('HARDWARE', `Upgrade instalado (${category.toUpperCase()} -> ${itemId}): -$ ${price}.00 HC`, 'info');
+        deductAuthorized(currentWallet.balance - price);
+        applyUpgradeToTarget();
+        window.addLocalLog('HARDWARE', `Upgrade instalado em ${targetMachineId} (${category.toUpperCase()} -> ${itemId}): -$ ${price}.00 HC`, 'info');
         if (window.hackerAudio) window.hackerAudio.playCashChime();
-        showToast('Hardware instalado com sucesso no seu Rig.');
+        showToast('Peça comprada e instalada com sucesso!');
         updateHudDisplays();
         updateHardwareDisplay();
       }

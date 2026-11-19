@@ -16,11 +16,23 @@
   }
 
   const SERVER_TYPES_CATALOG = {
+    vps_starter: {
+      type: 'vps_starter',
+      name: 'VPS Cloud Starter',
+      desc: 'Máquina virtual enxuta na nuvem para aumentar seu poder total e testar automações.',
+      cost: 2500,
+      dailyCost: 20,
+      watts: 78,
+      specs: { cpuMhz: 1600, netMbps: 100, hddMb: 1024, ramMb: 512 },
+      defaultFwl: 1.5
+    },
     vps: {
       type: 'vps',
       name: 'VPS Cloud Descartável',
       desc: 'Instância ágil com IP rotativo para disparar operações sem expor sua máquina principal.',
       cost: 15000,
+      dailyCost: 58,
+      watts: 175,
       specs: { cpuMhz: 4800, netMbps: 500, hddMb: 4096, ramMb: 2048 },
       defaultFwl: 2.5
     },
@@ -29,6 +41,8 @@
       name: 'Servidor Dedicado em Rack',
       desc: 'Hardware corporativo dedicado de alto desempenho para processamento pesado e mineração.',
       cost: 75000,
+      dailyCost: 190,
+      watts: 430,
       specs: { cpuMhz: 12000, netMbps: 2000, hddMb: 16384, ramMb: 8192 },
       defaultFwl: 5.0
     },
@@ -37,6 +51,8 @@
       name: 'Mainframe Vault Isolado',
       desc: 'Unidade blindada atrás do switch interno para guardar arquivos sensíveis e backups.',
       cost: 250000,
+      dailyCost: 520,
+      watts: 820,
       specs: { cpuMhz: 24000, netMbps: 10000, hddMb: 65536, ramMb: 32768 },
       defaultFwl: 8.5
     }
@@ -47,16 +63,41 @@
       this.servers = [];
       this.topology = { nodes: [], edges: [] };
       this.isModalOpen = false;
+      this.loadedUid = null;
       this.init();
     }
 
     init() {
-      this.loadFromStorage();
-      if (this.servers.length === 0) {
-        this.seedInitialServers();
-      } else {
-        this.rebuildTopology();
+      this.ensureSyncedWithProfile();
+    }
+
+    ensureSyncedWithProfile() {
+      const uid = (window.currentProfile && window.currentProfile.id) || 'guest';
+      if (this.loadedUid !== uid) {
+        this.loadedUid = uid;
+        this.servers = [];
+        this.loadFromStorage();
+        if (this.servers.length === 0) {
+          this.seedInitialServers();
+        }
       }
+      // Sincroniza o nó primário (PC Principal) com as peças reais do HardwareEngine e IP atual
+      const primary = this.servers.find((s) => s.id === 'srv_gateway_01');
+      if (primary) {
+        if (window.networkIdentity && primary.isGateway) {
+          primary.ip = window.networkIdentity.getPublicIp();
+        }
+        if (window.hardwareEngine) {
+          primary.specs = {
+            cpuMhz: window.hardwareEngine.getEffectiveCpuMhz(),
+            netMbps: window.hardwareEngine.getEffectiveNetMbps(),
+            hddMb: window.hardwareEngine.getHdd().hddMb,
+            ramMb: window.hardwareEngine.getRam().ramMb
+          };
+        }
+      }
+      this.rebuildTopology();
+      return this.servers;
     }
 
     storageKey() {
@@ -224,29 +265,40 @@
     }
 
     purchaseServer(typeKey) {
+      this.ensureSyncedWithProfile();
       const tpl = SERVER_TYPES_CATALOG[typeKey];
-      if (!tpl) return;
+      if (!tpl) return { success: false, message: 'Modelo de servidor inválido.' };
 
       const curBal = window.currentWallet ? parseFloat(window.currentWallet.balance || 0) : 0;
       if (curBal < tpl.cost) {
         if (window.showToast) window.showToast(`Saldo insuficiente. ${tpl.name} custa ${fmtUsd(tpl.cost)}.`, 'danger');
-        return;
+        return { success: false, message: `Saldo insuficiente (${fmtUsd(tpl.cost)}).` };
       }
 
       if (window.currentWallet) {
-        window.currentWallet.balance = Math.max(0, +(curBal - tpl.cost).toFixed(2));
+        const deductFn = () => {
+          window.currentWallet.balance = Math.max(0, +(curBal - tpl.cost).toFixed(2));
+        };
+        if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+          window.integrityGuard.runAuthorized(deductFn);
+        } else {
+          deductFn();
+        }
       }
 
+      const vpsNumber = this.servers.filter((s) => s.id !== 'srv_gateway_01').length + 1;
       const octet = 10 + this.servers.length;
       const newSrv = {
         id: `srv_${typeKey}_${Date.now()}`,
-        label: `${tpl.name} #${this.servers.length + 1}`,
-        type: tpl.type,
+        label: `${tpl.name} #${vpsNumber}`,
+        type: tpl.type === 'vps_starter' ? 'vps' : tpl.type,
+        catalogKey: tpl.type,
         ip: `185.220.${octet}.${20 + this.servers.length}`,
         internalIp: `10.0.0.${octet}`,
         isGateway: false,
         isHoneypot: false,
         specs: { ...tpl.specs },
+        parts: {},
         firewallVer: tpl.defaultFwl,
         services: ['ssh', typeKey === 'dedicated' ? 'heavy_mining' : 'vault_storage']
       };
@@ -255,15 +307,36 @@
       this.rebuildTopology();
       this.saveToStorage();
 
-      if (window.audioEngine && typeof window.audioEngine.playCashChime === 'function') {
+      if (window.hackerAudio && typeof window.hackerAudio.playCashChime === 'function') {
+        window.hackerAudio.playCashChime();
+      } else if (window.audioEngine && typeof window.audioEngine.playCashChime === 'function') {
         window.audioEngine.playCashChime();
       }
       if (window.showToast) {
-        window.showToast(`Servidor contratado: ${newSrv.label} adicionado à rede local.`, 'success');
+        window.showToast(`Nova máquina ativa: ${newSrv.label} adicionada ao seu Hardware!`, 'success');
       }
 
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+      if (typeof window.updateHardwareDisplay === 'function') window.updateHardwareDisplay();
       this.renderUI();
+      return { success: true, server: newSrv };
+    }
+
+    upgradeServerSpec(serverId, category, specVal, partId) {
+      this.ensureSyncedWithProfile();
+      const srv = this.servers.find((s) => s.id === serverId);
+      if (!srv) return false;
+      if (!srv.specs) srv.specs = { cpuMhz: 1600, netMbps: 100, hddMb: 1024, ramMb: 512 };
+      if (!srv.parts) srv.parts = {};
+      srv.parts[category] = partId;
+      if (category === 'cpu') srv.specs.cpuMhz = specVal;
+      else if (category === 'ram') srv.specs.ramMb = specVal;
+      else if (category === 'hdd') srv.specs.hddMb = specVal;
+      else if (category === 'network') srv.specs.netMbps = specVal;
+      this.rebuildTopology();
+      this.saveToStorage();
+      this.renderUI();
+      return true;
     }
 
     openModal() {
@@ -441,6 +514,7 @@
     }
   }
 
+  window.SERVER_TYPES_CATALOG = SERVER_TYPES_CATALOG;
   window.lanServersEngine = new LanServersEngine();
   window.openLanModal = () => window.lanServersEngine.openModal();
 })();
