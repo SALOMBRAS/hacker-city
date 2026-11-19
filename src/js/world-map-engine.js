@@ -11,28 +11,30 @@
       .replace(/"/g, '&quot;');
   }
 
-  // Silhuetas vetoriais estilizadas dos continentes (ViewBox 960 x 460)
+  // Contornos costeiros detalhados + textura de matriz pontilhada (ViewBox 960 x 460)
   const CONTINENT_PATHS = [
-    // América do Norte + América Central
-    'M 72 68 L 138 52 L 210 56 L 268 78 L 288 118 L 258 158 L 232 192 L 204 212 L 196 238 L 222 256 L 210 264 L 178 242 L 154 206 L 132 174 L 118 140 L 82 114 Z',
-    // Groenlândia
-    'M 295 32 L 358 26 L 372 56 L 332 76 L 292 60 Z',
-    // América do Sul
-    'M 236 262 L 284 258 L 336 294 L 344 338 L 312 392 L 282 436 L 266 432 L 262 378 L 242 324 L 228 286 Z',
+    // América do Norte (Alasca, Canadá, Costa Leste, Flórida, Golfo do México, Califórnia, América Central)
+    'M 52 84 L 78 64 L 116 58 L 154 66 L 188 56 L 228 62 L 264 82 L 286 108 L 274 128 L 258 148 L 246 172 L 234 194 L 236 212 L 228 214 L 220 198 L 204 198 L 194 212 L 198 228 L 214 242 L 228 256 L 220 264 L 202 250 L 182 234 L 166 212 L 148 188 L 138 166 L 134 142 L 122 118 L 96 104 L 72 108 L 54 98 Z',
+    // Ilhas Árticas Canadenses & Groenlândia
+    'M 206 38 L 246 34 L 262 50 L 224 54 Z M 292 28 L 348 22 L 376 42 L 362 68 L 326 82 L 298 66 Z M 392 68 L 412 66 L 414 78 L 394 80 Z',
+    // Caribe (Cuba / Hispaniola)
+    'M 228 224 L 252 226 L 256 232 L 230 230 Z M 260 232 L 274 234 L 272 240 L 258 238 Z',
+    // América do Sul (Colômbia, Amazônia, Nordeste Brasileiro, Sudeste, Prata, Patagônia, Andes)
+    'M 234 260 L 258 254 L 286 264 L 312 282 L 342 298 L 352 318 L 342 344 L 326 364 L 308 386 L 296 410 L 284 438 L 272 442 L 266 418 L 264 388 L 258 354 L 242 326 L 230 296 L 228 274 Z',
     // Reino Unido & Irlanda
-    'M 436 108 L 454 104 L 458 128 L 438 130 Z',
-    // Europa Continental + Escandinávia
-    'M 464 118 L 478 78 L 518 58 L 552 72 L 568 104 L 562 152 L 534 176 L 496 178 L 456 174 L 452 146 Z',
-    // África + Madagascar
-    'M 448 188 L 516 186 L 566 206 L 594 256 L 578 322 L 548 390 L 514 392 L 498 334 L 482 282 L 442 262 L 434 218 Z M 594 336 L 608 332 L 606 366 L 592 368 Z',
-    // Eurásia + Rússia + Oriente Médio + Índia + Sudeste Asiático
-    'M 566 74 L 664 56 L 782 58 L 878 82 L 892 122 L 844 156 L 818 198 L 792 238 L 758 282 L 736 286 L 718 246 L 682 268 L 656 228 L 622 234 L 584 206 L 564 154 Z',
-    // Japão & Taiwan
-    'M 828 158 L 844 166 L 836 196 L 820 190 Z M 790 218 L 800 222 L 796 234 L 786 230 Z',
-    // Arquipélago Indonésio / Filipinas
-    'M 738 294 L 778 298 L 814 312 L 806 324 L 756 318 L 732 306 Z M 798 250 L 812 256 L 808 278 L 794 272 Z',
-    // Austrália & Nova Zelândia
-    'M 776 342 L 848 336 L 882 368 L 872 412 L 814 416 L 772 388 Z M 904 412 L 924 406 L 920 434 L 900 436 Z'
+    'M 432 114 L 442 112 L 442 126 L 432 126 Z M 444 102 L 456 100 L 460 128 L 446 130 Z',
+    // Europa (Península Ibérica, França, Escandinávia, Itália, Balcãs, Leste Europeu)
+    'M 446 154 L 464 148 L 468 134 L 484 122 L 494 114 L 486 96 L 494 72 L 516 56 L 542 60 L 556 78 L 542 102 L 532 106 L 526 118 L 558 116 L 568 138 L 556 158 L 538 174 L 524 176 L 516 162 L 508 176 L 498 172 L 492 158 L 476 160 L 468 174 L 446 174 Z',
+    // África (Marrocos, Mediterrâneo, Egito, Chifre da África, Cabo da Boa Esperança, Golfo da Guiné, Madagascar)
+    'M 444 186 L 484 182 L 516 188 L 548 192 L 566 218 L 594 246 L 602 262 L 586 292 L 576 326 L 558 362 L 540 392 L 518 390 L 508 362 L 502 328 L 492 294 L 482 276 L 456 274 L 436 254 L 430 226 L 436 202 Z M 592 334 L 606 328 L 608 364 L 594 368 Z',
+    // Eurásia (Rússia, Oriente Médio, Península Arábica, Índia, China, Coreia, Indochina, Kamchatka)
+    'M 558 76 L 608 62 L 674 52 L 748 52 L 824 62 L 888 78 L 906 98 L 884 118 L 872 136 L 856 126 L 842 142 L 818 158 L 810 182 L 798 184 L 792 172 L 784 184 L 796 208 L 782 234 L 762 246 L 754 272 L 742 288 L 732 272 L 724 246 L 704 242 L 684 274 L 672 272 L 656 236 L 638 228 L 626 244 L 596 242 L 578 214 L 566 196 L 568 176 L 554 166 L 564 142 Z',
+    // Japão, Sri Lanka, Taiwan & Filipinas
+    'M 832 152 L 844 162 L 840 184 L 826 194 L 820 184 L 828 166 Z M 792 220 L 800 222 L 798 234 L 790 232 Z M 686 276 L 694 278 L 692 288 L 684 286 Z M 796 248 L 810 254 L 812 278 L 798 274 Z',
+    // Indonésia & Papua
+    'M 728 294 L 758 304 L 754 312 L 724 300 Z M 766 302 L 794 302 L 792 314 L 764 312 Z M 804 306 L 844 310 L 854 322 L 812 322 Z',
+    // Austrália, Tasmânia & Nova Zelândia
+    'M 776 346 L 812 334 L 848 336 L 876 358 L 880 388 L 862 412 L 834 414 L 808 402 L 778 402 L 768 378 Z M 850 420 L 860 420 L 858 428 L 848 428 Z M 906 404 L 922 400 L 924 418 L 904 434 L 896 426 Z'
   ];
 
   // 50 POPs calibrados sobre as silhuetas continentais (960 x 460)
@@ -277,7 +279,7 @@
       const popMap = new Map(this.pops.map((p) => [p.id, p]));
 
       const continentsSvg = CONTINENT_PATHS.map((d) =>
-        `<path d="${d}" fill="#18202a" stroke="#263242" stroke-width="1.1" stroke-linejoin="round" />`
+        `<path d="${d}" fill="url(#hcLandDots)" stroke="#232f3e" stroke-width="1" stroke-linejoin="round" />`
       ).join('');
 
       const trunkLinesSvg = TRUNK_LINES.map(([fromId, toId]) => {
@@ -391,7 +393,11 @@
             <svg width="960" height="460" viewBox="0 0 960 460" style="display: block; width: 100%; height: auto; min-width: 720px;">
               <defs>
                 <pattern id="hcWorldGrid" width="48" height="48" patternUnits="userSpaceOnUse">
-                  <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#131922" stroke-width="0.8" />
+                  <path d="M 48 0 L 0 0 0 48" fill="none" stroke="#121820" stroke-width="0.8" />
+                </pattern>
+                <pattern id="hcLandDots" width="6" height="6" patternUnits="userSpaceOnUse">
+                  <rect width="6" height="6" fill="#151c24" />
+                  <circle cx="3" cy="3" r="1.1" fill="#2c3a4c" />
                 </pattern>
               </defs>
               <rect width="960" height="460" fill="url(#hcWorldGrid)" />

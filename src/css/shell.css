@@ -360,26 +360,28 @@
 /* ---------- Rodapé Minimalista da Sidebar ---------- */
 .sidebar-footer {
   height: 44px;
-  padding: 0 12px;
+  padding: 0 10px;
   border-top: 1px solid var(--hc-border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
 .sidebar-meta-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
+  white-space: nowrap;
 }
 
 .sidebar-version {
   font-family: var(--hc-font-mono);
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--hc-text-3);
+  white-space: nowrap;
 }
 
 .sidebar-online-btn {
@@ -388,12 +390,14 @@
   gap: 5px;
   background: transparent;
   border: 0;
-  padding: 2px 6px;
+  padding: 2px 5px;
   border-radius: 4px;
   font-family: var(--hc-font-mono);
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--hc-text-2);
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .sidebar-online-btn:hover {
   background: var(--hc-surface-2);
