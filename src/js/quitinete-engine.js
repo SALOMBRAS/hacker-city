@@ -103,7 +103,20 @@ class QuitineteEngine {
     return Object.values(this.bills).filter(b => !b.paid).length;
   }
 
+  syncDynamicPowerBill() {
+    if (typeof window !== 'undefined' && window.hardwareEngine && typeof window.hardwareEngine.getPrimaryPcElectricityMonthlyCost === 'function') {
+      const fleet = window.hardwareEngine.getMachinesFleet();
+      const pc = fleet.find((m) => m.isPrimaryPc);
+      if (pc) {
+        this.bills.power.price = pc.energyMonthlyCost;
+        this.bills.power.desc = `Consumo atual do seu PC Principal: ${pc.watts} W ($${pc.energyMonthlyCost}/mês de energia elétrica). Sem luz para ligar novo equipamento.`;
+        this.bills.power.descPaid = `Religação efetuada. Consumo atual do seu PC Principal: ${pc.watts} W ($${pc.energyMonthlyCost}/mês).`;
+      }
+    }
+  }
+
   payBill(billKey, walletBalance) {
+    this.syncDynamicPowerBill();
     const bill = this.bills[billKey];
     if (!bill) {
       return { success: false, message: 'Conta inválida ou não encontrada.' };
@@ -149,6 +162,7 @@ class QuitineteEngine {
   }
 
   renderUI(containerId, walletBalance) {
+    this.syncDynamicPowerBill();
     const el = document.getElementById(containerId);
     if (!el) return;
 

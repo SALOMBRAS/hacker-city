@@ -25,11 +25,16 @@ const HARDWARE_CATALOG = {
     { id: 'hdd_64gb', name: 'RAID Storage 65.536 MB (64 GB)', hddMb: 65536, watts: 38, dailyCost: 14, price: 32000, desc: '65.536 MB · Consumo 38W · Cofre massivo para versões máximas v10.0.' }
   ],
   network: [
-    { id: 'net_56k', name: 'NET1 · Link Rádio 1 Mbit/s', mbps: 1, watts: 5, dailyCost: 4, price: 0, desc: '1 Mbit/s (~0.15 MB/s) · Gasto $4/dia · Link inicial básico.' },
-    { id: 'net_fast_10', name: 'MEGA10 · Cabo 10 Mbit/s', mbps: 10, watts: 8, dailyCost: 9, price: 650, desc: '10 Mbit/s (~1.25 MB/s) · Gasto $9/dia · Reduz bastante o tempo de upload.' },
-    { id: 'net_fast_100', name: 'BROAD100 · Fibra 100 Mbit/s', mbps: 100, watts: 12, dailyCost: 18, price: 2900, desc: '100 Mbit/s (~12.5 MB/s) · Gasto $18/dia · Upload ágil de payloads pesados.' },
-    { id: 'net_gigabit', name: 'ULTRA500 · Link 500 Mbit/s', mbps: 500, watts: 18, dailyCost: 38, price: 11500, desc: '500 Mbit/s (~62 MB/s) · Gasto $38/dia · Transferência corporativa dedicada.' },
-    { id: 'net_fiber_10g', name: 'ULTRA1000 · Backbone 1.000 Mbit/s', mbps: 1000, watts: 25, dailyCost: 75, price: 38000, desc: '1.000 Mbit/s (~125 MB/s) · Gasto $75/dia · Envio quase instantâneo.' }
+    { id: 'net_56k', code: 'NET1', provider: 'HC Rádio Comunitária', name: 'NET1 · HC Rádio Comunitária', mbps: 1, watts: 5, price: 0, monthlyFee: 35, dailyCost: 1, desc: '1 Mbit (~0.12 MB/s) · Instalação Grátis · Mensalidade $35/mês (HC Rádio Comunitária).' },
+    { id: 'net_2m', code: 'NET2', provider: 'VeloxNet Discada+', name: 'NET2 · VeloxNet Discada+', mbps: 2, watts: 6, price: 50, monthlyFee: 55, dailyCost: 2, desc: '2 Mbit (~0.25 MB/s) · Instalação $50 · Mensalidade $55/mês (VeloxNet Discada+).' },
+    { id: 'net_4m', code: 'NET4', provider: 'CaboSul Residencial', name: 'NET4 · CaboSul Residencial', mbps: 4, watts: 7, price: 99, monthlyFee: 85, dailyCost: 3, desc: '4 Mbit (~0.5 MB/s) · Instalação $99 · Mensalidade $85/mês (CaboSul Residencial).' },
+    { id: 'net_fast_10', code: 'MEGA10', provider: 'BrCabo Banda Larga', name: 'MEGA10 · BrCabo Banda Larga', mbps: 10, watts: 8, price: 250, monthlyFee: 140, dailyCost: 5, desc: '10 Mbit (~1.25 MB/s) · Instalação $250 · Mensalidade $140/mês (BrCabo Banda Larga).' },
+    { id: 'net_25m', code: 'MEGA25', provider: 'Vortex Telecom VDSL', name: 'MEGA25 · Vortex Telecom VDSL', mbps: 25, watts: 10, price: 1000, monthlyFee: 260, dailyCost: 9, desc: '25 Mbit (~3.1 MB/s) · Instalação $1.000 · Mensalidade $260/mês (Vortex Telecom VDSL).' },
+    { id: 'net_50m', code: 'MEGA50', provider: 'HyperLink Fibra Casa', name: 'MEGA50 · HyperLink Fibra Casa', mbps: 50, watts: 11, price: 2500, monthlyFee: 450, dailyCost: 15, desc: '50 Mbit (~6.2 MB/s) · Instalação $2.500 · Mensalidade $450/mês (HyperLink Fibra Casa).' },
+    { id: 'net_fast_100', code: 'BROAD100', provider: 'NovaFibra Óptica Pro', name: 'BROAD100 · NovaFibra Óptica Pro', mbps: 100, watts: 12, price: 10000, monthlyFee: 890, dailyCost: 30, desc: '100 Mbit (~12.5 MB/s) · Instalação $10.000 · Mensalidade $890/mês (NovaFibra Óptica Pro).' },
+    { id: 'net_250m', code: 'BROAD250', provider: 'PrimeNet Empresarial', name: 'BROAD250 · PrimeNet Empresarial', mbps: 250, watts: 15, price: 25000, monthlyFee: 1750, dailyCost: 58, desc: '250 Mbit (~31 MB/s) · Instalação $25.000 · Mensalidade $1.750/mês (PrimeNet Empresarial).' },
+    { id: 'net_gigabit', code: 'ULTRA500', provider: 'CoreBackbone Dedicado', name: 'ULTRA500 · CoreBackbone Dedicado', mbps: 500, watts: 18, price: 50000, monthlyFee: 3400, dailyCost: 113, desc: '500 Mbit (~62 MB/s) · Instalação $50.000 · Mensalidade $3.400/mês (CoreBackbone Dedicado).' },
+    { id: 'net_fiber_10g', code: 'ULTRA1000', provider: 'QuantumIX Tier-1 Gigabit', name: 'ULTRA1000 · QuantumIX Tier-1 Gigabit', mbps: 1000, watts: 25, price: 100000, monthlyFee: 6800, dailyCost: 227, desc: '1.000 Mbit (~125 MB/s) · Instalação $100.000 · Mensalidade $6.800/mês (QuantumIX Tier-1 Gigabit).' }
   ]
 };
 
@@ -218,8 +223,20 @@ class HardwareEngine {
     return `${Math.round(n).toLocaleString('pt-BR')} MHz`;
   }
 
+  // Calcula a tarifa de energia ($ por Watt/mês) com base na carga total do PC do jogador (faixa residencial vs alta demanda)
+  getEnergyRatePerWattMonth(totalPcWatts) {
+    const w = Math.max(60, Number(totalPcWatts || 100));
+    return +(2.65 + Math.min(1.65, (w / 520) * 1.35)).toFixed(2);
+  }
+
+  getPrimaryPcElectricityMonthlyCost() {
+    const fleet = this.getMachinesFleet();
+    const pc = fleet.find((m) => m.isPrimaryPc);
+    return pc ? pc.energyMonthlyCost : 300;
+  }
+
   // Retorna toda a frota de máquinas do jogador (PC Principal #1 + todas as VPS / Servidores secundários)
-  // com Potência, Consumo (Watts + uso) e Gasto ($/dia e $/mês) calculados individualmente!
+  // com Potência, Consumo (Watts + uso) e Gasto (Energia baseada no PC + Mensalidade do Provedor) calculados individualmente!
   getMachinesFleet() {
     this.ensureForProfile();
     if (window.lanServersEngine && typeof window.lanServersEngine.ensureSyncedWithProfile === 'function') {
@@ -239,9 +256,11 @@ class HardwareEngine {
     // Consumo elétrico do PC Principal: placa-mãe/fonte (28W) + peças + carga dinâmica da RAM
     const activeLoadW = ram.ramMb > 0 ? Math.round((usedRam / ram.ramMb) * 18) : 0;
     const pcWatts = 28 + (cpu.watts || 55) + (ram.watts || 6) + (hdd.watts || 9) + (net.watts || 5) + activeLoadW;
-    const pcPowerDaily = Math.max(4, Math.round(pcWatts * 0.11));
-    const pcNetDaily = net.dailyCost || 4;
-    const pcDailyCost = pcPowerDaily + pcNetDaily;
+    const pcEnergyRate = this.getEnergyRatePerWattMonth(pcWatts);
+    const pcEnergyMonthly = Math.round(pcWatts * pcEnergyRate);
+    const pcNetMonthly = net.monthlyFee || 35;
+    const pcMonthlyCost = pcEnergyMonthly + pcNetMonthly;
+    const pcDailyCost = Math.max(5, Math.round(pcMonthlyCost / 30));
     const pcLoadPct = Math.min(100, Math.max(8, Math.round(((usedRam / Math.max(1, ram.ramMb)) * 60) + ((usedHdd / Math.max(1, hdd.hddMb)) * 40))));
     const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0';
 
@@ -258,13 +277,17 @@ class HardwareEngine {
         hddMb: hdd.hddMb,
         ramMb: ram.ramMb,
         netMbps: effNet,
+        netPlanCode: net.code || 'NET1',
+        netProvider: net.provider || 'HC Rádio Comunitária',
+        netMonthlyFee: pcNetMonthly,
+        energyMonthlyCost: pcEnergyMonthly,
         usedHddMb: usedHdd,
         usedRamMb: usedRam,
         loadPct: pcLoadPct,
         watts: pcWatts,
         dailyCost: pcDailyCost,
-        monthlyCost: pcDailyCost * 30,
-        costBreakdown: `Energia elétrica ($${pcPowerDaily}/dia · ${pcWatts}W) + Link Internet ($${pcNetDaily}/dia)`
+        monthlyCost: pcMonthlyCost,
+        costBreakdown: `Luz do PC (${pcWatts}W → $${pcEnergyMonthly}/mês) + Internet ${net.code || 'NET1'} · ${net.provider || 'ISP'} ($${pcNetMonthly}/mês)`
       }
     ];
 
@@ -279,9 +302,12 @@ class HardwareEngine {
       const hddM = Number(sp.hddMb || 512);
       const netM = Number(sp.netMbps || 50);
 
+      const matchedNet = this.catalog.network.slice().reverse().find((n) => netM >= n.mbps) || this.catalog.network[0];
       const vpsWatts = Math.max(45, Math.round(24 + (cpuM / 1000) * 28 + (ramM / 1024) * 8 + (hddM / 1024) * 3 + netM * 0.02));
-      const baseCloud = s.type === 'mainframe' ? 260 : (s.type === 'dedicated' ? 95 : 10);
-      const vpsDailyCost = Math.max(14, Math.round(baseCloud + vpsWatts * 0.16 + netM * 0.03));
+      const vpsEnergyMonthly = Math.round(vpsWatts * this.getEnergyRatePerWattMonth(vpsWatts));
+      const baseCloudMonthly = s.type === 'mainframe' ? 6800 : (s.type === 'dedicated' ? 2400 : 290);
+      const vpsMonthlyCost = baseCloudMonthly + vpsEnergyMonthly;
+      const vpsDailyCost = Math.max(14, Math.round(vpsMonthlyCost / 30));
       const simUsedRam = Math.min(ramM, Math.round(ramM * (s.isHoneypot ? 0.34 : 0.22)));
       const simUsedHdd = Math.min(hddM, Math.round(hddM * (s.isHoneypot ? 0.28 : 0.18)));
       const vpsLoadPct = Math.round(((simUsedRam / Math.max(1, ramM)) * 60) + ((simUsedHdd / Math.max(1, hddM)) * 40));
@@ -302,14 +328,18 @@ class HardwareEngine {
         hddMb: hddM,
         ramMb: ramM,
         netMbps: netM,
+        netPlanCode: matchedNet.code || 'CLOUD',
+        netProvider: 'Datacenter Backbone IX',
+        netMonthlyFee: baseCloudMonthly,
+        energyMonthlyCost: vpsEnergyMonthly,
         usedHddMb: simUsedHdd,
         usedRamMb: simUsedRam,
         loadPct: vpsLoadPct,
         watts: vpsWatts,
         dailyCost: vpsDailyCost,
-        monthlyCost: vpsDailyCost * 30,
+        monthlyCost: vpsMonthlyCost,
         rawServer: s,
-        costBreakdown: `Mensalidade Cloud/Datacenter + Energia (${vpsWatts}W · $${vpsDailyCost}/dia)`
+        costBreakdown: `Energia da máquina (${vpsWatts}W → $${vpsEnergyMonthly}/mês) + Hospedagem Cloud ($${baseCloudMonthly}/mês)`
       });
     });
 
@@ -400,20 +430,138 @@ class HardwareEngine {
     return 0;
   }
 
+  // Calcula o consumo de energia da peça E o custo de energia elétrica gerado com base no PC atual do jogador!
+  computePartEnergyImpact(targetMachine, cat, item) {
+    const curPartWatts = (() => {
+      if (targetMachine.isPrimaryPc) {
+        if (cat === 'cpu') return this.getCpu().watts || 55;
+        if (cat === 'ram') return this.getRam().watts || 6;
+        if (cat === 'hdd') return this.getHdd().watts || 9;
+      }
+      if (cat === 'cpu') return Math.round((targetMachine.cpuMhz / 1000) * 28);
+      if (cat === 'ram') return Math.max(6, Math.round((targetMachine.ramMb / 1024) * 8));
+      return Math.max(8, Math.round((targetMachine.hddMb / 1024) * 3));
+    })();
+
+    const itemWatts = item.watts || 10;
+    const simulatedPcWatts = Math.max(60, targetMachine.watts - curPartWatts + itemWatts);
+    const rateOnThisPc = this.getEnergyRatePerWattMonth(simulatedPcWatts);
+    const partMonthlyEnergy = Math.round(itemWatts * rateOnThisPc);
+    const totalPcMonthlyEnergy = Math.round(simulatedPcWatts * rateOnThisPc);
+    return {
+      itemWatts,
+      simulatedPcWatts,
+      rateOnThisPc,
+      partMonthlyEnergy,
+      totalPcMonthlyEnergy
+    };
+  }
+
+  renderNetworkPlansTableHtml(targetMachine, currentBalance, esc, ic) {
+    const list = this.catalog.network || [];
+    const curVal = targetMachine.isPrimaryPc ? this.getNetwork().mbps : targetMachine.netMbps;
+    const curPlan = list.find((x) => (targetMachine.isPrimaryPc ? this.current.network === x.id : x.mbps === curVal)) || list[0];
+
+    const rows = list.map((item) => {
+      const isCurrent = targetMachine.isPrimaryPc ? this.current.network === item.id : item.mbps === curVal;
+      const isLower = !isCurrent && item.mbps <= curVal;
+      const canBuy = !isCurrent && !isLower && currentBalance >= item.price;
+      const installStr = item.price === 0 ? 'Grátis' : `$${item.price.toLocaleString('pt-BR')}`;
+      const monthlyStr = `$${(item.monthlyFee || 35).toLocaleString('pt-BR')}/mês`;
+      const mbPerSec = +(item.mbps / 8).toFixed(2);
+
+      return `
+        <tr class="${isCurrent ? 'row-running' : ''} ${isLower ? 'row-hidden' : ''}">
+          <td class="soft-col-icon">
+            <span class="soft-mini-glyph kind-defense"
+              data-tip-title="${esc(item.code)} · ${esc(item.provider)}"
+              data-tip-meta="${item.mbps} Mbit"
+              data-tip-desc="Provedor: ${esc(item.provider)} · Velocidade real ~${mbPerSec} MB/s · Taxa de instalação ${installStr} + Mensalidade ${monthlyStr}.">
+              ${ic('wifi')}
+            </span>
+          </td>
+          <td>
+            <span class="soft-name-trigger" tabindex="0"
+              data-tip-title="${esc(item.code)} — ${esc(item.provider)}"
+              data-tip-meta="${item.mbps} Mbit/s"
+              data-tip-desc="Provedor: ${esc(item.provider)} · Instalação única: ${installStr} · Assinatura mensal: ${monthlyStr}.">
+              ${isCurrent ? '<span class="soft-run-dot"></span>' : ''}
+              <strong>${esc(item.code)}</strong>
+              <span style="font-family:var(--hc-font-sans);color:var(--hc-text-2);margin-left:6px;">${esc(item.provider)}</span>
+            </span>
+          </td>
+          <td class="soft-col-size" style="width:115px;color:var(--hc-info-text);font-weight:700;">${item.mbps} Mbit</td>
+          <td class="soft-col-size" style="width:125px;color:${item.price === 0 ? 'var(--hc-text-3)' : 'var(--hc-accent-text)'};font-weight:700;">${esc(installStr)}</td>
+          <td class="soft-col-size" style="width:125px;color:#ff8e88;">${esc(monthlyStr)}</td>
+          <td class="soft-col-acts">
+            ${isCurrent
+              ? `<span class="hc-badge success">Plano Ativo</span>`
+              : (isLower
+                  ? `<span style="font-size:11.5px;color:var(--hc-text-3);">Inferior</span>`
+                  : `<div class="soft-icon-actions">
+                       <button type="button" class="soft-icon-act ic-info" aria-label="Detalhes do plano ${esc(item.code)}"
+                         data-tip-title="${esc(item.provider)}" data-tip-meta="${item.mbps} Mbit (~${mbPerSec} MB/s)"
+                         data-tip-desc="Taxa de instalação: ${installStr} · Custo mensal fixo do plano: ${monthlyStr}.">
+                         ${ic('info')}
+                       </button>
+                       <button type="button" class="soft-icon-act ic-run" ${!canBuy ? 'disabled' : ''} aria-label="Contratar plano ${esc(item.code)}"
+                         data-tip-title="${canBuy ? `Contratar ${esc(item.code)} (${esc(item.provider)})` : `Saldo insuficiente p/ instalação (${installStr})`}"
+                         data-tip-meta="Instalação ${installStr}"
+                         data-tip-desc="Paga agora a instalação (${installStr}) e atualiza a assinatura mensal para ${monthlyStr}."
+                         onclick="buyHardwareUpgrade('network', '${item.id}', ${item.price}, '${esc(targetMachine.id)}')">
+                         ${ic('shopping-cart')}
+                       </button>
+                     </div>`)}
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    return `
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="background:var(--hc-inset);border:1px solid var(--hc-border);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px;">
+          <div>
+            Provedor atual em <strong>${esc(targetMachine.name)}</strong>:
+            <strong style="color:var(--hc-accent-text);margin-left:4px;">${esc(curPlan.code)} · ${esc(curPlan.provider)}</strong>
+            <span class="mono" style="color:var(--hc-text-2);margin-left:6px;">(${curVal} Mbit/s)</span>
+          </div>
+          <span class="mono" style="color:#ff8e88;">Mensalidade do Plano: <strong>$${(curPlan.monthlyFee || 35).toLocaleString('pt-BR')}/mês</strong></span>
+        </div>
+
+        <div class="soft-table-wrap" role="region" aria-label="Planos de Internet e Provedores">
+          <table class="soft-table clean-hw-table">
+            <thead>
+              <tr>
+                <th class="soft-col-icon"></th>
+                <th>Plano &amp; Nome do Provedor</th>
+                <th class="soft-col-size" style="width:115px;">Potência</th>
+                <th class="soft-col-size" style="width:125px;">Instalação</th>
+                <th class="soft-col-size" style="width:125px;">Custo Mensal</th>
+                <th class="soft-col-acts">Ação</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
   renderCatalogTableHtml(cat, targetMachine, currentBalance, esc, ic) {
+    if (cat === 'network') {
+      return this.renderNetworkPlansTableHtml(targetMachine, currentBalance, esc, ic);
+    }
+
     const catMeta = {
-      cpu:     { label: 'Processador (CPU)', icon: 'cpu', glyph: 'attack', specFn: (i) => `${i.mhz.toLocaleString('pt-BR')} MHz` },
-      hdd:     { label: 'Armazenamento (Disco)', icon: 'hard-drive', glyph: 'stealth', specFn: (i) => this.formatStorage(i.hddMb) },
-      ram:     { label: 'Memória RAM', icon: 'layers', glyph: 'defense', specFn: (i) => this.formatStorage(i.ramMb) },
-      network: { label: 'Conexão de Internet', icon: 'wifi', glyph: 'defense', specFn: (i) => `${i.mbps} Mbit/s` }
+      cpu: { label: 'Processador (CPU)', icon: 'cpu', glyph: 'attack', specFn: (i) => `${i.mhz.toLocaleString('pt-BR')} MHz` },
+      hdd: { label: 'Armazenamento (Disco)', icon: 'hard-drive', glyph: 'stealth', specFn: (i) => this.formatStorage(i.hddMb) },
+      ram: { label: 'Memória RAM', icon: 'layers', glyph: 'defense', specFn: (i) => this.formatStorage(i.ramMb) }
     };
     const m = catMeta[cat] || catMeta.cpu;
     const list = this.catalog[cat] || [];
     const curVal = targetMachine.isPrimaryPc && cat === 'cpu'
       ? this.getCpu().mhz
-      : (targetMachine.isPrimaryPc && cat === 'network'
-          ? this.getNetwork().mbps
-          : this.getMachineCurrentSpecVal(targetMachine, cat));
+      : this.getMachineCurrentSpecVal(targetMachine, cat);
 
     const rows = list.map((item) => {
       const itemVal = this.getItemSpecVal(cat, item);
@@ -422,38 +570,52 @@ class HardwareEngine {
         : itemVal === curVal;
       const isLower = !isCurrent && itemVal <= curVal;
       const canBuy = !isCurrent && !isLower && currentBalance >= item.price;
-      const priceStr = item.price === 0 ? 'Inicial' : `$ ${item.price.toLocaleString('pt-BR')}`;
+      const priceStr = item.price === 0 ? 'Inicial' : `$${item.price.toLocaleString('pt-BR')}`;
+      const pwr = this.computePartEnergyImpact(targetMachine, cat, item);
 
       return `
         <tr class="${isCurrent ? 'row-running' : ''} ${isLower ? 'row-hidden' : ''}">
           <td class="soft-col-icon">
-            <span class="soft-mini-glyph kind-${m.glyph}" data-tip-title="${esc(item.name)}" data-tip-meta="${esc(priceStr)}" data-tip-desc="${esc(item.desc)}">
+            <span class="soft-mini-glyph kind-${m.glyph}"
+              data-tip-title="${esc(item.name)}"
+              data-tip-meta="${pwr.itemWatts}W · +$${pwr.partMonthlyEnergy}/mês luz"
+              data-tip-desc="No seu ${esc(targetMachine.name)}, esta peça consome ${pwr.itemWatts}W e gera $${pwr.partMonthlyEnergy}/mês de energia (PC total: ${pwr.simulatedPcWatts}W → $${pwr.totalPcMonthlyEnergy}/mês de luz).">
               ${ic(m.icon)}
             </span>
           </td>
           <td>
-            <span class="soft-name-trigger" tabindex="0" data-tip-title="${esc(item.name)}" data-tip-meta="${esc(m.specFn(item))}" data-tip-desc="${esc(item.desc)}">
+            <span class="soft-name-trigger" tabindex="0"
+              data-tip-title="${esc(item.name)}"
+              data-tip-meta="${esc(m.specFn(item))}"
+              data-tip-desc="Consumo da peça: ${pwr.itemWatts}W · Custo de energia gerado com base no seu PC: $${pwr.partMonthlyEnergy}/mês (Conta de luz total da máquina: $${pwr.totalPcMonthlyEnergy}/mês).">
               ${isCurrent ? '<span class="soft-run-dot"></span>' : ''}
               <span>${esc(item.name)}</span>
             </span>
           </td>
           <td class="soft-col-size" style="width:115px;">${esc(m.specFn(item))}</td>
-          <td class="soft-col-size" style="width:92px;color:#f5ba66;">${item.watts || 10} W</td>
-          <td class="soft-col-size" style="width:92px;color:#ff8e88;">$${item.dailyCost || 2}/dia</td>
-          <td class="soft-col-size" style="width:110px;color:${item.price === 0 ? 'var(--hc-text-3)' : 'var(--hc-accent-text)'};white-space:nowrap;">${esc(priceStr)}</td>
+          <td class="soft-col-size" style="width:105px;color:#f5ba66;font-weight:600;">⚡ ${pwr.itemWatts} W</td>
+          <td class="soft-col-size" style="width:145px;color:#ff8e88;"
+            data-tip-title="Custo de Energia no seu PC"
+            data-tip-meta="Tarifa $${pwr.rateOnThisPc}/W"
+            data-tip-desc="Calculado com base no conjunto de peças de ${esc(targetMachine.name)}: esta peça gera $${pwr.partMonthlyEnergy}/mês de luz (deixando o PC com ${pwr.simulatedPcWatts}W = $${pwr.totalPcMonthlyEnergy}/mês).">
+            +$${pwr.partMonthlyEnergy}/mês luz
+          </td>
+          <td class="soft-col-size" style="width:105px;color:${item.price === 0 ? 'var(--hc-text-3)' : 'var(--hc-accent-text)'};font-weight:700;white-space:nowrap;">${esc(priceStr)}</td>
           <td class="soft-col-acts">
             ${isCurrent
               ? `<span class="hc-badge success">Instalado</span>`
               : (isLower
                   ? `<span style="font-size:11.5px;color:var(--hc-text-3);">Superado</span>`
                   : `<div class="soft-icon-actions">
-                       <button type="button" class="soft-icon-act ic-info" aria-label="Detalhes de ${esc(item.name)}"
-                         data-tip-title="${esc(item.name)}" data-tip-meta="${item.watts}W · $${item.dailyCost}/dia" data-tip-desc="${esc(item.desc)}">
+                       <button type="button" class="soft-icon-act ic-info" aria-label="Impacto elétrico de ${esc(item.name)}"
+                         data-tip-title="Energia em ${esc(targetMachine.name)}" data-tip-meta="${pwr.itemWatts}W → $${pwr.partMonthlyEnergy}/mês"
+                         data-tip-desc="Com esta peça instalada, ${esc(targetMachine.name)} passa a consumir ${pwr.simulatedPcWatts}W totais ($${pwr.totalPcMonthlyEnergy}/mês na conta de energia).">
                          ${ic('info')}
                        </button>
-                       <button type="button" class="soft-icon-act ic-run" ${!canBuy ? 'disabled' : ''} aria-label="Instalar ${esc(item.name)} em ${esc(targetMachine.name)}"
-                         data-tip-title="${canBuy ? `Instalar em ${esc(targetMachine.name)}` : `Saldo insuficiente (faltam $ ${Math.ceil(item.price - currentBalance).toLocaleString('pt-BR')})`}"
-                         data-tip-meta="${esc(priceStr)}" data-tip-desc="Aumenta ${esc(m.label)} para ${esc(m.specFn(item))} (Consumo ${item.watts}W · Gasto $${item.dailyCost}/dia)."
+                       <button type="button" class="soft-icon-act ic-run" ${!canBuy ? 'disabled' : ''} aria-label="Comprar ${esc(item.name)}"
+                         data-tip-title="${canBuy ? `Comprar e instalar em ${esc(targetMachine.name)}` : `Saldo insuficiente (faltam $${Math.ceil(item.price - currentBalance).toLocaleString('pt-BR')})`}"
+                         data-tip-meta="${esc(priceStr)}"
+                         data-tip-desc="Potência: ${esc(m.specFn(item))} · Consumo: ${pwr.itemWatts}W · Custo de energia no seu PC: +$${pwr.partMonthlyEnergy}/mês."
                          onclick="buyHardwareUpgrade('${cat}', '${item.id}', ${item.price}, '${esc(targetMachine.id)}')">
                          ${ic('shopping-cart')}
                        </button>
@@ -464,21 +626,28 @@ class HardwareEngine {
     }).join('');
 
     return `
-      <div class="soft-table-wrap" role="region" aria-label="Catálogo de ${esc(m.label)} para ${esc(targetMachine.name)}">
-        <table class="soft-table clean-hw-table">
-          <thead>
-            <tr>
-              <th class="soft-col-icon"></th>
-              <th>Peça · ${esc(m.label)} (${esc(targetMachine.name)})</th>
-              <th class="soft-col-size" style="width:115px;">Potência</th>
-              <th class="soft-col-size" style="width:92px;">Consumo</th>
-              <th class="soft-col-size" style="width:92px;">Gasto</th>
-              <th class="soft-col-size" style="width:110px;">Preço</th>
-              <th class="soft-col-acts">Ações</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="background:var(--hc-inset);border:1px solid var(--hc-border);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:12.5px;">
+          <span>Energia atual de <strong>${esc(targetMachine.name)}</strong>: <strong style="color:#f5ba66;">${targetMachine.watts} W</strong></span>
+          <span class="mono" style="color:#ff8e88;">Custo de Energia desta máquina: <strong>$${targetMachine.energyMonthlyCost.toLocaleString('pt-BR')}/mês</strong></span>
+        </div>
+
+        <div class="soft-table-wrap" role="region" aria-label="Catálogo de ${esc(m.label)} para ${esc(targetMachine.name)}">
+          <table class="soft-table clean-hw-table">
+            <thead>
+              <tr>
+                <th class="soft-col-icon"></th>
+                <th>Peça · ${esc(m.label)} (${esc(targetMachine.name)})</th>
+                <th class="soft-col-size" style="width:115px;">Potência</th>
+                <th class="soft-col-size" style="width:105px;">Consumo</th>
+                <th class="soft-col-size" style="width:145px;">Custo de Energia</th>
+                <th class="soft-col-size" style="width:105px;">Preço Peça</th>
+                <th class="soft-col-acts">Ações</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
       </div>
     `;
   }
@@ -585,23 +754,23 @@ class HardwareEngine {
                   <span class="hw-mc-spec-item" data-tip-title="Memória RAM" data-tip-meta="${m.usedRamMb}/${m.ramMb} MB" data-tip-desc="Memória disponível para processos simultâneos.">
                     ${ic('layers')} ${esc(this.formatStorage(m.ramMb))}
                   </span>
-                  <span class="hw-mc-spec-item" data-tip-title="Velocidade de Rede" data-tip-meta="${m.netMbps} Mbit/s" data-tip-desc="Banda de download e upload desta máquina.">
-                    ${ic('wifi')} ${m.netMbps} Mbit
+                  <span class="hw-mc-spec-item" data-tip-title="Provedor: ${esc(m.netProvider)}" data-tip-meta="${m.netMbps} Mbit/s" data-tip-desc="Plano ${esc(m.netPlanCode)} (${esc(m.netProvider)}) · Mensalidade $${m.netMonthlyFee}/mês.">
+                    ${ic('wifi')} ${m.netMbps} Mbit · <span style="font-family:var(--hc-font-sans);color:var(--hc-text-3);">${esc(m.netProvider)}</span>
                   </span>
                 </div>
 
                 <div class="hw-mc-foot-grid">
                   <div class="hw-mc-stat-pill" tabindex="0"
-                    data-tip-title="Consumo de ${esc(m.name)}" data-tip-meta="${m.watts} Watts"
-                    data-tip-desc="Carga atual: ${m.loadPct}% · RAM em uso: ${m.usedRamMb}/${m.ramMb} MB · Disco ocupado: ${m.usedHddMb}/${m.hddMb} MB.">
-                    <span class="lbl">Consumo &amp; Uso</span>
-                    <span class="val power">${ic('zap')} ${m.watts} W · ${m.loadPct}% uso</span>
+                    data-tip-title="Energia gerada no PC" data-tip-meta="${m.watts} Watts"
+                    data-tip-desc="Consumo das peças desta máquina: ${m.watts}W → Gera $${m.energyMonthlyCost}/mês de energia elétrica (${m.loadPct}% uso atual).">
+                    <span class="lbl">Consumo &amp; Luz Gerada</span>
+                    <span class="val power">${ic('zap')} ${m.watts} W → $${m.energyMonthlyCost}/mês luz</span>
                   </div>
                   <div class="hw-mc-stat-pill" tabindex="0"
-                    data-tip-title="Gasto de ${esc(m.name)}" data-tip-meta="$${m.dailyCost}/dia"
-                    data-tip-desc="${esc(m.costBreakdown)} · Projeção mensal: $${m.monthlyCost.toLocaleString('pt-BR')}/mês.">
-                    <span class="lbl">Gasto Operacional</span>
-                    <span class="val cost">${ic('coins')} $${m.dailyCost}/dia · $${m.monthlyCost}/mês</span>
+                    data-tip-title="Gasto Total de ${esc(m.name)}" data-tip-meta="$${m.monthlyCost.toLocaleString('pt-BR')}/mês"
+                    data-tip-desc="${esc(m.costBreakdown)}.">
+                    <span class="lbl">${m.isPrimaryPc ? 'Luz + Plano Internet' : 'Luz + Cloud VPS'}</span>
+                    <span class="val cost">${ic('coins')} $${m.monthlyCost.toLocaleString('pt-BR')}/mês ($${m.dailyCost}/dia)</span>
                   </div>
                 </div>
               </div>

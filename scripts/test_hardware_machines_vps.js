@@ -153,7 +153,7 @@ fs.mkdirSync(OUT_DIR, { recursive: true });
   await page.click('#hwTabNetwork');
   await new Promise((r) => setTimeout(r, 200));
   const netRows = await page.$$eval('#hardwareExplorerMain tbody tr', (trs) => trs.length);
-  assert.strictEqual(netRows, 5, 'Aba Internet lista os 5 planos de velocidade com consumo e gasto');
+  assert.strictEqual(netRows, 10, 'Aba Internet lista os 10 planos de velocidade com instalacao, mensalidade e provedor');
   await page.screenshot({ path: path.join(OUT_DIR, '06_aba_internet_planos_consumo_gasto.png') });
 
   assert.strictEqual(pageErrors.length, 0, `Erros JS inesperados: ${pageErrors.join(' | ')}`);
