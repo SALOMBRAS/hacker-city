@@ -1903,6 +1903,14 @@
 
     confirmBruteforceWithHash(hashId) {
       this.closeCrackerMiniPc();
+      if (window.softwareEngine && window.softwareEngine.state && window.softwareEngine.state.inventory?.cracker) {
+        const crc = window.softwareEngine.state.inventory.cracker;
+        if (crc.owned) {
+          crc.installed = true;
+          crc.runningVerInt = crc.versionInt || 10;
+          window.softwareEngine.save();
+        }
+      }
       return this.startBruteforce({ hashId });
     }
 
@@ -1974,10 +1982,12 @@
       this.activeCrackPid = null;
 
       if (window.taskManager) {
+        const crcFn = chosen?.filename || 'Cracker.crc';
         const enq = window.taskManager.enqueue({
           dedupeKey: `bf_ssh_${host.ip}`,
           title: `Quebrar senha root (${host.hostname})`,
-          subtitle: `${chosen?.filename || 'Cracker.crc'} v${crcVer.toFixed(1)} [${driveName}] vs FW v${reqFwl.toFixed(1)} / HASH v${reqHasher.toFixed(1)} · ${speedFactor}x`,
+          labelHtml: `Quebrar senha com <strong>${esc(crcFn)}</strong> (${crcVer.toFixed(1)}) em ${esc(host.ip)}`,
+          subtitle: `${crcFn} v${crcVer.toFixed(1)} [${driveName}] vs FW v${reqFwl.toFixed(1)} / HASH v${reqHasher.toFixed(1)} · ${speedFactor}x`,
           targetIp: host.ip,
           queueKind: 'cpu',
           category: 'Ataque',
@@ -1998,18 +2008,6 @@
 
         if (enq.started) {
           this.activeCrackPid = enq.process.pid;
-          const uiSync = setInterval(() => {
-            const p = window.taskManager.processes.find((x) => x.pid === enq.process.pid);
-            if (!p || p.status !== 'running') {
-              clearInterval(uiSync);
-              return;
-            }
-            this.crackPct = Math.min(99, Math.round((p.workDone / p.workTotal) * 100));
-            const bar = document.getElementById('inetCrackBarFill');
-            const lbl = document.getElementById('inetCrackPctLabel');
-            if (bar) bar.style.width = this.crackPct + '%';
-            if (lbl) lbl.textContent = this.crackPct + '%';
-          }, 140);
           this.render();
           return { started: true, idealSec, pid: enq.process.pid };
         }
@@ -2448,7 +2446,7 @@
     }
 
     // ETAPA 2 DE 2: Executar na memória do PC da vítima um vírus que já foi subido!
-    executeStagedVirusOnCurrentHost(virusKey) {
+    executeStagedVirusOnCurrentHost(virusKey, uiAsync = false) {
       if (!this.activeSshIp || !window.softwareEngine) return { success: false };
       if (!this.hasRemotePermission('install')) {
         const role = (this.activeSshRole || 'ftp').toUpperCase();
@@ -2457,6 +2455,34 @@
         return { success: false, code: 'NO_EXEC_PERMISSION', message: msg };
       }
       const host = this.resolveHost(this.activeSshIp);
+      const tourBusy = !!(window.spotlightTour && window.spotlightTour.isActive);
+
+      if (uiAsync && !tourBusy && window.taskManager) {
+        const staged = window.softwareEngine.getStagedVirusesOnIp(host.ip).find((sv) => sv.virusKey === virusKey);
+        if (staged) {
+          const verStr = (staged.versionInt / 10).toFixed(1);
+          const enq = window.taskManager.enqueue({
+            dedupeKey: `exec_remote_${host.ip}_${virusKey}`,
+            title: `Executar vírus ${staged.filename} (${verStr}) em ${host.ip}`,
+            labelHtml: `Executar vírus <strong>${esc(staged.filename)}</strong> (${verStr}) em ${esc(host.ip)}`,
+            subtitle: `CPU · ${host.ip}`,
+            targetIp: host.ip,
+            queueKind: 'cpu',
+            category: 'Ataque',
+            idealSeconds: 1.5,
+            onComplete: () => {
+              const resDone = window.softwareEngine.executeStagedVirusOnRemote(host, virusKey);
+              if (resDone && typeof window.showToast === 'function') window.showToast(resDone.message);
+              this.render();
+            }
+          });
+          if (enq.started) {
+            this.render();
+            return { success: true, queued: true, pid: enq.process.pid };
+          }
+        }
+      }
+
       const res = window.softwareEngine.executeStagedVirusOnRemote(host, virusKey);
       if (res && typeof window.showToast === 'function') {
         window.showToast(res.message);
@@ -3037,56 +3063,70 @@
         const stealables = window.stealthXhdEngine ? window.stealthXhdEngine.getStealableSoftwaresOnHost(host) : [];
         const stealableKeys = new Set(stealables.map((s) => s.softKey));
 
-        // Programas nativos da vítima (Firewall, Hasher, Antivírus) + binários baixáveis
+        // Programas nativos da vítima + seus vírus + binários para Download (Estilo Enxuto Foto 2: Ícone | Nome | Versão | Tamanho | Ícones + Mini-Aba Hover)
         const remoteSoftRows = [];
 
         // 1) Pastas remotas
         customFolders.forEach((rf) => {
           remoteSoftRows.push(`
             <tr>
-              <td>
-                <div class="soft-app-cell">
-                  <div class="soft-app-icon kind-folder">${HC.icon('folder')}</div>
-                  <div class="soft-app-meta">
-                    <div class="soft-app-name-row"><span class="soft-app-title">${esc(rf.name)}/</span></div>
-                    <div class="soft-app-sub">Pasta remota</div>
-                  </div>
-                </div>
+              <td class="soft-col-icon">
+                <span class="soft-mini-glyph kind-folder" data-tip-title="Pasta /${esc(rf.name)}" data-tip-meta="Diretório" data-tip-desc="Pasta criada neste servidor remoto.">
+                  ${HC.icon('folder')}
+                </span>
               </td>
-              <td>—</td>
-              <td class="soft-size-cell">0 MB</td>
               <td>
-                <div class="soft-actions-cell">
-                  <button type="button" class="soft-act-btn act-del" onclick="window.internetEngine.remoteCustomFolders.set('${esc(host.ip)}', (window.internetEngine.remoteCustomFolders.get('${esc(host.ip)}')||[]).filter(x=>x.id!=='${esc(rf.id)}'));window.internetEngine.render();">${HC.icon('trash-2')} Apagar</button>
+                <span class="soft-name-trigger" tabindex="0" data-tip-title="Pasta /${esc(rf.name)}" data-tip-meta="${esc(host.ip)}" data-tip-desc="Diretório remoto criado por você neste computador.">
+                  ${esc(rf.name)}/
+                </span>
+              </td>
+              <td class="soft-col-ver"><span style="color:var(--hc-text-3);">—</span></td>
+              <td class="soft-col-size">0 MB</td>
+              <td class="soft-col-acts">
+                <div class="soft-icon-actions">
+                  <button type="button" class="soft-icon-act ic-del" aria-label="Excluir pasta ${esc(rf.name)}"
+                    data-tip-title="Excluir pasta" data-tip-desc="Apagar a pasta /${esc(rf.name)} do disco da vítima."
+                    onclick="window.internetEngine.remoteCustomFolders.set('${esc(host.ip)}', (window.internetEngine.remoteCustomFolders.get('${esc(host.ip)}')||[]).filter(x=>x.id!=='${esc(rf.id)}'));window.internetEngine.render();">${HC.icon('trash-2')}</button>
                 </div>
               </td>
             </tr>
           `);
         });
 
-        // 2) Vírus que você subiu p/ o disco da vítima e aguardam clicar em Rodar
+        // 2) Vírus que você subiu p/ o disco da vítima e aguardam clicar no ícone Rodar (⚙️)
         stagedOnTarget.forEach((sv) => {
+          const def = window.softwareEngine ? window.softwareEngine.getDefinition(sv.virusKey) : null;
+          const verStr = (sv.versionInt / 10).toFixed(1);
           remoteSoftRows.push(`
             <tr>
-              <td>
-                <div class="soft-app-cell">
-                  <div class="soft-app-icon kind-virus">${HC.icon('bug')}</div>
-                  <div class="soft-app-meta">
-                    <div class="soft-app-name-row">
-                      <span class="soft-app-title">${esc(sv.friendlyTitle || sv.filename)}</span>
-                      <span class="soft-app-ext">${esc(sv.filename)}</span>
-                      <span class="hc-badge warning">No disco (parado)</span>
-                    </div>
-                    <div class="soft-app-sub">Subido por você · Clique em Rodar p/ ativar (${sv.ramMb} MB RAM)</div>
-                  </div>
-                </div>
+              <td class="soft-col-icon">
+                <span class="soft-mini-glyph kind-virus"
+                  data-tip-title="${esc(sv.friendlyTitle || def?.friendlyTitle || sv.filename)}"
+                  data-tip-meta="No disco · v${verStr}"
+                  data-tip-desc="${esc(def?.desc || 'Arquivo de vírus enviado para o disco da vítima. Clique no ícone Rodar para iniciar!')}">
+                  ${HC.icon('bug')}
+                </span>
               </td>
-              <td><span class="soft-ver-badge v-tier2">${(sv.versionInt / 10).toFixed(1)}</span></td>
-              <td class="soft-size-cell">${sv.sizeMb} MB</td>
               <td>
-                <div class="soft-actions-cell">
-                  <button type="button" class="soft-act-btn act-run" onclick="window.internetEngine.executeStagedVirusOnCurrentHost('${esc(sv.virusKey)}')">${HC.icon('play')} Rodar</button>
-                  <button type="button" class="soft-act-btn act-del" onclick="window.internetEngine.deleteRemoteStagedVirus('${esc(host.ip)}', '${esc(sv.virusKey)}')">${HC.icon('trash-2')} Apagar</button>
+                <span class="soft-name-trigger" tabindex="0"
+                  data-tip-title="${esc(sv.friendlyTitle || def?.friendlyTitle || sv.filename)}"
+                  data-tip-meta="Aguardando rodar (${sv.ramMb} MB RAM)"
+                  data-tip-desc="${esc(def?.desc || 'Subido por você para este PC. Clique na engrenagem para deixar rodando em segundo plano!')}">
+                  <span>${esc(sv.filename)}</span>
+                  <span style="font-size:11px;color:var(--hc-warning-text);">(parado)</span>
+                </span>
+              </td>
+              <td class="soft-col-ver"><span class="soft-ver-badge v-tier2">${verStr}</span></td>
+              <td class="soft-col-size">${sv.sizeMb} MB</td>
+              <td class="soft-col-acts">
+                <div class="soft-icon-actions">
+                  <button type="button" class="soft-icon-act ic-run" aria-label="Rodar ${esc(sv.filename)} no PC da vítima"
+                    data-tip-title="Rodar vírus" data-tip-meta="${sv.ramMb} MB RAM"
+                    data-tip-desc="Executar ${esc(sv.filename)} (${verStr}) e deixá-lo rodando em segundo plano no PC de ${esc(host.ip)}."
+                    onclick="window.internetEngine.executeStagedVirusOnCurrentHost('${esc(sv.virusKey)}', true)">${HC.icon('settings')}</button>
+                  <button type="button" class="soft-icon-act ic-del" aria-label="Excluir ${esc(sv.filename)} do PC da vítima"
+                    data-tip-title="Excluir arquivo" data-tip-desc="Apagar ${esc(sv.filename)} do disco de ${esc(host.ip)}."
+                    onclick="window.internetEngine.deleteRemoteStagedVirus('${esc(host.ip)}', '${esc(sv.virusKey)}')">${HC.icon('trash-2')}</button>
                 </div>
               </td>
             </tr>
@@ -3095,61 +3135,83 @@
 
         // 3) Vírus seus já em execução na memória da vítima
         installedOnTarget.forEach((iv) => {
+          const def = window.softwareEngine ? window.softwareEngine.getDefinition(iv.virusKey) : null;
           const isHid = (iv.hiddenWithVer || 0) > 0;
+          const verStr = (iv.versionInt / 10).toFixed(1);
           remoteSoftRows.push(`
             <tr class="row-running ${isHid ? 'row-hidden' : ''}">
-              <td>
-                <div class="soft-app-cell">
-                  <div class="soft-app-icon kind-virus">${HC.icon('bug')}</div>
-                  <div class="soft-app-meta">
-                    <div class="soft-app-name-row">
-                      <span class="soft-app-title">${esc(iv.filename)}</span>
-                      <span class="hc-badge success">Rodando</span>
-                      ${isHid ? `<span class="hc-badge violet">Escondido v${iv.hiddenWithVer.toFixed(1)}</span>` : ''}
-                    </div>
-                    <div class="soft-app-sub">Seu vírus ativo neste PC (${iv.ramMb || 12} MB RAM)</div>
-                  </div>
-                </div>
+              <td class="soft-col-icon">
+                <span class="soft-mini-glyph kind-virus"
+                  data-tip-title="${esc(def?.friendlyTitle || iv.filename)}"
+                  data-tip-meta="Ativo v${verStr}"
+                  data-tip-desc="${esc(def?.desc || 'Seu vírus ativo neste computador invadido.')}">
+                  ${HC.icon('bug')}
+                </span>
               </td>
-              <td><span class="soft-ver-badge v-tier2">${(iv.versionInt / 10).toFixed(1)}</span></td>
-              <td class="soft-size-cell">${iv.sizeMb || 18} MB</td>
               <td>
-                <div class="soft-actions-cell">
+                <span class="soft-name-trigger" tabindex="0"
+                  data-tip-title="${esc(def?.friendlyTitle || iv.filename)}"
+                  data-tip-meta="${isHid ? `Oculto v${iv.hiddenWithVer.toFixed(1)}` : 'Rodando em 2º plano'}"
+                  data-tip-desc="${esc(def?.desc || 'Seu vírus em execução na memória desta máquina.')}">
+                  <span class="soft-run-dot"></span>
+                  <span>${esc(iv.filename)}</span>
+                  ${isHid ? `<span style="font-size:11px;color:var(--hc-text-3);">(oculto)</span>` : ''}
+                </span>
+              </td>
+              <td class="soft-col-ver"><span class="soft-ver-badge v-tier2">${verStr}</span></td>
+              <td class="soft-col-size">${iv.sizeMb || 18} MB</td>
+              <td class="soft-col-acts">
+                <div class="soft-icon-actions">
                   ${window.stealthXhdEngine
-                    ? `<button type="button" class="soft-act-btn" onclick="window.stealthXhdEngine.hideRemoteVirusWithHider(${iv.id});window.internetEngine.render();">${HC.icon('eye-off')} Esconder</button>`
+                    ? `<button type="button" class="soft-icon-act ic-hide" aria-label="Esconder ${esc(iv.filename)} no PC da vítima"
+                        data-tip-title="Esconder vírus" data-tip-meta="Hider"
+                        data-tip-desc="Camuflar ${esc(iv.filename)} no PC da vítima para dificultar detecção."
+                        onclick="window.stealthXhdEngine.hideRemoteVirusWithHider(${iv.id});window.internetEngine.render();">${HC.icon('eye-off')}</button>`
                     : ''}
-                  <button type="button" class="soft-act-btn act-del" onclick="window.softwareEngine.removeRemoteVirus(${iv.id});window.internetEngine.render();">${HC.icon('trash-2')} Apagar</button>
+                  <button type="button" class="soft-icon-act ic-del" aria-label="Excluir ${esc(iv.filename)} do PC da vítima"
+                    data-tip-title="Excluir vírus" data-tip-desc="Encerrar e remover seu ${esc(iv.filename)} deste computador."
+                    onclick="window.softwareEngine.removeRemoteVirus(${iv.id});window.internetEngine.render();">${HC.icon('trash-2')}</button>
                 </div>
               </td>
             </tr>
           `);
         });
 
-        // 4) Softwares e recompensas disponíveis para Download no PC invadido
+        // 4) Softwares disponíveis no PC invadido para você baixar p/ o seu PC (ícone de Download ⬇️ + Mini-Aba!)
         stealables.forEach((st) => {
           const def = window.softwareEngine ? window.softwareEngine.getDefinition(st.softKey) : null;
           const sizeMb = window.softwareEngine ? window.softwareEngine.getItemSizeMb(st.softKey, st.versionInt) : 18;
+          const verStr = (st.versionInt / 10).toFixed(1);
+          const friendly = def?.friendlyTitle || st.filename;
+          const desc = def?.desc || 'Programa instalado neste computador. Você pode baixá-lo para o seu próprio PC.';
           remoteSoftRows.push(`
             <tr>
-              <td>
-                <div class="soft-app-cell">
-                  <div class="soft-app-icon kind-${def?.iconKind || 'attack'}">${HC.icon(def?.icon || 'package')}</div>
-                  <div class="soft-app-meta">
-                    <div class="soft-app-name-row">
-                      <span class="soft-app-title">${esc(def?.friendlyTitle || st.filename)}</span>
-                      <span class="soft-app-ext">${esc(st.filename)}</span>
-                      <span class="hc-badge info">${esc(st.sourceBadge)}</span>
-                    </div>
-                    <div class="soft-app-sub">Aplicativo instalado neste servidor</div>
-                  </div>
-                </div>
+              <td class="soft-col-icon">
+                <span class="soft-mini-glyph kind-${def?.iconKind || 'attack'}"
+                  data-tip-title="${esc(friendly)}" data-tip-meta="v${verStr} · ${sizeMb} MB" data-tip-desc="${esc(desc)}">
+                  ${HC.icon(def?.icon || 'package')}
+                </span>
               </td>
-              <td><span class="soft-ver-badge v-tier2">${(st.versionInt / 10).toFixed(1)}</span></td>
-              <td class="soft-size-cell">${sizeMb} MB</td>
               <td>
-                <div class="soft-actions-cell">
-                  <button type="button" id="btnStealSoft_${esc(st.softKey)}" class="soft-act-btn act-dl" onclick="window.handleDownloadRemoteSoft('${esc(host.ip)}', '${esc(st.softKey)}', ${st.versionInt})">
-                    ${HC.icon('download')} Download
+                <span class="soft-name-trigger" tabindex="0"
+                  data-tip-title="${esc(friendly)}" data-tip-meta="${esc(st.sourceBadge || 'No disco')}" data-tip-desc="${esc(desc)}">
+                  <span>${esc(st.filename)}</span>
+                </span>
+              </td>
+              <td class="soft-col-ver"><span class="soft-ver-badge v-tier2">${verStr}</span></td>
+              <td class="soft-col-size">${sizeMb} MB</td>
+              <td class="soft-col-acts">
+                <div class="soft-icon-actions">
+                  <button type="button" class="soft-icon-act ic-info" aria-label="Sobre ${esc(st.filename)}"
+                    data-tip-title="${esc(friendly)}" data-tip-meta="v${verStr}" data-tip-desc="${esc(desc)}"
+                    onclick="if(window.showToast) window.showToast('${esc(friendly)} (${verStr}): ${esc(desc)}')">
+                    ${HC.icon('info')}
+                  </button>
+                  <button type="button" id="btnStealSoft_${esc(st.softKey)}" class="soft-icon-act ic-dl" aria-label="Baixar ${esc(st.filename)} para o seu PC"
+                    data-tip-title="Download para o meu PC" data-tip-meta="${sizeMb} MB"
+                    data-tip-desc="Baixar ${esc(friendly)} (${verStr}) deste computador invadido para o seu disco."
+                    onclick="window.handleDownloadRemoteSoft('${esc(host.ip)}', '${esc(st.softKey)}', ${st.versionInt})">
+                    ${HC.icon('download')}
                   </button>
                 </div>
               </td>
@@ -3159,35 +3221,46 @@
 
         // 5) Programas de sistema da própria vítima (Firewall, Hasher, Antivírus) caso ainda não listados acima
         const nativeDefs = [
-          { softKey: 'firewall', ver: host.firewallVer || 1.0, icon: 'shield', kind: 'defense', name: 'Escudo de Rede', fn: 'Firewall.fwl' },
-          { softKey: 'hasher', ver: host.hasherVer || 1.0, icon: 'lock', kind: 'defense', name: 'Cofre de Senha', fn: 'Hasher.hash' },
-          ...(specs.antivirusVer > 0 ? [{ softKey: 'antivirus', ver: specs.antivirusVer, icon: 'shield-check', kind: 'defense', name: 'Antivírus', fn: 'Antivirus.av' }] : [])
+          { softKey: 'firewall', ver: host.firewallVer || 1.0, icon: 'shield', kind: 'defense', name: 'Escudo de Rede (Firewall)', fn: 'Firewall.fwl' },
+          { softKey: 'hasher', ver: host.hasherVer || 1.0, icon: 'lock', kind: 'defense', name: 'Cofre de Senha (Hasher)', fn: 'Hasher.hash' },
+          ...(specs.antivirusVer > 0 ? [{ softKey: 'antivirus', ver: specs.antivirusVer, icon: 'shield-check', kind: 'defense', name: 'Varredor Antivírus', fn: 'Antivirus.av' }] : [])
         ];
         nativeDefs.forEach((nd) => {
           if (stealableKeys.has(nd.softKey)) return;
+          const def = window.softwareEngine ? window.softwareEngine.getDefinition(nd.softKey) : null;
           const verInt = Math.round(nd.ver * 10);
           const sz = window.softwareEngine ? window.softwareEngine.getItemSizeMb(nd.softKey, verInt) : 18;
+          const verStr = nd.ver.toFixed(1);
+          const desc = def?.desc || 'Programa de proteção instalado neste computador.';
           remoteSoftRows.push(`
             <tr class="row-running">
-              <td>
-                <div class="soft-app-cell">
-                  <div class="soft-app-icon kind-${nd.kind}">${HC.icon(nd.icon)}</div>
-                  <div class="soft-app-meta">
-                    <div class="soft-app-name-row">
-                      <span class="soft-app-title">${esc(nd.name)}</span>
-                      <span class="soft-app-ext">${esc(nd.fn)}</span>
-                      <span class="hc-badge success">Rodando</span>
-                    </div>
-                    <div class="soft-app-sub">Defesa residente desta máquina</div>
-                  </div>
-                </div>
+              <td class="soft-col-icon">
+                <span class="soft-mini-glyph kind-${nd.kind}"
+                  data-tip-title="${esc(nd.name)}" data-tip-meta="Ativo v${verStr}" data-tip-desc="${esc(desc)}">
+                  ${HC.icon(nd.icon)}
+                </span>
               </td>
-              <td><span class="soft-ver-badge v-tier1">${nd.ver.toFixed(1)}</span></td>
-              <td class="soft-size-cell">${sz} MB</td>
               <td>
-                <div class="soft-actions-cell">
-                  <button type="button" class="soft-act-btn act-dl" onclick="window.handleDownloadRemoteSoft('${esc(host.ip)}', '${esc(nd.softKey)}', ${verInt})">
-                    ${HC.icon('download')} Download
+                <span class="soft-name-trigger" tabindex="0"
+                  data-tip-title="${esc(nd.name)}" data-tip-meta="Rodando v${verStr}" data-tip-desc="${esc(desc)}">
+                  <span class="soft-run-dot"></span>
+                  <span>${esc(nd.fn)}</span>
+                </span>
+              </td>
+              <td class="soft-col-ver"><span class="soft-ver-badge v-tier1">${verStr}</span></td>
+              <td class="soft-col-size">${sz} MB</td>
+              <td class="soft-col-acts">
+                <div class="soft-icon-actions">
+                  <button type="button" class="soft-icon-act ic-info" aria-label="Sobre ${esc(nd.fn)}"
+                    data-tip-title="${esc(nd.name)}" data-tip-meta="v${verStr}" data-tip-desc="${esc(desc)}"
+                    onclick="if(window.showToast) window.showToast('${esc(nd.name)} (${verStr}): ${esc(desc)}')">
+                    ${HC.icon('info')}
+                  </button>
+                  <button type="button" class="soft-icon-act ic-dl" aria-label="Baixar ${esc(nd.fn)} para o seu PC"
+                    data-tip-title="Download para o meu PC" data-tip-meta="${sz} MB"
+                    data-tip-desc="Copiar ${esc(nd.fn)} (${verStr}) deste computador invadido para o seu disco."
+                    onclick="window.handleDownloadRemoteSoft('${esc(host.ip)}', '${esc(nd.softKey)}', ${verInt})">
+                    ${HC.icon('download')}
                   </button>
                 </div>
               </td>
@@ -3199,32 +3272,40 @@
         allFiles.forEach((f) => {
           const safeId = esc(f.name.replace(/[^a-zA-Z0-9]/g, '_'));
           const isStaticDeletable = !f.missionId && !f.isTutorial && ((f.sizeMb || 0) > 0 || f.isCustomNote);
+          const fileTag = f.missionId ? 'Arquivo de Missão' : (f.isTutorial ? 'Arquivo do Tutorial' : 'Arquivo no disco');
           remoteSoftRows.push(`
             <tr>
-              <td>
-                <div class="soft-app-cell">
-                  <div class="soft-app-icon kind-text">${HC.icon('file-text')}</div>
-                  <div class="soft-app-meta">
-                    <div class="soft-app-name-row">
-                      <span class="soft-app-title">${esc(f.name)}</span>
-                      ${f.missionId ? `<span class="hc-badge warning">Missão</span>` : (f.isTutorial ? `<span class="hc-badge success">Tutorial</span>` : '')}
-                    </div>
-                    <div class="soft-app-sub">${esc(f.content)}</div>
-                  </div>
-                </div>
+              <td class="soft-col-icon">
+                <span class="soft-mini-glyph kind-text"
+                  data-tip-title="${esc(f.name)}" data-tip-meta="${esc(fileTag)}" data-tip-desc="${esc(f.content)}">
+                  ${HC.icon('file-text')}
+                </span>
               </td>
-              <td>—</td>
-              <td class="soft-size-cell">${esc(f.size || (f.sizeMb ? f.sizeMb + ' MB' : '1 MB'))}</td>
               <td>
-                <div class="soft-actions-cell">
-                  <button type="button" id="btnReadFile_${safeId}" class="soft-act-btn act-dl" onclick="window.handleRemoteFileAction('${esc(host.ip)}', '${esc(f.name)}', 'read')">
-                    ${HC.icon('download')} ${f.canSteal || f.missionId ? 'Download' : 'Ler'}
+                <span class="soft-name-trigger" tabindex="0"
+                  data-tip-title="${esc(f.name)}" data-tip-meta="${esc(fileTag)}" data-tip-desc="${esc(f.content)}">
+                  <span>${esc(f.name)}</span>
+                </span>
+              </td>
+              <td class="soft-col-ver"><span style="color:var(--hc-text-3);">—</span></td>
+              <td class="soft-col-size">${esc(f.size || (f.sizeMb ? f.sizeMb + ' MB' : '1 MB'))}</td>
+              <td class="soft-col-acts">
+                <div class="soft-icon-actions">
+                  <button type="button" id="btnReadFile_${safeId}" class="soft-icon-act ic-dl" aria-label="${f.canSteal || f.missionId ? 'Baixar' : 'Ler'} ${esc(f.name)}"
+                    data-tip-title="${f.canSteal || f.missionId ? 'Download do arquivo' : 'Ler arquivo'}"
+                    data-tip-desc="${esc(f.content)}"
+                    onclick="window.handleRemoteFileAction('${esc(host.ip)}', '${esc(f.name)}', 'read')">
+                    ${HC.icon('download')}
                   </button>
                   ${f.canDelete
-                    ? `<button type="button" id="btnDeleteFile_${safeId}" class="soft-act-btn act-del" onclick="window.handleRemoteFileAction('${esc(host.ip)}', '${esc(f.name)}', 'delete')">${HC.icon('trash-2')} Apagar</button>`
+                    ? `<button type="button" id="btnDeleteFile_${safeId}" class="soft-icon-act ic-del" aria-label="Excluir ${esc(f.name)}"
+                        data-tip-title="Excluir arquivo" data-tip-desc="Apagar ${esc(f.name)} do disco da vítima."
+                        onclick="window.handleRemoteFileAction('${esc(host.ip)}', '${esc(f.name)}', 'delete')">${HC.icon('trash-2')}</button>`
                     : ''}
                   ${isStaticDeletable
-                    ? `<button type="button" id="btnFreeSpace_${safeId}" class="soft-act-btn act-del" onclick="window.internetEngine.deleteStaticRemoteFile('${esc(host.ip)}', '${esc(f.name)}')">${HC.icon('trash-2')} Apagar</button>`
+                    ? `<button type="button" id="btnFreeSpace_${safeId}" class="soft-icon-act ic-del" aria-label="Excluir ${esc(f.name)}"
+                        data-tip-title="Excluir p/ liberar espaço" data-tip-desc="Apagar ${esc(f.name)} e liberar espaço no HD da vítima."
+                        onclick="window.internetEngine.deleteStaticRemoteFile('${esc(host.ip)}', '${esc(f.name)}')">${HC.icon('trash-2')}</button>`
                     : ''}
                 </div>
               </td>
@@ -3237,9 +3318,11 @@
         const donutHtml = window.softwareEngine
           ? window.softwareEngine.renderDonutSvg(specs.hddUsedMb, specs.hddTotalMb, 'Disco da Vítima')
           : '';
+        const inlineTmBars = window.taskManager ? window.taskManager.renderInlineActiveBarsHtml(host.ip) : '';
 
         subContent = `
           <div style="display: flex; flex-direction: column; gap: 12px;">
+            ${inlineTmBars}
             ${role !== 'root'
               ? `<div style="padding:10px 12px;background:rgba(216,155,56,0.1);border:1px solid var(--hc-warning);border-radius:8px;font-size:12px;color:var(--hc-warning);">
                    <strong>Permissão parcial (${role.toUpperCase()}):</strong> ${role === 'ftp' ? 'Somente Download/Upload e Logs.' : 'Somente Execução/Exclusão e Logs.'}
@@ -3268,15 +3351,6 @@
                        Subir + Rodar
                      </button>
                    </div>`}
-              ${upJob ? `
-                <div style="margin-top:8px;">
-                  <div style="display:flex;justify-content:space-between;font-family:var(--hc-font-mono);font-size:11.5px;margin-bottom:4px;">
-                    <span>Transferindo ${esc(upJob.filename)}...</span>
-                    <strong id="sshVirusUploadPctLbl" style="color:var(--hc-accent-text);">${upJob.pct}%</strong>
-                  </div>
-                  <div class="hc-progress"><span id="sshVirusUploadBarFill" style="width:${upJob.pct}%;"></span></div>
-                </div>
-              ` : ''}
 
               ${stagedOnTarget.length > 0 ? `
                 <div id="stagedVirusesBox" style="margin-top:10px;padding:10px 12px;background:rgba(240,168,58,0.1);border:1px solid var(--hc-warning);border-radius:8px;display:flex;flex-direction:column;gap:6px;">
@@ -3286,7 +3360,7 @@
                   ${stagedOnTarget.map((sv) => `
                     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;">
                       <strong class="mono">/root/${esc(sv.filename)} (${window.softwareEngine.fmtVer(sv.versionInt)})</strong>
-                      <button type="button" id="btnExecStagedVirus_${esc(sv.virusKey)}" class="hc-btn primary sm" onclick="window.internetEngine.executeStagedVirusOnCurrentHost('${esc(sv.virusKey)}')">
+                      <button type="button" id="btnExecStagedVirus_${esc(sv.virusKey)}" class="hc-btn primary sm" onclick="window.internetEngine.executeStagedVirusOnCurrentHost('${esc(sv.virusKey)}', true)">
                         2️⃣ ▶ Executar no PC da Vítima
                       </button>
                     </div>
@@ -3304,7 +3378,7 @@
               ` : ''}
             </div>
 
-            <!-- Gerenciador de Programas & Arquivos do PC da Vítima (Mesmo Estilo Limpo!) -->
+            <!-- Gerenciador de Programas & Arquivos do PC da Vítima (Estilo Foto 2: Ícones Compactos + Mini-Aba Hover!) -->
             <div class="soft-frame" id="remoteTargetSpecsCard">
               <div class="soft-explorer-shell" style="min-height:360px;">
                 <div class="soft-main-col">
@@ -3315,13 +3389,14 @@
                     </div>
                   ` : ''}
                   <div class="soft-table-wrap" role="region" aria-label="Programas no PC invadido">
-                    <table class="soft-table">
+                    <table class="soft-table clean-hw-table">
                       <thead>
                         <tr>
-                          <th>Aplicativo / Arquivo no PC</th>
-                          <th>Versão</th>
-                          <th>Tamanho</th>
-                          <th class="col-actions">Ações</th>
+                          <th class="soft-col-icon"></th>
+                          <th>Nome do programa</th>
+                          <th class="soft-col-ver">Versão</th>
+                          <th class="soft-col-size">Tamanho</th>
+                          <th class="soft-col-acts">Ações</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -3648,22 +3723,11 @@
       const targetAv = host.antivirusVer !== undefined ? host.antivirusVer : 0;
       const canEnterSomehow = canBruteforce || canAnyExp;
 
+      const inlineAttackBars = window.taskManager ? window.taskManager.renderInlineActiveBarsHtml(host.ip) : '';
+
       return `
         <div class="inet-attack-wrap">
-          ${this.isCracking ? `
-            <div class="hc-card" style="padding: 14px 16px; border-color: var(--hc-accent);">
-              <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-family: var(--hc-font-mono); font-size: 12.5px; margin-bottom: 8px;">
-                <span>Quebrando senha root (Cracker v${crcVer.toFixed(1)} · ${speedFactor}x)...</span>
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <strong id="inetCrackPctLabel" style="color: var(--hc-accent-text);">${this.crackPct}%</strong>
-                  ${this.activeCrackPid && window.attackMinigame
-                    ? `<button type="button" id="btnOpenVaultFromCrack" class="hc-btn primary sm" onclick="window.attackMinigame.openForProcess(${this.activeCrackPid})">Acelerar no Cofre</button>`
-                    : ''}
-                </div>
-              </div>
-              <div class="hc-progress"><span id="inetCrackBarFill" style="width: ${this.crackPct}%;"></span></div>
-            </div>
-          ` : ''}
+          ${inlineAttackBars}
 
           <div class="inet-attack-heading">Escolha seu método de ataque:</div>
 

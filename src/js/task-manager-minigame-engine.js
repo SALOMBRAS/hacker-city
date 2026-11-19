@@ -18,16 +18,16 @@
     const h = Math.floor(s / 3600);
     const m = Math.floor((s % 3600) / 60);
     const rem = s % 60;
-    return `${h}h:${String(m).padStart(2, '0')}m:${String(rem).padStart(2, '0')}s`;
+    return `${h}h:${m}m:${rem}s`;
   }
 
   // =========================================================================
-  // 1. TASK MANAGER ENGINE (DIVISÃO REAL DE CPU & REDE + WIDGET FLUTUANTE)
+  // 1. TASK MANAGER ENGINE (ESTILO LIMPO REFERÊNCIA FOTO 1: ALL TASKS / CPU / DOWNLOADS / RUNNING SOFTWARE)
   // =========================================================================
   class TaskManagerEngine {
     constructor() {
       this.processes = [];
-      this.activeFilter = 'all'; // 'all' | 'cpu' | 'net' | 'running'
+      this.activeFilter = 'all'; // 'all' | 'cpu' | 'net' | 'running_soft'
       this.nextPid = 101;
       this.drawerOpen = false;
       this.startSchedulerLoop();
@@ -42,20 +42,23 @@
     }
 
     enqueue(opts) {
-      // Impedir duplicata idêntica rodando ao mesmo tempo (igual a Process::newProcess do HE Legacy)
       if (opts.dedupeKey) {
         const dup = this.processes.find((p) => p.status === 'running' && p.dedupeKey === opts.dedupeKey);
         if (dup) {
-          return { started: false, duplicate: true, process: dup, message: `Já existe "${dup.title}" em execução no Task Manager!` };
+          return { started: false, duplicate: true, process: dup, message: `Já existe "${dup.title}" em execução na Fila de Ações!` };
         }
       }
 
-      const workTotal = Math.max(1.2, Number(opts.idealSeconds || 6));
+      const workTotal = Math.max(1.0, Number(opts.idealSeconds || 2.2));
+      const tourBusy = !!(window.spotlightTour && window.spotlightTour.isActive);
+      const shouldSwitchToTm = !!opts.openTaskManagerNow && !tourBusy;
+
       const proc = {
         pid: this.nextPid++,
         dedupeKey: opts.dedupeKey || null,
         title: opts.title || 'Processo do Sistema',
-        subtitle: opts.subtitle || 'CPU · Localhost',
+        labelHtml: opts.labelHtml || null,
+        subtitle: opts.subtitle || 'CPU · localhost',
         targetIp: opts.targetIp || 'localhost',
         queueKind: opts.queueKind === 'net' ? 'net' : 'cpu',
         category: opts.category || 'Sistema',
@@ -63,6 +66,7 @@
         workDone: 0,
         status: 'running',
         boostedByMinigame: false,
+        returnWindowId: shouldSwitchToTm ? (opts.returnWindowId || null) : null,
         createdAt: Date.now(),
         onComplete: typeof opts.onComplete === 'function' ? opts.onComplete : null,
         onCancel: typeof opts.onCancel === 'function' ? opts.onCancel : null
@@ -71,8 +75,13 @@
       this.processes.unshift(proc);
       if (this.processes.length > 30) {
         this.processes = this.processes.filter((p) => p.status === 'running').concat(
-          this.processes.filter((p) => p.status !== 'running').slice(0, 12)
+          this.processes.filter((p) => p.status !== 'running').slice(0, 10)
         );
+      }
+
+      if (shouldSwitchToTm && typeof window.navTo === 'function') {
+        this.activeFilter = proc.queueKind === 'net' ? 'net' : 'cpu';
+        window.navTo('winTaskManager');
       }
 
       this.syncWidgets();
@@ -86,6 +95,7 @@
       const idx = this.processes.findIndex((p) => p.pid === Number(pid));
       if (idx === -1) return false;
       const proc = this.processes[idx];
+      const retWin = proc.returnWindowId;
       if (proc.status === 'running') {
         proc.status = 'cancelled';
         if (proc.onCancel) {
@@ -94,7 +104,14 @@
       }
       this.processes.splice(idx, 1);
       this.syncWidgets();
-      this.renderUI();
+      if (retWin && window.winManager && window.winManager.current === 'winTaskManager' && this.getRunningAll().length === 0) {
+        if (typeof window.navTo === 'function') window.navTo(retWin);
+      } else {
+        this.renderUI();
+      }
+      if (window.internetEngine && window.winManager && window.winManager.current === 'winBrowser') {
+        window.internetEngine.render();
+      }
       return true;
     }
 
@@ -124,20 +141,27 @@
         try { proc.onComplete(proc); } catch (e) { console.error('Erro ao concluir processo:', e); }
       }
       this.syncWidgets();
+
+      if (proc.returnWindowId && window.winManager && window.winManager.current === 'winTaskManager') {
+        const stillAuto = this.getRunningAll().some((r) => !!r.returnWindowId);
+        if (!stillAuto && typeof window.navTo === 'function') {
+          window.navTo(proc.returnWindowId);
+          return;
+        }
+      }
       if (window.winManager && window.winManager.current === 'winTaskManager') {
         this.renderUI();
       }
     }
 
     startSchedulerLoop() {
-      const TICK_MS = 250;
+      const TICK_MS = 100;
       const dt = TICK_MS / 1000;
       setInterval(() => {
         const cpuRunning = this.getRunningByKind('cpu');
         const netRunning = this.getRunningByKind('net');
         if (cpuRunning.length === 0 && netRunning.length === 0) return;
 
-        // Divisão exata da fila: N tarefas na mesma fila recebem 1/N do recurso!
         const cpuShare = cpuRunning.length > 0 ? 1 / cpuRunning.length : 1;
         const netShare = netRunning.length > 0 ? 1 / netRunning.length : 1;
 
@@ -156,6 +180,8 @@
         if (window.winManager && window.winManager.current === 'winTaskManager') {
           this.renderUI();
         }
+        // Atualiza barras inline ao vivo se estiverem visíveis na Internet
+        this.updateInlineDomBars();
         if (window.attackMinigame && window.attackMinigame.activePid) {
           window.attackMinigame.refreshTimerDisplay();
         }
@@ -164,14 +190,72 @@
 
     getProcessTelemetry(proc) {
       if (proc.status !== 'running') {
-        return { pct: 100, sharePct: 0, etaSec: 0 };
+        return { pct: 100, pctDecStr: '100.0%', sharePct: 0, etaSec: 0 };
       }
       const sameQueue = this.getRunningByKind(proc.queueKind);
       const count = Math.max(1, sameQueue.length);
       const sharePct = Math.round(100 / count);
-      const pct = Math.min(99, Math.round((proc.workDone / proc.workTotal) * 100));
+      const rawPct = Math.min(99.9, Math.max(0.5, (proc.workDone / proc.workTotal) * 100));
+      const pct = Math.round(rawPct);
+      const pctDecStr = rawPct.toFixed(1) + '%';
       const etaSec = (proc.workTotal - proc.workDone) * count;
-      return { pct, sharePct, etaSec };
+      return { pct, pctDecStr, sharePct, etaSec };
+    }
+
+    updateInlineDomBars() {
+      const running = this.getRunningAll();
+      running.forEach((p) => {
+        const t = this.getProcessTelemetry(p);
+        const fillEl = document.getElementById(`tmInlineFill_${p.pid}`);
+        const pctEl = document.getElementById(`tmInlinePct_${p.pid}`);
+        const etaEl = document.getElementById(`tmInlineEta_${p.pid}`);
+        if (fillEl) fillEl.style.width = t.pctDecStr;
+        if (pctEl) pctEl.textContent = t.pctDecStr;
+        if (etaEl) etaEl.textContent = fmtEta(t.etaSec);
+      });
+    }
+
+    renderProcessRowHtml(p, inlinePrefix = false) {
+      const t = this.getProcessTelemetry(p);
+      const isNet = p.queueKind === 'net';
+      const labelContent = p.labelHtml
+        ? p.labelHtml
+        : `${esc(p.title)} <span class="mono" style="color:var(--hc-text-3);">(${esc(p.targetIp)})</span>`;
+      const iconName = isNet ? 'globe' : 'cpu';
+
+      return `
+        <div class="tm-process-row" data-pid="${p.pid}">
+          <div class="tm-proc-label">${labelContent}</div>
+
+          <div class="tm-bar-col">
+            <div class="tm-bar-pct" ${inlinePrefix ? `id="tmInlinePct_${p.pid}"` : ''}>${t.pctDecStr}</div>
+            <div class="tm-bar-track">
+              <div class="tm-bar-fill ${isNet ? 'is-net' : ''}" ${inlinePrefix ? `id="tmInlineFill_${p.pid}"` : ''} style="width: ${t.pctDecStr};"></div>
+            </div>
+            <div class="tm-bar-eta" ${inlinePrefix ? `id="tmInlineEta_${p.pid}"` : ''}>${fmtEta(t.etaSec)}</div>
+          </div>
+
+          <div class="tm-share-col">
+            ${window.HC ? HC.icon(iconName) : ''}
+            <span>${t.sharePct}%</span>
+            ${window.attackMinigame && p.workTotal >= 3.2
+              ? `<button type="button" class="soft-icon-act ic-run" data-tip-title="Acelerar tarefa" data-tip-desc="Abrir cofre giratório para cortar o tempo restante" onclick="window.attackMinigame.openForProcess(${p.pid})" aria-label="Acelerar tarefa">${window.HC ? HC.icon('zap') : '⚡'}</button>`
+              : ''}
+          </div>
+
+          <button type="button" class="tm-cancel-btn" data-tip-title="Cancelar ação" data-tip-desc="Interromper esta tarefa imediatamente" aria-label="Cancelar tarefa" onclick="window.taskManager.cancelProcess(${p.pid})">✕</button>
+        </div>
+      `;
+    }
+
+    renderInlineActiveBarsHtml(targetIp = null) {
+      const list = this.getRunningAll().filter((p) => !targetIp || p.targetIp === targetIp);
+      if (list.length === 0) return '';
+      return `
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
+          ${list.map((p) => this.renderProcessRowHtml(p, true)).join('')}
+        </div>
+      `;
     }
 
     syncWidgets() {
@@ -200,21 +284,21 @@
 
       pill.style.display = 'block';
       const drawerRows = this.drawerOpen
-        ? `<div style="background:var(--hc-surface);border:1px solid var(--hc-border-strong);border-radius:10px;padding:10px 12px;margin-bottom:8px;width:340px;box-shadow:0 12px 32px rgba(0,0,0,0.45);">
+        ? `<div style="background:var(--hc-surface);border:1px solid var(--hc-border-strong);border-radius:10px;padding:10px 12px;margin-bottom:8px;width:360px;box-shadow:0 12px 32px rgba(0,0,0,0.5);">
              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-               <strong style="font-size:0.8rem;">Processos em Execução (${running.length})</strong>
-               <button type="button" class="hc-btn ghost sm" style="padding:2px 7px;font-size:0.72rem;" onclick="navTo('winTaskManager')">Abrir Task Manager →</button>
+               <strong style="font-size:12.5px;">Ações Acontecendo (${running.length})</strong>
+               <button type="button" class="hc-btn ghost sm" style="height:24px;padding:0 8px;font-size:11.5px;" onclick="navTo('winTaskManager')">Ver Fila de Ações →</button>
              </div>
              ${running.slice(0, 4).map((p) => {
                const t = this.getProcessTelemetry(p);
                return `
-                 <div style="padding:6px 0;border-bottom:1px solid var(--hc-border);font-size:0.76rem;">
-                   <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-                     <strong style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:210px;">${esc(p.title)}</strong>
-                     <span style="font-family:var(--hc-font-mono);color:var(--hc-text-2);">${fmtEta(t.etaSec)}</span>
+                 <div style="padding:6px 0;border-bottom:1px solid var(--hc-border);font-size:12px;">
+                   <div style="display:flex;justify-content:space-between;margin-bottom:3px;gap:8px;">
+                     <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:225px;">${esc(p.title)}</span>
+                     <span class="mono" style="color:var(--hc-text-2);font-size:11px;">${t.pctDecStr} · ${fmtEta(t.etaSec)}</span>
                    </div>
-                   <div style="height:5px;background:var(--hc-inset);border-radius:999px;overflow:hidden;">
-                     <div style="height:100%;width:${t.pct}%;background:${p.queueKind === 'net' ? '#3b82f6' : 'var(--hc-accent)'};"></div>
+                   <div class="tm-bar-track" style="height:7px;">
+                     <div class="tm-bar-fill ${p.queueKind === 'net' ? 'is-net' : ''}" style="width:${t.pctDecStr};"></div>
                    </div>
                  </div>
                `;
@@ -224,11 +308,70 @@
 
       pill.innerHTML = `
         ${drawerRows}
-        <button type="button" id="btnFloatingProcessPill" onclick="window.taskManager.drawerOpen=!window.taskManager.drawerOpen;window.taskManager.syncWidgets();" style="margin-left:auto;display:flex;align-items:center;gap:9px;background:var(--hc-surface-2);border:1px solid rgba(53,184,119,0.45);color:var(--hc-text);padding:8px 14px;border-radius:999px;cursor:pointer;font-size:0.82rem;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,0.4);">
+        <button type="button" id="btnFloatingProcessPill" onclick="window.taskManager.drawerOpen=!window.taskManager.drawerOpen;window.taskManager.syncWidgets();" style="margin-left:auto;display:flex;align-items:center;gap:9px;background:var(--hc-surface-2);border:1px solid rgba(53,184,119,0.45);color:var(--hc-text);padding:8px 14px;border-radius:999px;cursor:pointer;font-size:12.5px;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,0.4);">
           <span style="width:8px;height:8px;border-radius:50%;background:var(--hc-accent);display:inline-block;"></span>
           <span>${running.length} processo${running.length === 1 ? '' : 's'}</span>
-          <span style="color:var(--hc-text-3);font-size:0.75rem;">${this.drawerOpen ? '▾' : '▴'}</span>
+          <span style="color:var(--hc-text-3);font-size:11.5px;">${this.drawerOpen ? '▾' : '▴'}</span>
         </button>
+      `;
+    }
+
+    renderRunningSoftwareTabHtml() {
+      if (!window.softwareEngine) return '<div style="padding:28px;text-align:center;color:var(--hc-text-3);">Nenhum software ativo.</div>';
+      window.softwareEngine.ensureLoaded();
+      const inv = window.softwareEngine.state.inventory || {};
+      const runningItems = Object.entries(inv).filter(([, st]) => st && st.owned && st.installed);
+
+      if (runningItems.length === 0) {
+        return `<div style="padding:32px 16px;text-align:center;color:var(--hc-text-3);font-size:13px;">Nenhum programa rodando em segundo plano no momento.</div>`;
+      }
+
+      const rows = runningItems.map(([k, st]) => {
+        const def = window.softwareEngine.getDefinition(k) || { filename: k, friendlyTitle: k, icon: 'cpu', iconKind: 'attack' };
+        const ver = ((st.runningVerInt || st.versionInt || 10) / 10).toFixed(1);
+        const ramMb = window.softwareEngine.getItemRamMb(k, st.runningVerInt || st.versionInt, false);
+        return `
+          <tr class="row-running">
+            <td class="soft-col-icon">
+              <span class="soft-mini-glyph kind-${def.iconKind || 'attack'}" data-tip-title="${esc(def.friendlyTitle)}" data-tip-meta="${esc(def.filename)} v${ver}" data-tip-desc="${esc(def.desc || '')}">
+                ${window.HC ? HC.icon(def.icon || 'cpu') : ''}
+              </span>
+            </td>
+            <td>
+              <span class="soft-name-trigger" data-tip-title="${esc(def.friendlyTitle)}" data-tip-meta="Em execução" data-tip-desc="${esc(def.desc || '')}">
+                <span class="soft-run-dot"></span> ${esc(def.filename)}
+              </span>
+            </td>
+            <td class="soft-col-ver"><span class="soft-ver-badge v-tier2">${ver}</span></td>
+            <td class="soft-col-size">${ramMb > 0 ? ramMb + ' MB RAM' : '2º Plano'}</td>
+            <td class="soft-col-acts">
+              <div class="soft-icon-actions">
+                <button type="button" class="soft-icon-act ic-stop" aria-label="Encerrar ${esc(def.filename)}"
+                  data-tip-title="Parar execução" data-tip-desc="Encerrar ${esc(def.filename)} (${ver}) que está rodando em segundo plano"
+                  onclick="window.softwareEngine.stopSoftwareViaTaskManager('${esc(k)}')">
+                  ${window.HC ? HC.icon('circle-stop') : '⏹'}
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      return `
+        <div class="soft-table-wrap">
+          <table class="soft-table clean-hw-table">
+            <thead>
+              <tr>
+                <th class="soft-col-icon"></th>
+                <th>Programa em segundo plano</th>
+                <th class="soft-col-ver">Versão</th>
+                <th class="soft-col-size">Memória</th>
+                <th class="soft-col-acts">Ações</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
       `;
     }
 
@@ -236,101 +379,52 @@
       const container = document.getElementById(containerId);
       if (!container) return;
 
-      const allCount = this.processes.length;
-      const cpuCount = this.getRunningByKind('cpu').length;
-      const netCount = this.getRunningByKind('net').length;
-      const runCount = this.getRunningAll().length;
+      const runningAll = this.getRunningAll();
+      const cpuRunning = this.getRunningByKind('cpu');
+      const netRunning = this.getRunningByKind('net');
+      let runningSoftCount = 0;
+      if (window.softwareEngine && window.softwareEngine.state && window.softwareEngine.state.inventory) {
+        runningSoftCount = Object.values(window.softwareEngine.state.inventory).filter((s) => s && s.owned && s.installed).length;
+      }
 
-      const filtered = this.processes.filter((p) => {
-        if (this.activeFilter === 'cpu') return p.queueKind === 'cpu';
-        if (this.activeFilter === 'net') return p.queueKind === 'net';
-        if (this.activeFilter === 'running') return p.status === 'running';
-        return true;
-      });
+      let bodyHtml = '';
+      if (this.activeFilter === 'running_soft') {
+        bodyHtml = this.renderRunningSoftwareTabHtml();
+      } else {
+        const list = runningAll.filter((p) => {
+          if (this.activeFilter === 'cpu') return p.queueKind === 'cpu';
+          if (this.activeFilter === 'net') return p.queueKind === 'net';
+          return true;
+        });
 
-      const catBadgeClass = (cat) => {
-        if (cat === 'Ataque') return 'danger';
-        if (cat === 'Camuflagem' || cat === 'Rede') return 'info';
-        if (cat === 'Vírus') return 'warn';
-        return 'success';
-      };
-
-      const rowsHtml = filtered.length === 0
-        ? `<div style="padding:2.4rem;text-align:center;color:var(--hc-text-2);font-size:0.86rem;">
-             Nenhum processo nesta fila agora. Inicie uma invasão, upload/download ou pesquisa de software para acompanhar e acelerar os processos aqui!
-           </div>`
-        : filtered.map((p) => {
-            const t = this.getProcessTelemetry(p);
-            const isNet = p.queueKind === 'net';
-            const isRun = p.status === 'running';
-            return `
-              <div style="display:grid;grid-template-columns:minmax(220px,1.5fr) minmax(115px,0.8fr) minmax(230px,1.5fr) minmax(105px,0.7fr) minmax(95px,0.65fr) auto;gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--hc-border);font-size:0.82rem;">
-                <div>
-                  <strong style="display:block;font-size:0.88rem;color:var(--hc-text);">${esc(p.title)}</strong>
-                  <span style="font-size:0.74rem;color:var(--hc-text-3);font-family:var(--hc-font-mono);">${esc(p.subtitle)}</span>
-                </div>
-
-                <div style="font-family:var(--hc-font-mono);color:var(--hc-accent-text);cursor:pointer;" onclick="if('${esc(p.targetIp)}'!=='localhost') window.internetEngine.openIp('${esc(p.targetIp)}')">
-                  ${esc(p.targetIp)}
-                </div>
-
-                <div>
-                  <div style="display:flex;align-items:center;gap:10px;">
-                    <div style="flex:1;height:8px;background:var(--hc-inset);border-radius:999px;overflow:hidden;">
-                      <div style="height:100%;width:${t.pct}%;background:${isNet ? '#3b82f6' : 'var(--hc-accent)'};transition:width 0.2s linear;"></div>
-                    </div>
-                    <span style="font-family:var(--hc-font-mono);font-size:0.77rem;color:var(--hc-text-2);min-width:68px;text-align:right;">
-                      ${isRun ? fmtEta(t.etaSec) : '0h:00m:00s'}
-                    </span>
-                  </div>
-                  <div style="font-size:0.72rem;color:var(--hc-text-3);font-family:var(--hc-font-mono);margin-top:3px;">
-                    ${isRun ? `${t.pct}% · ${t.sharePct}% da ${isNet ? 'banda' : 'CPU'}` : '100% · Concluído'}
-                  </div>
-                </div>
-
-                <div><span class="hc-badge ${catBadgeClass(p.category)}">${esc(p.category)}</span></div>
-
-                <div>
-                  <span class="hc-badge ${isRun ? (isNet ? 'info' : 'success') : ''}">
-                    ● ${isRun ? (isNet ? 'Rede' : 'Rodando') : 'Concluído'}
-                  </span>
-                </div>
-
-                <div style="display:flex;gap:6px;justify-content:flex-end;">
-                  ${isRun
-                    ? `<button type="button" id="btnBoostProc_${p.pid}" class="hc-btn primary sm" title="Jogar minigame do cofre para cortar tempo!" onclick="window.attackMinigame.openForProcess(${p.pid})">⚡ Cortar Tempo</button>`
-                    : ''}
-                  <button type="button" class="hc-btn ghost sm" title="Cancelar / Remover" onclick="window.taskManager.cancelProcess(${p.pid})">✕</button>
-                </div>
-              </div>
-            `;
-          }).join('');
+        bodyHtml = list.length === 0
+          ? `<div style="padding:34px 16px;text-align:center;color:var(--hc-text-3);font-size:13px;">
+               Nenhuma ação em andamento nesta aba agora. Quando você rodar um programa, subir um arquivo ou executar um vírus, a barra de progresso aparecerá aqui em tempo real.
+             </div>`
+          : list.map((p) => this.renderProcessRowHtml(p, false)).join('');
+      }
 
       container.innerHTML = `
-        <div class="hc-card" style="padding:0;overflow:hidden;">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--hc-border);flex-wrap:wrap;gap:10px;">
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button type="button" class="hc-btn sm ${this.activeFilter === 'all' ? 'primary' : 'ghost'}" onclick="window.taskManager.activeFilter='all';window.taskManager.renderUI();">Todas (${allCount})</button>
-              <button type="button" class="hc-btn sm ${this.activeFilter === 'cpu' ? 'primary' : 'ghost'}" onclick="window.taskManager.activeFilter='cpu';window.taskManager.renderUI();">CPU (${cpuCount})</button>
-              <button type="button" class="hc-btn sm ${this.activeFilter === 'net' ? 'primary' : 'ghost'}" onclick="window.taskManager.activeFilter='net';window.taskManager.renderUI();">Download manager (${netCount})</button>
-              <button type="button" class="hc-btn sm ${this.activeFilter === 'running' ? 'primary' : 'ghost'}" onclick="window.taskManager.activeFilter='running';window.taskManager.renderUI();">Rodando (${runCount})</button>
+        <div class="tm-frame" id="taskManagerMainFrame">
+          <div class="soft-tabs-bar">
+            <div class="soft-tabs-left">
+              <button type="button" class="soft-tab-btn ${this.activeFilter === 'all' ? 'active' : ''}" onclick="window.taskManager.activeFilter='all';window.taskManager.renderUI();">
+                ${window.HC ? HC.icon('activity') : ''} <span>Todas as tarefas${runningAll.length > 0 ? ` (${runningAll.length})` : ''}</span>
+              </button>
+              <button type="button" class="soft-tab-btn ${this.activeFilter === 'cpu' ? 'active' : ''}" onclick="window.taskManager.activeFilter='cpu';window.taskManager.renderUI();">
+                ${window.HC ? HC.icon('cpu') : ''} <span>Tarefas de CPU${cpuRunning.length > 0 ? ` (${cpuRunning.length})` : ''}</span>
+              </button>
+              <button type="button" class="soft-tab-btn ${this.activeFilter === 'net' ? 'active' : ''}" onclick="window.taskManager.activeFilter='net';window.taskManager.renderUI();">
+                ${window.HC ? HC.icon('download') : ''} <span>Gerenciador de Downloads${netRunning.length > 0 ? ` (${netRunning.length})` : ''}</span>
+              </button>
+              <button type="button" class="soft-tab-btn ${this.activeFilter === 'running_soft' ? 'active' : ''}" onclick="window.taskManager.activeFilter='running_soft';window.taskManager.renderUI();">
+                ${window.HC ? HC.icon('layers') : ''} <span>Programas em execução${runningSoftCount > 0 ? ` (${runningSoftCount})` : ''}</span>
+              </button>
             </div>
-            <button type="button" class="hc-btn ghost sm" onclick="window.taskManager.processes=window.taskManager.getRunningAll();window.taskManager.renderUI();">Limpar Concluídos</button>
           </div>
 
-          <div style="display:grid;grid-template-columns:minmax(220px,1.5fr) minmax(115px,0.8fr) minmax(230px,1.5fr) minmax(105px,0.7fr) minmax(95px,0.65fr) auto;gap:12px;padding:9px 14px;border-bottom:1px solid var(--hc-border);font-family:var(--hc-font-mono);font-size:0.7rem;color:var(--hc-text-3);text-transform:uppercase;">
-            <div>Processo</div>
-            <div>Alvo</div>
-            <div>Progresso</div>
-            <div>Categoria</div>
-            <div>Estado</div>
-            <div style="text-align:right;">Ações</div>
-          </div>
-
-          ${rowsHtml}
-
-          <div style="padding:10px 16px;background:var(--hc-inset);font-size:0.76rem;color:var(--hc-text-3);">
-            ⓘ Tarefas da mesma fila dividem o recurso (CPU ou Internet) em partes iguais. Clique em <strong>⚡ Cortar Tempo</strong> para abrir o Cofre Giratório e acelerar qualquer tarefa!
+          <div class="tm-body">
+            ${bodyHtml}
           </div>
         </div>
       `;

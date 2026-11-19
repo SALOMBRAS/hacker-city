@@ -781,12 +781,133 @@
       this.driveFilter = 'all';
       this.currentFolderId = null;
       this.activeUploadJob = null;
+      this.feedbackMessage = null;
       this.avPurgeHistory = [];
       this.lastNmapReport = null;
       this.transitions = {}; // softKey -> { mode: 'cooldown_off' | 'booting' | 'swapping', fromVerInt, toVerInt, startedAt, endsAt, durationMs }
+      this.initHoverMiniTabController();
       this.startTransitionUiLoop();
       this.startVirusYieldTicker();
       this.startRemoteAvSweepLoop();
+    }
+
+    showFeedbackBanner(msg) {
+      this.feedbackMessage = msg;
+      if (window.winManager && window.winManager.current === 'winSoftware') {
+        this.renderUI();
+      }
+    }
+
+    // Controlador global da Mini-Aba flutuante (#hcHoverMiniTab) ao passar o mouse sobre qualquer app ou ícone de ação
+    initHoverMiniTabController() {
+      if (typeof document === 'undefined' || window.__hcHoverMiniTabBound) return;
+      window.__hcHoverMiniTabBound = true;
+
+      let hideTimer = null;
+      let currentAnchor = null;
+
+      const ensureTipEl = () => {
+        let el = document.getElementById('hcHoverMiniTab');
+        if (!el && document.body) {
+          el = document.createElement('div');
+          el.id = 'hcHoverMiniTab';
+          el.setAttribute('role', 'tooltip');
+          el.setAttribute('aria-hidden', 'true');
+          el.addEventListener('mouseenter', () => {
+            if (hideTimer) {
+              clearTimeout(hideTimer);
+              hideTimer = null;
+            }
+          });
+          el.addEventListener('mouseleave', () => {
+            hideTipImmediate();
+          });
+          document.body.appendChild(el);
+        }
+        return el;
+      };
+
+      const hideTipImmediate = () => {
+        if (hideTimer) {
+          clearTimeout(hideTimer);
+          hideTimer = null;
+        }
+        currentAnchor = null;
+        const el = document.getElementById('hcHoverMiniTab');
+        if (el) {
+          el.classList.remove('visible');
+          el.setAttribute('aria-hidden', 'true');
+        }
+      };
+
+      const positionAndShowTip = (anchor) => {
+        if (!anchor || !anchor.isConnected) return;
+        const title = anchor.getAttribute('data-tip-title');
+        if (!title) return;
+        const meta = anchor.getAttribute('data-tip-meta') || '';
+        const desc = anchor.getAttribute('data-tip-desc') || '';
+        const tip = ensureTipEl();
+        if (!tip) return;
+
+        if (hideTimer) {
+          clearTimeout(hideTimer);
+          hideTimer = null;
+        }
+        currentAnchor = anchor;
+
+        tip.innerHTML = `
+          <div class="mht-head">
+            <span class="mht-title">${esc(title)}</span>
+            ${meta ? `<span class="mht-meta">${esc(meta)}</span>` : ''}
+          </div>
+          ${desc ? `<div class="mht-desc">${esc(desc)}</div>` : ''}
+        `;
+        tip.classList.add('visible');
+        tip.setAttribute('aria-hidden', 'false');
+
+        const rect = anchor.getBoundingClientRect();
+        const tipRect = tip.getBoundingClientRect();
+        let top = rect.top - tipRect.height - 8;
+        if (top < 10) {
+          top = rect.bottom + 8;
+        }
+        let left = rect.left + (rect.width / 2) - (tipRect.width / 2);
+        const maxLeft = Math.max(10, window.innerWidth - tipRect.width - 10);
+        left = Math.max(10, Math.min(maxLeft, left));
+
+        tip.style.top = `${Math.round(top)}px`;
+        tip.style.left = `${Math.round(left)}px`;
+      };
+
+      document.addEventListener('mouseover', (ev) => {
+        const anchor = ev.target && ev.target.closest ? ev.target.closest('[data-tip-title]') : null;
+        if (anchor) {
+          positionAndShowTip(anchor);
+        } else if (currentAnchor && (!ev.target || !ev.target.closest || !ev.target.closest('#hcHoverMiniTab'))) {
+          if (!hideTimer) {
+            hideTimer = setTimeout(hideTipImmediate, 65);
+          }
+        }
+      }, true);
+
+      document.addEventListener('focusin', (ev) => {
+        const anchor = ev.target && ev.target.closest ? ev.target.closest('[data-tip-title]') : null;
+        if (anchor) positionAndShowTip(anchor);
+      }, true);
+
+      document.addEventListener('focusout', () => {
+        if (!hideTimer) hideTimer = setTimeout(hideTipImmediate, 65);
+      }, true);
+
+      document.addEventListener('mousedown', (ev) => {
+        if (!ev.target || !ev.target.closest || !ev.target.closest('#hcHoverMiniTab')) {
+          hideTipImmediate();
+        }
+      }, true);
+
+      document.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape') hideTipImmediate();
+      });
     }
 
     storageKey(uid) {
@@ -912,12 +1033,12 @@
               cur.licensed = false;
             }
           }
-          // Ferramentas sob demanda (Cracker, Antivírus, PortScan, Exploits, Hider, Seeker) NÃO ficam ocupando RAM!
-          if (def.onDemandTool) {
+          // Permite deixar utilitários sob demanda rodando em 2º plano quando o jogador clicar em Rodar (⚙️), sem consumir RAM extra!
+          if (cur.installed) {
+            cur.runningVerInt = Number(cur.runningVerInt || cur.versionInt || 10);
+          } else {
             cur.installed = false;
             cur.runningVerInt = 0;
-          } else if (cur.runningVerInt === undefined) {
-            cur.runningVerInt = cur.installed ? Number(cur.versionInt || 10) : 0;
           }
           if (cur.licensed === undefined) cur.licensed = !!cur.owned;
           if (!['hd', 'ssd', 'nvme'].includes(cur.drive)) cur.drive = def.starterDrive || 'hd';
@@ -1006,10 +1127,6 @@
 
       Object.entries(savedTr).forEach(([k, tr]) => {
         if (!tr || !tr.endsAt) return;
-        if (SOFTWARE_DEFINITIONS[k]?.onDemandTool) {
-          mutated = true;
-          return;
-        }
         if (tr.endsAt > now) {
           this.transitions[k] = { ...tr };
         } else {
@@ -2317,8 +2434,7 @@
         };
       }
 
-      const steps = Math.max(3, Math.round(tr.durationSec / 0.25));
-      let curStep = 0;
+      const verNumStr = (invCheck.versionInt / 10).toFixed(1);
       this.activeUploadJob = {
         targetIp: host.ip,
         virusKey,
@@ -2328,72 +2444,118 @@
         targetMbps: tr.targetMbps,
         durationSec: tr.durationSec,
         stageOnly,
-        pct: 8
+        pct: 8,
+        pid: null
       };
-      if (window.internetEngine) window.internetEngine.render();
 
+      const finalizeVirusUpload = () => {
+        this.activeUploadJob = null;
+        if (!window.internetEngine || window.internetEngine.activeSshIp !== host.ip) {
+          if (typeof window.showToast === 'function') window.showToast('Upload abortado: conexão encerrada antes do término!');
+          return;
+        }
+
+        if (stageOnly) {
+          if (!this.state.stagedRemoteViruses) this.state.stagedRemoteViruses = {};
+          const curList = (this.state.stagedRemoteViruses[host.ip] || []).filter((sv) => sv.virusKey !== virusKey);
+          curList.unshift({
+            virusKey,
+            filename: def.filename,
+            friendlyTitle: def.friendlyTitle || def.filename,
+            versionInt: invCheck.versionInt,
+            sizeMb: tr.sizeMb,
+            ramMb: tr.ramNeededMb,
+            uploadedAt: new Date().toLocaleTimeString()
+          });
+          this.state.stagedRemoteViruses[host.ip] = curList;
+          this.save();
+
+          const visibleIp = window.bounceEngine
+            ? window.bounceEngine.routeConnectionAndGetVisibleIp(host.ip).visibleIp
+            : (window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0');
+          if (window.internetEngine) {
+            window.internetEngine.appendServerLog(
+              host.ip,
+              `${visibleIp} uploaded file /root/${def.filename} (${this.fmtVer(invCheck.versionInt)}, ${tr.sizeMb}MB)`
+            );
+          }
+          if (typeof window.addLocalLog === 'function') {
+            window.addLocalLog('VIRUS-UPLOAD', `Arquivo ${def.filename} (${this.fmtVer(invCheck.versionInt)}, ${tr.sizeMb}MB) subido p/ ${host.ip}:/root (aguardando executar!)`, 'info');
+          }
+          if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+          const stageRes = {
+            success: true,
+            stagedOnly: true,
+            virusKey,
+            sizeMb: tr.sizeMb,
+            message: `📦 1/2 ${def.filename} subido pro disco de ${host.ip}! Agora clique em "▶ Executar no PC da Vítima"!`
+          };
+          if (typeof onDone === 'function') onDone(stageRes);
+          if (window.internetEngine) window.internetEngine.render();
+          return;
+        }
+
+        const res = this.installVirusOnRemote(host, virusKey);
+        if (typeof onDone === 'function') onDone(res);
+        if (window.internetEngine) window.internetEngine.render();
+      };
+
+      if (window.taskManager) {
+        const idealSec = Math.max(1.3, tr.durationSec);
+        const enq = window.taskManager.enqueue({
+          dedupeKey: `up_virus_${host.ip}_${virusKey}`,
+          title: `Subir ${def.filename} (${verNumStr}) para ${host.ip}`,
+          labelHtml: `Subir arquivo <strong>${esc(def.filename)}</strong> (${verNumStr}) para ${esc(host.ip)}`,
+          subtitle: `Rede · ${tr.sizeMb} MB @ ${tr.myMbps} Mbps`,
+          targetIp: host.ip,
+          queueKind: 'net',
+          category: 'Rede',
+          idealSeconds: idealSec,
+          onComplete: finalizeVirusUpload,
+          onCancel: () => {
+            this.activeUploadJob = null;
+            if (window.internetEngine) window.internetEngine.render();
+          }
+        });
+
+        if (enq.started) {
+          this.activeUploadJob.pid = enq.process.pid;
+          const watchConn = setInterval(() => {
+            const proc = window.taskManager.processes.find((x) => x.pid === enq.process.pid);
+            if (!proc || proc.status !== 'running') {
+              clearInterval(watchConn);
+              return;
+            }
+            if (!window.internetEngine || window.internetEngine.activeSshIp !== host.ip) {
+              clearInterval(watchConn);
+              window.taskManager.cancelProcess(enq.process.pid);
+              if (typeof window.showToast === 'function') window.showToast('Upload abortado: conexão encerrada antes do término!');
+              return;
+            }
+            const pct = Math.min(99, Math.round((proc.workDone / proc.workTotal) * 100));
+            if (this.activeUploadJob) this.activeUploadJob.pct = pct;
+          }, 150);
+
+          if (window.internetEngine) window.internetEngine.render();
+          return { started: true, durationSec: idealSec, sizeMb: tr.sizeMb, pid: enq.process.pid };
+        }
+      }
+
+      if (window.internetEngine) window.internetEngine.render();
+      const steps = Math.max(3, Math.round(tr.durationSec / 0.25));
+      let curStep = 0;
       const timer = setInterval(() => {
         if (!window.internetEngine || window.internetEngine.activeSshIp !== host.ip) {
           clearInterval(timer);
           this.activeUploadJob = null;
-          if (typeof window.showToast === 'function') window.showToast('Upload abortado: conexão encerrada antes do término!');
           return;
         }
         curStep++;
         const pct = Math.min(100, Math.round((curStep / steps) * 100));
         if (this.activeUploadJob) this.activeUploadJob.pct = pct;
-        const fillEl = document.getElementById('sshVirusUploadBarFill');
-        const lblEl = document.getElementById('sshVirusUploadPctLbl');
-        if (fillEl) fillEl.style.width = pct + '%';
-        if (lblEl) lblEl.textContent = `${pct}% (${tr.sizeMb} MB @ ${tr.myMbps} Mbps)`;
-
         if (pct >= 100) {
           clearInterval(timer);
-          this.activeUploadJob = null;
-
-          if (stageOnly) {
-            if (!this.state.stagedRemoteViruses) this.state.stagedRemoteViruses = {};
-            const curList = (this.state.stagedRemoteViruses[host.ip] || []).filter((sv) => sv.virusKey !== virusKey);
-            curList.unshift({
-              virusKey,
-              filename: def.filename,
-              friendlyTitle: def.friendlyTitle || def.filename,
-              versionInt: invCheck.versionInt,
-              sizeMb: tr.sizeMb,
-              ramMb: tr.ramNeededMb,
-              uploadedAt: new Date().toLocaleTimeString()
-            });
-            this.state.stagedRemoteViruses[host.ip] = curList;
-            this.save();
-
-            const visibleIp = window.bounceEngine
-              ? window.bounceEngine.routeConnectionAndGetVisibleIp(host.ip).visibleIp
-              : (window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0');
-            if (window.internetEngine) {
-              window.internetEngine.appendServerLog(
-                host.ip,
-                `${visibleIp} uploaded file /root/${def.filename} (${this.fmtVer(invCheck.versionInt)}, ${tr.sizeMb}MB)`
-              );
-            }
-            if (typeof window.addLocalLog === 'function') {
-              window.addLocalLog('VIRUS-UPLOAD', `Arquivo ${def.filename} (${this.fmtVer(invCheck.versionInt)}, ${tr.sizeMb}MB) subido p/ ${host.ip}:/root (aguardando executar!)`, 'info');
-            }
-            if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
-            const stageRes = {
-              success: true,
-              stagedOnly: true,
-              virusKey,
-              sizeMb: tr.sizeMb,
-              message: `📦 1/2 ${def.filename} subido pro disco de ${host.ip}! Agora clique em "▶ Executar no PC da Vítima"!`
-            };
-            if (typeof onDone === 'function') onDone(stageRes);
-            if (window.internetEngine) window.internetEngine.render();
-            return;
-          }
-
-          const res = this.installVirusOnRemote(host, virusKey);
-          if (typeof onDone === 'function') onDone(res);
-          if (window.internetEngine) window.internetEngine.render();
+          finalizeVirusUpload();
         }
       }, 220);
 
@@ -3070,6 +3232,280 @@
       this.renderUI();
     }
 
+    // =========================================================================
+    // AÇÕES DO GERENCIADOR DE PROGRAMAS COM BARRA AO VIVO NO TASK MANAGER (FOTO 1 -> FOTO 2)
+    // =========================================================================
+    startSoftwareViaTaskManager(kind, idOrKey) {
+      this.ensureLoaded();
+      if (kind === 'folder' || kind === 'txt') {
+        this.runLocalItem(kind, idOrKey);
+        return;
+      }
+
+      let softKey = idOrKey;
+      let verInt = 10;
+      let hiddenVer = 0;
+      let labelName = '';
+      if (kind === 'copy') {
+        const cp = (this.state.extraCopies || []).find((c) => c.id === idOrKey);
+        if (!cp) return;
+        softKey = cp.softKey;
+        verInt = cp.versionInt || 10;
+        hiddenVer = cp.hiddenWithVer || 0;
+        labelName = cp.customFilename || 'Cracker.crc';
+      } else {
+        const st = this.state.inventory[softKey];
+        const def = SOFTWARE_DEFINITIONS[softKey];
+        if (!st || !def || !st.owned) return;
+        verInt = st.versionInt || 10;
+        hiddenVer = st.hiddenWithVer || 0;
+        labelName = def.filename;
+      }
+
+      if (hiddenVer > 0) {
+        this.notifyActionBlocked('Este programa está escondido! Clique no ícone de Revelar antes de rodá-lo.');
+        return;
+      }
+
+      const def = SOFTWARE_DEFINITIONS[softKey];
+      if (!def) return;
+      if (def.category === 'virus') {
+        this.notifyActionBlocked('Vírus não devem ser executados no seu próprio PC! Invada um alvo na Internet e suba o arquivo lá.');
+        return;
+      }
+
+      const st = this.state.inventory[softKey];
+      if (!def.onDemandTool && st) {
+        const neededRam = this.getItemRamMb(softKey, verInt, false);
+        const curRam = st.installed ? this.getItemRamMb(softKey, st.runningVerInt || verInt, false) : 0;
+        if (this.getUsedRamMb() - curRam + neededRam > this.getMaxRamMb()) {
+          this.notifyActionBlocked(`Memória RAM cheia (${this.getUsedRamMb()}/${this.getMaxRamMb()} MB)! Pare algum programa ou melhore sua RAM.`);
+          return;
+        }
+      }
+
+      const verStr = (verInt / 10).toFixed(1);
+      const finishRun = () => {
+        if (softKey === 'antivirus') {
+          const r = this.runLocalAntivirus();
+          this.showFeedbackBanner(`Sucesso! ${r.message}`);
+          return;
+        }
+        if (softKey === 'nmap') {
+          this.runLocalNmapScan();
+          this.showFeedbackBanner(`Sucesso! Varredura de conexões Nmap.nmap (${verStr}) concluída.`);
+          return;
+        }
+        if (softKey === 'seeker') {
+          this.runLocalItem('soft', 'seeker');
+          this.showFeedbackBanner(`Sucesso! Seeker.skr (${verStr}) varreu itens ocultos no seu PC.`);
+          return;
+        }
+
+        if (st && st.owned) {
+          delete this.transitions[softKey];
+          st.installed = true;
+          st.runningVerInt = st.versionInt;
+          this.save();
+          if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+          if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+        }
+        this.showFeedbackBanner(`Sucesso! ${labelName} (${verStr}) está rodando em segundo plano.`);
+      };
+
+      if (!window.taskManager) {
+        finishRun();
+        return;
+      }
+
+      window.taskManager.enqueue({
+        dedupeKey: `tm_run_${kind}_${idOrKey}`,
+        title: `Rodar arquivo ${labelName} (${verStr})`,
+        labelHtml: `Rodar arquivo <strong>${esc(labelName)}</strong> (${verStr}) em localhost`,
+        subtitle: 'CPU · localhost',
+        targetIp: 'localhost',
+        queueKind: 'cpu',
+        category: 'Sistema',
+        idealSeconds: 1.6,
+        openTaskManagerNow: true,
+        returnWindowId: 'winSoftware',
+        onComplete: finishRun
+      });
+    }
+
+    stopSoftwareViaTaskManager(softKey) {
+      this.ensureLoaded();
+      const st = this.state.inventory[softKey];
+      const def = SOFTWARE_DEFINITIONS[softKey];
+      if (!st || !def || !st.installed) return;
+
+      const verStr = ((st.runningVerInt || st.versionInt || 10) / 10).toFixed(1);
+      const finishStop = () => {
+        delete this.transitions[softKey];
+        st.installed = false;
+        st.runningVerInt = 0;
+        this.save();
+        if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+        if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+        this.showFeedbackBanner(`Sucesso! ${def.filename} (${verStr}) foi encerrado.`);
+      };
+
+      if (!window.taskManager) {
+        finishStop();
+        return;
+      }
+
+      window.taskManager.enqueue({
+        dedupeKey: `tm_stop_${softKey}`,
+        title: `Encerrar arquivo ${def.filename} (${verStr})`,
+        labelHtml: `Encerrar arquivo <strong>${esc(def.filename)}</strong> (${verStr}) em localhost`,
+        subtitle: 'CPU · localhost',
+        targetIp: 'localhost',
+        queueKind: 'cpu',
+        category: 'Sistema',
+        idealSeconds: 1.5,
+        openTaskManagerNow: true,
+        returnWindowId: 'winSoftware',
+        onComplete: finishStop
+      });
+    }
+
+    uiToggleHideItem(kind, idOrKey) {
+      this.ensureLoaded();
+      const mySeeker = this.getSoftwareVersion('seeker') || (window.stealthXhdEngine ? window.stealthXhdEngine.getSeekerVer() : 1.0);
+      let target = null;
+      let label = '';
+      let verStr = '';
+
+      if (kind === 'soft') {
+        const st = this.state.inventory[idOrKey];
+        const def = SOFTWARE_DEFINITIONS[idOrKey];
+        if (!st || !def) return;
+        if (st.installed) {
+          this.notifyActionBlocked('Pare o programa primeiro antes de escondê-lo no disco!');
+          return;
+        }
+        target = st;
+        label = def.filename;
+        verStr = (st.versionInt / 10).toFixed(1);
+      } else if (kind === 'copy') {
+        target = (this.state.extraCopies || []).find((c) => c.id === idOrKey);
+        label = target ? (target.customFilename || 'Cracker.crc') : '';
+        verStr = target ? (target.versionInt / 10).toFixed(1) : '1.0';
+      } else if (kind === 'txt') {
+        target = (this.state.textFiles || []).find((t) => t.id === idOrKey);
+        label = target ? `${target.name}.txt` : '';
+      }
+      if (!target) return;
+
+      const wasHidden = (target.hiddenWithVer || 0) > 0;
+      if (wasHidden && mySeeker < target.hiddenWithVer) {
+        this.notifyActionBlocked(`Arquivo oculto com Hider v${target.hiddenWithVer.toFixed(1)}! Seu Seeker (v${mySeeker.toFixed(1)}) precisa ser >= v${target.hiddenWithVer.toFixed(1)}.`);
+        return;
+      }
+
+      const finishHide = () => {
+        this.toggleHideLocalItem(kind, idOrKey);
+        this.showFeedbackBanner(`Sucesso! ${label} foi ${wasHidden ? 'revelado' : 'escondido'} no disco.`);
+      };
+
+      if (!window.taskManager) {
+        finishHide();
+        return;
+      }
+
+      const verb = wasHidden ? 'Revelar arquivo' : 'Esconder arquivo';
+      window.taskManager.enqueue({
+        dedupeKey: `tm_hide_${kind}_${idOrKey}`,
+        title: `${verb} ${label}`,
+        labelHtml: `${verb} <strong>${esc(label)}</strong>${verStr ? ` (${verStr})` : ''} em localhost`,
+        subtitle: 'CPU · localhost',
+        targetIp: 'localhost',
+        queueKind: 'cpu',
+        category: 'Sistema',
+        idealSeconds: 1.4,
+        openTaskManagerNow: true,
+        returnWindowId: 'winSoftware',
+        onComplete: finishHide
+      });
+    }
+
+    uiDeleteItem(kind, idOrKey) {
+      this.ensureLoaded();
+      if (kind === 'folder') {
+        this.deleteLocalItem('folder', idOrKey);
+        return;
+      }
+
+      let label = '';
+      let verStr = '';
+      if (kind === 'soft') {
+        const st = this.state.inventory[idOrKey];
+        const def = SOFTWARE_DEFINITIONS[idOrKey];
+        if (!st || !def || !st.owned) return;
+        if (st.installed) {
+          this.notifyActionBlocked(`Pare primeiro o ${def.filename} antes de excluí-lo do disco!`);
+          return;
+        }
+        const freedMb = this.getItemSizeMb(idOrKey, st.versionInt);
+        const ok = window.confirm(`Excluir ${def.filename} (${this.fmtVer(st.versionInt)}) do seu disco para liberar ${freedMb} MB?\n(Utilitários básicos v1.0 podem ser baixados novamente de graça no Download Center.)`);
+        if (!ok) return;
+        label = def.filename;
+        verStr = (st.versionInt / 10).toFixed(1);
+      } else if (kind === 'copy') {
+        const cp = (this.state.extraCopies || []).find((c) => c.id === idOrKey);
+        if (!cp) return;
+        label = cp.customFilename || 'Cracker.crc';
+        verStr = (cp.versionInt / 10).toFixed(1);
+      } else if (kind === 'txt') {
+        const tf = (this.state.textFiles || []).find((t) => t.id === idOrKey);
+        if (!tf) return;
+        label = `${tf.name}.txt`;
+      }
+
+      const finishDelete = () => {
+        if (kind === 'soft') {
+          const st = this.state.inventory[idOrKey];
+          const def = SOFTWARE_DEFINITIONS[idOrKey];
+          if (st && def) {
+            st.owned = false;
+            st.versionInt = 0;
+            st.runningVerInt = 0;
+            st.installed = false;
+            st.hiddenWithVer = 0;
+            if (def.starterOwned) {
+              if (!Array.isArray(this.state.deletedStarterKeys)) this.state.deletedStarterKeys = [];
+              if (!this.state.deletedStarterKeys.includes(idOrKey)) this.state.deletedStarterKeys.push(idOrKey);
+            }
+            this.save();
+            if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+          }
+        } else {
+          this.deleteLocalItem(kind, idOrKey);
+        }
+        this.showFeedbackBanner(`Sucesso! ${label} foi excluído do seu disco.`);
+      };
+
+      if (!window.taskManager) {
+        finishDelete();
+        return;
+      }
+
+      window.taskManager.enqueue({
+        dedupeKey: `tm_del_${kind}_${idOrKey}`,
+        title: `Excluir arquivo ${label}`,
+        labelHtml: `Excluir arquivo <strong>${esc(label)}</strong>${verStr ? ` (${verStr})` : ''} em localhost`,
+        subtitle: 'CPU · localhost',
+        targetIp: 'localhost',
+        queueKind: 'cpu',
+        category: 'Sistema',
+        idealSeconds: 1.5,
+        openTaskManagerNow: true,
+        returnWindowId: 'winSoftware',
+        onComplete: finishDelete
+      });
+    }
+
     openCreateFolderModal() {
       const modal = this.ensureActionModalRoot();
       modal.innerHTML = `
@@ -3393,7 +3829,7 @@
           </div>
         `;
       } else {
-        // ABA PRINCIPAL: MEUS PROGRAMAS (Estilo Limpo Referência em Dark/Emerald)
+        // ABA PRINCIPAL: MEUS PROGRAMAS (Estilo Enxuto Foto 2: Ícone | Nome | Versão | Tamanho | Ações por Ícones + Mini-Aba Hover)
         const inFolder = this.currentFolderId
           ? (this.state.folders || []).find((f) => f.id === this.currentFolderId) || null
           : null;
@@ -3416,24 +3852,27 @@
               + (this.state.textFiles || []).filter((t) => t.folderId === fd.id).length;
             tableRows.push(`
               <tr>
-                <td>
-                  <div class="soft-app-cell" style="cursor:pointer;" onclick="window.softwareEngine.runLocalItem('folder', '${esc(fd.id)}')">
-                    <div class="soft-app-icon kind-folder">${HC.icon('folder')}</div>
-                    <div class="soft-app-meta">
-                      <div class="soft-app-name-row">
-                        <span class="soft-app-title">${esc(fd.name)}/</span>
-                      </div>
-                      <div class="soft-app-sub">Pasta de arquivos</div>
-                    </div>
-                  </div>
+                <td class="soft-col-icon">
+                  <span class="soft-mini-glyph kind-folder" data-tip-title="Pasta /${esc(fd.name)}" data-tip-meta="${countInside} arq." data-tip-desc="Pasta criada no seu disco para organizar programas e arquivos.">
+                    ${HC.icon('folder')}
+                  </span>
                 </td>
-                <td><span style="color:var(--hc-text-3);font-size:12px;">—</span></td>
-                <td class="soft-size-cell">${countInside} arq.</td>
-                <td><span class="soft-drive-tag">Pasta</span></td>
                 <td>
-                  <div class="soft-actions-cell">
-                    <button type="button" class="soft-act-btn act-run" onclick="window.softwareEngine.runLocalItem('folder', '${esc(fd.id)}')">${HC.icon('folder')} Abrir</button>
-                    <button type="button" class="soft-act-btn act-del" title="Apagar pasta" onclick="window.softwareEngine.deleteLocalItem('folder', '${esc(fd.id)}')">${HC.icon('trash-2')}</button>
+                  <span class="soft-name-trigger" style="cursor:pointer;" onclick="window.softwareEngine.runLocalItem('folder', '${esc(fd.id)}')"
+                    data-tip-title="Pasta /${esc(fd.name)}" data-tip-meta="Diretório" data-tip-desc="Clique para abrir esta pasta e ver os programas guardados dentro dela.">
+                    ${esc(fd.name)}/
+                  </span>
+                </td>
+                <td class="soft-col-ver"><span style="color:var(--hc-text-3);">—</span></td>
+                <td class="soft-col-size">${countInside} arq.</td>
+                <td class="soft-col-acts">
+                  <div class="soft-icon-actions">
+                    <button type="button" class="soft-icon-act ic-run" aria-label="Abrir pasta ${esc(fd.name)}"
+                      data-tip-title="Abrir pasta" data-tip-meta="/${esc(fd.name)}" data-tip-desc="Entrar na pasta /${esc(fd.name)}."
+                      onclick="window.softwareEngine.runLocalItem('folder', '${esc(fd.id)}')">${HC.icon('folder')}</button>
+                    <button type="button" class="soft-icon-act ic-del" aria-label="Excluir pasta ${esc(fd.name)}"
+                      data-tip-title="Excluir pasta" data-tip-desc="Remove a pasta e devolve os arquivos para a raiz principal."
+                      onclick="window.softwareEngine.uiDeleteItem('folder', '${esc(fd.id)}')">${HC.icon('trash-2')}</button>
                   </div>
                 </td>
               </tr>
@@ -3452,77 +3891,116 @@
 
           const tr = this.getTransitionInfo(k);
           const isHidden = (st.hiddenWithVer || 0) > 0;
-          const isRunning = !def.onDemandTool && def.category === 'system' && st.installed && !tr;
+          const isRunning = def.category === 'system' && st.installed && !tr;
           const runVer = st.runningVerInt || st.versionInt;
           const hasPendingSwap = isRunning && st.versionInt > runVer;
           const sizeMb = this.getItemSizeMb(k, st.versionInt);
           const drv = ['hd', 'ssd', 'nvme'].includes(st.drive) ? st.drive : 'hd';
           const drvLabel = drv.toUpperCase();
+          const verStr = (st.versionInt / 10).toFixed(1);
 
           const maxVer = def.maxVerInt || 100;
           const stepVer = k === 'analyzer' ? 10 : 5;
           const canUpgrade = !def.nonResearchable && st.versionInt < maxVer;
           const nextVerStr = this.fmtVer(Math.min(maxVer, st.versionInt + stepVer));
 
-          let statusPill = '';
-          if (tr) {
-            statusPill = `<span class="hc-badge warning">Carência ${tr.remainingSec}s</span>`;
-          } else if (isHidden) {
-            statusPill = `<span class="hc-badge violet">Escondido v${Number(st.hiddenWithVer).toFixed(1)}</span>`;
-          } else if (isRunning) {
-            statusPill = `<span class="hc-badge success">Rodando ${this.fmtVer(runVer)}</span>`;
-          } else if (def.onDemandTool) {
-            statusPill = `<span class="hc-badge">2º Plano</span>`;
-          }
+          const stateLabel = isRunning
+            ? `Em execução v${(runVer / 10).toFixed(1)} · ${drvLabel}`
+            : (isHidden ? `Escondido v${Number(st.hiddenWithVer).toFixed(1)} · ${drvLabel}` : `v${verStr} · ${drvLabel}`);
 
-          let runBtnHtml = '';
+          let runIconBtnHtml = '';
           if (def.category === 'virus') {
             if (connectedRemoteIp) {
-              runBtnHtml = `<button type="button" class="soft-act-btn act-run" title="Subir vírus para ${esc(connectedRemoteIp)}" onclick="window.navTo('winBrowser');window.internetEngine.switchTab('entrar');window.internetEngine.sshSubTab='files';window.internetEngine.render();">${HC.icon('upload')} Subir</button>`;
+              runIconBtnHtml = `
+                <button type="button" class="soft-icon-act ic-run" aria-label="Subir ${esc(def.filename)} para ${esc(connectedRemoteIp)}"
+                  data-tip-title="Subir para PC invadido" data-tip-meta="${esc(connectedRemoteIp)}"
+                  data-tip-desc="Enviar ${esc(def.filename)} (${verStr}) pela rede para o computador ${esc(connectedRemoteIp)}."
+                  onclick="window.navTo('winBrowser');window.internetEngine.switchTab('entrar');window.internetEngine.sshSubTab='files';window.internetEngine.render();">
+                  ${HC.icon('upload')}
+                </button>`;
             }
           } else if (tr) {
-            runBtnHtml = `<button type="button" class="soft-act-btn" disabled>⏳ ${tr.remainingSec}s</button>`;
+            runIconBtnHtml = `
+              <button type="button" class="soft-icon-act" disabled aria-label="Aguardando transição"
+                data-tip-title="Aguarde ${tr.remainingSec}s" data-tip-desc="Transição em andamento na memória.">
+                ${HC.icon('refresh-cw')}
+              </button>`;
           } else if (hasPendingSwap) {
-            runBtnHtml = `<button type="button" id="btnRowSwap_${k}" class="soft-act-btn act-stop" title="Trocar para versão mais nova c/ carência" onclick="window.softwareEngine.swapToLatestVersion('${k}')">${HC.icon('refresh-cw')} Trocar ${this.fmtVer(st.versionInt)}</button>`;
+            runIconBtnHtml = `
+              <button type="button" id="btnRowSwap_${k}" class="soft-icon-act ic-stop" aria-label="Atualizar ${esc(def.filename)} em execução"
+                data-tip-title="Trocar p/ ${nextVerStr}" data-tip-meta="Nova versão"
+                data-tip-desc="Substituir a versão antiga pela versão ${verStr} em segundo plano."
+                onclick="window.softwareEngine.startSoftwareViaTaskManager('soft', '${k}')">
+                ${HC.icon('refresh-cw')}
+              </button>`;
           } else if (isRunning) {
-            runBtnHtml = `<button type="button" id="btnToggleInstall_${k}" class="soft-act-btn act-stop" title="Parar execução na memória" onclick="window.softwareEngine.deactivateLocalSoftware('${k}')">${HC.icon('square')} Parar</button>`;
+            runIconBtnHtml = `
+              <button type="button" id="btnToggleInstall_${k}" class="soft-icon-act ic-stop" aria-label="Parar ${esc(def.filename)}"
+                data-tip-title="Parar execução" data-tip-meta="Ativo v${(runVer / 10).toFixed(1)}"
+                data-tip-desc="Encerrar ${esc(def.friendlyTitle)} que está rodando em segundo plano."
+                onclick="window.softwareEngine.stopSoftwareViaTaskManager('${k}')">
+                ${HC.icon('circle-stop')}
+              </button>`;
           } else {
-            runBtnHtml = `<button type="button" id="btnToggleInstall_${k}" class="soft-act-btn act-run" title="Rodar aplicativo" onclick="window.softwareEngine.runLocalItem('soft', '${k}')">${HC.icon('play')} Rodar</button>`;
+            runIconBtnHtml = `
+              <button type="button" id="btnToggleInstall_${k}" class="soft-icon-act ic-run" aria-label="Rodar ${esc(def.filename)}"
+                data-tip-title="Rodar programa" data-tip-meta="2º plano"
+                data-tip-desc="Rodar ${esc(def.friendlyTitle)} (${verStr}) e deixá-lo ativo em segundo plano no seu PC."
+                onclick="window.softwareEngine.startSoftwareViaTaskManager('soft', '${k}')">
+                ${HC.icon('settings')}
+              </button>`;
           }
 
           tableRows.push(`
             <tr class="${isRunning ? 'row-running' : ''} ${isHidden ? 'row-hidden' : ''}">
-              <td>
-                <div class="soft-app-cell">
-                  <div class="soft-app-icon kind-${def.iconKind || 'attack'}">${HC.icon(def.icon || 'cpu')}</div>
-                  <div class="soft-app-meta">
-                    <div class="soft-app-name-row">
-                      <span class="soft-app-title">${esc(def.friendlyTitle)}</span>
-                      <span class="soft-app-ext">${esc(def.filename)}</span>
-                      ${statusPill}
-                    </div>
-                    <div class="soft-app-sub">${def.onDemandTool ? 'Sob demanda em segundo plano (não consome RAM parado)' : (def.category === 'virus' ? 'Vírus para enviar ao PC de vítimas' : `Serviço de memória (${this.getItemRamMb(k, st.versionInt, false)} MB RAM)`)}</div>
-                  </div>
-                </div>
+              <td class="soft-col-icon">
+                <span class="soft-mini-glyph kind-${def.iconKind || 'attack'}"
+                  data-tip-title="${esc(def.friendlyTitle)}" data-tip-meta="${esc(stateLabel)}" data-tip-desc="${esc(def.desc)}">
+                  ${HC.icon(def.icon || 'cpu')}
+                </span>
               </td>
               <td>
-                <span class="soft-ver-badge ${this.versionTierClass(st.versionInt)}">${(st.versionInt / 10).toFixed(1)}</span>
+                <span class="soft-name-trigger" tabindex="0"
+                  data-tip-title="${esc(def.friendlyTitle)}" data-tip-meta="${esc(stateLabel)}" data-tip-desc="${esc(def.desc)}">
+                  ${isRunning ? '<span class="soft-run-dot"></span>' : ''}
+                  <span>${esc(def.filename)}</span>
+                  ${isHidden ? `<span style="font-size:11px;color:var(--hc-text-3);">(oculto)</span>` : ''}
+                </span>
               </td>
-              <td class="soft-size-cell">${sizeMb} MB</td>
-              <td><span class="soft-drive-tag drv-${drv}">${drvLabel}</span></td>
-              <td>
-                <div class="soft-actions-cell">
-                  ${canUpgrade ? `<button type="button" id="btnResearch_${k}" class="soft-act-btn act-upg" title="Melhorar potência para ${nextVerStr}" onclick="window.softwareEngine.openSoftwareInfoModal('${k}')">↑ ${nextVerStr}</button>` : ''}
-                  <button type="button" class="soft-act-btn" title="Informações e melhorias" onclick="window.softwareEngine.openSoftwareInfoModal('${k}')">${HC.icon('info')}</button>
-                  ${runBtnHtml}
-                  <button type="button" class="soft-act-btn" title="${isHidden ? 'Revelar aplicativo oculto' : 'Esconder aplicativo no disco'}" onclick="window.softwareEngine.toggleHideLocalItem('soft', '${k}')">
-                    ${HC.icon(isHidden ? 'eye' : 'eye-off')} ${isHidden ? 'Revelar' : 'Esconder'}
+              <td class="soft-col-ver">
+                <span class="soft-ver-badge ${this.versionTierClass(st.versionInt)}">${verStr}</span>
+              </td>
+              <td class="soft-col-size">${sizeMb} MB</td>
+              <td class="soft-col-acts">
+                <div class="soft-icon-actions">
+                  <button type="button" id="btnResearch_${k}" class="soft-icon-act ic-info" aria-label="Informações de ${esc(def.filename)}"
+                    data-tip-title="${canUpgrade ? `Informações · Evoluir p/ ${nextVerStr}` : 'Informações do programa'}"
+                    data-tip-meta="${esc(def.badge)}"
+                    data-tip-desc="${esc(def.desc)}"
+                    onclick="window.softwareEngine.openSoftwareInfoModal('${k}')">
+                    ${HC.icon('info')}
                   </button>
-                  <button type="button" class="soft-act-btn" title="Mover entre HD, SSD, NVMe ou Pasta" onclick="window.softwareEngine.openMoveModal('soft', '${k}')">
-                    ${HC.icon('folder-input')} Mover
+                  ${runIconBtnHtml}
+                  <button type="button" class="soft-icon-act ic-hide" aria-label="${isHidden ? 'Revelar' : 'Esconder'} ${esc(def.filename)}"
+                    data-tip-title="${isHidden ? 'Revelar programa' : 'Esconder programa'}"
+                    data-tip-meta="${isHidden ? 'Seeker' : 'Hider'}"
+                    data-tip-desc="${isHidden ? `Revelar ${esc(def.filename)} oculto no disco.` : `Esconder ${esc(def.filename)} no seu disco para que invasores não vejam.`}"
+                    onclick="window.softwareEngine.uiToggleHideItem('soft', '${k}')">
+                    ${HC.icon(isHidden ? 'eye' : 'eye-off')}
                   </button>
-                  <button type="button" class="soft-act-btn act-del" title="Apagar do disco" onclick="window.softwareEngine.deleteLocalItem('soft', '${k}')">
-                    ${HC.icon('trash-2')} Apagar
+                  <button type="button" class="soft-icon-act ic-move" aria-label="Mover ${esc(def.filename)}"
+                    data-tip-title="Mover programa"
+                    data-tip-meta="${drvLabel}"
+                    data-tip-desc="Mover ${esc(def.filename)} entre HD, SSD, NVMe, pastas ou fazer backup no HD Externo."
+                    onclick="window.softwareEngine.openMoveModal('soft', '${k}')">
+                    ${HC.icon('folder-input')}
+                  </button>
+                  <button type="button" class="soft-icon-act ic-del" aria-label="Excluir ${esc(def.filename)}"
+                    data-tip-title="Excluir programa"
+                    data-tip-meta="+${sizeMb} MB"
+                    data-tip-desc="Excluir ${esc(def.filename)} do seu computador e liberar ${sizeMb} MB em disco."
+                    onclick="window.softwareEngine.uiDeleteItem('soft', '${k}')">
+                    ${HC.icon('trash-2')}
                   </button>
                 </div>
               </td>
@@ -3536,30 +4014,46 @@
           const def = SOFTWARE_DEFINITIONS[cp.softKey] || SOFTWARE_DEFINITIONS.cracker;
           const isHidden = (cp.hiddenWithVer || 0) > 0;
           const drv = ['hd', 'ssd', 'nvme'].includes(cp.drive) ? cp.drive : 'hd';
+          const verStr = (cp.versionInt / 10).toFixed(1);
+          const fn = cp.customFilename || def.filename;
+          const title = cp.customTitle || def.friendlyTitle;
           tableRows.push(`
             <tr class="${isHidden ? 'row-hidden' : ''}">
-              <td>
-                <div class="soft-app-cell">
-                  <div class="soft-app-icon kind-${def.iconKind || 'attack'}">${HC.icon(def.icon || 'key-round')}</div>
-                  <div class="soft-app-meta">
-                    <div class="soft-app-name-row">
-                      <span class="soft-app-title">${esc(cp.customTitle || def.friendlyTitle)}</span>
-                      <span class="soft-app-ext">${esc(cp.customFilename || def.filename)}</span>
-                      ${isHidden ? `<span class="hc-badge violet">Escondido v${Number(cp.hiddenWithVer).toFixed(1)}</span>` : '<span class="hc-badge">2º Plano</span>'}
-                    </div>
-                    <div class="soft-app-sub">Disponível no Mini-PC ao clicar em Quebrar senha</div>
-                  </div>
-                </div>
+              <td class="soft-col-icon">
+                <span class="soft-mini-glyph kind-${def.iconKind || 'attack'}"
+                  data-tip-title="${esc(title)}" data-tip-meta="v${verStr} · ${drv.toUpperCase()}"
+                  data-tip-desc="Cópia auxiliar disponível no Mini-PC ao clicar em Quebrar senha.">
+                  ${HC.icon(def.icon || 'key-round')}
+                </span>
               </td>
-              <td><span class="soft-ver-badge ${this.versionTierClass(cp.versionInt)}">${(cp.versionInt / 10).toFixed(1)}</span></td>
-              <td class="soft-size-cell">${cp.sizeMb || 8} MB</td>
-              <td><span class="soft-drive-tag drv-${drv}">${drv.toUpperCase()}</span></td>
               <td>
-                <div class="soft-actions-cell">
-                  <button type="button" class="soft-act-btn act-run" onclick="window.softwareEngine.runLocalItem('copy', '${esc(cp.id)}')">${HC.icon('play')} Rodar</button>
-                  <button type="button" class="soft-act-btn" onclick="window.softwareEngine.toggleHideLocalItem('copy', '${esc(cp.id)}')">${HC.icon(isHidden ? 'eye' : 'eye-off')} ${isHidden ? 'Revelar' : 'Esconder'}</button>
-                  <button type="button" class="soft-act-btn" onclick="window.softwareEngine.openMoveModal('copy', '${esc(cp.id)}')">${HC.icon('folder-input')} Mover</button>
-                  <button type="button" class="soft-act-btn act-del" onclick="window.softwareEngine.deleteLocalItem('copy', '${esc(cp.id)}')">${HC.icon('trash-2')} Apagar</button>
+                <span class="soft-name-trigger" tabindex="0"
+                  data-tip-title="${esc(title)}" data-tip-meta="v${verStr} · ${drv.toUpperCase()}"
+                  data-tip-desc="Hash alternativo salvo na unidade ${drv.toUpperCase()} para escolha rápida no Mini-PC.">
+                  <span>${esc(fn)}</span>
+                  ${isHidden ? `<span style="font-size:11px;color:var(--hc-text-3);">(oculto)</span>` : ''}
+                </span>
+              </td>
+              <td class="soft-col-ver"><span class="soft-ver-badge ${this.versionTierClass(cp.versionInt)}">${verStr}</span></td>
+              <td class="soft-col-size">${cp.sizeMb || 8} MB</td>
+              <td class="soft-col-acts">
+                <div class="soft-icon-actions">
+                  <button type="button" class="soft-icon-act ic-run" aria-label="Rodar ${esc(fn)}"
+                    data-tip-title="Rodar programa" data-tip-meta="2º plano"
+                    data-tip-desc="Ativar ${esc(fn)} (${verStr}) em segundo plano."
+                    onclick="window.softwareEngine.startSoftwareViaTaskManager('copy', '${esc(cp.id)}')">${HC.icon('settings')}</button>
+                  <button type="button" class="soft-icon-act ic-hide" aria-label="${isHidden ? 'Revelar' : 'Esconder'} ${esc(fn)}"
+                    data-tip-title="${isHidden ? 'Revelar cópia' : 'Esconder cópia'}" data-tip-meta="${isHidden ? 'Seeker' : 'Hider'}"
+                    data-tip-desc="${isHidden ? 'Tornar visível novamente.' : 'Esconder esta cópia no disco.'}"
+                    onclick="window.softwareEngine.uiToggleHideItem('copy', '${esc(cp.id)}')">${HC.icon(isHidden ? 'eye' : 'eye-off')}</button>
+                  <button type="button" class="soft-icon-act ic-move" aria-label="Mover ${esc(fn)}"
+                    data-tip-title="Mover cópia" data-tip-meta="${drv.toUpperCase()}"
+                    data-tip-desc="Transferir entre HD, SSD, NVMe ou pastas."
+                    onclick="window.softwareEngine.openMoveModal('copy', '${esc(cp.id)}')">${HC.icon('folder-input')}</button>
+                  <button type="button" class="soft-icon-act ic-del" aria-label="Excluir ${esc(fn)}"
+                    data-tip-title="Excluir cópia" data-tip-meta="+${cp.sizeMb || 8} MB"
+                    data-tip-desc="Remover esta cópia do disco."
+                    onclick="window.softwareEngine.uiDeleteItem('copy', '${esc(cp.id)}')">${HC.icon('trash-2')}</button>
                 </div>
               </td>
             </tr>
@@ -3571,29 +4065,38 @@
           if (!matchDriveAndFolder(tf.drive, tf.folderId)) return;
           const isHidden = (tf.hiddenWithVer || 0) > 0;
           const drv = ['hd', 'ssd', 'nvme'].includes(tf.drive) ? tf.drive : 'hd';
+          const preview = String(tf.content || '').slice(0, 120);
           tableRows.push(`
             <tr class="${isHidden ? 'row-hidden' : ''}">
-              <td>
-                <div class="soft-app-cell" style="cursor:pointer;" onclick="window.softwareEngine.openTextEditorModal('${esc(tf.id)}')">
-                  <div class="soft-app-icon kind-text">${HC.icon('file-text')}</div>
-                  <div class="soft-app-meta">
-                    <div class="soft-app-name-row">
-                      <span class="soft-app-title">${esc(tf.name)}.txt</span>
-                      ${isHidden ? `<span class="hc-badge violet">Escondido v${Number(tf.hiddenWithVer).toFixed(1)}</span>` : ''}
-                    </div>
-                    <div class="soft-app-sub">Arquivo de texto</div>
-                  </div>
-                </div>
+              <td class="soft-col-icon">
+                <span class="soft-mini-glyph kind-text"
+                  data-tip-title="${esc(tf.name)}.txt" data-tip-meta="Texto · ${drv.toUpperCase()}" data-tip-desc="${esc(preview)}">
+                  ${HC.icon('file-text')}
+                </span>
               </td>
-              <td><span style="color:var(--hc-text-3);font-size:12px;">—</span></td>
-              <td class="soft-size-cell">${tf.sizeMb || 1} MB</td>
-              <td><span class="soft-drive-tag drv-${drv}">${drv.toUpperCase()}</span></td>
               <td>
-                <div class="soft-actions-cell">
-                  <button type="button" class="soft-act-btn act-run" onclick="window.softwareEngine.openTextEditorModal('${esc(tf.id)}')">${HC.icon('pencil')} Abrir</button>
-                  <button type="button" class="soft-act-btn" onclick="window.softwareEngine.toggleHideLocalItem('txt', '${esc(tf.id)}')">${HC.icon(isHidden ? 'eye' : 'eye-off')} ${isHidden ? 'Revelar' : 'Esconder'}</button>
-                  <button type="button" class="soft-act-btn" onclick="window.softwareEngine.openMoveModal('txt', '${esc(tf.id)}')">${HC.icon('folder-input')} Mover</button>
-                  <button type="button" class="soft-act-btn act-del" onclick="window.softwareEngine.deleteLocalItem('txt', '${esc(tf.id)}')">${HC.icon('trash-2')} Apagar</button>
+                <span class="soft-name-trigger" style="cursor:pointer;" tabindex="0" onclick="window.softwareEngine.openTextEditorModal('${esc(tf.id)}')"
+                  data-tip-title="Nota: ${esc(tf.name)}.txt" data-tip-meta="${drv.toUpperCase()}" data-tip-desc="${esc(preview)}">
+                  <span>${esc(tf.name)}.txt</span>
+                  ${isHidden ? `<span style="font-size:11px;color:var(--hc-text-3);">(oculto)</span>` : ''}
+                </span>
+              </td>
+              <td class="soft-col-ver"><span style="color:var(--hc-text-3);">—</span></td>
+              <td class="soft-col-size">${tf.sizeMb || 1} MB</td>
+              <td class="soft-col-acts">
+                <div class="soft-icon-actions">
+                  <button type="button" class="soft-icon-act ic-info" aria-label="Ler ou editar ${esc(tf.name)}.txt"
+                    data-tip-title="Abrir arquivo .txt" data-tip-desc="Ler ou editar o conteúdo de ${esc(tf.name)}.txt."
+                    onclick="window.softwareEngine.openTextEditorModal('${esc(tf.id)}')">${HC.icon('pencil')}</button>
+                  <button type="button" class="soft-icon-act ic-hide" aria-label="${isHidden ? 'Revelar' : 'Esconder'} ${esc(tf.name)}.txt"
+                    data-tip-title="${isHidden ? 'Revelar nota' : 'Esconder nota'}" data-tip-desc="Alternar visibilidade da nota .txt."
+                    onclick="window.softwareEngine.uiToggleHideItem('txt', '${esc(tf.id)}')">${HC.icon(isHidden ? 'eye' : 'eye-off')}</button>
+                  <button type="button" class="soft-icon-act ic-move" aria-label="Mover ${esc(tf.name)}.txt"
+                    data-tip-title="Mover nota" data-tip-meta="${drv.toUpperCase()}" data-tip-desc="Mover nota entre HD, SSD, NVMe ou pastas."
+                    onclick="window.softwareEngine.openMoveModal('txt', '${esc(tf.id)}')">${HC.icon('folder-input')}</button>
+                  <button type="button" class="soft-icon-act ic-del" aria-label="Excluir ${esc(tf.name)}.txt"
+                    data-tip-title="Excluir nota" data-tip-desc="Apagar ${esc(tf.name)}.txt do seu disco."
+                    onclick="window.softwareEngine.uiDeleteItem('txt', '${esc(tf.id)}')">${HC.icon('trash-2')}</button>
                 </div>
               </td>
             </tr>
@@ -3634,20 +4137,20 @@
               ${nmapPanel}
               ${webServerPanel}
               <div class="soft-table-wrap" role="region" aria-label="Programas no seu computador">
-                <table class="soft-table">
+                <table class="soft-table clean-hw-table">
                   <thead>
                     <tr>
+                      <th class="soft-col-icon"></th>
                       <th>Nome do programa</th>
-                      <th>Versão</th>
-                      <th>Tamanho</th>
-                      <th>Disco</th>
-                      <th class="col-actions">Ações</th>
+                      <th class="soft-col-ver">Versão</th>
+                      <th class="soft-col-size">Tamanho</th>
+                      <th class="soft-col-acts">Ações</th>
                     </tr>
                   </thead>
                   <tbody>
                     ${tableRows.length > 0
                       ? tableRows.join('')
-                      : `<tr><td colspan="5" style="text-align:center;padding:34px 16px;color:var(--hc-text-3);">Não há programas nesta visualização.</td></tr>`}
+                      : `<tr><td colspan="5" style="text-align:center;padding:34px 16px;color:var(--hc-text-3);">Não há programas para exibir nesta unidade.</td></tr>`}
                   </tbody>
                 </table>
               </div>
@@ -3683,8 +4186,16 @@
         `;
       }
 
+      const feedbackBannerHtml = this.feedbackMessage ? `
+        <div class="soft-feedback-banner" id="softFeedbackBanner">
+          <span>${esc(this.feedbackMessage)}</span>
+          <button type="button" aria-label="Fechar aviso" onclick="window.softwareEngine.feedbackMessage=null;window.softwareEngine.renderUI();">✕</button>
+        </div>
+      ` : '';
+
       container.innerHTML = `
-        <div style="display:flex;flex-direction:column;gap:18px;">
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          ${feedbackBannerHtml}
           ${hostileBanner}
 
           <div class="soft-frame" id="softwareExplorerMain">
