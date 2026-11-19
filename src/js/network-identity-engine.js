@@ -772,6 +772,30 @@
         { name: 'fwd_to_fbi.log', size: '64 MB', sizeMb: 64, content: 'Monitoramento forense ativo sobre transferências ilícitas e ataques sem bounce.' }
       ]
     },
+    '161.89.1.1': {
+      ip: '161.89.1.1',
+      domain: 'fbi.gov.internal',
+      hostname: 'Federal Cybercrime Division — Mainframe Central',
+      kind: 'fbi_mainframe',
+      badge: 'Mainframe Governamental Ultra-Secreto',
+      tier: 5,
+      securityLevel: 5,
+      cpuMhz: 24000,
+      netMbps: 10000,
+      hddTotalMb: 65536,
+      hddOsBaseMb: 32768,
+      ramTotalMb: 16384,
+      ramOsBaseMb: 8192,
+      hasherVer: 8.5,
+      firewallVer: 9.0,
+      antivirusVer: 8.0,
+      cpuSpec: '24.000 MHz · 10.000 Mbps · FW v9.0 · AV v8.0',
+      bankBalance: 0,
+      files: [
+        { name: 'criminal_dossiers.db', size: '1.2 GB', sizeMb: 1200, content: 'CLASSIFICADO: Banco de dados federal de procurados, mandados e IPs mascarados.' },
+        { name: 'counter_trace_policy.sys', size: '14 MB', sizeMb: 14, content: 'POLÍTICA DE RETALIAÇÃO: Disparo de batida policial se a invasão durar mais de 60 segundos.' }
+      ]
+    },
     '198.51.100.42': {
       ip: '198.51.100.42',
       domain: 'numataka-training.hc',
@@ -873,7 +897,8 @@
     { ip: '77.3.12.15', label: 'Swiss Offshore Vault' },
     { ip: '185.220.101.9', label: 'Blackmarket Onion' },
     { ip: '133.70.13.37', label: 'Rádio Pirata 1337 FM' },
-    { ip: '109.64.211.37', label: 'Safenet Authority' }
+    { ip: '109.64.211.37', label: 'Safenet Authority' },
+    { ip: '161.89.1.1', label: 'FBI Mainframe Central' }
   ];
 
   class InternetBrowserEngine {
@@ -948,6 +973,7 @@
       if (q === 'puzzle' || q === 'firstpuzzle') return '109.64.200.10';
       if (q === 'market' || q === 'blackmarket' || q === 'blackmarket.onion') return '185.220.101.9';
       if (q === 'safenet') return '109.64.211.37';
+      if (q === 'fbi' || q === 'mainframe' || q === 'fbi.gov.internal' || q === 'fbi.gov') return '161.89.1.1';
       if (q === 'farofa') return '203.17.88.40';
 
       // Checar terminalTools se existir
@@ -2339,10 +2365,38 @@
             </p>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button type="button" class="hc-btn primary" onclick="navTo('winFbi')">Abrir Painel Polícia, FBI & Bots Vivos →</button>
-              <button type="button" class="hc-btn ghost" onclick="window.internetEngine.switchTab('invadir')">Tentar Invadir Mainframe Safenet</button>
+              <button type="button" class="hc-btn ghost" onclick="window.internetEngine.openIp('161.89.1.1')">Infiltrar Mainframe do FBI (161.89.1.1) →</button>
             </div>
           </div>
         `;
+      }
+
+      // 6d. Mainframe Central do FBI (161.89.1.1)
+      if (host.kind === 'fbi_mainframe' || host.ip === '161.89.1.1') {
+        const saved = window.hackedDb ? window.hackedDb.getEntry(host.ip) : null;
+        if (!saved && !this.crackedHosts?.has(host.ip)) {
+          return `
+            <div class="hc-card" style="padding: 1.3rem; border-color: rgba(239, 68, 68, 0.5); background: linear-gradient(135deg, rgba(30,12,18,0.7) 0%, rgba(15,23,42,0.7) 100%);">
+              <div class="hc-eyebrow" style="color: var(--hc-danger); margin-bottom: 0.4rem;">🚨 CLASSIFICADO // ACESSO FEDERAL ULTRA-RESTRITO</div>
+              <h3 style="font-size: 1.15rem; margin-bottom: 0.4rem; color: #fff;">FEDERAL BUREAU OF INVESTIGATION — MAINFRAME CENTRAL</h3>
+              <p style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 0.9rem;">
+                Terminal Central de Inteligência Federal. Conexões sem autorização Root acionam protocolo de contra-rastreamento policial em 60 segundos.
+              </p>
+              <div style="font-family: monospace; font-size: 0.82rem; background: #0b0f17; padding: 12px; border-radius: 6px; border: 1px solid #334155; margin-bottom: 1.1rem; color: #94a3b8; line-height: 1.5;">
+                • IP Alvo: <strong>161.89.1.1</strong> [fbi.gov.internal]<br>
+                • Defesas do Host: <strong>Firewall v9.0 · Hasher v8.5 · AV v8.0</strong><br>
+                • Alvo Primário: Banco de Dossiês Criminais, Mandados e Registros de IPs Mascarados.
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="hc-btn primary" style="background: #dc2626; border-color: #ef4444;" onclick="window.internetEngine.switchTab('invadir')">
+                  Iniciar Quebra de Senha no Mainframe (Invadir) →
+                </button>
+              </div>
+            </div>
+          `;
+        } else {
+          return window.safenetFbiEngine ? window.safenetFbiEngine.renderMainframeRootTerminal() : 'Mainframe Root Terminal Carregando...';
+        }
       }
 
       // 7. Empresas, Bots e Jogadores VPC (com suporte a página HTTP customizada / Deface via WebServer.exe!)
