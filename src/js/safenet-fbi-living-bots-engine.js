@@ -22,6 +22,15 @@
     return new Date().toLocaleTimeString('pt-BR');
   }
 
+  function getMaskedIp(ip, tier = 1) {
+    const parts = String(ip || '161.89.0.1').split('.');
+    if (parts.length < 4) return '161.89.X.X';
+    if (tier === 1) return parts[0] + '.' + parts[1] + '.X.X';
+    if (tier === 2) return parts[0] + '.' + parts[1] + '.' + parts[2] + '.X';
+    if (tier === 3) return parts[0] + '.' + parts[1] + '.' + parts[2] + '.' + parts[3].slice(0, 1) + '?';
+    return ip;
+  }
+
   // =========================================================================
   // 1. SAFENET & FBI WANTED ENGINE (RASTREIO FORENSE + BOUNTY HUNTING DDoS)
   // =========================================================================
@@ -32,6 +41,8 @@
       this.fbiWantedList = [];
       this.worldNews = [];
       this.seeded = false;
+      this.counterSeconds = 60;
+      this.counterTraceInterval = null;
     }
 
     ensureSeeded() {
@@ -72,6 +83,8 @@
           bountyCash: 1150,
           bountySats: 85000, // 0.00085000 BTC
           defenseGbps: 2.2,
+          maskTier: 1,
+          maskedDisplayIp: getMaskedIp(b1.ip, 1),
           since: nowTime()
         },
         {
@@ -82,6 +95,8 @@
           bountyCash: 3200,
           bountySats: 220000, // 0.00220000 BTC
           defenseGbps: 5.5,
+          maskTier: 2,
+          maskedDisplayIp: getMaskedIp(b2.ip, 2),
           since: nowTime()
         }
       ];
@@ -160,6 +175,8 @@
         fbiEntry.bountyCash = Math.min(35000, fbiEntry.bountyCash + addedBounty);
         fbiEntry.bountySats += addedSats;
         fbiEntry.crime = reason;
+        fbiEntry.maskTier = Math.min(4, (fbiEntry.maskTier || 1) + 1);
+        fbiEntry.maskedDisplayIp = getMaskedIp(fbiEntry.ip, fbiEntry.maskTier);
       } else {
         fbiEntry = {
           ip,
@@ -169,11 +186,13 @@
           bountyCash: Math.max(950, addedBounty),
           bountySats: addedSats,
           defenseGbps,
+          maskTier: 1,
+          maskedDisplayIp: getMaskedIp(ip, 1),
           since: nowTime()
         };
         this.fbiWantedList.unshift(fbiEntry);
         if (this.fbiWantedList.length > 8) this.fbiWantedList.length = 8;
-        this.addNews('FBI-WANTED', `${handle} [${ip}] entrou na Lista de Procurados do FBI! Recompensa: ${fmtUsd(fbiEntry.bountyCash)}.`);
+        this.addNews('FBI-WANTED', `${handle} [${fbiEntry.maskedDisplayIp}] entrou na Lista de Procurados do FBI! Recompensa: ${fmtUsd(fbiEntry.bountyCash)}.`);
       }
 
       if (kind === 'player') {
@@ -362,8 +381,9 @@
                       <span class="hc-badge danger">PROCURADO FBI</span>
                       <strong style="font-size:0.95rem;">${esc(w.handle)}</strong>
                     </div>
-                    <div style="font-family:var(--hc-font-mono);font-size:0.82rem;color:var(--hc-accent-text);margin-top:3px;cursor:pointer;" onclick="window.internetEngine.openIp('${esc(w.ip)}')">
-                      IP: ${esc(w.ip)} (${w.kind === 'player' ? 'Jogador' : 'Bot Online'})
+                    <div style="font-family:var(--hc-font-mono);font-size:0.84rem;color:#fca5a5;margin-top:3px;cursor:pointer;" onclick="window.internetEngine.openIp('${esc(w.ip)}')">
+                      Rastro: <strong>${esc(w.maskedDisplayIp || w.ip)}</strong>
+                      ${w.maskTier && w.maskTier < 4 ? `<span style="font-size:0.72rem;background:#451a1a;color:#fca5a5;padding:1px 5px;border-radius:3px;margin-left:4px;">Máscara ${w.maskTier}/4</span>` : '<span style="font-size:0.72rem;color:var(--hc-accent-text);margin-left:4px;">[IP 100% REVELADO]</span>'}
                     </div>
                   </div>
 
@@ -387,7 +407,17 @@
                 </div>
               `;
             }).join('');
-        bodyHtml = `<div style="display:flex;flex-direction:column;gap:10px;">${rows}</div>`;
+        bodyHtml = `
+          <div style="display:flex;justify-content:space-between;align-items:center;background:#151c27;border:1px solid #28374d;border-radius:8px;padding:10px 14px;margin-bottom:10px;">
+            <div style="font-size:0.84rem;color:#cbd5e1;">
+              💡 <strong>Dossiês Federais:</strong> IPs mascarados como <code>161.89.X.X</code> podem ser desmascarados invadindo o Mainframe do FBI.
+            </div>
+            <button type="button" class="hc-btn primary sm" style="background:#dc2626;border-color:#ef4444;" onclick="window.internetEngine.openIp('161.89.1.1')">
+              🏛️ Infiltrar Mainframe Central FBI (161.89.1.1) →
+            </button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;">${rows}</div>
+        `;
       } else if (this.activeTab === 'safenet') {
         const sRows = this.safenetList.length === 0
           ? `<div class="hc-card" style="padding:2rem;text-align:center;color:var(--hc-text-2);">Nenhum IP sob investigação preliminar da Safenet agora.</div>`
@@ -457,6 +487,234 @@
           ${bodyHtml}
         </div>
       `;
+    }
+
+    // =======================================================================
+    // MAINFRAME CENTRAL DO FBI (161.89.1.1) — OPERAÇÕES ROOT GOVERNAMENTAIS
+    // =======================================================================
+    renderMainframeRootTerminal() {
+      this.ensureSeeded();
+      this.startMainframeCounterTrace();
+      const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0';
+      const myWanted = this.fbiWantedList.find((w) => w.ip === myIp);
+      const mySafenet = this.safenetList.find((s) => s.ip === myIp);
+      const heat = window.currentProfile ? window.currentProfile.heat_level || 1 : 1;
+
+      return `
+        <div class="hc-card" style="padding:1.4rem;border-color:rgba(239,68,68,0.6);background:linear-gradient(145deg, #11090c 0%, #0d121c 100%);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;border-bottom:1px solid #3b1d24;padding-bottom:12px;margin-bottom:16px;">
+            <div>
+              <div class="hc-eyebrow" style="color:#ef4444;">TERMINAL FEDERAL ROOT // FBI CYBERCRIME DIVISION</div>
+              <h3 style="margin:4px 0;color:#fff;font-size:1.15rem;">SISTEMA CENTRAL DE MANDADOS E DOSSIÊS (161.89.1.1)</h3>
+              <div style="font-size:0.8rem;color:#94a3b8;">Acesso Root Concedido · Chave Criptográfica Federal Ativa</div>
+            </div>
+            <div id="fbiCounterTraceBox" style="background:#2a0f13;border:1px solid #7f1d1d;border-radius:6px;padding:8px 12px;text-align:right;">
+              <div style="font-size:0.7rem;color:#fca5a5;text-transform:uppercase;">Alarme de Contra-Rastreamento</div>
+              <div id="fbiCounterTraceTimer" style="font-family:monospace;font-size:1.1rem;font-weight:bold;color:#ef4444;">
+                TEMPO: ${this.counterSeconds}s
+              </div>
+            </div>
+          </div>
+
+          <!-- Ação 1: Limpar Minha Ficha -->
+          <div style="background:#171116;border:1px solid #4a1d26;border-radius:8px;padding:12px 14px;margin-bottom:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+              <div>
+                <strong style="color:#f87171;font-size:0.92rem;">1. Expurgar Minha Ficha Criminal (Expunge Record)</strong>
+                <div style="font-size:0.8rem;color:#cbd5e1;margin-top:2px;">
+                  Seu IP: <code>${esc(myIp)}</code> · Calor Atual: <strong>${heat}/5</strong> · Status: <strong>${myWanted ? 'MANDADO FEDERAL ATIVO' : (mySafenet ? 'Na Mira da Safenet' : 'Ficha Limpa')}</strong>
+                </div>
+              </div>
+              <button type="button" class="hc-btn primary sm" style="background:#dc2626;border-color:#ef4444;" onclick="window.safenetFbiEngine.expungeMyRecord()">
+                🗑️ Expurgar Ficha e Zerar Mandado
+              </button>
+            </div>
+          </div>
+
+          <!-- Ação 2: Descriptografar IPs Mascarados de Alvos -->
+          <div style="background:#0f172a;border:1px solid #1e3a5f;border-radius:8px;padding:12px 14px;margin-bottom:14px;">
+            <strong style="color:#38bdf8;font-size:0.92rem;">2. Descriptografar IPs Mascarados da Rede (Decrypt Mask)</strong>
+            <div style="font-size:0.8rem;color:#94a3b8;margin:4px 0 10px 0;">
+              Remova a máscara dos octetos de procurados para revelar os 4 números do IP e permitir ataques diretos:
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              ${this.fbiWantedList.map((w) => `
+                <div style="display:flex;justify-content:space-between;align-items:center;background:#131c2e;padding:8px 12px;border-radius:6px;font-size:0.82rem;">
+                  <div>
+                    <strong style="color:#e2e8f0;">${esc(w.handle)}</strong> · Rastro: <code style="color:${w.maskTier >= 4 ? '#35b877' : '#fca5a5'};font-weight:bold;">${esc(w.maskedDisplayIp || w.ip)}</code>
+                    ${w.maskTier < 4 ? `<span style="font-size:0.72rem;color:#f87171;margin-left:6px;">(Máscara Nível ${w.maskTier}/4)</span>` : '<span style="font-size:0.72rem;color:#35b877;margin-left:6px;">(100% Revelado)</span>'}
+                  </div>
+                  ${w.maskTier < 4
+                    ? `<button type="button" class="hc-btn ghost sm" onclick="window.safenetFbiEngine.decryptMask('${esc(w.ip)}')">🔍 Revelar IP Completo</button>`
+                    : `<button type="button" class="hc-btn primary sm" onclick="window.internetEngine.openIp('${esc(w.ip)}', 'invadir')">Atacar IP Revelado →</button>`}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Ação 3: Falsificar Evidências e Incriminar Rival -->
+          <div style="background:#161922;border:1px solid #2d3748;border-radius:8px;padding:12px 14px;">
+            <strong style="color:#f59e0b;font-size:0.92rem;">3. Falsificar Provas Forenses (Frame Rival)</strong>
+            <div style="font-size:0.8rem;color:#94a3b8;margin:4px 0 10px 0;">
+              Transfira seus registros de crimes para o IP de outro jogador ou bot rival para direcionar os caçadores para ele:
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <input type="text" id="frameTargetIpInput" placeholder="Ex: 10.110.1.18 ou IP de um rival..." style="background:#090d14;border:1px solid #334155;color:#e2e8f0;padding:6px 12px;border-radius:6px;font-family:monospace;font-size:0.82rem;flex:1;min-width:200px;">
+              <button type="button" class="hc-btn ghost sm" style="border-color:#f59e0b;color:#f59e0b;" onclick="window.safenetFbiEngine.framePlayer(document.getElementById('frameTargetIpInput').value)">
+                🎭 Falsificar Provas e Incriminar Alvo
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async expungeMyRecord() {
+      const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0';
+      this.safenetList = this.safenetList.filter((s) => s.ip !== myIp);
+      this.fbiWantedList = this.fbiWantedList.filter((w) => w.ip !== myIp);
+
+      if (window.currentProfile) {
+        window.currentProfile.heat_level = 1;
+      }
+
+      if (window.supabaseClient) {
+        try {
+          await window.supabaseClient.rpc('expunge_fbi_criminal_dossier', {
+            p_target_ip: myIp,
+            p_operator_alias: (window.currentProfile && window.currentProfile.hacker_tag) || 'Operador'
+          });
+        } catch (e) {
+          console.warn('[FBI] Supabase RPC expunge error:', e);
+        }
+      }
+
+      if (window.audioEngine && typeof window.audioEngine.playCashChime === 'function') {
+        window.audioEngine.playCashChime();
+      }
+
+      if (window.showToast) {
+        window.showToast('🗑️ FICHA EXPURGADA! Seus registros e mandados foram completamente deletados do Mainframe do FBI!', 'success');
+      }
+
+      if (window.internetEngine) {
+        window.internetEngine.render();
+      }
+      this.renderUI();
+    }
+
+    async decryptMask(targetIp) {
+      const entry = this.fbiWantedList.find((w) => w.ip === targetIp);
+      if (entry) {
+        entry.maskTier = 4;
+        entry.maskedDisplayIp = targetIp;
+      }
+
+      if (window.supabaseClient) {
+        try {
+          await window.supabaseClient.rpc('decrypt_fbi_masked_ip', { p_target_ip: targetIp });
+        } catch (e) {}
+      }
+
+      if (window.audioEngine && typeof window.audioEngine.playEnterBeep === 'function') {
+        window.audioEngine.playEnterBeep();
+      }
+
+      if (window.showToast) {
+        window.showToast(`🔍 IP DESCRIPTOGRAFADO: ${targetIp} revelado com sucesso!`, 'info');
+      }
+
+      if (window.internetEngine) {
+        window.internetEngine.render();
+      }
+      this.renderUI();
+    }
+
+    async framePlayer(targetIp) {
+      targetIp = String(targetIp || '').trim();
+      if (!targetIp || targetIp.split('.').length < 4) {
+        if (window.showToast) window.showToast('Digite um endereço IP válido com 4 octetos!', 'danger');
+        return;
+      }
+
+      const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0';
+      if (targetIp === myIp) {
+        if (window.showToast) window.showToast('Você não pode incriminar seu próprio IP!', 'danger');
+        return;
+      }
+
+      this.addOrEscalateSuspect({
+        ip: targetIp,
+        handle: 'Suspeito Incriminado',
+        kind: 'bot',
+        reason: 'Evidência forjada e transferida do IP ' + myIp,
+        amountValue: 3500,
+        defenseGbps: 3.2
+      });
+
+      // Reduz o calor do jogador
+      if (window.currentProfile) {
+        window.currentProfile.heat_level = Math.max(1, (window.currentProfile.heat_level || 2) - 1);
+      }
+
+      if (window.supabaseClient) {
+        try {
+          await window.supabaseClient.rpc('frame_rival_fbi_dossier', {
+            p_source_ip: myIp,
+            p_framed_ip: targetIp,
+            p_framing_alias: (window.currentProfile && window.currentProfile.hacker_tag) || 'Root'
+          });
+        } catch (e) {}
+      }
+
+      if (window.audioEngine && typeof window.audioEngine.playCashChime === 'function') {
+        window.audioEngine.playCashChime();
+      }
+
+      if (window.showToast) {
+        window.showToast(`🎭 PROVAS FALSIFICADAS! O FBI agora está caçando ${targetIp}!`, 'warning');
+      }
+
+      if (window.internetEngine) {
+        window.internetEngine.render();
+      }
+      this.renderUI();
+    }
+
+    startMainframeCounterTrace() {
+      if (this.counterTraceInterval) return;
+      this.counterSeconds = 60;
+      this.counterTraceInterval = setInterval(() => {
+        this.counterSeconds--;
+        const timerEl = document.getElementById('fbiCounterTraceTimer');
+        if (timerEl) {
+          timerEl.textContent = `TEMPO: ${this.counterSeconds}s`;
+        }
+        if (this.counterSeconds <= 0) {
+          clearInterval(this.counterTraceInterval);
+          this.counterTraceInterval = null;
+          this.triggerMainframeRaid();
+        }
+      }, 1000);
+    }
+
+    cancelMainframeCounterTrace() {
+      if (this.counterTraceInterval) {
+        clearInterval(this.counterTraceInterval);
+        this.counterTraceInterval = null;
+      }
+    }
+
+    triggerMainframeRaid() {
+      if (window.audioEngine && typeof window.audioEngine.playAlertSiren === 'function') {
+        window.audioEngine.playAlertSiren(4);
+      }
+      if (window.showToast) {
+        window.showToast('🚨 CONTRA-RASTREAMENTO CONCLUÍDO! BATIDA POLICIAL IMINENTE PELO FBI!', 'danger');
+      }
+      if (window.panicEngine && typeof window.panicEngine.triggerPoliceRaid === 'function') {
+        window.panicEngine.triggerPoliceRaid();
+      }
     }
   }
 
