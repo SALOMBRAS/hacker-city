@@ -71,13 +71,13 @@
       for (let attempt = 0; attempt < 300; attempt++) {
         const o1 = 11 + Math.floor(Math.random() * 212); // 11..222
         if (RESERVED_FIRST_OCTETS.has(o1)) continue;
-        const o2 = 1 + Math.floor(Math.random() * 253);
-        const o3 = 1 + Math.floor(Math.random() * 253);
-        const o4 = 2 + Math.floor(Math.random() * 252);
+        const o2 = 10 + Math.floor(Math.random() * 244); // 10..253
+        const o3 = 10 + Math.floor(Math.random() * 244); // 10..253
+        const o4 = 10 + Math.floor(Math.random() * 244); // 10..253
         const candidate = `${o1}.${o2}.${o3}.${o4}`;
         if (!excludeSet.has(candidate)) return candidate;
       }
-      return `142.${10 + Math.floor(Math.random() * 200)}.${10 + Math.floor(Math.random() * 200)}.${2 + Math.floor(Math.random() * 240)}`;
+      return `142.${10 + Math.floor(Math.random() * 200)}.${10 + Math.floor(Math.random() * 200)}.${10 + Math.floor(Math.random() * 240)}`;
     }
 
     ensureForProfile(profile) {
@@ -127,6 +127,41 @@
     getPublicIp() {
       this.ensureForProfile(window.currentProfile);
       return this.state.publicIp;
+    }
+
+    // Divide o IP separando exatamente os últimos 7 dígitos numéricos para o blur anti-curiosos
+    splitMyIpLast7Digits(ip = null) {
+      const str = String(ip || this.getPublicIp() || '0.0.0.0').trim();
+      let digitsSeen = 0;
+      let splitIdx = -1;
+      for (let i = str.length - 1; i >= 0; i--) {
+        if (/\d/.test(str[i])) {
+          digitsSeen++;
+          if (digitsSeen === 7) {
+            splitIdx = i;
+            break;
+          }
+        }
+      }
+      // Caso legado com menos de 8 dígitos totais: mantém o 1º octeto visível e oculta o restante
+      if (splitIdx <= 0) {
+        const firstDot = str.indexOf('.');
+        splitIdx = firstDot >= 0 ? firstDot + 1 : Math.min(1, str.length);
+      }
+      return {
+        full: str,
+        head: str.slice(0, splitIdx),
+        tail: str.slice(splitIdx),
+        blurredDigitsCount: (str.slice(splitIdx).match(/\d/g) || []).length
+      };
+    }
+
+    renderBlurredMyIpHtml(ip = null, withTooltip = false) {
+      const parts = this.splitMyIpLast7Digits(ip);
+      const tipAttrs = withTooltip
+        ? ' data-tip-title="Seu IP protegido" data-tip-meta="Privacidade" data-tip-desc="Os últimos 7 dígitos ficam ocultos automaticamente. Passe o mouse por cima para revelar."'
+        : '';
+      return `<span class="my-ip-privacy" tabindex="0"${tipAttrs}><span class="my-ip-head">${esc(parts.head)}</span><span class="my-ip-blur-tail">${esc(parts.tail)}</span></span>`;
     }
 
     getRootPassword() {
@@ -292,7 +327,7 @@
         cost: costPaid,
         oldIp,
         newIp,
-        message: `Novo IP público atribuído pelo provedor: ${newIp} (${wasFree ? 'Troca semanal gratuita utilizada' : 'Taxa $ ' + costPaid + ' HC'})!`
+        message: `Novo IP público atribuído pelo provedor! Passe o mouse sobre Seu IP para visualizar (${wasFree ? 'Troca semanal gratuita utilizada' : 'Taxa $ ' + costPaid + ' HC'}).`
       };
     }
 
@@ -328,7 +363,7 @@
         navigator.clipboard.writeText(ip).catch(() => {});
       }
       if (typeof window.showToast === 'function') {
-        window.showToast(`Seu IP público (${ip}) foi copiado!`);
+        window.showToast('Seu IP público foi copiado para a área de transferência!');
       }
     }
 
@@ -345,7 +380,7 @@
             <div>
               <div class="hc-eyebrow">Identidade de Rede & Provedor (HC Telecom ISP)</div>
               <div style="display: flex; align-items: center; gap: 0.6rem; margin-top: 0.25rem; flex-wrap: wrap;">
-                <span style="font-family: var(--hc-font-mono); font-size: 1.15rem; font-weight: 700; color: var(--hc-accent-text);">${esc(ip)}</span>
+                <span style="font-family: var(--hc-font-mono); font-size: 1.15rem; font-weight: 700; color: var(--hc-accent-text);">${this.renderBlurredMyIpHtml(ip, true)}</span>
                 ${st.canResetFree
                   ? '<span class="hc-badge success">1 troca grátis disponível (1x/semana)</span>'
                   : `<span class="hc-badge warn">Próxima grátis em ${esc(st.formattedRemaining)}</span>`}
@@ -2758,7 +2793,7 @@
         return `
           <div class="hc-card" style="padding: 1.25rem;">
             <span class="hc-badge success">Gateway Local</span>
-            <h3 style="margin: 0.5rem 0 0.35rem; font-size: 1.05rem;">Este é o seu próprio endereço IP público (${esc(host.ip)})</h3>
+            <h3 style="margin: 0.5rem 0 0.35rem; font-size: 1.05rem;">Este é o seu próprio endereço IP público (${window.networkIdentity.renderBlurredMyIpHtml(host.ip, true)})</h3>
             <p style="color: var(--hc-text-2); font-size: 0.86rem; margin-bottom: 1rem;">
               Qualquer invasão que você fizer sem proxy deixará este IP gravado no <code>/var/log/syslog</code> do alvo. Se esquecer seu IP exposto, bots e outros operadores podem contra-atacar você!
             </p>
@@ -2779,7 +2814,7 @@
           ? `<div style="font-size: 0.8rem; color: var(--hc-text-3);">Nenhuma troca de IP realizada nesta conta ainda.</div>`
           : st.history.map((h) => `
               <div style="display: flex; justify-content: space-between; font-family: var(--hc-font-mono); font-size: 0.78rem; padding: 0.35rem 0; border-bottom: 1px solid var(--hc-border); gap: 8px; flex-wrap: wrap;">
-                <span><span style="color: var(--hc-text-3);">${esc(h.from)}</span> → <strong style="color: var(--hc-accent-text);">${esc(h.to)}</strong></span>
+                <span><span style="color: var(--hc-text-3);">${esc(h.from)}</span> → <strong style="color: var(--hc-accent-text);">${h.to === myIp ? window.networkIdentity.renderBlurredMyIpHtml(h.to, true) : esc(h.to)}</strong></span>
                 <span style="color: var(--hc-text-2);">${esc(h.mode)} · ${esc(h.at)}</span>
               </div>
             `).join('');
@@ -2790,8 +2825,8 @@
               <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
                 <div>
                   <div class="hc-eyebrow">Painel do Assinante · Renovação de IPv4 Dinâmico</div>
-                  <div style="margin-top: 0.35rem; font-size: 0.85rem; color: var(--hc-text-2);">Seu IP Público Atual:</div>
-                  <div style="font-family: var(--hc-font-mono); font-size: 1.5rem; font-weight: 700; color: var(--hc-accent-text); margin: 0.15rem 0 0.5rem;">${esc(myIp)}</div>
+                  <div style="margin-top: 0.35rem; font-size: 0.85rem; color: var(--hc-text-2);">Seu IP Público Atual <span style="font-size: 0.75rem; color: var(--hc-text-3);">(passe o mouse p/ revelar)</span>:</div>
+                  <div id="ispCurrentMyIpBox" style="font-family: var(--hc-font-mono); font-size: 1.5rem; font-weight: 700; color: var(--hc-accent-text); margin: 0.15rem 0 0.5rem;">${window.networkIdentity.renderBlurredMyIpHtml(myIp, true)}</div>
                   <div style="font-size: 0.82rem; color: var(--hc-text-2);">
                     Política Oficial: <strong>1 troca de IP 100% gratuita a cada 7 dias</strong>. Ao renovar seu IP, rastros antigos deixados em servidores alheios perdem a rota até você e você some do Hacked Database de inimigos!
                   </div>
@@ -3123,8 +3158,8 @@
                 <strong style="font-size: 0.88rem;">Rastros de Acesso neste PC <span style="font-family:var(--hc-font-mono);font-size:0.78rem;color:var(--hc-text-3);">(${esc(host.ip)}:/var/log/syslog)</span></strong>
                 <div style="font-size: 0.78rem; color: ${myIpExposed ? 'var(--hc-danger-text)' : 'var(--hc-text-2)'};">
                   ${myIpExposed
-                    ? `⚠️ CUIDADO: Seu endereço (${esc(myIp)}) está anotado abaixo! Apague antes de sair para ninguém te rastrear!`
-                    : `✅ Limpo! Seu endereço (${esc(myIp)}) não aparece mais nos rastros deste PC.`}
+                    ? `⚠️ CUIDADO: Seu endereço (${window.networkIdentity.renderBlurredMyIpHtml(myIp, true)}) está anotado abaixo! Apague antes de sair para ninguém te rastrear!`
+                    : `✅ Limpo! Seu endereço (${window.networkIdentity.renderBlurredMyIpHtml(myIp, true)}) não aparece mais nos rastros deste PC.`}
                 </div>
               </div>
               <div style="display: flex; gap: 6px; flex-wrap: wrap;">

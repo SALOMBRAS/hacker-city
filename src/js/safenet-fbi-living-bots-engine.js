@@ -522,7 +522,7 @@
               <div>
                 <strong style="color:#f87171;font-size:0.92rem;">1. Expurgar Minha Ficha Criminal (Expunge Record)</strong>
                 <div style="font-size:0.8rem;color:#cbd5e1;margin-top:2px;">
-                  Seu IP: <code>${esc(myIp)}</code> · Calor Atual: <strong>${heat}/5</strong> · Status: <strong>${myWanted ? 'MANDADO FEDERAL ATIVO' : (mySafenet ? 'Na Mira da Safenet' : 'Ficha Limpa')}</strong>
+                  Seu IP: <code>${window.networkIdentity && window.networkIdentity.renderBlurredMyIpHtml ? window.networkIdentity.renderBlurredMyIpHtml(myIp, true) : esc(myIp)}</code> · Calor Atual: <strong>${heat}/5</strong> · Status: <strong>${myWanted ? 'MANDADO FEDERAL ATIVO' : (mySafenet ? 'Na Mira da Safenet' : 'Ficha Limpa')}</strong>
                 </div>
               </div>
               <button type="button" class="hc-btn primary sm" style="background:#dc2626;border-color:#ef4444;" onclick="window.safenetFbiEngine.expungeMyRecord()">
