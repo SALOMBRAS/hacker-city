@@ -337,6 +337,7 @@
       if (window.universityEngine) window.universityEngine.ensureLoaded();
       if (window.tutorialEngine) window.tutorialEngine.ensureLoaded();
       if (window.missionsEngine) window.missionsEngine.ensureLoaded();
+      if (window.cctvEngine) window.cctvEngine.ensureLoaded();
       if (window.puzzleTrailEngine) window.puzzleTrailEngine.ensureLoaded();
       if (window.clanEngine) window.clanEngine.ensureLoaded();
       if (window.mailEngine) window.mailEngine.ensureLoaded();
@@ -448,7 +449,11 @@
           slaveIps: (window.botnetC2.slaves || []).map((s) => s.ip)
         } : null,
         billsPaid,
-        quitineteBilling
+        quitineteBilling,
+        cctvState: window.cctvEngine && window.cctvEngine.state ? {
+          capturedClips: (window.cctvEngine.state.capturedClips || []).slice(0, 20),
+          loopedCameras: { ...(window.cctvEngine.state.loopedCameras || {}) }
+        } : null
       };
       return window.integrityGuard && typeof window.integrityGuard.signSnapshot === 'function'
         ? window.integrityGuard.signSnapshot(rawSnap)
@@ -624,6 +629,15 @@
             window.quitineteEngine.saveState();
           }
         }
+      }
+
+      if (snap.cctvState && window.cctvEngine) {
+        window.cctvEngine.userId = uid;
+        window.cctvEngine.state = {
+          capturedClips: Array.isArray(snap.cctvState.capturedClips) ? snap.cctvState.capturedClips : [],
+          loopedCameras: snap.cctvState.loopedCameras && typeof snap.cctvState.loopedCameras === 'object' ? snap.cctvState.loopedCameras : {}
+        };
+        window.cctvEngine.save();
       }
 
       if (snap.stealthLoot && window.stealthXhdEngine) {

@@ -6,7 +6,7 @@
  */
 (function () {
   const WEEK_MS = 7 * 24 * 60 * 60 * 1000; // 7 dias exatos (168h)
-  const RESERVED_FIRST_OCTETS = new Set([0, 10, 33, 71, 77, 100, 109, 127, 133, 155, 169, 172, 185, 192, 198, 203, 224, 240, 255]);
+  const RESERVED_FIRST_OCTETS = new Set([0, 10, 33, 71, 77, 100, 109, 127, 133, 155, 169, 172, 185, 192, 194, 198, 203, 224, 240, 255]);
 
   function esc(str) {
     return String(str == null ? '' : str)
@@ -798,7 +798,7 @@
       domain: 'farofa.hc',
       hostname: 'Farofa Systems S.A.',
       kind: 'empresa',
-      badge: 'Empresa',
+      badge: 'Empresa · CFTV Ativo',
       tier: 1,
       securityLevel: 1,
       cpuMhz: 2200,
@@ -810,11 +810,57 @@
       hasherVer: 1.0,
       firewallVer: 1.0,
       antivirusVer: 1.5,
-      cpuSpec: '2.200 MHz · 100 Mbps · HDD 380MB · AV v1.5',
+      cpuSpec: '2.200 MHz · 100 Mbps · NVR 4 Câmeras · AV v1.5',
       bankBalance: 185,
       files: [
         { name: 'clientes_b2b.csv', size: '42 MB', sizeMb: 42, content: 'Parceiros ativos: Rádio Pirata (133.70.13.37) e Gateway Safenet (109.64.211.37).' },
         { name: 'caixa_interno.dat', size: '28 MB', sizeMb: 28, content: 'Reserva operacional disponível para wire transfer.' }
+      ]
+    },
+    '194.88.14.202': {
+      ip: '194.88.14.202',
+      domain: 'meridian.hc',
+      hostname: 'Meridian BioLabs S.A.',
+      kind: 'empresa',
+      badge: 'BioTech · CFTV Ao Vivo',
+      tier: 1,
+      securityLevel: 1,
+      cpuMhz: 3200,
+      netMbps: 200,
+      hddTotalMb: 640,
+      hddOsBaseMb: 300,
+      ramTotalMb: 512,
+      ramOsBaseMb: 220,
+      hasherVer: 1.0,
+      firewallVer: 1.0,
+      antivirusVer: 1.5,
+      cpuSpec: '3.200 MHz · 200 Mbps · NVR 4 Câmeras P&D · AV v1.5',
+      bankBalance: 290,
+      files: [
+        { name: 'protocolo_sala_limpa.txt', size: '18 MB', sizeMb: 18, content: 'Acesso visual às câmeras P&D via painel NVR CFTV na porta RTSP 554.' }
+      ]
+    },
+    '172.66.40.18': {
+      ip: '172.66.40.18',
+      domain: 'aegis-cctv.hc',
+      hostname: 'Aegis Security & Vaults S.A.',
+      kind: 'empresa',
+      badge: 'Central 6 Câmeras CFTV',
+      tier: 1,
+      securityLevel: 1,
+      cpuMhz: 4200,
+      netMbps: 300,
+      hddTotalMb: 1024,
+      hddOsBaseMb: 440,
+      ramTotalMb: 512,
+      ramOsBaseMb: 240,
+      hasherVer: 1.0,
+      firewallVer: 1.0,
+      antivirusVer: 1.5,
+      cpuSpec: '4.200 MHz · 300 Mbps · Matriz 6 Câmeras CFTV · AV v1.5',
+      bankBalance: 310,
+      files: [
+        { name: 'matriz_nvr_6ch.conf', size: '22 MB', sizeMb: 22, content: 'Central de monitoramento corporativo operando 6 modelos de câmeras ao vivo.' }
       ]
     },
     '133.70.13.37': {
@@ -1314,7 +1360,46 @@
 
     openIp(ipOrDomain, tab = null) {
       if (typeof window.navTo === 'function') window.navTo('winBrowser');
+      if (tab === 'cctv') {
+        this.openCompanyCctv(ipOrDomain);
+        return;
+      }
       this.navigate(ipOrDomain, tab);
+    }
+
+    openCompanyCctv(ipOrDomain, focusCamCode = null) {
+      if (typeof window.navTo === 'function') window.navTo('winBrowser');
+      const targetIp = this.normalizeQueryToIp(ipOrDomain);
+      const saved = window.hackedDb ? window.hackedDb.getEntry(targetIp) : null;
+
+      if (saved || this.activeSshIp === targetIp) {
+        this.navigate(targetIp, 'entrar');
+        if (this.activeSshIp !== targetIp && saved) {
+          this.connectSsh(targetIp, saved.password, saved.accessMethod === 'exploit');
+        }
+        this.sshSubTab = 'cctv';
+        if (window.cctvEngine) {
+          if (focusCamCode) {
+            const host = this.resolveHost(targetIp);
+            const prof = window.cctvEngine.getCompanyNvrProfile(targetIp, host ? host.hostname : targetIp);
+            const idx = prof.cameras.findIndex((c) => c.code === focusCamCode);
+            if (idx >= 0) {
+              window.cctvEngine.selectedCamIdx = idx;
+              window.cctvEngine.viewMode = 'single';
+            } else {
+              window.cctvEngine.viewMode = 'mosaic';
+            }
+          } else {
+            window.cctvEngine.viewMode = 'mosaic';
+          }
+        }
+        this.render();
+      } else {
+        this.navigate(targetIp, 'invadir');
+        if (typeof window.showToast === 'function') {
+          window.showToast(`Quebre a senha de ${targetIp} para destravar as Câmeras de Segurança Ao Vivo!`);
+        }
+      }
     }
 
     quickSshConnect(ip) {
@@ -2380,7 +2465,12 @@
       this.activeSshMethod = method;
       this.activeSshRole = sshRole;
       this.activeTab = 'entrar';
-      this.sshSubTab = 'logs';
+      const activeMsn = (window.missionsEngine && window.missionsEngine.ensureLoaded().activeMission) || null;
+      const autoOpenCctv = activeMsn && activeMsn.type === 'cctv_hack' && activeMsn.targetIp === host.ip && host.ip !== '198.51.100.42';
+      this.sshSubTab = autoOpenCctv ? 'cctv' : 'logs';
+      if (autoOpenCctv && window.cctvEngine) {
+        window.cctvEngine.viewMode = 'mosaic';
+      }
       if (window.tutorialEngine) {
         window.tutorialEngine.onHostHackedOrLoggedRoot(host.ip);
       }
@@ -3104,26 +3194,51 @@
         }
       }
 
-      // 7. Empresas, Bots e Jogadores VPC (com suporte a página HTTP customizada / Deface via WebServer.exe!)
+      // 7. Empresas, Bots e Jogadores VPC (com suporte a página HTTP customizada + Portal NVR de Câmeras!)
       const customHttp = this.defacedPages.get(host.ip) || host.customWebPage || null;
+      const hasCctv = window.cctvEngine && window.cctvEngine.hostSupportsCctv(host);
+      const alreadyHacked = window.hackedDb ? !!window.hackedDb.getEntry(host.ip) : false;
+      const nvrProf = hasCctv ? window.cctvEngine.getCompanyNvrProfile(host.ip, host.hostname) : null;
+
       return `
-        <div class="hc-card" style="padding: 1.2rem;">
-          <div class="hc-eyebrow" style="margin-bottom: 0.35rem;">Resposta HTTP Porta 80 · ${esc(host.badge)}</div>
-          <h3 style="font-size: 1.05rem; margin-bottom: 0.4rem;">${esc(host.hostname)}</h3>
-          ${customHttp
-            ? `<div style="margin:0.55rem 0 0.85rem;padding:0.75rem 0.95rem;background:var(--hc-inset);border:1px solid var(--hc-accent);border-radius:7px;font-family:var(--hc-font-mono);font-size:0.82rem;color:var(--hc-accent-text);">
-                 [HTTP :80 WebServer.exe]: ${esc(customHttp)}
-               </div>`
-            : ''}
-          <p style="font-size: 0.85rem; color: var(--hc-text-2); margin-bottom: 1rem;">
-            Servidor operando em <code>${esc(host.ip)}</code> (${esc(host.cpuSpec)}).
-            Defesas ativas: <strong>Firewall.fwl v${(host.firewallVer || 1.0).toFixed(1)}</strong> · <strong>Hasher.hash v${(host.hasherVer || 1.0).toFixed(1)}</strong>.
-            ${host.newbieProtected ? '<br><strong style="color: var(--hc-warning);">Este operador está sob Proteção de Iniciante (&lt; 100 REP).</strong>' : ''}
-          </p>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button type="button" class="hc-btn primary" onclick="window.internetEngine.switchTab('invadir')">Ir para Aba Invadir →</button>
-            <button type="button" class="hc-btn ghost" onclick="window.internetEngine.switchTab('entrar')">Login SSH Remoto</button>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div class="hc-card" style="padding: 1.2rem;">
+            <div class="hc-eyebrow" style="margin-bottom: 0.35rem;">Resposta HTTP Porta 80 · ${esc(host.badge)}</div>
+            <h3 style="font-size: 1.05rem; margin-bottom: 0.4rem;">${esc(host.hostname)}</h3>
+            ${customHttp
+              ? `<div style="margin:0.55rem 0 0.85rem;padding:0.75rem 0.95rem;background:var(--hc-inset);border:1px solid var(--hc-accent);border-radius:7px;font-family:var(--hc-font-mono);font-size:0.82rem;color:var(--hc-accent-text);">
+                   [HTTP :80 WebServer.exe]: ${esc(customHttp)}
+                 </div>`
+              : ''}
+            <p style="font-size: 0.85rem; color: var(--hc-text-2); margin-bottom: 1rem;">
+              Servidor operando em <code>${esc(host.ip)}</code> (${esc(host.cpuSpec)}).
+              Defesas ativas: <strong>Firewall.fwl v${(host.firewallVer || 1.0).toFixed(1)}</strong> · <strong>Hasher.hash v${(host.hasherVer || 1.0).toFixed(1)}</strong>.
+              ${host.newbieProtected ? '<br><strong style="color: var(--hc-warning);">Este operador está sob Proteção de Iniciante (&lt; 100 REP).</strong>' : ''}
+            </p>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="hc-btn primary" onclick="window.internetEngine.switchTab('invadir')">Ir para Aba Invadir →</button>
+              <button type="button" class="hc-btn ghost" onclick="window.internetEngine.switchTab('entrar')">Login SSH Remoto</button>
+              ${hasCctv ? `
+                <button type="button" id="btnPublicOpenCctv" class="hc-btn ${alreadyHacked ? 'primary' : 'ghost'}"
+                  style="${alreadyHacked ? '' : 'border-color:rgba(229,83,75,0.45);color:#ff9b95;'}"
+                  onclick="window.internetEngine.openCompanyCctv('${esc(host.ip)}')">
+                  ${HC.icon('video')} ${alreadyHacked ? `Abrir ${nvrProf.cameras.length} Câmeras Ao Vivo` : `CFTV Trancado (${nvrProf.cameras.length} Câmeras — Invadir)`}
+                </button>
+              ` : ''}
+            </div>
           </div>
+
+          ${hasCctv ? `
+            <div class="hc-card" style="padding:1rem 1.2rem;border-color:rgba(53,184,119,0.28);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+              <div>
+                <div class="hc-eyebrow" style="color:var(--hc-accent-text);">${esc(nvrProf.nvrSystem)}</div>
+                <div style="font-size:0.83rem;color:var(--hc-text-2);margin-top:3px;">
+                  Canais RTSP detectados: <strong>${nvrProf.cameras.map((c) => `${c.code} (${c.room})`).join(' · ')}</strong>
+                </div>
+              </div>
+              <span class="hc-badge ${alreadyHacked ? 'success' : 'danger'}">${alreadyHacked ? 'Acesso NVR Liberado' : 'RTSP:554 Protegido por Senha'}</span>
+            </div>
+          ` : ''}
         </div>
       `;
     }
@@ -3639,6 +3754,8 @@
             </div>
           </div>
         `;
+      } else if (this.sshSubTab === 'cctv' && window.cctvEngine && window.cctvEngine.hostSupportsCctv(host)) {
+        subContent = window.cctvEngine.renderRemoteCctvPanelHtml(host);
       } else {
         const specs = window.softwareEngine ? window.softwareEngine.inspectRemoteHostResources(host) : null;
         subContent = `
@@ -3670,6 +3787,10 @@
         `;
       }
 
+      const hasCctvTab = window.cctvEngine && window.cctvEngine.hostSupportsCctv(host);
+      const activeCctvMsn = (window.missionsEngine && window.missionsEngine.ensureLoaded().activeMission);
+      const cctvBadgeAlert = !!(activeCctvMsn && activeCctvMsn.type === 'cctv_hack' && activeCctvMsn.targetIp === host.ip);
+
       return `
         <div>
           <div class="ssh-root-bar">
@@ -3680,6 +3801,13 @@
             <div style="display: flex; gap: 6px; flex-wrap: wrap;">
               <button type="button" id="btnSshSubTabLogs" class="hc-btn sm ${this.sshSubTab === 'logs' ? 'primary' : 'ghost'}" onclick="window.internetEngine.sshSubTab='logs'; window.internetEngine.render();">Logs (/var/log/syslog)${myIpExposed ? ' ⚠️' : ''}</button>
               <button type="button" id="btnSshSubTabFiles" class="hc-btn sm ${this.sshSubTab === 'files' ? 'primary' : 'ghost'}" onclick="window.internetEngine.sshSubTab='files'; window.internetEngine.render();">Vírus, Carteira &amp; Arquivos</button>
+              ${hasCctvTab ? `
+                <button type="button" id="btnSshSubTabCctv" class="hc-btn sm ${this.sshSubTab === 'cctv' ? 'primary' : 'ghost'}"
+                  style="${this.sshSubTab !== 'cctv' ? 'border-color:rgba(53,184,119,0.5);color:var(--hc-accent-text);' : ''}"
+                  onclick="window.internetEngine.sshSubTab='cctv'; window.internetEngine.render();">
+                  ${HC.icon('video')} Câmeras Ao Vivo (CFTV)${cctvBadgeAlert ? ' 🎯' : ''}
+                </button>
+              ` : ''}
               <button type="button" id="btnSshSubTabHw" class="hc-btn sm ${this.sshSubTab === 'hw' ? 'primary' : 'ghost'}" onclick="window.internetEngine.sshSubTab='hw'; window.internetEngine.render();">Hardware &amp; Analyzer</button>
               <button type="button" class="hc-btn ghost sm" style="color: var(--hc-danger-text);" onclick="window.internetEngine.disconnectSsh()">Desconectar</button>
             </div>
@@ -3710,11 +3838,13 @@
 
       const publicTargets = [
         { ip: '198.51.100.42', name: 'Treinamento Numataka', role: 'target', iconCls: 'corp', icon: 'building-2', tier: 1, useLabel: 'Servidor inicial de treino sem antivírus · Reserva $65', fw: 1.0 },
+        { ip: '203.17.88.40', name: 'Farofa Systems (CFTV 4x)', role: 'target', iconCls: 'corp', icon: 'video', tier: 1, useLabel: 'Empresa B2B com 4 Câmeras de Segurança Ao Vivo · Reserva $185', fw: 1.0 },
+        { ip: '194.88.14.202', name: 'Meridian BioLabs (CFTV P&D)', role: 'target', iconCls: 'corp', icon: 'video', tier: 1, useLabel: 'Laboratório BioTech com Câmeras Ao Vivo da Sala Limpa · Reserva $290', fw: 1.0 },
+        { ip: '172.66.40.18', name: 'Aegis Security (Matriz 6 Câmeras)', role: 'target', iconCls: 'corp', icon: 'camera', tier: 1, useLabel: 'Central de Segurança operando todos os 6 Modelos CFTV Ao Vivo · Reserva $310', fw: 1.0 },
         { ip: '133.70.13.37', name: 'Rádio Pirata 1337 FM', role: 'target', iconCls: 'corp', icon: 'zap', tier: 1, useLabel: 'Estação comunitária · Boa para treinar upload de vírus · Reserva $110', fw: 1.0 },
-        { ip: '203.17.88.40', name: 'Farofa Systems', role: 'target', iconCls: 'corp', icon: 'building-2', tier: 1, useLabel: 'Empresa de software B2B · Logs com pistas de outros IPs · Reserva $185', fw: 1.0 },
         { ip: '187.22.5.60', name: 'Boteco h4x0r', role: 'target', iconCls: 'corp', icon: 'message-square', tier: 1, useLabel: 'Ponto de encontro underground · Antivírus básico v1.0 · Reserva $260', fw: 1.5 },
-        { ip: '58.40.12.9', name: 'Corvo Cinza Logística', role: 'target', iconCls: 'corp', icon: 'building-2', tier: 2, useLabel: 'Transportadora corporativa · Boa largura de banda para vírus · Reserva $340', fw: 1.5 },
-        { ip: '189.40.7.12', name: 'KronoTech Sistemas', role: 'target', iconCls: 'corp', icon: 'cpu', tier: 2, useLabel: 'Corporação de médio porte · Pagamentos no HEBC Bank · Reserva $680', fw: 2.5 },
+        { ip: '58.40.12.9', name: 'Corvo Cinza Logística (CFTV Doca)', role: 'target', iconCls: 'corp', icon: 'video', tier: 2, useLabel: 'Transportadora com CFTV na Doca Subterrânea & AGV · Reserva $340', fw: 1.5 },
+        { ip: '189.40.7.12', name: 'KronoTech Sistemas (CFTV)', role: 'target', iconCls: 'corp', icon: 'cpu', tier: 2, useLabel: 'Corporação de médio porte · Data Center & Cofre CFTV · Reserva $680', fw: 2.5 },
         { ip: '192.99.44.80', name: 'OmniDyne Defense', role: 'target', iconCls: 'gov', icon: 'radar', tier: 3, useLabel: 'Contratante militar com link gigabit · Reserva $1.450', fw: 4.5 },
         { ip: '209.141.55.10', name: 'EvilCorp Conglomerate', role: 'target', iconCls: 'corp', icon: 'building-2', tier: 4, useLabel: 'Conglomerado global de alta segurança · Reserva $4.200', fw: 7.0 },
         { ip: '161.89.2.1', name: 'NSA Signal Intelligence', role: 'target', iconCls: 'gov', icon: 'shield-alert', tier: 4, useLabel: 'Agência de inteligência de sinais · Desafio máximo de força-bruta', fw: 9.5 }
@@ -3829,11 +3959,11 @@
 
       const trendingHubLinks = [
         { ip: '71.4.5.1', name: 'ISP - Provedor de Internet', fw: 3.0, useLabel: 'Gerencie e troque gratuitamente seu endereço IP público (1x por semana).' },
+        { ip: '203.17.88.40', name: 'Farofa Systems (CFTV Ao Vivo)', fw: 1.0, useLabel: 'Empresa corporativa com NVR de 4 Câmeras de Segurança Ao Vivo.' },
+        { ip: '194.88.14.202', name: 'Meridian BioLabs (CFTV P&D)', fw: 1.0, useLabel: 'Laboratório restrito com Câmeras Ao Vivo de Sala Limpa e Cofre.' },
+        { ip: '172.66.40.18', name: 'Aegis Security (6 Câmeras CFTV)', fw: 1.0, useLabel: 'Central corporativa operando os 6 modelos de vídeo CFTV simultâneos.' },
+        { ip: '58.40.12.9', name: 'Corvo Cinza Logística (CFTV)', fw: 1.5, useLabel: 'Doca subterrânea com empilhadeira AGV e câmeras industriais.' },
         { ip: '144.202.44.8', name: 'Bitcoin Market', fw: 3.5, useLabel: 'Câmbio em tempo real para comprar e vender Bitcoins minerados.' },
-        { ip: '203.17.88.40', name: 'Farofa Systems S.A.', fw: 1.0, useLabel: 'Servidor corporativo B2B (alvo frequente de contratos e missões).' },
-        { ip: '133.70.13.37', name: 'Rádio Pirata 1337 FM', fw: 1.0, useLabel: 'Servidor comunitário ideal para testes de upload e missões Nível 1.' },
-        { ip: '58.40.12.9', name: 'Corvo Cinza Logística', fw: 1.5, useLabel: 'Rede empresarial com boa banda para manter vírus gerando renda.' },
-        { ip: '77.3.10.44', name: 'HEBC Clearing Bank', fw: 4.0, useLabel: 'Banco corporativo secundário para contas alternativas.' },
         { ip: '161.89.2.1', name: 'NSA Signal Intelligence', fw: 9.5, useLabel: 'Agência de inteligência de sinais — defesa máxima da rede.' }
       ];
 

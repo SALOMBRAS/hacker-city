@@ -654,7 +654,9 @@
     { ip: '187.22.5.60', hostname: 'Boteco h4x0r', tier: 1, balanceHint: 260 },
     { ip: '58.40.12.9', hostname: 'Corvo Cinza Logística', tier: 2, balanceHint: 340 },
     { ip: '185.220.101.9', hostname: 'Blackmarket Onion', tier: 2, balanceHint: 420 },
-    { ip: '77.3.9.21', hostname: 'Banco Colchão & Clearing HC', tier: 3, balanceHint: 1150 }
+    { ip: '77.3.9.21', hostname: 'Banco Colchão & Clearing HC', tier: 3, balanceHint: 1150 },
+    { ip: '194.88.14.202', hostname: 'Meridian BioLabs S.A.', tier: 1, balanceHint: 290 },
+    { ip: '172.66.40.18', hostname: 'Aegis Security & Vaults S.A.', tier: 1, balanceHint: 310 }
   ];
 
   class MissionsBoardEngine {
@@ -700,8 +702,10 @@
         };
         this.generatePool();
       }
-      // Garante que contratos legados tenham hirerIp / actionLabel
-      if (this.state.pool.length > 0 && !this.state.pool[0].hirerIp) {
+      // Garante que contratos legados tenham hirerIp e as novas missões de Câmera de Segurança (CFTV)
+      const hasCctvInPoolOrActive = this.state.pool.some((m) => m.type === 'cctv_hack') ||
+        (this.state.activeMission && this.state.activeMission.type === 'cctv_hack');
+      if ((this.state.pool.length > 0 && !this.state.pool[0].hirerIp) || !hasCctvInPoolOrActive) {
         this.generatePool();
       }
       return this.state;
@@ -717,6 +721,34 @@
     generatePool() {
       const nowStamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
       const templates = [
+        {
+          type: 'cctv_hack',
+          badge: 'Invadir Câmera CFTV',
+          tier: 1,
+          hirerIdx: 2,
+          targetIdx: 0,
+          camCode: 'CAM-03',
+          camRoom: 'Sala da Diretoria Executiva',
+          cctvObjective: 'capture',
+          rewardCash: 920,
+          rewardSats: 0,
+          repReward: 95,
+          brief: 'Invadir 203.17.88.40 (Farofa Systems S.A.), abrir o painel Câmeras Ao Vivo (CFTV) na CAM-03 (Sala da Diretoria) e gravar o vídeo ao vivo (.mp4) como prova.'
+        },
+        {
+          type: 'cctv_hack',
+          badge: 'Sabotar CFTV Ao Vivo',
+          tier: 1,
+          hirerIdx: 3,
+          targetIdx: 6,
+          camCode: 'CAM-01',
+          camRoom: 'Laboratório Limpo P&D Nível 3',
+          cctvObjective: 'loop',
+          rewardCash: 1100,
+          rewardSats: 25000,
+          repReward: 110,
+          brief: 'Invadir o NVR da Meridian BioLabs S.A. (194.88.14.202), abrir Câmeras Ao Vivo na CAM-01 (Laboratório Limpo P&D) e injetar um Loop Falso para cegar a segurança.'
+        },
         {
           type: 'steal_data',
           badge: 'Roubar Arquivo',
@@ -757,6 +789,20 @@
           rewardSats: 0,
           repReward: 85,
           brief: 'Invadir 203.17.88.40, subir o vírus Spam.vspam e executá-lo (⚙️) para deixá-lo rodando em segundo plano no PC da vítima.'
+        },
+        {
+          type: 'cctv_hack',
+          badge: 'Vigiar Doca CFTV',
+          tier: 2,
+          hirerIdx: 5,
+          targetIdx: 3,
+          camCode: 'CAM-01',
+          camRoom: 'Doca Sul & Pátio de Contêineres',
+          cctvObjective: 'capture',
+          rewardCash: 1480,
+          rewardSats: 55000,
+          repReward: 135,
+          brief: 'Invadir 58.40.12.9 (Corvo Cinza Logística), abrir a câmera ao vivo CAM-01 (Doca Subterrânea & AGV) e capturar a gravação da carga.'
         },
         {
           type: 'install_virus',
@@ -811,6 +857,10 @@
           tier: tpl.tier,
           targetIp: tgt.ip,
           targetHostname: tgt.hostname,
+          camCode: tpl.camCode || null,
+          camRoom: tpl.camRoom || null,
+          cctvObjective: tpl.cctvObjective || null,
+          cctvVerified: false,
           fileName: tpl.fileName || null,
           fileSizeMb: tpl.fileSizeMb || 24,
           fileContent: tpl.fileContent || null,
@@ -832,6 +882,12 @@
     }
 
     buildPlainEmailBody(m, playerTag) {
+      if (m.type === 'cctv_hack') {
+        const actTxt = m.cctvObjective === 'loop'
+          ? `injetar um Loop Falso no sinal de vídeo da câmera ${m.camCode} (${m.camRoom})`
+          : `assistir e gravar o vídeo ao vivo (.mp4) da câmera ${m.camCode} (${m.camRoom})`;
+        return `${playerTag},\n\nNós da ${m.hirer} precisamos de acesso visual imediato às câmeras internas de ${m.targetHostname} (${m.targetIp}).\nInvada o servidor deles, abra a aba "Câmeras Ao Vivo (CFTV)" e vá até ${m.camCode} (${m.camRoom}) para ${actTxt}.\n\nPagamento: $${m.rewardCash} assim que confirmarmos a operação no NVR.\nNão esqueça de apagar seu IP da log antes de sair!\n\n— ${m.hirer} [${m.hirerIp}]`;
+      }
       if (m.type === 'steal_data') {
         return `${playerTag},\n\nNós da ${m.hirer} temos uma proposta confidencial para você.\nPrecisamos que você acesse os servidores de ${m.targetHostname} (${m.targetIp}) e baixe uma cópia do arquivo "${m.fileName}" (${m.fileSizeMb} MB) para o seu computador.\n\nPagamento: $${m.rewardCash} quando confirmarmos que o arquivo está salvo com você.\nFaça isso em silêncio, apague seu IP da log e lembre-se: se for pego, nós não conhecemos você.\n\n— ${m.hirer} [${m.hirerIp}]`;
       }
@@ -848,9 +904,15 @@
     }
 
     buildStoryRichHtml(m, playerTag) {
-      const ipLink = `<span class="msn-hl-ip" onclick="window.internetEngine.openIp('${esc(m.targetIp)}', 'invadir')">${esc(m.targetIp)}</span>`;
+      const ipLink = `<span class="msn-hl-ip" onclick="window.internetEngine.openIp('${esc(m.targetIp)}', '${m.type === 'cctv_hack' ? 'cctv' : 'invadir'}')">${esc(m.targetIp)}</span>`;
       const moneySpan = `<span class="msn-hl-money">$${m.rewardCash.toLocaleString('pt-BR')}</span>`;
 
+      if (m.type === 'cctv_hack') {
+        if (m.cctvObjective === 'loop') {
+          return `<strong>${esc(playerTag)}</strong>, nossa equipe de campo vai entrar nas instalações da <strong>${esc(m.targetHostname)}</strong>, mas o circuito de câmeras está monitorando tudo ao vivo. Invada o NVR deles em ${ipLink}, abra o console <strong>Câmeras Ao Vivo (CFTV)</strong>, selecione <span class="msn-hl-file">${esc(m.camCode)} · ${esc(m.camRoom)}</span> e clique em <strong>Injetar Loop Falso</strong> para cegar os vigilantes. Pagaremos ${moneySpan} na hora que o sinal estiver em loop!`;
+        }
+        return `<strong>${esc(playerTag)}</strong>, recebemos informações de movimentação secreta dentro da <strong>${esc(m.targetHostname)}</strong> e precisamos do flagrante em vídeo. Invada o servidor em ${ipLink}, entre em <strong>Câmeras Ao Vivo (CFTV)</strong>, abra a câmera <span class="msn-hl-file">${esc(m.camCode)} · ${esc(m.camRoom)}</span> ao vivo e clique em <strong>Gravar Prova Ao Vivo (.mp4)</strong>. Depositaremos ${moneySpan} assim que a gravação estiver salva com você!`;
+      }
       if (m.type === 'steal_data') {
         return `<strong>${esc(playerTag)}</strong>, nós da <strong>${esc(m.hirer)}</strong> temos uma proposta para você. Precisamos que você invada os servidores de <strong>${esc(m.targetHostname)}</strong> e baixe o arquivo <span class="msn-hl-file">${esc(m.fileName)}</span> (${m.fileSizeMb} MB) para o seu computador. Você receberá ${moneySpan} assim que o trabalho for verificado. Acesse o alvo em ${ipLink}. Faça tudo em silêncio, limpe seu IP da log e lembre-se: se você for pego, nunca ouvimos falar de você.`;
       }
@@ -969,6 +1031,30 @@
       if (!m) return { verified: false, reason: 'Nenhuma missão ativa.' };
 
       const hacked = window.hackedDb ? !!window.hackedDb.getEntry(m.targetIp) : false;
+
+      if (m.type === 'cctv_hack') {
+        const doneByEngine = window.cctvEngine
+          ? (m.cctvObjective === 'loop'
+              ? window.cctvEngine.isCameraLooped(m.targetIp, m.camCode)
+              : window.cctvEngine.hasCapturedCamera(m.targetIp, m.camCode))
+          : false;
+        const verified = !!m.cctvVerified || doneByEngine;
+        if (!verified) {
+          const reqAction = m.cctvObjective === 'loop' ? 'Injetar Loop Falso' : 'Gravar Prova Ao Vivo (.mp4)';
+          return {
+            verified: false,
+            hacked,
+            reason: `Invada ${m.targetIp}, clique em "Câmeras Ao Vivo (CFTV)", abra ${m.camCode} (${m.camRoom}) e clique em "${reqAction}"!`
+          };
+        }
+        return {
+          verified: true,
+          hacked: true,
+          detail: m.cctvObjective === 'loop'
+            ? `Loop fantasma confirmado na câmera ${m.camCode} (${m.camRoom}) de ${m.targetIp}!`
+            : `Vídeo ao vivo de ${m.camCode} (${m.camRoom}) capturado com sucesso em ${m.targetIp}!`
+        };
+      }
 
       if (m.type === 'steal_data') {
         const hasDownloaded = !!m.downloadedToLocal ||
@@ -1137,6 +1223,24 @@
         }
       }
       return { success: true };
+    }
+
+    notifyCctvAction(ip, camCode, actionKind) {
+      this.ensureLoaded();
+      const m = this.state.activeMission;
+      if (!m || m.type !== 'cctv_hack' || m.targetIp !== ip) return;
+      if (m.camCode && m.camCode !== camCode) return;
+
+      const wanted = m.cctvObjective || 'capture';
+      if (actionKind === wanted) {
+        m.cctvVerified = true;
+        m.progressDone = true;
+        this.save();
+        if (typeof window.showToast === 'function') {
+          window.showToast(`✓ Objetivo CFTV cumprido em ${camCode}! Vá em Missões → Missão Atual para receber $${m.rewardCash}!`);
+        }
+        this.renderUI();
+      }
     }
 
     notifyHostDrained(ip) {
@@ -1355,12 +1459,16 @@
         } else {
           const verif = this.verifyActiveMissionStatus();
           const btcBonusStr = active.rewardSats > 0 ? ` + ${(active.rewardSats / 100000000).toFixed(5)} BTC` : '';
-          const objRowLabel = active.type === 'install_virus' ? 'Vírus Exigido' : (active.fileName ? 'Arquivo Alvo' : 'Operação');
-          const objRowVal = active.type === 'install_virus'
-            ? `<span class="msn-hl-virus">${esc(active.virusFilename)}</span> <span style="color:var(--hc-text-3);">rodando ativo</span>`
-            : (active.fileName
-                ? `<span class="msn-hl-file">${esc(active.fileName)}</span> <span style="color:var(--hc-text-3);">${active.fileSizeMb || 28} MB (${active.type === 'delete_file' ? 'Excluir' : 'Baixar'})</span>`
-                : esc(active.badge));
+          const objRowLabel = active.type === 'cctv_hack'
+            ? 'Câmera Alvo (CFTV)'
+            : (active.type === 'install_virus' ? 'Vírus Exigido' : (active.fileName ? 'Arquivo Alvo' : 'Operação'));
+          const objRowVal = active.type === 'cctv_hack'
+            ? `<span class="msn-hl-file">${esc(active.camCode)} · ${esc(active.camRoom)}</span> <span style="color:var(--hc-text-3);">(${active.cctvObjective === 'loop' ? 'Injetar Loop' : 'Gravar Vídeo'})</span>`
+            : (active.type === 'install_virus'
+                ? `<span class="msn-hl-virus">${esc(active.virusFilename)}</span> <span style="color:var(--hc-text-3);">rodando ativo</span>`
+                : (active.fileName
+                    ? `<span class="msn-hl-file">${esc(active.fileName)}</span> <span style="color:var(--hc-text-3);">${active.fileSizeMb || 28} MB (${active.type === 'delete_file' ? 'Excluir' : 'Baixar'})</span>`
+                    : esc(active.badge)));
 
           bodyContentHtml = `
             <div style="padding:18px 20px;">
@@ -1392,8 +1500,10 @@
                       </div>
                       <div style="display:flex;gap:8px;flex-wrap:wrap;">
                         <button type="button" id="btnOpenMissionTargetIp" class="hc-btn ghost sm"
-                          onclick="window.internetEngine.openIp('${esc(active.targetIp)}', '${verif.hacked ? 'entrar' : 'invadir'}')">
-                          ${ic('globe')} Ir para ${esc(active.targetIp)}
+                          onclick="${active.type === 'cctv_hack'
+                            ? `window.internetEngine.openCompanyCctv('${esc(active.targetIp)}', '${esc(active.camCode || '')}')`
+                            : `window.internetEngine.openIp('${esc(active.targetIp)}', '${verif.hacked ? 'entrar' : 'invadir'}')`}">
+                          ${ic(active.type === 'cctv_hack' ? 'video' : 'globe')} ${active.type === 'cctv_hack' ? `Abrir CFTV (${esc(active.targetIp)})` : `Ir para ${esc(active.targetIp)}`}
                         </button>
                         <button type="button" id="btnVerifyAndClaimMission" class="hc-btn primary sm"
                           onclick="window.handleVerifyMission()">
@@ -1496,6 +1606,7 @@
       // ABA 1: MISSÕES DISPONÍVEIS (Propostas por E-mail prontas para aceitar)
       else {
         const typeIconMap = {
+          cctv_hack: ['video', 'defense'],
           delete_file: ['trash-2', 'attack'],
           steal_data: ['download', 'defense'],
           install_virus: ['bug', 'virus'],
@@ -1509,9 +1620,11 @@
           const locked = m.tier > maxTier;
           const [icName, glyphCls] = typeIconMap[m.type] || ['mail', 'attack'];
           const rewardShort = `$${m.rewardCash.toLocaleString('pt-BR')}${m.rewardSats > 0 ? ' + BTC' : ''}`;
-          const targetObjLabel = m.fileName
-            ? `${m.type === 'delete_file' ? 'Deletar' : 'Roubar'} ${m.fileName}`
-            : (m.virusFilename ? `Rodar ${m.virusFilename}` : m.badge);
+          const targetObjLabel = m.type === 'cctv_hack'
+            ? `${m.camCode} · ${m.cctvObjective === 'loop' ? 'Loop CFTV' : 'Gravar CFTV'}`
+            : (m.fileName
+                ? `${m.type === 'delete_file' ? 'Deletar' : 'Roubar'} ${m.fileName}`
+                : (m.virusFilename ? `Rodar ${m.virusFilename}` : m.badge));
 
           return `
             <tr class="${locked ? 'row-hidden' : ''}">
