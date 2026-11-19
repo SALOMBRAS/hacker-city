@@ -622,6 +622,9 @@
     attemptBotHuntOnPlayer(forceHunt = false, options = {}) {
       this.ensureInitialized();
       if (!window.currentProfile || !window.networkIdentity) return { triggered: false, reason: 'NO_SESSION' };
+      if (!forceHunt && window.spotlightTour && window.spotlightTour.isActive) {
+        return { triggered: false, reason: 'IN_TUTORIAL_TOUR' };
+      }
 
       const rep = window.currentProfile.reputation || 0;
       if (rep < 100 && !forceHunt) {
