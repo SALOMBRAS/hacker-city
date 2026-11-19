@@ -343,9 +343,12 @@
 
       const uid = window.currentProfile.id;
       const billsPaid = {};
+      const quitineteBilling = { cycle: null, months: {} };
       if (window.quitineteEngine && window.quitineteEngine.bills) {
+        quitineteBilling.cycle = window.quitineteEngine.cycle ? { ...window.quitineteEngine.cycle } : null;
         Object.entries(window.quitineteEngine.bills).forEach(([k, b]) => {
           billsPaid[k] = !!b.paid;
+          quitineteBilling.months[k] = Number(b.monthsDue != null ? b.monthsDue : (b.paid ? 0 : 1));
         });
       }
 
@@ -444,7 +447,8 @@
           accumulatedProfits: +(Number(window.botnetC2.accumulatedProfits || 0)).toFixed(2),
           slaveIps: (window.botnetC2.slaves || []).map((s) => s.ip)
         } : null,
-        billsPaid
+        billsPaid,
+        quitineteBilling
       };
       return window.integrityGuard && typeof window.integrityGuard.signSnapshot === 'function'
         ? window.integrityGuard.signSnapshot(rawSnap)
@@ -587,14 +591,38 @@
         }
       }
 
-      if (snap.billsPaid && window.quitineteEngine && window.quitineteEngine.bills) {
-        Object.entries(snap.billsPaid).forEach(([k, paid]) => {
-          if (window.quitineteEngine.bills[k]) {
-            window.quitineteEngine.bills[k].paid = !!paid;
+      if (window.quitineteEngine && window.quitineteEngine.bills) {
+        window.quitineteEngine.userId = uid;
+        if (snap.quitineteBilling) {
+          if (snap.quitineteBilling.cycle) {
+            window.quitineteEngine.cycle = {
+              ...window.quitineteEngine.cycle,
+              ...snap.quitineteBilling.cycle
+            };
           }
-        });
-        if (typeof window.quitineteEngine.saveState === 'function') {
-          window.quitineteEngine.saveState();
+          if (snap.quitineteBilling.months) {
+            const maxCap = (window.GAME_TIME_CONFIG && window.GAME_TIME_CONFIG.MAX_ACCUMULATED_MONTHS) || 3;
+            Object.entries(snap.quitineteBilling.months).forEach(([k, m]) => {
+              if (window.quitineteEngine.bills[k]) {
+                const clamped = Math.max(0, Math.min(maxCap, Math.round(Number(m) || 0)));
+                window.quitineteEngine.bills[k].monthsDue = clamped;
+                window.quitineteEngine.bills[k].paid = clamped === 0;
+              }
+            });
+          }
+          if (typeof window.quitineteEngine.saveState === 'function') {
+            window.quitineteEngine.saveState();
+          }
+        } else if (snap.billsPaid) {
+          Object.entries(snap.billsPaid).forEach(([k, paid]) => {
+            if (window.quitineteEngine.bills[k]) {
+              window.quitineteEngine.bills[k].paid = !!paid;
+              window.quitineteEngine.bills[k].monthsDue = paid ? 0 : 1;
+            }
+          });
+          if (typeof window.quitineteEngine.saveState === 'function') {
+            window.quitineteEngine.saveState();
+          }
         }
       }
 
