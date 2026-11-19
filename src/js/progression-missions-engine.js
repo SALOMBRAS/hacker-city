@@ -255,6 +255,7 @@
       const container = document.getElementById(containerId);
       if (!container) return;
       this.ensureLoaded();
+      const ic = (n) => (window.HC && window.HC.icon ? window.HC.icon(n) : '');
 
       if (this.readingCourseId) {
         const course = CERT_COURSES.find((c) => c.id === this.readingCourseId);
@@ -263,35 +264,40 @@
         const done = this.hasCert(course.id);
 
         container.innerHTML = `
-          <div class="hc-card" style="padding: 1.5rem; border-color: rgba(53, 184, 119, 0.4);">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-              <div>
-                <span class="hc-badge info">${esc(course.code)}</span>
-                <span style="margin-left:8px;font-size:0.8rem;color:var(--hc-text-2);">Aula ${this.readingPageIdx + 1} de ${course.pages.length}</span>
+          <div class="soft-frame">
+            <div class="soft-tabs-bar">
+              <div class="soft-tabs-left">
+                <button type="button" class="soft-tab-btn active">
+                  ${ic('book-open')} <span>${esc(course.code)} · Aula ${this.readingPageIdx + 1} de ${course.pages.length}</span>
+                </button>
               </div>
-              <button type="button" class="hc-btn ghost sm" onclick="window.universityEngine.readingCourseId=null;window.universityEngine.renderUI();">← Voltar aos Cursos</button>
+              <button type="button" class="hc-btn ghost sm" onclick="window.universityEngine.readingCourseId=null;window.universityEngine.renderUI();">← Voltar à Grade</button>
             </div>
 
-            <h2 style="font-size:1.25rem;margin-bottom:6px;">${esc(course.title)}</h2>
-            <div class="hc-eyebrow" style="color:var(--hc-accent-text);margin-bottom:12px;">${esc(page.heading)}</div>
+            <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px;">
+              <div>
+                <h2 style="font-size:18px;font-weight:700;margin-bottom:4px;">${esc(course.title)}</h2>
+                <div class="hc-eyebrow" style="color:var(--hc-accent-text);">${esc(page.heading)}</div>
+              </div>
 
-            <div style="background:var(--hc-inset);border:1px solid var(--hc-border);border-radius:8px;padding:1.15rem;font-size:0.92rem;line-height:1.65;color:var(--hc-text);margin-bottom:16px;">
-              ${esc(page.body)}
-            </div>
+              <div style="background:var(--hc-inset);border:1px solid var(--hc-border);border-radius:10px;padding:18px;font-size:14px;line-height:1.65;color:var(--hc-text);">
+                ${esc(page.body)}
+              </div>
 
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-              <div style="font-size:0.8rem;color:var(--hc-text-2);">Recompensa: <strong>${esc(course.bonusDesc)}</strong></div>
-              <div style="display:flex;gap:8px;">
-                ${this.readingPageIdx > 0
-                  ? `<button type="button" class="hc-btn ghost" onclick="window.universityEngine.prevLessonPage()">← Aula Anterior</button>`
-                  : ''}
-                ${!isLast
-                  ? `<button type="button" id="btnNextLesson" class="hc-btn primary" onclick="window.universityEngine.nextLessonPage()">Próxima Aula →</button>`
-                  : (done
-                      ? `<button type="button" class="hc-btn primary" onclick="window.universityEngine.readingCourseId=null;window.universityEngine.renderUI();">Revisão Concluída</button>`
-                      : `<button type="button" id="btnFinishCert_${course.id}" class="hc-btn primary" onclick="window.handleCompleteCourse(${course.id})">
-                           Emitir Certificado ${course.cost > 0 ? `(${fmtUsd(course.cost)})` : '(GRÁTIS)'}
-                         </button>`)}
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+                <div style="font-size:12.5px;color:var(--hc-text-2);">Vantagem do Diploma: <strong style="color:var(--hc-accent-text);">${esc(course.unlockBadge)}</strong></div>
+                <div style="display:flex;gap:8px;">
+                  ${this.readingPageIdx > 0
+                    ? `<button type="button" class="hc-btn ghost sm" onclick="window.universityEngine.prevLessonPage()">← Anterior</button>`
+                    : ''}
+                  ${!isLast
+                    ? `<button type="button" id="btnNextLesson" class="hc-btn primary sm" onclick="window.universityEngine.nextLessonPage()">Próxima Aula →</button>`
+                    : (done
+                        ? `<button type="button" class="hc-btn primary sm" onclick="window.universityEngine.readingCourseId=null;window.universityEngine.renderUI();">Concluir Revisão</button>`
+                        : `<button type="button" id="btnFinishCert_${course.id}" class="hc-btn primary sm" onclick="window.handleCompleteCourse(${course.id})">
+                             Emitir Certificado ${course.cost > 0 ? `(${fmtUsd(course.cost)})` : '(Grátis)'}
+                           </button>`)}
+                </div>
               </div>
             </div>
           </div>
@@ -300,58 +306,108 @@
       }
 
       const doneCount = this.getCompletedCount();
-      const cardsHtml = CERT_COURSES.map((c) => {
+      const gradPct = Math.round((doneCount / 5) * 100);
+      const r = 46;
+      const cCirc = +(2 * Math.PI * r).toFixed(2);
+      const offset = +(cCirc - (gradPct / 100) * cCirc).toFixed(2);
+
+      const courseRows = CERT_COURSES.map((c) => {
         const done = this.hasCert(c.id);
         const unlocked = c.id === 1 || this.hasCert(c.id - 1);
+        const costStr = c.cost === 0 ? 'Grátis' : `$ ${c.cost.toLocaleString('pt-BR')}`;
+        const glyph = done ? 'defense' : (unlocked ? 'attack' : 'text');
+
         return `
-          <div class="hc-card" style="padding:1.1rem 1.25rem;display:grid;grid-template-columns:minmax(220px,1.4fr) minmax(200px,1.5fr) auto;gap:14px;align-items:center;opacity:${unlocked || done ? '1' : '0.58'};border-color:${done ? 'rgba(53,184,119,0.4)' : 'var(--hc-border)'};">
-            <div>
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                <span class="hc-badge ${done ? 'success' : (unlocked ? 'info' : 'warn')}">${done ? 'CERTIFICADO' : (unlocked ? c.code : 'BLOQUEADO')}</span>
-                <strong style="font-size:0.95rem;">${esc(c.title)}</strong>
+          <tr class="${done ? 'row-running' : ''} ${!unlocked && !done ? 'row-hidden' : ''}">
+            <td class="soft-col-icon">
+              <span class="soft-mini-glyph kind-${glyph}"
+                data-tip-title="${esc(c.code)} · ${esc(c.title)}"
+                data-tip-meta="${done ? 'Concluído' : costStr}"
+                data-tip-desc="${esc(c.unlockBadge)} — ${esc(c.bonusDesc)}">
+                ${ic(done ? 'award' : (unlocked ? 'graduation-cap' : 'lock'))}
+              </span>
+            </td>
+            <td>
+              <span class="soft-name-trigger" tabindex="0"
+                data-tip-title="${esc(c.title)}"
+                data-tip-meta="${esc(c.code)}"
+                data-tip-desc="${esc(c.unlockBadge)} — ${esc(c.bonusDesc)}">
+                ${done ? '<span class="soft-run-dot"></span>' : ''}
+                <span style="font-family:var(--hc-font-sans);font-weight:500;">${esc(c.title)}</span>
+              </span>
+            </td>
+            <td class="soft-col-ver">${c.pages.length} aulas</td>
+            <td class="soft-col-size" style="width:110px;color:${c.cost === 0 ? 'var(--hc-accent-text)' : 'var(--hc-warning-text)'};">${esc(costStr)}</td>
+            <td class="soft-col-acts">
+              <div class="soft-icon-actions">
+                <button type="button" class="soft-icon-act ic-info" aria-label="Ver bônus de ${esc(c.title)}"
+                  data-tip-title="${esc(c.unlockBadge)}" data-tip-meta="${esc(c.code)}" data-tip-desc="${esc(c.bonusDesc)}">
+                  ${ic('info')}
+                </button>
+                <button type="button" id="btnOpenCourse_${c.id}" class="soft-icon-act ${done ? 'ic-hide' : 'ic-run'}" ${!unlocked && !done ? 'disabled' : ''}
+                  aria-label="${done ? 'Revisar' : 'Estudar'} ${esc(c.title)}"
+                  data-tip-title="${done ? 'Revisar aulas' : (!unlocked ? `Conclua o Curso #${c.id - 1} antes` : (c.cost === 0 ? 'Iniciar curso gratuito' : `Matricular (${costStr})`))}"
+                  data-tip-meta="${c.pages.length} aulas"
+                  data-tip-desc="${esc(c.bonusDesc)}"
+                  onclick="window.universityEngine.openCourseReader(${c.id})">
+                  ${ic(done ? 'book-open' : 'play')}
+                </button>
               </div>
-              <div style="font-size:0.76rem;color:var(--hc-text-3);font-family:var(--hc-font-mono);margin-top:4px;">
-                ${c.pages.length} aulas · Taxa: ${c.cost === 0 ? 'GRÁTIS' : fmtUsd(c.cost)}
-              </div>
-            </div>
-
-            <div style="font-size:0.82rem;color:var(--hc-text-2);">
-              <strong style="color:var(--hc-accent-text);display:block;margin-bottom:2px;">${esc(c.unlockBadge)}</strong>
-              ${esc(c.bonusDesc)}
-            </div>
-
-            <div style="display:flex;gap:8px;justify-content:flex-end;">
-              <button type="button" id="btnOpenCourse_${c.id}" class="hc-btn ${done ? 'ghost' : 'primary'} sm" ${!unlocked && !done ? 'disabled' : ''} onclick="window.universityEngine.openCourseReader(${c.id})">
-                ${done ? 'Revisar Aulas' : (c.cost === 0 ? 'Estudar Grátis →' : `Matricular (${fmtUsd(c.cost)})`)}
-              </button>
-            </div>
-          </div>
+            </td>
+          </tr>
         `;
       }).join('');
 
       container.innerHTML = `
-        <div style="display:flex;flex-direction:column;gap:14px;">
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
-            <div class="hc-card" style="padding:1rem 1.15rem;">
-              <div class="hc-stat-label">Progresso Acadêmico</div>
-              <div class="hc-stat-value">${doneCount} / 5 <span style="font-size:0.85rem;color:var(--hc-text-2);">Certificações</span></div>
+        <div class="soft-frame" id="universityExplorerMain">
+          <div class="soft-tabs-bar">
+            <div class="soft-tabs-left">
+              <button type="button" class="soft-tab-btn active">
+                ${ic('graduation-cap')} <span>Certificações Oficiais (${doneCount}/5)</span>
+              </button>
             </div>
-            <div class="hc-card" style="padding:1rem 1.15rem;">
-              <div class="hc-stat-label">Status de Graduação</div>
-              <div class="hc-stat-value" style="font-size:1.15rem;color:${doneCount === 5 ? 'var(--hc-accent-text)' : 'var(--hc-text)'};">
-                ${doneCount === 5 ? '[GRADUADO MIT-HC]' : 'Estudante Ativo'}
-              </div>
-            </div>
-            <div class="hc-card" style="padding:1rem 1.15rem;">
-              <div class="hc-stat-label">Bônus Ativos de Curso</div>
-              <div style="font-size:0.8rem;color:var(--hc-text-2);margin-top:4px;font-family:var(--hc-font-mono);">
-                Vel CRC:${this.hasCert(2) ? '+20%' : '0%'} · FTP/SSH+Bank:${this.hasCert(3) ? 'OK' : 'BASE'} · DDoS:${this.hasCert(4) ? 'LIBERADO' : 'LOCK'} · Mitigação DDoS:${this.hasCert(5) ? 'ATIVA' : 'OFF'}
-              </div>
-            </div>
+            <span class="hc-badge ${doneCount === 5 ? 'success' : 'info'}">${doneCount === 5 ? 'Graduado MIT-HC' : 'Matrículas Abertas'}</span>
           </div>
 
-          <div class="hc-eyebrow">Trilha Oficial de Certificações (Ordem Sequencial)</div>
-          <div style="display:flex;flex-direction:column;gap:10px;">${cardsHtml}</div>
+          <div class="soft-explorer-shell">
+            <div class="soft-main-col">
+              <div class="soft-table-wrap" role="region" aria-label="Grade de cursos e certificações">
+                <table class="soft-table clean-hw-table">
+                  <thead>
+                    <tr>
+                      <th class="soft-col-icon"></th>
+                      <th>Curso &amp; Certificação</th>
+                      <th class="soft-col-ver">Carga</th>
+                      <th class="soft-col-size" style="width:110px;">Taxa</th>
+                      <th class="soft-col-acts">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>${courseRows}</tbody>
+                </table>
+              </div>
+            </div>
+
+            <aside class="soft-side-bar">
+              <div class="soft-donut-wrap">
+                <svg class="soft-donut-svg" viewBox="0 0 116 116" aria-label="Progresso Acadêmico ${gradPct}%">
+                  <circle cx="58" cy="58" r="${r}" fill="none" stroke="#222832" stroke-width="8"></circle>
+                  <circle cx="58" cy="58" r="${r}" fill="none" stroke="#35b877" stroke-width="8"
+                    stroke-linecap="round" stroke-dasharray="${cCirc}" stroke-dashoffset="${offset}" transform="rotate(-90 58 58)"></circle>
+                  <text x="58" y="63" text-anchor="middle" fill="#ebeff4" font-family="var(--hc-font-mono)" font-size="18" font-weight="700">${gradPct}%</text>
+                </svg>
+                <div class="soft-donut-title">Progresso Acadêmico</div>
+                <div class="soft-donut-numbers"><span class="used">${doneCount}</span> / <span>5 Diplomas</span></div>
+              </div>
+
+              <div class="soft-bays-box">
+                <div class="soft-bay-row"><span>Acesso Inicial</span><span style="color:${this.hasCert(1) ? 'var(--hc-accent-text)' : 'var(--hc-text-3)'};">${this.hasCert(1) ? 'Ativo' : 'Pendente'}</span></div>
+                <div class="soft-bay-row"><span>Tempo Cracker</span><span style="color:${this.hasCert(2) ? 'var(--hc-accent-text)' : 'var(--hc-text-3)'};">${this.hasCert(2) ? '+20% Vel.' : 'Padrão'}</span></div>
+                <div class="soft-bay-row"><span>Exploit &amp; Banco</span><span style="color:${this.hasCert(3) ? 'var(--hc-accent-text)' : 'var(--hc-text-3)'};">${this.hasCert(3) ? 'Liberado' : 'Bloq.'}</span></div>
+                <div class="soft-bay-row"><span>Canhão DDoS</span><span style="color:${this.hasCert(4) ? 'var(--hc-accent-text)' : 'var(--hc-text-3)'};">${this.hasCert(4) ? '+15% Col.' : 'Bloq.'}</span></div>
+                <div class="soft-bay-row"><span>Escudo DDoS</span><span style="color:${this.hasCert(5) ? 'var(--hc-accent-text)' : 'var(--hc-text-3)'};">${this.hasCert(5) ? 'Protegido' : 'Inativo'}</span></div>
+              </div>
+            </aside>
+          </div>
         </div>
       `;
     }
@@ -959,157 +1015,225 @@
       const container = document.getElementById(containerId);
       if (!container) return;
       this.ensureLoaded();
+      const ic = (n) => (window.HC && window.HC.icon ? window.HC.icon(n) : '');
 
       const tutInfo = window.tutorialEngine ? window.tutorialEngine.getCurrentStepInfo() : { completed: true };
       const maxTier = this.getPlayerAllowedTier();
       const active = this.state.activeMission;
+      const myRep = (window.currentProfile && window.currentProfile.reputation) || 100;
 
       const dynamicCount = window.dynamicContractsEngine ? window.dynamicContractsEngine.contracts.length : 6;
       const activeDynamicCount = window.dynamicContractsEngine ? window.dynamicContractsEngine.activeContracts.length : 0;
 
-      const navTabsHeader = `
-        <div style="display:flex;gap:8px;margin-bottom:14px;border-bottom:1px solid var(--hc-border);padding-bottom:10px;flex-wrap:wrap;">
-          <button type="button" id="tabCampaignMissions" class="hc-btn sm ${this.mainTab !== 'dynamic' ? 'primary' : 'ghost'}" onclick="window.missionsEngine.mainTab='campaign';window.missionsEngine.renderUI();">
-            🎯 Campanha &amp; Trabalhos Fixos
+      const tierPct = Math.min(100, Math.round((maxTier / 3) * 100));
+      const r = 46;
+      const cCirc = +(2 * Math.PI * r).toFixed(2);
+      const offset = +(cCirc - (tierPct / 100) * cCirc).toFixed(2);
+
+      const tutBannerHtml = tutInfo.completed ? '' : `
+        <div class="hc-card" style="padding:14px 18px;border-color:rgba(95,211,154,0.42);background:rgba(18,129,79,0.12);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">
+          <div style="max-width:720px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+              <span class="hc-badge success">${esc(tutInfo.badge)}</span>
+              <strong style="font-size:14.5px;">${esc(tutInfo.title)}</strong>
+            </div>
+            <p style="font-size:12.5px;color:var(--hc-text-2);margin:0;">${esc(tutInfo.desc)}</p>
+          </div>
+          <button type="button" id="btnTutorialAction" class="hc-btn primary sm" onclick="window.tutorialEngine.getCurrentStepInfo().action()">
+            ${esc(tutInfo.cta)}
           </button>
-          <button type="button" id="tabDynamicContracts" class="hc-btn sm ${this.mainTab === 'dynamic' ? 'primary' : 'ghost'}" onclick="window.missionsEngine.mainTab='dynamic';window.missionsEngine.renderUI();">
-            📜 Contratos Procedurais das 3 Facções (${dynamicCount}) ${activeDynamicCount > 0 ? `· <span style="color:#35b877;font-weight:bold;">${activeDynamicCount} Ativo(s)</span>` : ''}
-          </button>
+        </div>
+      `;
+
+      const topFrameBarHtml = `
+        <div class="soft-tabs-bar">
+          <div class="soft-tabs-left" role="tablist" aria-label="Categorias de Missões">
+            <button type="button" id="tabCampaignMissions" class="soft-tab-btn ${this.mainTab !== 'dynamic' ? 'active' : ''}" onclick="window.missionsEngine.mainTab='campaign';window.missionsEngine.renderUI();">
+              ${ic('crosshair')} <span>Quadro de Contratos</span>
+            </button>
+            <button type="button" id="tabDynamicContracts" class="soft-tab-btn ${this.mainTab === 'dynamic' ? 'active' : ''}" onclick="window.missionsEngine.mainTab='dynamic';window.missionsEngine.renderUI();">
+              ${ic('file-text')} <span>Facções (${dynamicCount})${activeDynamicCount > 0 ? ` · ${activeDynamicCount} ativo` : ''}</span>
+            </button>
+          </div>
+
+          ${this.mainTab !== 'dynamic' ? `
+            <div class="soft-drive-pills" role="group" aria-label="Filtrar por nível">
+              <button type="button" class="soft-drive-pill ${this.filterTier === 0 ? 'active' : ''}" onclick="window.missionsEngine.filterTier=0;window.missionsEngine.renderUI();">Todos</button>
+              <button type="button" class="soft-drive-pill ${this.filterTier === 1 ? 'active' : ''}" onclick="window.missionsEngine.filterTier=1;window.missionsEngine.renderUI();">Nível 1</button>
+              <button type="button" class="soft-drive-pill ${this.filterTier === 2 ? 'active' : ''}" onclick="window.missionsEngine.filterTier=2;window.missionsEngine.renderUI();">Nível 2</button>
+              <button type="button" class="soft-drive-pill ${this.filterTier === 3 ? 'active' : ''}" onclick="window.missionsEngine.filterTier=3;window.missionsEngine.renderUI();">Nível 3</button>
+            </div>
+          ` : ''}
         </div>
       `;
 
       if (this.mainTab === 'dynamic' && window.dynamicContractsEngine) {
         container.innerHTML = `
-          <div style="display:flex;flex-direction:column;gap:12px;">
-            ${navTabsHeader}
-            ${window.dynamicContractsEngine.renderHtml()}
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            ${tutBannerHtml}
+            <div class="soft-frame">
+              ${topFrameBarHtml}
+              <div style="padding:16px;">${window.dynamicContractsEngine.renderHtml()}</div>
+            </div>
           </div>
         `;
         return;
       }
-
-      const tutCardHtml = tutInfo.completed ? '' : `
-        <div class="hc-card" style="padding:1.15rem 1.3rem;border-color:rgba(53,184,119,0.45);background:rgba(53,184,119,0.06);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">
-          <div style="max-width:720px;">
-            <span class="hc-badge success">${esc(tutInfo.badge)}</span>
-            <h3 style="font-size:1.02rem;margin:6px 0 4px;">${esc(tutInfo.title)}</h3>
-            <p style="font-size:0.83rem;color:var(--hc-text-2);margin:0;">${esc(tutInfo.desc)}</p>
-          </div>
-          <button type="button" id="btnTutorialAction" class="hc-btn primary" onclick="window.tutorialEngine.getCurrentStepInfo().action()">
-            ${esc(tutInfo.cta)}
-          </button>
-        </div>
-      `;
 
       let activeHtml = '';
       if (active) {
         const btcTag = active.rewardSats > 0 ? ` + ${(active.rewardSats / 100000000).toFixed(5)} BTC` : '';
         let actionControl = `
           <button type="button" class="hc-btn primary sm" onclick="window.internetEngine.openIp('${esc(active.targetIp)}', 'invadir')">
-            Abrir Alvo ${esc(active.targetIp)} na Internet →
+            Abrir ${esc(active.targetIp)} →
           </button>
         `;
         if (active.type === 'check_balance') {
           actionControl = `
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
               <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(active.targetIp)}', 'invadir')">Inspecionar ${esc(active.targetIp)}</button>
-              <input type="number" id="missionBalanceInput" class="form-input" style="width:170px;padding:0.35rem 0.6rem;" placeholder="Saldo $ visto (ex: 1340)">
-              <button type="button" id="btnSubmitBalanceMission" class="hc-btn primary sm" onclick="window.handleMissionBalanceSubmit()">Confirmar Saldo</button>
+              <input type="number" id="missionBalanceInput" class="hc-input mono" style="width:155px;height:30px;font-size:12px;" placeholder="Saldo visto ($)">
+              <button type="button" id="btnSubmitBalanceMission" class="hc-btn primary sm" onclick="window.handleMissionBalanceSubmit()">Confirmar</button>
             </div>
           `;
         } else if (active.type === 'ddos_takedown') {
           actionControl = `
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button type="button" id="btnExecMissionDdos" class="hc-btn primary sm" onclick="window.handleMissionDdos()">Disparar Ataque DDoS em ${esc(active.targetIp)}</button>
-            </div>
+            <button type="button" id="btnExecMissionDdos" class="hc-btn primary sm" onclick="window.handleMissionDdos()">Disparar DDoS em ${esc(active.targetIp)}</button>
           `;
         }
 
         activeHtml = `
-          <div class="hc-card" style="padding:1.2rem;border-color:var(--hc-accent);">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
-              <div>
-                <span class="hc-badge success">CONTRATO EM ANDAMENTO</span>
-                <span class="hc-badge info" style="margin-left:6px;">${esc(active.badge)} · Nível ${active.tier}</span>
-                <h3 style="font-size:1.05rem;margin-top:6px;">Contratante: ${esc(active.hirer)} — Alvo: <code style="color:var(--hc-accent-text);">${esc(active.targetIp)}</code> (${esc(active.targetHostname)})</h3>
+          <div class="hc-card" style="padding:13px 16px;border-color:var(--hc-accent);background:var(--hc-inset);">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <span class="hc-badge success">Em Andamento</span>
+                <strong>${esc(active.hirer)}</strong>
+                <span class="mono" style="color:var(--hc-accent-text);font-size:12.5px;">${esc(active.targetIp)}</span>
               </div>
-              <div style="text-align:right;">
-                <div style="font-family:var(--hc-font-mono);font-weight:700;color:var(--hc-accent-text);font-size:1.05rem;">${fmtUsd(active.rewardCash)}${btcTag}</div>
-                <div style="font-size:0.75rem;color:var(--hc-text-3);">+${active.repReward} REP</div>
-              </div>
+              <strong class="mono" style="color:var(--hc-accent-text);font-size:13px;">${fmtUsd(active.rewardCash)}${btcTag}</strong>
             </div>
-            <p style="font-size:0.84rem;color:var(--hc-text-2);margin:0 0 12px;">${esc(active.brief)}</p>
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <p style="font-size:12.5px;color:var(--hc-text-2);margin:0 0 10px;">${esc(active.brief)}</p>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
               ${actionControl}
-              <button type="button" class="hc-btn ghost sm" style="color:var(--hc-danger-text);" onclick="window.missionsEngine.abortActiveMission()">Abortar Contrato</button>
+              <button type="button" class="hc-btn ghost sm" style="color:var(--hc-danger-text);" onclick="window.missionsEngine.abortActiveMission()">Abortar</button>
             </div>
           </div>
         `;
       }
 
+      const typeIconMap = {
+        delete_file: ['trash-2', 'attack'],
+        steal_data: ['download', 'defense'],
+        check_balance: ['search', 'stealth'],
+        drain_funds: ['landmark', 'virus'],
+        ddos_takedown: ['zap', 'virus']
+      };
+
       const poolFiltered = this.state.pool.filter((m) => this.filterTier === 0 || m.tier === this.filterTier);
-      const poolHtml = poolFiltered.map((m) => {
+      const poolRows = poolFiltered.map((m) => {
         const locked = m.tier > maxTier;
-        const btcTag = m.rewardSats > 0 ? ` + ${(m.rewardSats / 100000000).toFixed(5)} BTC` : '';
+        const [icName, glyphCls] = typeIconMap[m.type] || ['crosshair', 'attack'];
+        const rewardShort = `$ ${m.rewardCash.toLocaleString('pt-BR')}${m.rewardSats > 0 ? ' + BTC' : ''}`;
+
         return `
-          <div class="hc-card" style="padding:1rem 1.15rem;display:grid;grid-template-columns:minmax(220px,1.4fr) minmax(220px,1.6fr) auto;gap:12px;align-items:center;opacity:${locked ? '0.58' : '1'};">
-            <div>
-              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                <span class="hc-badge ${m.tier === 3 ? 'danger' : (m.tier === 2 ? 'warn' : 'info')}">Nível ${m.tier}</span>
-                <span class="hc-badge">${esc(m.badge)}</span>
+          <tr class="${locked ? 'row-hidden' : ''}">
+            <td class="soft-col-icon">
+              <span class="soft-mini-glyph kind-${glyphCls}"
+                data-tip-title="${esc(m.badge)} · Nível ${m.tier}"
+                data-tip-meta="${esc(rewardShort)}"
+                data-tip-desc="${esc(m.brief)}">
+                ${ic(icName)}
+              </span>
+            </td>
+            <td>
+              <span class="soft-name-trigger" tabindex="0"
+                data-tip-title="${esc(m.hirer)} — ${esc(m.badge)}"
+                data-tip-meta="Nível ${m.tier}"
+                data-tip-desc="${esc(m.brief)}">
+                <strong style="font-family:var(--hc-font-sans);color:var(--hc-text);">${esc(m.hirer)}</strong>
+                <span class="hc-badge ${m.tier === 3 ? 'danger' : (m.tier === 2 ? 'warn' : 'info')}">${esc(m.badge)}</span>
+              </span>
+            </td>
+            <td class="soft-col-size" style="width:140px;color:var(--hc-text-2);">${esc(m.targetIp)}</td>
+            <td class="soft-col-size" style="width:125px;color:var(--hc-accent-text);white-space:nowrap;">${esc(rewardShort)}</td>
+            <td class="soft-col-acts">
+              <div class="soft-icon-actions">
+                <button type="button" class="soft-icon-act ic-info" aria-label="Briefing de ${esc(m.hirer)}"
+                  data-tip-title="Objetivo do Contrato" data-tip-meta="Nível ${m.tier}" data-tip-desc="${esc(m.brief)}">
+                  ${ic('info')}
+                </button>
+                <button type="button" class="soft-icon-act ic-move" aria-label="Inspecionar IP ${esc(m.targetIp)}"
+                  data-tip-title="Ver alvo na Internet" data-tip-meta="${esc(m.targetIp)}" data-tip-desc="${esc(m.targetHostname)}"
+                  onclick="window.internetEngine.openIp('${esc(m.targetIp)}')">
+                  ${ic('globe')}
+                </button>
+                <button type="button" id="btnAcceptMission_${m.type}" class="soft-icon-act ic-run" ${locked || active ? 'disabled' : ''}
+                  aria-label="Aceitar contrato de ${esc(m.hirer)}"
+                  data-tip-title="${locked ? `Requer Nível ${m.tier}` : (active ? 'Conclua ou aborte a missão atual' : 'Aceitar este contrato')}"
+                  data-tip-meta="${esc(rewardShort)}"
+                  data-tip-desc="${esc(m.brief)}"
+                  onclick="window.handleAcceptMission('${esc(m.id)}')">
+                  ${ic(locked ? 'lock' : 'play')}
+                </button>
               </div>
-              <strong style="display:block;margin-top:5px;font-size:0.92rem;">${esc(m.hirer)}</strong>
-              <div style="font-size:0.76rem;color:var(--hc-text-3);font-family:var(--hc-font-mono);">Alvo: ${esc(m.targetIp)} (${esc(m.targetHostname)})</div>
-            </div>
-
-            <div style="font-size:0.8rem;color:var(--hc-text-2);">${esc(m.brief)}</div>
-
-            <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-              <div style="font-family:var(--hc-font-mono);font-weight:700;color:var(--hc-accent-text);font-size:0.9rem;">
-                ${fmtUsd(m.rewardCash)}${btcTag}
-              </div>
-              <button type="button" id="btnAcceptMission_${m.type}" class="hc-btn ${locked || active ? 'ghost' : 'primary'} sm" ${locked || active ? 'disabled' : ''} onclick="window.handleAcceptMission('${esc(m.id)}')">
-                ${locked ? `Requer Nível ${m.tier}` : (active ? '1 Ativa por Vez' : 'Aceitar Contrato')}
-              </button>
-            </div>
-          </div>
+            </td>
+          </tr>
         `;
       }).join('');
 
-      const histHtml = (this.state.history || []).slice(0, 5).map((h) => `
-        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--hc-border);font-size:0.79rem;">
-          <span><strong style="font-family:var(--hc-font-mono);">[${esc(h.at)}]</strong> ${esc(h.hirer)} · <code>${esc(h.targetIp)}</code> (${esc(h.badge)})</span>
-          <strong style="color:${h.status === 'CONCLUÍDA' ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};">${esc(h.status)} · ${esc(h.rewardStr)}</strong>
-        </div>
-      `).join('');
-
       container.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:14px;">
-          ${navTabsHeader}
-          ${tutCardHtml}
-          ${activeHtml}
+          ${tutBannerHtml}
 
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              <button type="button" class="hc-btn sm ${this.filterTier === 0 ? 'primary' : 'ghost'}" onclick="window.missionsEngine.filterTier=0;window.missionsEngine.renderUI();">Todos</button>
-              <button type="button" class="hc-btn sm ${this.filterTier === 1 ? 'primary' : 'ghost'}" onclick="window.missionsEngine.filterTier=1;window.missionsEngine.renderUI();">Nível 1 (Iniciante)</button>
-              <button type="button" class="hc-btn sm ${this.filterTier === 2 ? 'primary' : 'ghost'}" onclick="window.missionsEngine.filterTier=2;window.missionsEngine.renderUI();">Nível 2 (Corporativo)</button>
-              <button type="button" class="hc-btn sm ${this.filterTier === 3 ? 'primary' : 'ghost'}" onclick="window.missionsEngine.filterTier=3;window.missionsEngine.renderUI();">Nível 3 (Black-Ops)</button>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;">
-              <span style="font-size:0.8rem;color:var(--hc-text-2);">Seu Nível de Acesso: <strong>Nível ${maxTier}</strong> · Concluídas: <strong>${this.state.completedCount || 0}</strong></span>
-              <button type="button" class="hc-btn ghost sm" onclick="window.missionsEngine.generatePool();window.missionsEngine.renderUI();">Renovar Contratos</button>
+          <div class="soft-frame" id="missionsExplorerMain">
+            ${topFrameBarHtml}
+
+            <div class="soft-explorer-shell">
+              <div class="soft-main-col">
+                ${activeHtml}
+                <div class="soft-table-wrap" role="region" aria-label="Contratos disponíveis">
+                  <table class="soft-table clean-hw-table">
+                    <thead>
+                      <tr>
+                        <th class="soft-col-icon"></th>
+                        <th>Contratante &amp; Operação</th>
+                        <th class="soft-col-size" style="width:140px;">Alvo</th>
+                        <th class="soft-col-size" style="width:125px;">Pagamento</th>
+                        <th class="soft-col-acts">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>${poolRows}</tbody>
+                  </table>
+                </div>
+              </div>
+
+              <aside class="soft-side-bar">
+                <div class="soft-donut-wrap">
+                  <svg class="soft-donut-svg" viewBox="0 0 116 116" aria-label="Nível de Acesso ${maxTier} de 3">
+                    <circle cx="58" cy="58" r="${r}" fill="none" stroke="#222832" stroke-width="8"></circle>
+                    <circle cx="58" cy="58" r="${r}" fill="none" stroke="#35b877" stroke-width="8"
+                      stroke-linecap="round" stroke-dasharray="${cCirc}" stroke-dashoffset="${offset}" transform="rotate(-90 58 58)"></circle>
+                    <text x="58" y="63" text-anchor="middle" fill="#ebeff4" font-family="var(--hc-font-mono)" font-size="18" font-weight="700">Nv.${maxTier}</text>
+                  </svg>
+                  <div class="soft-donut-title">Nível de Acesso</div>
+                  <div class="soft-donut-numbers"><span class="used">${this.state.completedCount || 0}</span> concluídas</div>
+                </div>
+
+                <div class="soft-bays-box">
+                  <div class="soft-bay-row"><span>Acesso Atual</span><span style="color:var(--hc-accent-text);">Nível ${maxTier} / 3</span></div>
+                  <div class="soft-bay-row"><span>Reputação</span><span>${myRep.toLocaleString('pt-BR')} REP</span></div>
+                  <div class="soft-bay-row"><span>Concluídas</span><span>${this.state.completedCount || 0}</span></div>
+                </div>
+
+                <div class="soft-tool-tiles">
+                  <button type="button" class="soft-tool-tile span-2" onclick="window.missionsEngine.generatePool();window.missionsEngine.renderUI();">
+                    ${ic('refresh-cw')}
+                    <span>Renovar Contratos</span>
+                  </button>
+                </div>
+              </aside>
             </div>
           </div>
-
-          <div style="display:flex;flex-direction:column;gap:8px;">${poolHtml}</div>
-
-          ${histHtml ? `
-            <div class="hc-card" style="padding:1rem 1.15rem;">
-              <div class="hc-eyebrow" style="margin-bottom:6px;">Histórico Recente de Contratos</div>
-              ${histHtml}
-            </div>
-          ` : ''}
         </div>
       `;
     }
