@@ -138,13 +138,13 @@ class QuitineteEngine {
 
     const pending = this.getPendingCount();
     if (pending > 0) {
-      pill.className = 'hud-quitinete-pill';
-      pill.title = `Quitinete: ${pending} ${pending === 1 ? 'conta em atraso' : 'contas em atraso'}`;
-      pill.innerHTML = `${HC.icon('triangle-alert')}<span>Contas (${pending})</span>`;
+      pill.className = 'hud-notif-btn has-alerts';
+      pill.title = `Esconderijo: ${pending} ${pending === 1 ? 'conta pendente' : 'contas pendentes'} (clique para pagar)`;
+      pill.innerHTML = `${HC.icon('bell')}<span class="hud-notif-count">${pending}</span>`;
     } else {
-      pill.className = 'hud-quitinete-pill all-paid';
-      pill.title = 'Quitinete em dia';
-      pill.innerHTML = `${HC.icon('circle-check')}<span>Quitinete OK</span>`;
+      pill.className = 'hud-notif-btn';
+      pill.title = 'Esconderijo em dia — nenhuma conta atrasada';
+      pill.innerHTML = `${HC.icon('bell')}`;
     }
   }
 
@@ -152,19 +152,18 @@ class QuitineteEngine {
     const el = document.getElementById(containerId);
     if (!el) return;
 
+    const pend = this.getPendingCount();
     let html = `
-      <div style="background: rgba(53, 184, 119,0.06); border: 1px solid var(--cyan-neon); border-radius: 8px; padding: 1.1rem; margin-bottom: 1.5rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-          <div style="font-family: var(--hc-font-sans); font-size: 1.15rem; color: #fff;">
-            QUITINETE DO SUBMUNDO // GERENCIAMENTO DE DESPESAS
-          </div>
-          <div style="font-family: var(--hc-font-mono); font-size: 0.82rem; color: ${this.getPendingCount() > 0 ? '#d0443a' : 'var(--green-safe)'}; font-weight: bold;">
-            ${this.getPendingCount() > 0 ? `${this.getPendingCount()} PENDÊNCIA(S)` : 'TODAS AS CONTAS QUITADAS'}
-          </div>
+      <div class="hc-card" style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+        <div>
+          <strong style="font-size: 15px; color: var(--hc-text);">Despesas fixas do seu esconderijo</strong>
+          <p style="font-size: 13px; color: var(--hc-text-2); margin: 4px 0 0 0; max-width: 65ch;">
+            Mantenha aluguel, luz e internet em dia para continuar operando sem queda de energia ou despejo.
+          </p>
         </div>
-        <p style="font-size: 0.82rem; color: #aab3c0; line-height: 1.4; margin: 0;">
-          Mantenha sua base de operações clandestina em dia para evitar despejo judicial pela Imobiliária ou corte definitivo de energia no poste. Fundos são debitados diretamente da sua conta no <strong>Hacker Bank</strong>.
-        </p>
+        <span class="hc-badge ${pend > 0 ? 'warning' : 'success'}">
+          ${pend > 0 ? `${pend} pendente${pend === 1 ? '' : 's'}` : 'Tudo em dia'}
+        </span>
       </div>
 
       <div class="quitinete-grid">
