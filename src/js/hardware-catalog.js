@@ -196,10 +196,20 @@ class HardwareEngine {
     return `${this.getEffectiveCpuMhz()}MHz CPU${health < 100 ? ` (${health}% SAÚDE!)` : ''} // ${ram.ramMb}MB RAM // ${hdd.hddMb}MB HDD // NET ${this.getEffectiveNetMbps()}Mbps`;
   }
 
+  setTab(tabKey) {
+    this.activeTab = tabKey || 'overview';
+    const bal = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
+    this.renderWorkbench('hardwareWorkbenchBody', bal);
+  }
+
   renderWorkbench(containerId, currentBalance) {
     const el = document.getElementById(containerId);
     if (!el) return;
     this.ensureForProfile();
+    if (!this.activeTab) this.activeTab = 'overview';
+
+    const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const ic = (n) => (window.HC && window.HC.icon ? window.HC.icon(n) : '');
 
     const cpu = this.getCpu();
     const ram = this.getRam();
@@ -213,90 +223,221 @@ class HardwareEngine {
     const usedHdd = window.softwareEngine ? window.softwareEngine.getUsedHddMb() : 0;
     const usedRam = window.softwareEngine ? window.softwareEngine.getUsedRamMb() : 0;
 
-    const healthColor = healthPct >= 85 ? 'var(--hc-accent)' : (healthPct >= 55 ? 'var(--hc-warning)' : 'var(--hc-danger)');
+    // Donut SVG de Integridade Física das Peças
+    const r = 46;
+    const c = +(2 * Math.PI * r).toFixed(2);
+    const offset = +(c - (healthPct / 100) * c).toFixed(2);
+    const strokeColor = healthPct >= 85 ? '#35b877' : (healthPct >= 55 ? '#f0a03a' : '#e5534b');
 
-    let html = `
-      <div id="hardwareHealthCard" class="hc-card" style="padding: 1.05rem 1.15rem; margin-bottom: 1rem; border-color: ${healthPct < 100 ? 'var(--hc-danger)' : 'rgba(53, 184, 119, 0.38)'}; background: ${healthPct < 100 ? 'rgba(208, 68, 58, 0.08)' : 'transparent'};">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px;">
-          <div>
-            <div class="hc-eyebrow">Integridade Física das Peças (Proteção contra Sobrecarga DDoS)</div>
-            <div style="font-size:0.9rem;margin-top:2px;">
-              Saúde atual do PC: <strong id="hwHealthPctLabel" style="color:${healthPct < 100 ? 'var(--hc-danger-text)' : 'var(--hc-accent-text)'};font-family:var(--hc-font-mono);">${healthPct}%</strong>
-              ${healthPct < 100
-                ? `<span style="color:var(--hc-warning);font-size:0.8rem;margin-left:8px;">⚠️ Danificado por DDoS${this.current.lastDdosBy ? ` (${this.current.lastDdosBy})` : ''}! Sua CPU e Internet estão operando em marcha reduzida!</span>`
-                : `<span style="color:var(--hc-text-2);font-size:0.8rem;margin-left:8px;">✓ Todas as peças operando a 100% da velocidade nominal.</span>`}
-            </div>
-          </div>
-          <div>
-            ${healthPct < 100
-              ? `<button type="button" id="btnRepairHardware" ${!canRepair ? 'disabled' : ''} onclick="window.handleRepairHardware()" class="hc-btn ${canRepair ? 'primary' : 'ghost'} sm" style="${canRepair ? 'background:var(--hc-warning);border-color:var(--hc-warning);color:#101418;font-weight:700;' : ''}">
-                   🔧 Consertar Peças Danificadas ($ ${repairCost.toLocaleString('pt-BR')} HC)
-                 </button>`
-              : `<span class="hc-badge success">✓ Peças Intactas (100%)</span>`}
-          </div>
-        </div>
-        <div style="height:9px;background:var(--hc-inset);border-radius:999px;overflow:hidden;border:1px solid var(--hc-border);">
-          <div style="height:100%;width:${healthPct}%;background:${healthColor};transition:width 0.25s ease;"></div>
-        </div>
-      </div>
-
-      <div class="hc-card" style="padding: 1.15rem; margin-bottom: 1.25rem; border-color: rgba(53, 184, 119, 0.35);">
-        <div class="hc-eyebrow" style="margin-bottom: 0.45rem;">Ficha Física Atual do Seu PC</div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-family: var(--hc-font-mono); font-size: 0.82rem;">
-          <div><span style="color:var(--hc-text-3);">CPU EFETIVA:</span> <strong style="color:${healthPct < 100 ? 'var(--hc-warning)' : 'var(--hc-text)'};">${effCpu.toLocaleString('pt-BR')} MHz</strong>${healthPct < 100 ? ` <span style="color:var(--hc-text-3);font-size:0.73rem;">(de ${cpu.mhz} MHz)</span>` : ''}</div>
-          <div><span style="color:var(--hc-text-3);">RAM:</span> <strong>${usedRam} / ${ram.ramMb} MB</strong></div>
-          <div><span style="color:var(--hc-text-3);">DISCO (HDD):</span> <strong>${usedHdd} / ${hdd.hddMb} MB</strong></div>
-          <div><span style="color:var(--hc-text-3);">INTERNET EFETIVA:</span> <strong style="color:${healthPct < 100 ? 'var(--hc-warning)' : 'var(--hc-text)'};">${effNet} Mbit/s</strong> (~${(effNet / 8).toFixed(2)} MB/s)</div>
-        </div>
-      </div>
-    `;
-
-    const titles = {
-      cpu: '1. PROCESSADORES (CPU — Acelera o TEMPO de Quebra/Logs/Scan; potência depende da versão do Software!)',
-      ram: '2. MEMÓRIA RAM (Limite de Softwares Ativos Simultâneos)',
-      hdd: '3. ARMAZENAMENTO HDD / SSD (Espaço p/ Vírus & Binários Fortes)',
-      network: '4. VELOCIDADE DE INTERNET (Tempo de Download & Upload SSH/FTP)'
+    const catMeta = {
+      cpu:     { label: 'Processador (CPU)', tabLabel: 'Comprar CPU', icon: 'cpu', glyph: 'attack', cur: cpu, specFn: (i) => `${i.mhz.toLocaleString('pt-BR')} MHz`, curVal: `${effCpu.toLocaleString('pt-BR')} MHz` },
+      ram:     { label: 'Memória RAM',       tabLabel: 'Comprar RAM', icon: 'layers', glyph: 'defense', cur: ram, specFn: (i) => i.ramMb >= 1024 ? `${+(i.ramMb / 1024).toFixed(0)} GB (${i.ramMb.toLocaleString('pt-BR')} MB)` : `${i.ramMb} MB`, curVal: `${usedRam}/${ram.ramMb} MB` },
+      hdd:     { label: 'Armazenamento',     tabLabel: 'Comprar Disco', icon: 'hard-drive', glyph: 'stealth', cur: hdd, specFn: (i) => i.hddMb >= 1024 ? `${+(i.hddMb / 1024).toFixed(1)} GB` : `${i.hddMb} MB`, curVal: `${usedHdd}/${hdd.hddMb} MB` },
+      network: { label: 'Link de Internet',  tabLabel: 'Upgrade Rede', icon: 'wifi', glyph: 'defense', cur: net, specFn: (i) => `${i.mbps} Mbit/s`, curVal: `${effNet} Mbit/s` }
     };
 
-    ['cpu', 'ram', 'hdd', 'network'].forEach((category) => {
-      const list = this.catalog[category];
-      const curIdx = list.findIndex((i) => i.id === this.current[category]);
+    let mainColHtml = '';
 
-      html += `<div class="hc-eyebrow" style="margin: 1.1rem 0 0.5rem;">${titles[category]}</div>`;
-      html += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(265px, 1fr)); gap: 0.75rem;">`;
+    if (this.activeTab === 'overview') {
+      const overviewRows = ['cpu', 'ram', 'hdd', 'network'].map((cat) => {
+        const m = catMeta[cat];
+        const list = this.catalog[cat];
+        const curIdx = list.findIndex((x) => x.id === this.current[cat]);
+        const nextItem = curIdx >= 0 && curIdx < list.length - 1 ? list[curIdx + 1] : null;
+        const canBuyNext = nextItem && currentBalance >= nextItem.price;
 
-      list.forEach((item, idx) => {
+        return `
+          <tr class="row-running">
+            <td class="soft-col-icon">
+              <span class="soft-mini-glyph kind-${m.glyph}" data-tip-title="${esc(m.label)}" data-tip-meta="${esc(m.curVal)}" data-tip-desc="${esc(m.cur.desc)}">
+                ${ic(m.icon)}
+              </span>
+            </td>
+            <td>
+              <span class="soft-name-trigger" tabindex="0" data-tip-title="${esc(m.cur.name)}" data-tip-meta="${esc(m.label)}" data-tip-desc="${esc(m.cur.desc)}">
+                <span class="soft-run-dot"></span>
+                <span>${esc(m.cur.name)}</span>
+              </span>
+            </td>
+            <td class="soft-col-size" style="width:130px;">${esc(m.specFn(m.cur))}</td>
+            <td class="soft-col-size" style="width:165px;color:var(--hc-text-2);">
+              ${nextItem ? `<span class="mono">${esc(m.specFn(nextItem))} · <strong style="color:var(--hc-warning-text);">$${nextItem.price.toLocaleString('pt-BR')}</strong></span>` : `<span class="hc-badge success">Topo Máximo</span>`}
+            </td>
+            <td class="soft-col-acts">
+              <div class="soft-icon-actions">
+                <button type="button" class="soft-icon-act ic-info" aria-label="Ver catálogo de ${esc(m.label)}"
+                  data-tip-title="Ver opções de ${esc(m.label)}" data-tip-meta="${list.length} modelos"
+                  data-tip-desc="Abrir lista completa de peças e preços para ${esc(m.label)}."
+                  onclick="window.hardwareEngine.setTab('${cat}')">${ic('info')}</button>
+                ${nextItem ? `
+                  <button type="button" class="soft-icon-act ${canBuyNext ? 'ic-run' : 'ic-move'}" aria-label=" Evoluir ${esc(m.label)}"
+                    data-tip-title="${canBuyNext ? `Comprar ${esc(nextItem.name)}` : `Ver upgrade ($${nextItem.price.toLocaleString('pt-BR')})`}"
+                    data-tip-meta="$${nextItem.price.toLocaleString('pt-BR')}"
+                    data-tip-desc="${esc(nextItem.desc)}"
+                    onclick="${canBuyNext ? `buyHardwareUpgrade('${cat}', '${nextItem.id}', ${nextItem.price})` : `window.hardwareEngine.setTab('${cat}')`}">
+                    ${ic(canBuyNext ? 'shopping-cart' : 'arrow-up')}
+                  </button>
+                ` : ''}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      mainColHtml = `
+        <div class="soft-table-wrap" role="region" aria-label="Componentes instalados no seu servidor">
+          <table class="soft-table clean-hw-table">
+            <thead>
+              <tr>
+                <th class="soft-col-icon"></th>
+                <th>Peça Instalada no Meu Servidor</th>
+                <th class="soft-col-size" style="width:130px;">Capacidade</th>
+                <th class="soft-col-size" style="width:165px;">Próximo Nível</th>
+                <th class="soft-col-acts">Ações</th>
+              </tr>
+            </thead>
+            <tbody>${overviewRows}</tbody>
+          </table>
+        </div>
+      `;
+    } else {
+      const cat = catMeta[this.activeTab] ? this.activeTab : 'cpu';
+      const m = catMeta[cat];
+      const list = this.catalog[cat];
+      const curIdx = list.findIndex((x) => x.id === this.current[cat]);
+
+      const rows = list.map((item, idx) => {
         const isCurrent = idx === curIdx;
         const isLower = idx < curIdx;
         const canBuy = !isCurrent && !isLower && currentBalance >= item.price;
+        const priceStr = item.price === 0 ? 'Inicial' : `$ ${item.price.toLocaleString('pt-BR')}`;
 
-        html += `
-          <div class="hc-card" style="padding: 0.9rem 1rem; border-color: ${isCurrent ? 'var(--hc-accent)' : 'var(--hc-border)'}; opacity: ${isLower ? '0.5' : '1'}; display: flex; flex-direction: column; justify-content: space-between;">
-            <div>
-              <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 0.35rem;">
-                <strong style="color: ${isCurrent ? 'var(--hc-accent-text)' : 'var(--hc-text)'}; font-size: 0.88rem;">${item.name}</strong>
-                <span style="font-family: var(--hc-font-mono); font-size: 0.8rem; color: ${item.price === 0 ? 'var(--hc-text-3)' : 'var(--hc-warning)'};">
-                  ${item.price === 0 ? 'INICIAL' : '$ ' + item.price.toLocaleString('pt-BR') + ' HC'}
-                </span>
-              </div>
-              <div style="font-size: 0.78rem; color: var(--hc-text-2); line-height: 1.35; margin-bottom: 0.75rem;">${item.desc}</div>
-            </div>
-            <div>
+        return `
+          <tr class="${isCurrent ? 'row-running' : ''} ${isLower ? 'row-hidden' : ''}">
+            <td class="soft-col-icon">
+              <span class="soft-mini-glyph kind-${m.glyph}" data-tip-title="${esc(item.name)}" data-tip-meta="${esc(priceStr)}" data-tip-desc="${esc(item.desc)}">
+                ${ic(m.icon)}
+              </span>
+            </td>
+            <td>
+              <span class="soft-name-trigger" tabindex="0" data-tip-title="${esc(item.name)}" data-tip-meta="${esc(m.specFn(item))}" data-tip-desc="${esc(item.desc)}">
+                ${isCurrent ? '<span class="soft-run-dot"></span>' : ''}
+                <span>${esc(item.name)}</span>
+              </span>
+            </td>
+            <td class="soft-col-size" style="width:135px;">${esc(m.specFn(item))}</td>
+            <td class="soft-col-size" style="width:120px;color:${item.price === 0 ? 'var(--hc-text-3)' : 'var(--hc-warning-text)'};white-space:nowrap;">${esc(priceStr)}</td>
+            <td class="soft-col-acts">
               ${isCurrent
-                ? `<button type="button" disabled class="hc-btn sm" style="width:100%; border-color:var(--hc-accent); color:var(--hc-accent-text);">INSTALADO NO SEU PC</button>`
+                ? `<span class="hc-badge success">Instalado</span>`
                 : (isLower
-                    ? `<button type="button" disabled class="hc-btn ghost sm" style="width:100%;">SUPERADO</button>`
-                    : `<button type="button" ${!canBuy ? 'disabled' : ''} onclick="buyHardwareUpgrade('${category}', '${item.id}', ${item.price})" class="hc-btn ${canBuy ? 'primary' : 'ghost'} sm" style="width:100%;">
-                         ${canBuy ? `Comprar ($ ${item.price.toLocaleString('pt-BR')})` : `Faltam $ ${Math.ceil(item.price - currentBalance).toLocaleString('pt-BR')}`}
-                       </button>`)}
-            </div>
-          </div>
+                    ? `<span style="font-size:11.5px;color:var(--hc-text-3);">Superado</span>`
+                    : `<div class="soft-icon-actions">
+                         <button type="button" class="soft-icon-act ic-info" aria-label="Detalhes de ${esc(item.name)}"
+                           data-tip-title="${esc(item.name)}" data-tip-meta="${esc(m.specFn(item))}" data-tip-desc="${esc(item.desc)}">
+                           ${ic('info')}
+                         </button>
+                         <button type="button" class="soft-icon-act ic-run" ${!canBuy ? 'disabled' : ''} aria-label="Comprar ${esc(item.name)}"
+                           data-tip-title="${canBuy ? 'Comprar e instalar agora' : `Saldo insuficiente (faltam $ ${Math.ceil(item.price - currentBalance).toLocaleString('pt-BR')})`}"
+                           data-tip-meta="${esc(priceStr)}" data-tip-desc="${esc(item.desc)}"
+                           onclick="buyHardwareUpgrade('${cat}', '${item.id}', ${item.price})">
+                           ${ic('shopping-cart')}
+                         </button>
+                       </div>`)}
+            </td>
+          </tr>
         `;
-      });
-      html += `</div>`;
-    });
+      }).join('');
 
-    el.innerHTML = html;
+      mainColHtml = `
+        <div class="soft-table-wrap" role="region" aria-label="Catálogo de ${esc(m.label)}">
+          <table class="soft-table clean-hw-table">
+            <thead>
+              <tr>
+                <th class="soft-col-icon"></th>
+                <th>Modelo · ${esc(m.label)}</th>
+                <th class="soft-col-size" style="width:135px;">Capacidade</th>
+                <th class="soft-col-size" style="width:120px;">Preço</th>
+                <th class="soft-col-acts">Ações</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    el.innerHTML = `
+      <div class="soft-frame" id="hardwareExplorerMain">
+        <div class="soft-tabs-bar">
+          <div class="soft-tabs-left" role="tablist" aria-label="Categorias de Hardware">
+            <button type="button" class="soft-tab-btn ${this.activeTab === 'overview' ? 'active' : ''}" onclick="window.hardwareEngine.setTab('overview')">
+              ${ic('server')} <span>Meu Servidor</span>
+            </button>
+            <button type="button" class="soft-tab-btn ${this.activeTab === 'cpu' ? 'active' : ''}" onclick="window.hardwareEngine.setTab('cpu')">
+              ${ic('cpu')} <span>Comprar CPU</span>
+            </button>
+            <button type="button" class="soft-tab-btn ${this.activeTab === 'ram' ? 'active' : ''}" onclick="window.hardwareEngine.setTab('ram')">
+              ${ic('layers')} <span>Comprar RAM</span>
+            </button>
+            <button type="button" class="soft-tab-btn ${this.activeTab === 'hdd' ? 'active' : ''}" onclick="window.hardwareEngine.setTab('hdd')">
+              ${ic('hard-drive')} <span>Comprar Disco</span>
+            </button>
+            <button type="button" class="soft-tab-btn ${this.activeTab === 'network' ? 'active' : ''}" onclick="window.hardwareEngine.setTab('network')">
+              ${ic('wifi')} <span>Upgrade Rede</span>
+            </button>
+          </div>
+          <span class="mono" style="font-size:12px;color:var(--hc-accent-text);">Saldo: $ ${Number(currentBalance || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</span>
+        </div>
+
+        <div class="soft-explorer-shell">
+          <div class="soft-main-col">
+            ${healthPct < 100 ? `
+              <div class="soft-feedback-banner" style="background:rgba(208,68,58,0.16);border-color:rgba(229,83,75,0.45);color:#ff9b95;">
+                <span>⚠️ Peças danificadas por ataque DDoS (${healthPct}% de integridade). Velocidade reduzida até o reparo!</span>
+                <button type="button" id="btnRepairHardwareBanner" class="hc-btn sm" style="background:var(--hc-warning);border-color:var(--hc-warning);color:#101418;font-weight:700;opacity:1;" ${!canRepair ? 'disabled' : ''} onclick="window.handleRepairHardware()">
+                  Consertar ($ ${repairCost.toLocaleString('pt-BR')})
+                </button>
+              </div>
+            ` : ''}
+            ${mainColHtml}
+          </div>
+
+          <aside class="soft-side-bar" id="hardwareHealthCard">
+            <div class="soft-donut-wrap">
+              <svg class="soft-donut-svg" viewBox="0 0 116 116" aria-label="Saúde do Hardware ${healthPct}%">
+                <circle cx="58" cy="58" r="${r}" fill="none" stroke="#222832" stroke-width="8"></circle>
+                <circle cx="58" cy="58" r="${r}" fill="none" stroke="${strokeColor}" stroke-width="8"
+                  stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${offset}" transform="rotate(-90 58 58)"></circle>
+                <text id="hwHealthPctLabel" x="58" y="63" text-anchor="middle" fill="#ebeff4" font-family="var(--hc-font-mono)" font-size="18" font-weight="700">${healthPct}%</text>
+              </svg>
+              <div class="soft-donut-title">Saúde das Peças</div>
+              <div class="soft-donut-numbers">
+                <span class="${healthPct < 100 ? 'total' : 'used'}">${healthPct < 100 ? 'Danificado DDoS' : '100% Nominal'}</span>
+              </div>
+            </div>
+
+            <div class="soft-bays-box">
+              <div class="soft-bay-row"><span>CPU</span><span style="color:var(--hc-accent-text);">${effCpu.toLocaleString('pt-BR')} MHz</span></div>
+              <div class="soft-bay-row"><span>Uso RAM</span><span>${usedRam}/${ram.ramMb} MB</span></div>
+              <div class="soft-bay-row"><span>Uso Disco</span><span>${usedHdd}/${hdd.hddMb} MB</span></div>
+              <div class="soft-bay-row"><span>Internet</span><span style="color:var(--hc-info-text);">${effNet} Mbit/s</span></div>
+            </div>
+
+            <div class="soft-tool-tiles">
+              <button type="button" class="soft-tool-tile" onclick="navTo('winSoftware');if(window.softwareEngine){window.softwareEngine.activeTab='xhd';window.softwareEngine.renderUI();}">
+                ${ic('hard-drive')}
+                <span>HD Externo</span>
+              </button>
+              <button type="button" id="btnRepairHardware" class="soft-tool-tile ${healthPct < 100 ? 'danger' : ''}" ${!canRepair ? 'disabled style="opacity:0.45;cursor:not-allowed;"' : ''} onclick="window.handleRepairHardware()">
+                ${ic('wrench')}
+                <span>${healthPct < 100 ? `Consertar ($${repairCost})` : 'Peças Intactas'}</span>
+              </button>
+            </div>
+          </aside>
+        </div>
+      </div>
+    `;
   }
 }
 
