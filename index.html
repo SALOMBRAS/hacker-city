@@ -455,13 +455,13 @@
         </div>
       </div>
       <div class="topbar-stats">
-        <div class="my-ip-chip" id="hudMyIpChip" onclick="window.internetEngine.openIp('71.4.5.1')" title="Clique para gerenciar ou renovar seu IP no Provedor ISP (1x grátis por semana)">
+        <div class="my-ip-chip" id="hudMyIpChip" onclick="window.internetEngine.openIp('71.4.5.1')" data-tip-title="Seu IP protegido (Anti-Curiosos)" data-tip-meta="Privacidade" data-tip-desc="Os últimos 7 dígitos ficam ocultos automaticamente. Passe o mouse por cima para ver ou clique para renovar no Provedor ISP.">
           <span class="ip-dot"></span>
           <div class="ip-stack">
             <span class="ip-lbl">Seu IP</span>
             <span class="ip-row">
-              <span class="ip-val" id="hudMyIp">0.0.0.0</span>
-              <button type="button" class="ip-copy-btn" onclick="window.networkIdentity.copyMyIp(event)" title="Copiar meu IP" aria-label="Copiar meu IP"><i data-icon="copy"></i></button>
+              <span class="ip-val" id="hudMyIp"><span class="my-ip-privacy" tabindex="0"><span class="my-ip-head">0.</span><span class="my-ip-blur-tail">0.0.0</span></span></span>
+              <button type="button" class="ip-copy-btn" onclick="window.networkIdentity.copyMyIp(event)" data-tip-title="Copiar meu IP" data-tip-meta="Área de Transferência" data-tip-desc="Copia seu IP completo sem mostrá-lo em aviso na tela." aria-label="Copiar meu IP"><i data-icon="copy"></i></button>
             </span>
           </div>
         </div>
@@ -1170,8 +1170,11 @@
       const ic = (n) => (window.HC && window.HC.icon ? window.HC.icon(n) : '');
 
       const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '142.87.13.9';
+      const blurredIp = (window.networkIdentity && window.networkIdentity.renderBlurredMyIpHtml)
+        ? window.networkIdentity.renderBlurredMyIpHtml(myIp, true)
+        : escapeHtml(myIp);
       const subEl = document.getElementById('logsPageSubtitle');
-      if (subEl) subEl.textContent = `Gerencie o arquivo /var/log/syslog do seu computador (${myIp}) e verifique rastros esquecidos na rede.`;
+      if (subEl) subEl.innerHTML = `Gerencie o arquivo <code>/var/log/syslog</code> do seu computador (${blurredIp}) e verifique rastros esquecidos na rede.`;
 
       const remoteTraces = [];
       if (window.botAI && window.botAI.syslogRegistry) {
@@ -1207,7 +1210,7 @@
 
       if (tab === 'remote') {
         const rows = remoteTraces.length === 0
-          ? `<tr><td colspan="4" style="text-align:center;padding:34px 16px;color:var(--hc-accent-text);">✓ Nenhum servidor remoto possui o seu IP (${escapeHtml(myIp)}) gravado no momento.</td></tr>`
+          ? `<tr><td colspan="4" style="text-align:center;padding:34px 16px;color:var(--hc-accent-text);">✓ Nenhum servidor remoto possui o seu IP (${blurredIp}) gravado no momento.</td></tr>`
           : remoteTraces.map((t) => {
               const titleLabel = t.bot ? t.bot.handle : ((t.hostMeta && t.hostMeta.hostname) || 'Servidor Remoto');
               const statusTxt = t.pending ? `Retaliação ${t.pending.timeLeft}s` : 'IP Exposto';
@@ -1318,12 +1321,12 @@
           <div style="display:flex;flex-direction:column;gap:10px;">
             ${remoteTraces.length > 0 ? `
               <div class="soft-feedback-banner" style="background:rgba(208,68,58,0.16);border-color:rgba(229,83,75,0.45);color:#ff9b95;">
-                <span>⚠️ Atenção: seu IP (${escapeHtml(myIp)}) ainda consta na log de ${remoteTraces.length} servidor(es) remoto(s)!</span>
+                <span>⚠️ Atenção: seu IP (${blurredIp}) ainda consta na log de ${remoteTraces.length} servidor(es) remoto(s)!</span>
                 <button type="button" class="hc-btn sm" style="background:var(--hc-danger);border-color:var(--hc-danger);color:#fff;opacity:1;" onclick="window.switchLogsSubTab('remote')">Ver &amp; Limpar →</button>
               </div>
             ` : ''}
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-              <span class="mono" style="font-size:12px;color:var(--hc-text-2);">${escapeHtml(myIp)}:/var/log/syslog (${window.systemLogs.length} linha${window.systemLogs.length === 1 ? '' : 's'})</span>
+              <span class="mono" style="font-size:12px;color:var(--hc-text-2);">${blurredIp}:/var/log/syslog (${window.systemLogs.length} linha${window.systemLogs.length === 1 ? '' : 's'})</span>
               <div style="display:flex;gap:8px;">
                 <button type="button" class="hc-btn ghost sm" onclick="clearLocalLogs()">Limpar Tudo</button>
                 <button type="button" id="btnSaveLocalSyslogRaw" class="hc-btn primary sm" onclick="saveEditedLocalLogs()">Salvar Arquivo de Log</button>
@@ -1370,7 +1373,7 @@
               </div>
 
               <div class="soft-bays-box">
-                <div class="soft-bay-row"><span>Meu IP</span><span style="color:var(--hc-accent-text);">${escapeHtml(myIp)}</span></div>
+                <div class="soft-bay-row" id="logsSideMyIpRow"><span>Meu IP</span><span style="color:var(--hc-accent-text);">${blurredIp}</span></div>
                 <div class="soft-bay-row"><span>Linhas Locais</span><span>${window.systemLogs.length}</span></div>
                 <div class="soft-bay-row"><span>Rastros Externos</span><span style="color:${remoteTraces.length === 0 ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};">${remoteTraces.length}</span></div>
               </div>
@@ -1655,7 +1658,7 @@
         setupRealtimeSubscriptions();
 
         openWindow('winHome');
-        window.addLocalLog('AUTH-LOGIN', `Sessão iniciada por ${currentProfile.hacker_tag} · IP Público: ${window.networkIdentity ? window.networkIdentity.getPublicIp() : 'alocado'}`, 'info');
+        window.addLocalLog('AUTH-LOGIN', `Sessão iniciada por ${currentProfile.hacker_tag} em localhost:/dev/tty1`, 'info');
         showToast(`Bem-vindo, ${currentProfile.hacker_tag}! Mainframe sincronizado.`);
         if (window.spotlightTour) window.spotlightTour.maybeAutoStartForSession();
 
@@ -1726,7 +1729,7 @@
       updateHudDisplays();
       initCheckersBoard();
       openWindow('winHome');
-      window.addLocalLog('INSTANT-BOOT', `Operador rápido ${tag} conectado (${window.networkIdentity ? window.networkIdentity.getPublicIp() : ''})`, 'success');
+      window.addLocalLog('INSTANT-BOOT', `Operador rápido ${tag} conectado em localhost:/dev/tty1`, 'success');
       showToast(`Conectado como ${tag}! Seu progresso salva automaticamente.`);
       if (window.spotlightTour) window.spotlightTour.maybeAutoStartForSession();
     }
@@ -1738,7 +1741,7 @@
       if (window.networkIdentity) {
         const myIp = window.networkIdentity.getPublicIp();
         const ipEl = document.getElementById('hudMyIp');
-        if (ipEl) ipEl.innerText = myIp;
+        if (ipEl) ipEl.innerHTML = window.networkIdentity.renderBlurredMyIpHtml(myIp);
         window.networkIdentity.renderProfileIpCard('profileIpCardMount');
       }
       if (window.skillTreeEngine) {
@@ -3191,9 +3194,9 @@
             </div>
           </div>
 
-          <div class="hc-stat-cell clickable" onclick="window.internetEngine.openIp('71.4.5.1')" title="Gerenciar ou trocar seu IP no Provedor ISP">
+          <div class="hc-stat-cell clickable" id="homeMyIpCell" onclick="window.internetEngine.openIp('71.4.5.1')" data-tip-title="Seu IP protegido" data-tip-meta="Provedor ISP" data-tip-desc="Os últimos 7 dígitos ficam ocultos automaticamente. Passe o mouse por cima para ver ou clique para renovar no Provedor ISP.">
             <div class="hc-stat-label">Seu IP</div>
-            <div class="hc-stat-value" style="color: var(--hc-accent-text);">${escapeHtml(myIp)}</div>
+            <div class="hc-stat-value" style="color: var(--hc-accent-text);">${(window.networkIdentity && window.networkIdentity.renderBlurredMyIpHtml) ? window.networkIdentity.renderBlurredMyIpHtml(myIp) : escapeHtml(myIp)}</div>
             <div class="hc-stat-sub ${ipStatus.canResetFree ? 'ok' : ''}">
               ${HC.icon('shield')}
               <span>${ipStatus.canResetFree ? 'Troca grátis disponível' : `Troca em ${escapeHtml(ipStatus.formattedRemaining)}`}</span>
