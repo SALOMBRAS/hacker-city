@@ -496,7 +496,9 @@
 
       if (snap.soft && window.softwareEngine) {
         window.softwareEngine.userId = uid;
-        window.softwareEngine.state = snap.soft;
+        window.softwareEngine.state = typeof window.softwareEngine.normalizeState === 'function'
+          ? window.softwareEngine.normalizeState(snap.soft)
+          : snap.soft;
         if (typeof window.softwareEngine.reconcileSavedTransitions === 'function') {
           window.softwareEngine.reconcileSavedTransitions();
         }

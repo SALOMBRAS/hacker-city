@@ -324,12 +324,20 @@
 
     getHiderVer() {
       this.ensureLoaded();
-      return (this.state.hiderVerInt || 10) / 10;
+      const base = (this.state.hiderVerInt || 10) / 10;
+      const fromSoft = (window.softwareEngine && window.softwareEngine.state && window.softwareEngine.state.inventory && window.softwareEngine.state.inventory.hider)
+        ? ((window.softwareEngine.state.inventory.hider.versionInt || 10) / 10)
+        : 0;
+      return Math.max(base, fromSoft);
     }
 
     getSeekerVer() {
       this.ensureLoaded();
-      return (this.state.seekerVerInt || 10) / 10;
+      const base = (this.state.seekerVerInt || 10) / 10;
+      const fromSoft = (window.softwareEngine && window.softwareEngine.state && window.softwareEngine.state.inventory && window.softwareEngine.state.inventory.seeker)
+        ? ((window.softwareEngine.state.inventory.seeker.versionInt || 10) / 10)
+        : 0;
+      return Math.max(base, fromSoft);
     }
 
     upgradeStealthTool(toolKey) {
