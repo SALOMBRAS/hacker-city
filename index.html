@@ -532,42 +532,68 @@
       </div>
     </div>
 
-    <!-- JANELA 2: HACKER BANK (P2P COM SUPABASE) -->
+    <!-- JANELA 2: FINANÇAS & BANCOS -->
     <div class="window-frame" id="winBank" style="width: 600px; height: 430px; top: 110px; left: 160px;">
       <div class="window-header" onmousedown="dragWindowStart(event, 'winBank')">
-        <div><div class="window-title">Banco</div><p class="page-sub">Saldo, extrato e transferências.</p></div>
+        <div><div class="window-title">Finanças &amp; Bancos</div><p class="page-sub">Gerencie sua conta principal, cofres offshore nos 5 bancos e transferências diretas.</p></div>
         <div class="window-controls">
           <button class="btn-win btn-win-close" onclick="closeWindow('winBank')"></button>
         </div>
       </div>
       <div class="window-body">
-        <div class="bank-balance-card">
-          <div>
-            <div style="font-size: 0.78rem; color: var(--hc-text-2);">CONTA BANCÁRIA OFICIAL</div>
-            <div class="bank-acc-num" id="bankDisplayAcc">HC-0000-00</div>
-            <div style="font-size: 0.75rem; color: var(--cyan-neon); margin-top: 0.2rem;" id="bankDisplayHolder">TITULAR: Operador</div>
+        <div class="soft-frame" id="bankExplorerMain">
+          <div class="soft-tabs-bar">
+            <div class="soft-tabs-left">
+              <button type="button" id="tabBankAccounts" class="soft-tab-btn active" onclick="window.switchBankSubTab('accounts')">
+                <i data-icon="landmark"></i> <span>Minhas Contas</span>
+              </button>
+              <button type="button" id="tabBankTransfer" class="soft-tab-btn" onclick="window.switchBankSubTab('transfer')">
+                <i data-icon="send"></i> <span>Transferir</span>
+              </button>
+              <button type="button" id="tabBankHistory" class="soft-tab-btn" onclick="window.switchBankSubTab('history')">
+                <i data-icon="file-text"></i> <span>Extrato</span>
+              </button>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;font-family:var(--hc-font-mono);font-size:12px;">
+              <span id="bankDisplayHolder" style="display:none;">TITULAR: Operador</span>
+              <span style="color:var(--hc-text-3);">Conta: <strong id="bankDisplayAcc" style="color:var(--hc-text);">HC-0000-00</strong></span>
+              <span>·</span>
+              <strong id="bankDisplayBalance" style="color:var(--hc-accent-text);">$ 0.00 HC</strong>
+            </div>
           </div>
-          <div style="text-align: right;">
-            <div style="font-size: 0.78rem; color: var(--hc-text-2);">SALDO DISPONÍVEL (POSTGRESQL)</div>
-            <div class="bank-acc-bal" id="bankDisplayBalance">$ 0.00 HC</div>
+
+          <div class="soft-explorer-shell">
+            <div class="soft-main-col">
+              <!-- Aba 1: Tabela limpa dos 5 Bancos + Transferência Rápida -->
+              <div id="bankPanelAccounts" style="display:flex;flex-direction:column;gap:12px;">
+                <div id="multiBankMount"></div>
+
+                <div class="hc-card" style="padding:12px 14px;background:var(--hc-inset);">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <span class="hc-eyebrow">Transferência Rápida entre Contas</span>
+                    <span style="font-size:11.5px;color:var(--hc-text-3);">Instantâneo</span>
+                  </div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <input type="text" id="transferTargetAcc" class="hc-input mono" style="flex:1;min-width:180px;height:34px;font-size:12.5px;" placeholder="Conta destino (ex: HC-1739-34)">
+                    <input type="number" id="transferAmount" class="hc-input mono" style="width:130px;height:34px;font-size:12.5px;" placeholder="Valor ($)">
+                    <button type="button" class="hc-btn primary sm" id="btnTransferSubmit" style="height:34px;" onclick="executeBankTransfer()">Transferir</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Aba 3: Extrato Sincronizado -->
+              <div id="bankPanelHistory" style="display:none;">
+                <div class="hc-card" style="padding:14px 16px;background:var(--hc-inset);">
+                  <div class="hc-eyebrow" style="margin-bottom:8px;">Movimentações Recentes da Conta Principal</div>
+                  <div id="bankTxHistory" style="font-family: var(--hc-font-mono); font-size: 12.5px; color: var(--hc-text-2); display:flex; flex-direction:column; gap:6px;">
+                    <div style="color:var(--hc-text-3);">Nenhuma transferência externa realizada nesta sessão ainda.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <aside class="soft-side-bar" id="bankSideSummaryMount"></aside>
           </div>
-        </div>
-
-        <!-- Contas Multi-Bancos Offshore (5 Bancos NPC) -->
-        <div id="multiBankMount"></div>
-
-        <div style="background: var(--hc-inset); border: 1px solid var(--hc-border); border-radius: 6px; padding: 1rem; margin-bottom: 1rem;">
-          <h4 style="color: #fff; font-size: 0.88rem; margin-bottom: 0.5rem;">Transferência P2P em Tempo Real (Entre Jogadores)</h4>
-          <div style="display: flex; gap: 0.5rem;">
-            <input type="text" id="transferTargetAcc" class="form-input" style="flex: 1;" placeholder="Conta destino (ex: HC-1739-34)">
-            <input type="number" id="transferAmount" class="form-input" style="width: 120px;" placeholder="Valor ($)">
-            <button class="btn-submit" id="btnTransferSubmit" style="width: auto; margin-top: 0; padding: 0.5rem 1rem;" onclick="executeBankTransfer()">ENVIAR</button>
-          </div>
-        </div>
-
-        <div style="font-size: 0.85rem; color: #fff; margin-bottom: 0.4rem;">Histórico de Transações Sincronizado:</div>
-        <div id="bankTxHistory" style="font-family: var(--hc-font-mono); font-size: 0.82rem; color: var(--hc-text-2);">
-          <div>[SINC] Carregando histórico da nuvem...</div>
         </div>
       </div>
     </div>
@@ -1112,15 +1138,41 @@
       window.renderLogsPage();
     };
 
+    window.switchBankSubTab = function (sub) {
+      const accP = document.getElementById('bankPanelAccounts');
+      const histP = document.getElementById('bankPanelHistory');
+      ['tabBankAccounts', 'tabBankTransfer', 'tabBankHistory'].forEach((id) => {
+        document.getElementById(id)?.classList.remove('active');
+      });
+      if (sub === 'history') {
+        if (accP) accP.style.display = 'none';
+        if (histP) histP.style.display = 'block';
+        document.getElementById('tabBankHistory')?.classList.add('active');
+      } else {
+        if (accP) accP.style.display = 'flex';
+        if (histP) histP.style.display = 'none';
+        document.getElementById(sub === 'transfer' ? 'tabBankTransfer' : 'tabBankAccounts')?.classList.add('active');
+        if (sub === 'transfer') {
+          setTimeout(() => document.getElementById('transferTargetAcc')?.focus(), 40);
+        }
+      }
+    };
+
+    window.activeLogsSubTab = 'editor';
+    window.switchLogsSubTab = function (tab) {
+      window.activeLogsSubTab = tab || 'editor';
+      window.renderLogsPage();
+    };
+
     window.renderLogsPage = function () {
       const container = document.getElementById('logsPageBody');
       if (!container) return;
+      const ic = (n) => (window.HC && window.HC.icon ? window.HC.icon(n) : '');
 
       const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '142.87.13.9';
       const subEl = document.getElementById('logsPageSubtitle');
-      if (subEl) subEl.textContent = `Auditoria do seu PC (${myIp}) e rastros ativos deixados em servidores remotos (/var/log/syslog).`;
+      if (subEl) subEl.textContent = `Gerencie o arquivo /var/log/syslog do seu computador (${myIp}) e verifique rastros esquecidos na rede.`;
 
-      // Coletar rastros remotos ativos onde o IP do jogador aparece (ou há retaliação pendente)
       const remoteTraces = [];
       if (window.botAI && window.botAI.syslogRegistry) {
         window.botAI.syslogRegistry.forEach((lines, ip) => {
@@ -1135,46 +1187,6 @@
         });
       }
 
-      const remoteHtml = remoteTraces.length === 0
-        ? `<div class="hc-card" style="padding: 1rem; color: var(--hc-text-2); font-size: 0.85rem; display: flex; align-items: center; gap: 0.65rem;">
-             <span class="hc-badge success">Limpo</span>
-             <span>Nenhum servidor remoto possui seu IP (<code>${escapeHtml(myIp)}</code>) gravado em <code>/var/log/syslog</code> no momento.</span>
-           </div>`
-        : remoteTraces.map(t => {
-            const ipChangedShield = t.pending && t.pending.loggedPlayerIp && t.pending.loggedPlayerIp !== myIp;
-            const statusBadge = ipChangedShield
-              ? `<span class="hc-badge success">IP Antigo (${escapeHtml(t.pending.loggedPlayerIp)}) · Você já trocou de IP</span>`
-              : (t.pending
-                  ? `<span class="hc-badge danger">Retaliação em ${t.pending.timeLeft}s (${t.pending.attackType})</span>`
-                  : `<span class="hc-badge warn">Rastro registrado</span>`);
-            const linesHtml = t.lines.map(l => `<div style="font-family: var(--hc-font-mono); font-size: 0.78rem; color: var(--hc-warning);">${escapeHtml(l)}</div>`).join('');
-            const titleLabel = t.bot ? t.bot.handle : ((t.hostMeta && t.hostMeta.hostname) || 'Servidor Remoto');
-            return `
-              <div class="hc-card" style="padding: 0.9rem 1rem; border-color: ${t.pending && !ipChangedShield ? 'var(--hc-danger)' : 'var(--hc-warning)'}; margin-bottom: 0.6rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
-                  <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                    <strong style="color: var(--hc-text); font-size: 0.9rem;">${escapeHtml(titleLabel)}</strong>
-                    <code style="font-family: var(--hc-font-mono); color: var(--hc-accent-text); font-size: 0.82rem;">${t.ip}:/var/log/syslog</code>
-                    ${statusBadge}
-                  </div>
-                  <div style="display: flex; gap: 6px;">
-                    <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${t.ip}', 'entrar')">Abrir SSH</button>
-                    <button type="button" class="btn-submit" style="width: auto; margin: 0; padding: 0.35rem 0.85rem; font-size: 0.78rem; background: var(--hc-danger); border-color: var(--hc-danger);" onclick="wipeRemoteLogFromUI('${t.ip}')">
-                      Apagar rastro (rmlog)
-                    </button>
-                  </div>
-                </div>
-                <div style="background: var(--hc-inset); border: 1px solid var(--hc-border); border-radius: 6px; padding: 0.55rem 0.75rem;">
-                  ${linesHtml}
-                </div>
-              </div>`;
-          }).join('');
-
-      const levelBadge = (lvl, tag) => {
-        const cls = lvl === 'danger' ? 'danger' : (lvl === 'warning' ? 'warn' : (lvl === 'success' ? 'success' : 'info'));
-        return `<span class="hc-badge ${cls}">${escapeHtml(tag)}</span>`;
-      };
-
       const extractForeignIp = (txt) => {
         const matches = String(txt || '').match(/\b\d{1,3}(?:\.\d{1,3}){3}\b/g) || [];
         return matches.find((cand) => cand !== myIp && !cand.startsWith('192.168.') && cand !== '0.0.0.0') || null;
@@ -1184,68 +1196,196 @@
         .map((e) => `[${e.time}] [${e.tag}] ${e.msg}`)
         .join('\n');
 
-      const localHtml = window.systemLogs.length === 0
-        ? `<div style="padding: 1.25rem; text-align: center; color: var(--hc-text-3); font-family: var(--hc-font-mono); font-size: 0.82rem;">/var/log/syslog está vazio (0 bytes).</div>`
-        : window.systemLogs.map(entry => {
-            const isTaunt = entry.tag === 'FARPA-INVASOR' || entry.tag === 'FARPA-PVP';
-            const isSloppyIntrusion = entry.tag === 'INTRUSION-IP-EXPOSTO' || entry.tag === 'PVP-INTRUSION' || entry.tag === 'HUNTER-BLOCKED';
-            const foreignIp = isSloppyIntrusion ? extractForeignIp(entry.msg) : null;
-            const tauntNick = (isTaunt && window.playerBountyEngine)
-              ? window.playerBountyEngine.extractNickFromTauntMsg(entry.msg)
-              : '';
-            const safeReason = String(entry.msg || '').replace(/['"\\]/g, '').slice(0, 85);
-            return `
-              <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--hc-border); font-size: 0.82rem; background: ${isTaunt ? 'rgba(208,68,58,0.11)' : 'transparent'};">
-                <div style="display: flex; align-items: center; gap: 0.6rem; min-width: 0; flex-wrap: wrap;">
-                  <span style="font-family: var(--hc-font-mono); color: var(--hc-text-3); font-size: 0.76rem;">[${escapeHtml(entry.time)}]</span>
-                  ${levelBadge(entry.level, entry.tag)}
-                  ${isTaunt ? `<span class="hc-badge warn">IP APAGADO PELO INVASOR</span>` : ''}
-                  <span style="color: ${isTaunt ? '#f5c26b' : 'var(--hc-text)'}; font-weight: ${isTaunt ? '600' : '400'}; font-family: var(--hc-font-mono); word-break: break-word;">${escapeHtml(entry.msg)}</span>
-                </div>
-                <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
-                  ${isTaunt && window.playerBountyEngine
-                    ? `<button type="button" class="hc-btn primary sm btn-bounty-from-taunt" style="padding:0.2rem 0.6rem;font-size:0.72rem;background:var(--hc-danger);border-color:var(--hc-danger);" onclick="window.playerBountyEngine.openQuickBountyModal('${escapeHtml(tauntNick)}', '${escapeHtml(safeReason)}')">💀 Colocar Cabeça a Prêmio</button>`
-                    : ''}
-                  ${foreignIp
-                    ? `<button type="button" class="hc-btn primary sm" style="padding:0.2rem 0.55rem;font-size:0.72rem;" onclick="window.internetEngine.openIp('${escapeHtml(foreignIp)}', 'invadir')">Contra-Atacar ${escapeHtml(foreignIp)} →</button>`
-                    : ''}
-                  <button type="button" class="hc-btn ghost sm" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;" onclick="deleteLocalLogEntry(${entry.id})" title="Apagar linha">Apagar</button>
-                </div>
+      const tab = window.activeLogsSubTab || 'editor';
+      const safePct = remoteTraces.length === 0 ? 100 : Math.max(15, 100 - remoteTraces.length * 30);
+      const r = 46;
+      const cCirc = +(2 * Math.PI * r).toFixed(2);
+      const offset = +(cCirc - (safePct / 100) * cCirc).toFixed(2);
+      const strokeColor = remoteTraces.length === 0 ? '#35b877' : '#e5534b';
+
+      let mainColHtml = '';
+
+      if (tab === 'remote') {
+        const rows = remoteTraces.length === 0
+          ? `<tr><td colspan="4" style="text-align:center;padding:34px 16px;color:var(--hc-accent-text);">✓ Nenhum servidor remoto possui o seu IP (${escapeHtml(myIp)}) gravado no momento.</td></tr>`
+          : remoteTraces.map((t) => {
+              const titleLabel = t.bot ? t.bot.handle : ((t.hostMeta && t.hostMeta.hostname) || 'Servidor Remoto');
+              const statusTxt = t.pending ? `Retaliação ${t.pending.timeLeft}s` : 'IP Exposto';
+              return `
+                <tr>
+                  <td class="soft-col-icon">
+                    <span class="soft-mini-glyph kind-virus" data-tip-title="${escapeHtml(titleLabel)}" data-tip-meta="${escapeHtml(t.ip)}" data-tip-desc="${escapeHtml(t.lines[0] || 'Seu IP consta no arquivo /var/log/syslog deste alvo.')}">
+                      ${ic('shield-alert')}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="soft-name-trigger" tabindex="0" data-tip-title="${escapeHtml(titleLabel)}" data-tip-meta="${escapeHtml(t.ip)}" data-tip-desc="${escapeHtml(t.lines.join(' | '))}">
+                      <strong style="color:var(--hc-danger-text);">${escapeHtml(t.ip)}</strong>
+                      <span style="font-family:var(--hc-font-sans);color:var(--hc-text-2);">${escapeHtml(titleLabel)}</span>
+                    </span>
+                  </td>
+                  <td class="soft-col-size" style="width:130px;"><span class="hc-badge danger">${escapeHtml(statusTxt)}</span></td>
+                  <td class="soft-col-acts">
+                    <div class="soft-icon-actions">
+                      <button type="button" class="soft-icon-act ic-info" aria-label="Abrir SSH em ${escapeHtml(t.ip)}"
+                        data-tip-title="Entrar via SSH" data-tip-meta="${escapeHtml(t.ip)}"
+                        data-tip-desc="Abrir terminal remoto do servidor para revisar o arquivo de log."
+                        onclick="window.internetEngine.openIp('${t.ip}', 'entrar')">${ic('terminal')}</button>
+                      <button type="button" class="soft-icon-act ic-del" aria-label="Apagar rastro em ${escapeHtml(t.ip)}"
+                        data-tip-title="Apagar meu IP agora" data-tip-meta="rmlog"
+                        data-tip-desc="Limpar imediatamente seu rastro em ${escapeHtml(t.ip)}:/var/log/syslog."
+                        onclick="wipeRemoteLogFromUI('${t.ip}')">${ic('trash-2')}</button>
+                    </div>
+                  </td>
+                </tr>
+              `;
+            }).join('');
+
+        mainColHtml = `
+          <div class="soft-table-wrap" role="region" aria-label="Rastros esquecidos em servidores remotos">
+            <table class="soft-table clean-hw-table">
+              <thead>
+                <tr>
+                  <th class="soft-col-icon"></th>
+                  <th>Servidor c/ Seu IP Gravado</th>
+                  <th class="soft-col-size" style="width:130px;">Risco</th>
+                  <th class="soft-col-acts">Ações</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        `;
+      } else if (tab === 'events') {
+        const rows = window.systemLogs.length === 0
+          ? `<tr><td colspan="4" style="text-align:center;padding:34px 16px;color:var(--hc-text-3);">Nenhum evento registrado em /var/log/syslog.</td></tr>`
+          : window.systemLogs.map((entry) => {
+              const isTaunt = entry.tag === 'FARPA-INVASOR' || entry.tag === 'FARPA-PVP';
+              const isSloppyIntrusion = entry.tag === 'INTRUSION-IP-EXPOSTO' || entry.tag === 'PVP-INTRUSION' || entry.tag === 'HUNTER-BLOCKED';
+              const foreignIp = isSloppyIntrusion ? extractForeignIp(entry.msg) : null;
+              const tauntNick = (isTaunt && window.playerBountyEngine)
+                ? window.playerBountyEngine.extractNickFromTauntMsg(entry.msg)
+                : '';
+              const safeReason = String(entry.msg || '').replace(/['"\\]/g, '').slice(0, 85);
+
+              return `
+                <tr>
+                  <td class="soft-col-ver" style="width:90px;color:var(--hc-text-3);">${escapeHtml(entry.time)}</td>
+                  <td class="soft-col-size" style="width:130px;"><span class="hc-badge ${entry.level === 'danger' ? 'danger' : (entry.level === 'warning' ? 'warn' : 'info')}">${escapeHtml(entry.tag)}</span></td>
+                  <td>
+                    <span class="mono" style="font-size:12px;color:${isTaunt ? 'var(--hc-warning-text)' : 'var(--hc-text)'};">${escapeHtml(entry.msg)}</span>
+                  </td>
+                  <td class="soft-col-acts" style="width:110px;">
+                    <div class="soft-icon-actions">
+                      ${isTaunt && window.playerBountyEngine ? `
+                        <button type="button" class="soft-icon-act ic-del btn-bounty-from-taunt" aria-label="Colocar cabeça a prêmio"
+                          data-tip-title="Colocar Cabeça a Prêmio" data-tip-meta="Vingança"
+                          data-tip-desc="Abrir recompensa pública contra o invasor que deixou esta farpa."
+                          onclick="window.playerBountyEngine.openQuickBountyModal('${escapeHtml(tauntNick)}', '${escapeHtml(safeReason)}')">${ic('skull')}</button>
+                      ` : ''}
+                      ${foreignIp ? `
+                        <button type="button" class="soft-icon-act ic-run" aria-label="Contra-atacar ${escapeHtml(foreignIp)}"
+                          data-tip-title="Contra-Atacar IP" data-tip-meta="${escapeHtml(foreignIp)}"
+                          data-tip-desc="Ir direto para o IP exposto pelo invasor na aba Internet."
+                          onclick="window.internetEngine.openIp('${escapeHtml(foreignIp)}', 'invadir')">${ic('zap')}</button>
+                      ` : ''}
+                      <button type="button" class="soft-icon-act ic-del" aria-label="Excluir linha de log"
+                        data-tip-title="Excluir linha" data-tip-desc="Remover este evento da sua log local."
+                        onclick="deleteLocalLogEntry(${entry.id})">${ic('trash-2')}</button>
+                    </div>
+                  </td>
+                </tr>
+              `;
+            }).join('');
+
+        mainColHtml = `
+          <div class="soft-table-wrap" role="region" aria-label="Eventos registrados na log local">
+            <table class="soft-table clean-hw-table">
+              <thead>
+                <tr>
+                  <th class="soft-col-ver" style="width:90px;">Hora</th>
+                  <th class="soft-col-size" style="width:130px;">Evento</th>
+                  <th>Descrição</th>
+                  <th class="soft-col-acts" style="width:110px;">Ações</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        `;
+      } else {
+        mainColHtml = `
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            ${remoteTraces.length > 0 ? `
+              <div class="soft-feedback-banner" style="background:rgba(208,68,58,0.16);border-color:rgba(229,83,75,0.45);color:#ff9b95;">
+                <span>⚠️ Atenção: seu IP (${escapeHtml(myIp)}) ainda consta na log de ${remoteTraces.length} servidor(es) remoto(s)!</span>
+                <button type="button" class="hc-btn sm" style="background:var(--hc-danger);border-color:var(--hc-danger);color:#fff;opacity:1;" onclick="window.switchLogsSubTab('remote')">Ver &amp; Limpar →</button>
               </div>
-            `;
-          }).join('');
+            ` : ''}
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span class="mono" style="font-size:12px;color:var(--hc-text-2);">${escapeHtml(myIp)}:/var/log/syslog (${window.systemLogs.length} linha${window.systemLogs.length === 1 ? '' : 's'})</span>
+              <div style="display:flex;gap:8px;">
+                <button type="button" class="hc-btn ghost sm" onclick="clearLocalLogs()">Limpar Tudo</button>
+                <button type="button" id="btnSaveLocalSyslogRaw" class="hc-btn primary sm" onclick="saveEditedLocalLogs()">Salvar Arquivo de Log</button>
+              </div>
+            </div>
+            <textarea id="localSyslogTextarea" class="ssh-syslog-editor" style="min-height:290px;color:#d6e2ee;background:var(--hc-inset);border:1px solid var(--hc-border);border-radius:8px;padding:12px 14px;line-height:1.55;" spellcheck="false">${escapeHtml(localRawText)}</textarea>
+          </div>
+        `;
+      }
 
       container.innerHTML = `
-        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-          <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; gap: 0.5rem; flex-wrap: wrap;">
-              <div class="hc-eyebrow">Rastros remotos ativos (/var/log/syslog em outras máquinas — Bots ativos SÓ acham seu IP por aqui!)</div>
-              <span style="font-size: 0.76rem; color: var(--hc-text-2); font-family: var(--hc-font-mono);">Se esquecer seu IP em outra máquina, bots e jogadores vão te rastrear!</span>
-            </div>
-            ${remoteHtml}
-          </div>
-
-          <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; gap: 0.5rem; flex-wrap: wrap;">
-              <div class="hc-eyebrow">Eventos &amp; Farpas na Log do Seu PC (${escapeHtml(myIp)}:/var/log/syslog · ${window.systemLogs.length} registros)</div>
-              <button type="button" class="btn-submit" style="width: auto; margin: 0; padding: 0.32rem 0.8rem; font-size: 0.76rem; background: var(--hc-surface-3); border-color: var(--hc-border-strong);" onclick="clearLocalLogs()">
-                Zerar /var/log/syslog
+        <div class="soft-frame" id="logsExplorerMain">
+          <div class="soft-tabs-bar">
+            <div class="soft-tabs-left" role="tablist" aria-label="Visualizações do Arquivo de Log">
+              <button type="button" class="soft-tab-btn ${tab === 'editor' ? 'active' : ''}" onclick="window.switchLogsSubTab('editor')">
+                ${ic('file-text')} <span>Arquivo de Log</span>
+              </button>
+              <button type="button" class="soft-tab-btn ${tab === 'events' ? 'active' : ''}" onclick="window.switchLogsSubTab('events')">
+                ${ic('activity')} <span>Eventos (${window.systemLogs.length})</span>
+              </button>
+              <button type="button" class="soft-tab-btn ${tab === 'remote' ? 'active' : ''}" onclick="window.switchLogsSubTab('remote')">
+                ${ic('radar')} <span>Rastros na Rede (${remoteTraces.length})</span>
               </button>
             </div>
-            <div style="background: var(--hc-inset); border: 1px solid var(--hc-border); border-radius: 8px; overflow: hidden; max-height: 280px; overflow-y: auto;">
-              ${localHtml}
-            </div>
           </div>
 
-          <div class="hc-card" style="padding: 0.95rem 1.1rem;">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-              <div>
-                <div class="hc-eyebrow">Editor Direto da Sua Log Local (<code>/var/log/syslog</code>)</div>
-                <div style="font-size:0.76rem;color:var(--hc-text-2);">Edite livremente, limpe farpas deixadas por invasores ou escreva suas próprias notas no arquivo bruto:</div>
-              </div>
-              <button type="button" id="btnSaveLocalSyslogRaw" class="hc-btn primary sm" onclick="saveEditedLocalLogs()">Salvar Edição Local</button>
+          <div class="soft-explorer-shell">
+            <div class="soft-main-col">
+              ${mainColHtml}
             </div>
-            <textarea id="localSyslogTextarea" class="ssh-syslog-editor" style="min-height:130px;" spellcheck="false">${escapeHtml(localRawText)}</textarea>
+
+            <aside class="soft-side-bar">
+              <div class="soft-donut-wrap">
+                <svg class="soft-donut-svg" viewBox="0 0 116 116" aria-label="Segurança Forense ${safePct}%">
+                  <circle cx="58" cy="58" r="${r}" fill="none" stroke="#222832" stroke-width="8"></circle>
+                  <circle cx="58" cy="58" r="${r}" fill="none" stroke="${strokeColor}" stroke-width="8"
+                    stroke-linecap="round" stroke-dasharray="${cCirc}" stroke-dashoffset="${offset}" transform="rotate(-90 58 58)"></circle>
+                  <text x="58" y="63" text-anchor="middle" fill="#ebeff4" font-family="var(--hc-font-mono)" font-size="17" font-weight="700">${remoteTraces.length === 0 ? 'Limpo' : remoteTraces.length + ' Alvo'}</text>
+                </svg>
+                <div class="soft-donut-title">Status de Exposição</div>
+                <div class="soft-donut-numbers">
+                  <span class="${remoteTraces.length === 0 ? 'used' : 'total'}">${remoteTraces.length === 0 ? '0 IPs expostos' : `${remoteTraces.length} rastro(s) ativo(s)`}</span>
+                </div>
+              </div>
+
+              <div class="soft-bays-box">
+                <div class="soft-bay-row"><span>Meu IP</span><span style="color:var(--hc-accent-text);">${escapeHtml(myIp)}</span></div>
+                <div class="soft-bay-row"><span>Linhas Locais</span><span>${window.systemLogs.length}</span></div>
+                <div class="soft-bay-row"><span>Rastros Externos</span><span style="color:${remoteTraces.length === 0 ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};">${remoteTraces.length}</span></div>
+              </div>
+
+              <div class="soft-tool-tiles">
+                <button type="button" class="soft-tool-tile" onclick="window.internetEngine.openIp('71.4.5.1')">
+                  ${ic('refresh-cw')}
+                  <span>Trocar Meu IP</span>
+                </button>
+                <button type="button" class="soft-tool-tile danger" onclick="clearLocalLogs()">
+                  ${ic('trash-2')}
+                  <span>Zerar Log</span>
+                </button>
+              </div>
+            </aside>
           </div>
         </div>
       `;

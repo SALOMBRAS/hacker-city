@@ -804,54 +804,96 @@
       const container = document.getElementById(containerId);
       if (!container) return;
 
+      const ic = (n) => (window.HC && window.HC.icon ? window.HC.icon(n) : '');
       const myTag = (window.currentProfile && window.currentProfile.hacker_tag) || 'VOCÊ';
       const myRep = (window.currentProfile && window.currentProfile.reputation) || 100;
       const myBestSoft = this.getPlayerBestSoftwareVer();
       const myGbps = window.softwareEngine ? window.softwareEngine.getPendingHarvestSummary().totalGbps : 0;
       const unlockedCount = this.getUnlockedBadgesCount();
 
-      let bodyHtml = '';
+      const badgePct = Math.round((unlockedCount / BADGE_CATALOG.length) * 100);
+      const r = 46;
+      const cCirc = +(2 * Math.PI * r).toFixed(2);
+      const offset = +(cCirc - (badgePct / 100) * cCirc).toFixed(2);
+
+      let mainHtml = '';
+      let myRankPos = '—';
+
       if (this.activeTab === 'badges') {
-        bodyHtml = `
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:10px;">
+        mainHtml = `
+          <div class="soft-discover-grid">
             ${BADGE_CATALOG.map((b) => {
               let unlocked = false;
               try { unlocked = !!b.check(); } catch (e) {}
               return `
-                <div class="hc-card" style="padding:0.95rem 1.05rem;border-color:${unlocked ? 'rgba(53,184,119,0.45)' : 'var(--hc-border)'};opacity:${unlocked ? '1' : '0.58'};">
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                    <strong style="font-size:0.88rem;color:${unlocked ? 'var(--hc-accent-text)' : 'var(--hc-text)'};">${unlocked ? '🏅 ' : '🔒 '}${esc(b.title)}</strong>
-                    <span class="hc-badge ${unlocked ? 'success' : ''}" style="font-size:0.66rem;">${unlocked ? 'DESBLOQUEADA' : 'PENDENTE'}</span>
+                <article class="soft-discover-card" style="border-color:${unlocked ? 'rgba(95,211,154,0.42)' : 'var(--hc-border)'};opacity:${unlocked ? '1' : '0.62'};">
+                  <div class="soft-discover-top">
+                    <div class="soft-discover-id">
+                      <div class="soft-app-icon kind-${unlocked ? 'defense' : 'text'}">${ic(unlocked ? 'award' : 'lock')}</div>
+                      <div>
+                        <div class="soft-discover-name" style="color:${unlocked ? 'var(--hc-accent-text)' : 'var(--hc-text)'};">${esc(b.title)}</div>
+                        <div class="soft-discover-ext">${unlocked ? 'Conquistada' : 'Pendente'}</div>
+                      </div>
+                    </div>
                   </div>
-                  <div style="font-size:0.76rem;color:var(--hc-text-2);">${esc(b.desc)}</div>
-                </div>
+                  <p class="soft-discover-desc">${esc(b.desc)}</p>
+                </article>
               `;
             }).join('')}
           </div>
         `;
       } else if (this.activeTab === 'clans') {
         const clans = window.clanEngine ? window.clanEngine.getAllClansSorted() : [];
-        bodyHtml = `
-          <div class="hc-card" style="padding:0;overflow:hidden;">
-            ${clans.map((c, i) => `
-              <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 16px;border-bottom:1px solid var(--hc-border);font-size:0.84rem;">
-                <div>
-                  <strong style="font-family:var(--hc-font-mono);color:var(--hc-text-3);margin-right:10px;">#${i + 1}</strong>
-                  <strong>[${esc(c.tag)}] ${esc(c.name)}</strong>
-                  <span style="color:var(--hc-text-3);font-size:0.76rem;margin-left:8px;">Membros: ${c.members} · Vitórias: ${c.warsWon}</span>
-                </div>
-                <strong style="font-family:var(--hc-font-mono);color:var(--hc-accent-text);">${c.powerScore.toLocaleString('pt-BR')} pts</strong>
+        const rows = clans.map((c, i) => `
+          <tr>
+            <td class="soft-col-ver" style="width:60px;font-weight:700;color:${i < 3 ? 'var(--hc-warning-text)' : 'var(--hc-text-3)'};">#${i + 1}</td>
+            <td>
+              <span class="soft-name-trigger" tabindex="0"
+                data-tip-title="[${esc(c.tag)}] ${esc(c.name)}"
+                data-tip-meta="IP ${esc(c.serverIp || '155.90.1.1')}"
+                data-tip-desc="Líder: ${esc(c.leader)} · ${c.members} membros · ${c.warsWon} guerras vencidas.">
+                <strong style="color:var(--hc-accent-text);">[${esc(c.tag)}]</strong>
+                <span style="font-family:var(--hc-font-sans);color:var(--hc-text);">${esc(c.name)}</span>
+              </span>
+            </td>
+            <td class="soft-col-size">${c.members} membros</td>
+            <td class="soft-col-size" style="width:130px;color:var(--hc-warning-text);">${c.powerScore.toLocaleString('pt-BR')} pts</td>
+            <td class="soft-col-acts" style="width:76px;">
+              <div class="soft-icon-actions">
+                ${c.serverIp ? `
+                  <button type="button" class="soft-icon-act ic-info" aria-label="Visitar mainframe do clã ${esc(c.name)}"
+                    data-tip-title="Abrir Mainframe do Clã" data-tip-meta="${esc(c.serverIp)}"
+                    data-tip-desc="Acessar o servidor público de [${esc(c.tag)}] ${esc(c.name)} na Internet."
+                    onclick="window.internetEngine.openIp('${esc(c.serverIp)}')">${ic('globe')}</button>
+                ` : ''}
               </div>
-            `).join('')}
+            </td>
+          </tr>
+        `).join('');
+
+        mainHtml = `
+          <div class="soft-table-wrap" role="region" aria-label="Ranking oficial de clãs">
+            <table class="soft-table clean-hw-table">
+              <thead>
+                <tr>
+                  <th class="soft-col-ver" style="width:60px;">Pos.</th>
+                  <th>Clã &amp; Tag</th>
+                  <th class="soft-col-size">Efetivo</th>
+                  <th class="soft-col-size" style="width:130px;">Poder</th>
+                  <th class="soft-col-acts" style="width:76px;">Ação</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
           </div>
         `;
       } else {
-        // Competidores vivos p/ Reputação, Melhor Software ou Poder DDoS (unificando todos os jogadores humanos e IA como Jogadores!)
         const unifiedPeers = (window.onlineEngine && typeof window.onlineEngine.getUnifiedPlayerDirectory === 'function'
           ? window.onlineEngine.getUnifiedPlayerDirectory()
           : (window.onlineEngine ? window.onlineEngine.getAllKnownHumansList() : [])
         ).slice(0, 18).map((hp) => ({
           tag: hp.hackerTag,
+          ip: hp.publicIp || null,
           rep: Number(hp.reputation || 100),
           soft: Number(hp.bestSoftVer || 1.0),
           gbps: Number(hp.ddosGbps || 0),
@@ -861,46 +903,126 @@
         }));
 
         const peers = [
-          { tag: 'kr0n0s_apt', rep: 14800, soft: 5.5, gbps: 18.4, onlineNow: true, isHuman: true, isMe: false },
-          { tag: 'v0rtex_root', rep: 5190, soft: 3.5, gbps: 8.6, onlineNow: false, isHuman: true, isMe: false },
+          { tag: 'kr0n0s_apt', ip: null, rep: 14800, soft: 5.5, gbps: 18.4, onlineNow: true, isHuman: true, isMe: false },
+          { tag: 'v0rtex_root', ip: null, rep: 5190, soft: 3.5, gbps: 8.6, onlineNow: false, isHuman: true, isMe: false },
           ...unifiedPeers.filter((hp) => !['kr0n0s_apt', 'v0rtex_root', myTag.toLowerCase()].includes(hp.tag.toLowerCase())),
-          { tag: myTag, rep: myRep, soft: myBestSoft, gbps: myGbps, onlineNow: true, isHuman: true, isMe: true }
+          { tag: myTag, ip: null, rep: myRep, soft: myBestSoft, gbps: myGbps, onlineNow: true, isHuman: true, isMe: true }
         ];
 
         const metricKey = this.activeTab === 'software' ? 'soft' : (this.activeTab === 'ddos' ? 'gbps' : 'rep');
         peers.sort((a, b) => b[metricKey] - a[metricKey]);
+        const meIdx = peers.findIndex((p) => p.isMe);
+        if (meIdx >= 0) myRankPos = `#${meIdx + 1}`;
 
-        bodyHtml = `
-          <div class="hc-card" style="padding:0;overflow:hidden;">
-            ${peers.slice(0, 18).map((p, idx) => {
-              const valStr = metricKey === 'soft'
-                ? `v${p.soft.toFixed(1)}`
-                : (metricKey === 'gbps' ? `${p.gbps.toFixed(2)} Gbps` : `${p.rep.toLocaleString('pt-BR')} REP`);
-              return `
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 16px;border-bottom:1px solid var(--hc-border);background:${p.isMe ? 'rgba(53,184,119,0.09)' : 'transparent'};font-size:0.85rem;">
-                  <div>
-                    <strong style="font-family:var(--hc-font-mono);color:var(--hc-text-3);margin-right:10px;">#${idx + 1}</strong>
-                    <strong style="color:${p.isMe ? 'var(--hc-accent-text)' : 'var(--hc-text)'};">${esc(p.tag)}</strong>
-                    ${p.isMe ? `<span class="hc-badge success" style="margin-left:8px;">VOCÊ</span>` : (p.onlineNow ? `<span class="hc-badge success" style="margin-left:8px;">● ONLINE</span>` : (p.isHuman ? `<span class="hc-badge info" style="margin-left:8px;">JOGADOR</span>` : ''))}
-                  </div>
-                  <strong style="font-family:var(--hc-font-mono);color:${p.isMe ? 'var(--hc-accent-text)' : 'var(--hc-warning)'};">${valStr}</strong>
+        const rows = peers.slice(0, 16).map((p, idx) => {
+          const valStr = metricKey === 'soft'
+            ? `v${p.soft.toFixed(1)}`
+            : (metricKey === 'gbps' ? `${p.gbps.toFixed(2)} Gbps` : `${p.rep.toLocaleString('pt-BR')} REP`);
+          const rankColor = idx === 0 ? '#f5c451' : (idx === 1 ? '#cbd5e1' : (idx === 2 ? '#d98a54' : 'var(--hc-text-3)'));
+
+          return `
+            <tr class="${p.isMe ? 'row-running' : ''}">
+              <td class="soft-col-ver" style="width:60px;font-weight:700;color:${rankColor};">#${idx + 1}</td>
+              <td>
+                <span class="soft-name-trigger" tabindex="0"
+                  data-tip-title="${esc(p.tag)}"
+                  data-tip-meta="${p.onlineNow ? 'Online' : 'Offline'}"
+                  data-tip-desc="Reputação: ${p.rep.toLocaleString('pt-BR')} REP · Melhor software: v${p.soft.toFixed(1)} · Poder DDoS: ${p.gbps.toFixed(2)} Gbps.">
+                  ${p.onlineNow ? '<span class="soft-run-dot"></span>' : ''}
+                  <span>${esc(p.tag)}</span>
+                  ${p.isMe ? `<span class="hc-badge success">Você</span>` : ''}
+                </span>
+              </td>
+              <td class="soft-col-ver" style="width:100px;">
+                <span class="hc-badge ${p.onlineNow ? 'success' : ''}">${p.onlineNow ? 'Online' : 'Offline'}</span>
+              </td>
+              <td class="soft-col-size" style="width:130px;color:${p.isMe ? 'var(--hc-accent-text)' : 'var(--hc-warning-text)'};">${valStr}</td>
+              <td class="soft-col-acts" style="width:76px;">
+                <div class="soft-icon-actions">
+                  <button type="button" class="soft-icon-act ic-info" aria-label="Resumo de ${esc(p.tag)}"
+                    data-tip-title="Operador ${esc(p.tag)}" data-tip-meta="#${idx + 1}"
+                    data-tip-desc="REP: ${p.rep.toLocaleString('pt-BR')} · Software máx: v${p.soft.toFixed(1)} · Rede DDoS: ${p.gbps.toFixed(2)} Gbps.">
+                    ${ic('info')}
+                  </button>
+                  ${!p.isMe && window.mailEngine ? `
+                    <button type="button" class="soft-icon-act ic-move" aria-label="Enviar mensagem para ${esc(p.tag)}"
+                      data-tip-title="Enviar Mail" data-tip-meta="@${esc(p.tag)}"
+                      data-tip-desc="Abrir Correio Criptografado para enviar mensagem a ${esc(p.tag)}."
+                      onclick="navTo('winMail')">
+                      ${ic('mail')}
+                    </button>
+                  ` : ''}
                 </div>
-              `;
-            }).join('')}
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        mainHtml = `
+          <div class="soft-table-wrap" role="region" aria-label="Classificação geral de jogadores">
+            <table class="soft-table clean-hw-table">
+              <thead>
+                <tr>
+                  <th class="soft-col-ver" style="width:60px;">Pos.</th>
+                  <th>Operador</th>
+                  <th class="soft-col-ver" style="width:100px;">Status</th>
+                  <th class="soft-col-size" style="width:130px;">Pontuação</th>
+                  <th class="soft-col-acts" style="width:76px;">Ações</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
           </div>
         `;
       }
 
       container.innerHTML = `
-        <div style="display:flex;flex-direction:column;gap:14px;">
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button type="button" class="hc-btn sm ${this.activeTab === 'rep' ? 'primary' : 'ghost'}" onclick="window.rankingBadgesEngine.activeTab='rep';window.rankingBadgesEngine.renderUI();">Top Operadores (REP)</button>
-            <button type="button" class="hc-btn sm ${this.activeTab === 'software' ? 'primary' : 'ghost'}" onclick="window.rankingBadgesEngine.activeTab='software';window.rankingBadgesEngine.renderUI();">Melhor Software</button>
-            <button type="button" class="hc-btn sm ${this.activeTab === 'ddos' ? 'primary' : 'ghost'}" onclick="window.rankingBadgesEngine.activeTab='ddos';window.rankingBadgesEngine.renderUI();">Poder DDoS</button>
-            <button type="button" class="hc-btn sm ${this.activeTab === 'clans' ? 'primary' : 'ghost'}" onclick="window.rankingBadgesEngine.activeTab='clans';window.rankingBadgesEngine.renderUI();">Ranking de Clãs</button>
-            <button type="button" id="btnRankingBadgesTab" class="hc-btn sm ${this.activeTab === 'badges' ? 'primary' : 'ghost'}" onclick="window.rankingBadgesEngine.activeTab='badges';window.rankingBadgesEngine.renderUI();">Medalhas / Badges (${unlockedCount}/${BADGE_CATALOG.length})</button>
+        <div class="soft-frame" id="rankingExplorerMain">
+          <div class="soft-tabs-bar">
+            <div class="soft-tabs-left" role="tablist" aria-label="Categorias do Ranking">
+              <button type="button" class="soft-tab-btn ${this.activeTab === 'rep' ? 'active' : ''}" onclick="window.rankingBadgesEngine.activeTab='rep';window.rankingBadgesEngine.renderUI();">
+                ${ic('trophy')} <span>Reputação</span>
+              </button>
+              <button type="button" class="soft-tab-btn ${this.activeTab === 'software' ? 'active' : ''}" onclick="window.rankingBadgesEngine.activeTab='software';window.rankingBadgesEngine.renderUI();">
+                ${ic('cpu')} <span>Melhor Software</span>
+              </button>
+              <button type="button" class="soft-tab-btn ${this.activeTab === 'ddos' ? 'active' : ''}" onclick="window.rankingBadgesEngine.activeTab='ddos';window.rankingBadgesEngine.renderUI();">
+                ${ic('zap')} <span>Poder DDoS</span>
+              </button>
+              <button type="button" class="soft-tab-btn ${this.activeTab === 'clans' ? 'active' : ''}" onclick="window.rankingBadgesEngine.activeTab='clans';window.rankingBadgesEngine.renderUI();">
+                ${ic('users')} <span>Clãs</span>
+              </button>
+              <button type="button" id="btnRankingBadgesTab" class="soft-tab-btn ${this.activeTab === 'badges' ? 'active' : ''}" onclick="window.rankingBadgesEngine.activeTab='badges';window.rankingBadgesEngine.renderUI();">
+                ${ic('award')} <span>Medalhas (${unlockedCount}/${BADGE_CATALOG.length})</span>
+              </button>
+            </div>
           </div>
-          ${bodyHtml}
+
+          <div class="soft-explorer-shell">
+            <div class="soft-main-col">
+              ${mainHtml}
+            </div>
+
+            <aside class="soft-side-bar">
+              <div class="soft-donut-wrap">
+                <svg class="soft-donut-svg" viewBox="0 0 116 116" aria-label="Medalhas ${badgePct}%">
+                  <circle cx="58" cy="58" r="${r}" fill="none" stroke="#222832" stroke-width="8"></circle>
+                  <circle cx="58" cy="58" r="${r}" fill="none" stroke="#35b877" stroke-width="8"
+                    stroke-linecap="round" stroke-dasharray="${cCirc}" stroke-dashoffset="${offset}" transform="rotate(-90 58 58)"></circle>
+                  <text x="58" y="63" text-anchor="middle" fill="#ebeff4" font-family="var(--hc-font-mono)" font-size="18" font-weight="700">${unlockedCount}/${BADGE_CATALOG.length}</text>
+                </svg>
+                <div class="soft-donut-title">Medalhas Desbloqueadas</div>
+                <div class="soft-donut-numbers"><span class="used">${badgePct}%</span> completo</div>
+              </div>
+
+              <div class="soft-bays-box">
+                <div class="soft-bay-row"><span>Sua Posição</span><span style="color:var(--hc-accent-text);">${myRankPos}</span></div>
+                <div class="soft-bay-row"><span>Reputação</span><span>${myRep.toLocaleString('pt-BR')} REP</span></div>
+                <div class="soft-bay-row"><span>Top Software</span><span>v${myBestSoft.toFixed(1)}</span></div>
+                <div class="soft-bay-row"><span>Poder DDoS</span><span>${myGbps.toFixed(2)} Gbps</span></div>
+              </div>
+            </aside>
+          </div>
         </div>
       `;
     }

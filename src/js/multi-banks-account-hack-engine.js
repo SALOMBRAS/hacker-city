@@ -673,39 +673,146 @@
       `;
     }
 
+    copyAccountNumber(acc) {
+      if (navigator.clipboard && acc) {
+        navigator.clipboard.writeText(acc).catch(() => {});
+      }
+      if (typeof window.showToast === 'function') {
+        window.showToast(`Conta ${acc} copiada!`);
+      }
+    }
+
     renderMultiBankOverview(containerId = 'multiBankMount') {
       const el = document.getElementById(containerId);
       if (!el) return;
       this.ensureLoaded();
+      const ic = (n) => (window.HC && window.HC.icon ? window.HC.icon(n) : '');
 
-      const secEntries = Object.values(this.state.playerSecondaryAccounts || {});
+      const mainAcc = (window.currentWallet && window.currentWallet.account_number) || 'HC-0000-00';
+      const mainBal = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
+      const btcUsd = window.bitcoinEngine ? Number(window.bitcoinEngine.getEstimatedUsdValue() || 0) : 0;
+      const btcFmt = window.bitcoinEngine ? window.bitcoinEngine.getFormattedBtc() : '0.00025000';
+
+      const allBanks = this.getAllBanks();
+      let offshoreTotal = 0;
+      const secMap = this.state.playerSecondaryAccounts || {};
+      Object.values(secMap).forEach((s) => { offshoreTotal += Number(s.balance || 0); });
+
+      const netWorth = Math.max(1, mainBal + offshoreTotal + btcUsd);
+      const protectedSharePct = Math.min(100, Math.round(((offshoreTotal + btcUsd) / netWorth) * 100));
+      const r = 46;
+      const cCirc = +(2 * Math.PI * r).toFixed(2);
+      const offset = +(cCirc - (protectedSharePct / 100) * cCirc).toFixed(2);
+
+      const rows = allBanks.map((b, idx) => {
+        const isPrimary = idx === 0;
+        const sec = !isPrimary ? secMap[b.ip] : null;
+        const isOpen = isPrimary || !!sec;
+        const accNum = isPrimary ? mainAcc : (sec ? sec.accNumber : 'Não aberta');
+        const bal = isPrimary ? mainBal : (sec ? Number(sec.balance || 0) : 0);
+        const desc = isPrimary
+          ? 'Sua conta corrente principal para compras de hardware, softwares e transferências entre jogadores.'
+          : 'Banco Offshore independente: fundos guardados aqui ficam protegidos contra batidas policiais na conta principal.';
+
+        return `
+          <tr class="${isOpen ? 'row-running' : 'row-hidden'}">
+            <td class="soft-col-icon">
+              <span class="soft-mini-glyph kind-${isPrimary ? 'defense' : 'stealth'}"
+                data-tip-title="${esc(b.name)}" data-tip-meta="${esc(b.ip)}" data-tip-desc="${esc(desc)}">
+                ${ic('landmark')}
+              </span>
+            </td>
+            <td>
+              <span class="soft-name-trigger" tabindex="0"
+                data-tip-title="${esc(b.name)}" data-tip-meta="${esc(b.ip)}" data-tip-desc="${esc(desc)}">
+                ${isOpen ? '<span class="soft-run-dot"></span>' : ''}
+                <span style="font-family:var(--hc-font-sans);">${esc(b.shortName || b.name)}</span>
+                ${isPrimary ? `<span class="hc-badge success">Principal</span>` : (isOpen ? `<span class="hc-badge info">Offshore</span>` : '')}
+              </span>
+            </td>
+            <td class="soft-col-size" style="width:135px;color:${isOpen ? 'var(--hc-text)' : 'var(--hc-text-3)'};">${esc(accNum)}</td>
+            <td class="soft-col-size" style="width:125px;color:${isOpen ? 'var(--hc-accent-text)' : 'var(--hc-text-3)'};">
+              ${isOpen ? `$ ${bal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
+            </td>
+            <td class="soft-col-acts">
+              <div class="soft-icon-actions">
+                ${isOpen ? `
+                  <button type="button" class="soft-icon-act ic-hide" aria-label="Copiar conta ${esc(accNum)}"
+                    data-tip-title="Copiar número da conta" data-tip-meta="${esc(accNum)}"
+                    data-tip-desc="Copiar ${esc(accNum)} para receber transferências."
+                    onclick="window.multiBankEngine.copyAccountNumber('${esc(accNum)}')">${ic('copy')}</button>
+                ` : ''}
+                ${!isPrimary && isOpen ? `
+                  <button type="button" class="soft-icon-act ic-run" aria-label="Guardar $100 em ${esc(b.shortName)}"
+                    data-tip-title="Guardar +$ 100 no cofre" data-tip-meta="Offshore"
+                    data-tip-desc="Transferir $ 100 da sua conta principal para ${esc(b.shortName)}."
+                    onclick="window.multiBankEngine.moveFundsBetweenOwnAccounts('${esc(b.ip)}', 'deposit_offshore', 100)">${ic('upload')}</button>
+                  <button type="button" class="soft-icon-act ic-dl" ${bal <= 0 ? 'disabled' : ''} aria-label="Sacar saldo de ${esc(b.shortName)}"
+                    data-tip-title="Resgatar saldo p/ conta principal" data-tip-meta="$ ${bal.toLocaleString('pt-BR')}"
+                    data-tip-desc="Trazer todo o saldo de ${esc(b.shortName)} de volta para sua conta principal."
+                    onclick="window.multiBankEngine.moveFundsBetweenOwnAccounts('${esc(b.ip)}', 'withdraw_offshore', ${bal})">${ic('download')}</button>
+                ` : ''}
+                <button type="button" class="soft-icon-act ic-info" aria-label="Visitar portal ${esc(b.shortName)}"
+                  data-tip-title="${isOpen ? 'Acessar Portal do Banco' : 'Abrir Conta neste Banco'}"
+                  data-tip-meta="${esc(b.ip)}"
+                  data-tip-desc="${isOpen ? `Visitar ${esc(b.name)} (${esc(b.ip)}) na Internet.` : `Visite ${esc(b.ip)} na Internet para abrir sua conta secundária gratuita.`}"
+                  onclick="window.internetEngine.openIp('${esc(b.ip)}')">${ic('globe')}</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
       el.innerHTML = `
-        <div class="hc-card" style="padding:1rem;margin-bottom:1rem;">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-            <div class="hc-eyebrow">Suas Contas Offshore nos 5 Bancos (${1 + secEntries.length} / 5 abertas)</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              ${this.getAllBanks().slice(1).map((b) => `
-                <button type="button" class="hc-btn ghost sm" style="font-size:0.73rem;" onclick="window.internetEngine.openIp('${b.ip}')">${esc(b.shortName)} (${b.ip})</button>
-              `).join('')}
-            </div>
-          </div>
-          ${secEntries.length === 0
-            ? `<div style="font-size:0.79rem;color:var(--hc-text-3);">Você pode abrir contas secundárias no HEBC (77.3.10.44), American Expense (77.3.11.88), Swiss Offshore (77.3.12.15) e Quantum Bank (77.3.13.99) visitando o IP deles na Internet.</div>`
-            : secEntries.map((s) => `
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--hc-border);gap:8px;flex-wrap:wrap;font-size:0.82rem;">
-                  <div>
-                    <strong style="font-family:var(--hc-font-mono);color:var(--hc-accent-text);">${esc(s.accNumber)}</strong>
-                    <span class="hc-badge info" style="margin-left:6px;">${esc(s.bankName)}</span>
-                    <span style="font-family:var(--hc-font-mono);margin-left:8px;">Saldo: <strong>$ ${s.balance.toLocaleString('pt-BR')} HC</strong></span>
-                  </div>
-                  <div style="display:flex;gap:6px;">
-                    <button type="button" class="hc-btn ghost sm" onclick="window.multiBankEngine.moveFundsBetweenOwnAccounts('${esc(s.bankIp)}', 'deposit_offshore', 100)">Guardar +$100</button>
-                    <button type="button" class="hc-btn primary sm" ${s.balance <= 0 ? 'disabled' : ''} onclick="window.multiBankEngine.moveFundsBetweenOwnAccounts('${esc(s.bankIp)}', 'withdraw_offshore', ${s.balance})">Sacar Tudo</button>
-                  </div>
-                </div>
-              `).join('')}
+        <div class="soft-table-wrap" role="region" aria-label="Suas contas bancárias">
+          <table class="soft-table clean-hw-table">
+            <thead>
+              <tr>
+                <th class="soft-col-icon"></th>
+                <th>Instituição Bancária</th>
+                <th class="soft-col-size" style="width:135px;">Nº da Conta</th>
+                <th class="soft-col-size" style="width:125px;">Saldo</th>
+                <th class="soft-col-acts">Ações</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
         </div>
       `;
+
+      const sideEl = document.getElementById('bankSideSummaryMount');
+      if (sideEl) {
+        const openCount = 1 + Object.keys(secMap).length;
+        sideEl.innerHTML = `
+          <div class="soft-donut-wrap">
+            <svg class="soft-donut-svg" viewBox="0 0 116 116" aria-label="Reserva Protegida ${protectedSharePct}%">
+              <circle cx="58" cy="58" r="${r}" fill="none" stroke="#222832" stroke-width="8"></circle>
+              <circle cx="58" cy="58" r="${r}" fill="none" stroke="#35b877" stroke-width="8"
+                stroke-linecap="round" stroke-dasharray="${cCirc}" stroke-dashoffset="${offset}" transform="rotate(-90 58 58)"></circle>
+              <text x="58" y="63" text-anchor="middle" fill="#ebeff4" font-family="var(--hc-font-mono)" font-size="16" font-weight="700">$${Math.round(mainBal + offshoreTotal + btcUsd).toLocaleString('pt-BR')}</text>
+            </svg>
+            <div class="soft-donut-title">Patrimônio Estimado</div>
+            <div class="soft-donut-numbers"><span class="used">${openCount}/5</span> bancos ativos</div>
+          </div>
+
+          <div class="soft-bays-box">
+            <div class="soft-bay-row"><span>Conta Principal</span><span style="color:var(--hc-accent-text);">$ ${mainBal.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</span></div>
+            <div class="soft-bay-row"><span>Cofres Offshore</span><span>$ ${offshoreTotal.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</span></div>
+            <div class="soft-bay-row"><span>Carteira BTC</span><span style="color:var(--hc-warning-text);">${String(btcFmt).slice(0, 8)}</span></div>
+          </div>
+
+          <div class="soft-tool-tiles">
+            <button type="button" class="soft-tool-tile" onclick="navTo('winBitcoin')">
+              ${ic('bitcoin')}
+              <span>Carteira BTC</span>
+            </button>
+            <button type="button" class="soft-tool-tile" onclick="window.internetEngine.openIp('144.202.44.8')">
+              ${ic('trending-up')}
+              <span>Câmbio BTC</span>
+            </button>
+          </div>
+        `;
+      }
     }
   }
 

@@ -901,15 +901,15 @@ body:has(#hcSpotlightRoot.active) #miniPcCrackerBackdrop.open {
   position: fixed;
   z-index: 9850;
   width: max-content;
-  max-width: 295px;
-  padding: 9px 12px;
+  max-width: 325px;
+  padding: 10px 13px;
   border-radius: 9px;
   background: #141920;
   border: 1px solid rgba(95, 211, 154, 0.42);
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.68);
   color: var(--hc-text);
   font-size: 12px;
-  line-height: 1.42;
+  line-height: 1.44;
   opacity: 0;
   pointer-events: none;
   transform: translateY(3px);
@@ -926,8 +926,9 @@ body:has(#hcSpotlightRoot.active) #miniPcCrackerBackdrop.open {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 3px;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin-bottom: 4px;
 }
 
 #hcHoverMiniTab .mht-title {
