@@ -171,6 +171,8 @@ class WindowManager {
       window.darknetSocialEngine.renderNewsUI();
     } else if (winId === 'winVirusLab' && window.virusLabEngine) {
       window.virusLabEngine.renderUI('virusLabAppBody');
+    } else if (winId === 'winOpsHub' && window.ecosystemHub) {
+      window.ecosystemHub.renderUI('opsHubAppBody');
     }
 
     // Fecha o flyout após escolher um destino (a menos que o Tour esteja guiando o menu)

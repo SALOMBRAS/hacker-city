@@ -2767,6 +2767,13 @@
         const rank = typeof window.skillTreeEngine.getRank === 'function' ? window.skillTreeEngine.getRank('botnet_boost') : 0;
         if (rank > 0) mult *= (1 + rank * 0.12);
         if (window.skillTreeEngine.selectedSubclass === 'sub_botmaster') mult *= 1.18;
+        if (window.skillTreeEngine.selectedSubclass === 'sub_malware_arch') mult *= 1.15;
+      }
+      if (window.ecosystemHub) {
+        const wm = window.ecosystemHub.getWorldMapActiveMultipliers();
+        mult *= Number(wm.collectorMult || 1);
+        const ev = window.ecosystemHub.getCurrentGlobalEvent();
+        mult *= Number(ev.collectorEventMult || 1);
       }
       return +mult.toFixed(2);
     }

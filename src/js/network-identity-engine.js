@@ -2218,7 +2218,10 @@
       const crcVer = chosen ? chosen.version : 0;
       const driveMult = chosen ? (chosen.driveSpeedMult || 1.0) : 1.0;
       const driveName = chosen ? (chosen.driveName || 'HD') : 'HD';
-      const reqFwl = host.firewallVer || 1.0;
+      const icepickDebuff = (window.ecosystemHub && typeof window.ecosystemHub.getEffectiveFirewallReduction === 'function')
+        ? window.ecosystemHub.getEffectiveFirewallReduction(host.ip)
+        : 0;
+      const reqFwl = Math.max(0.5, +((host.firewallVer || 1.0) - icepickDebuff).toFixed(1));
       const reqHasher = host.hasherVer || 1.0;
 
       if (crcVer <= 0) {
@@ -2229,7 +2232,7 @@
 
       // 1) Portão Estrito do Firewall.fwl do Alvo contra Descriptografia de Rede / Força-Bruta!
       if (crcVer < reqFwl) {
-        const msg = `FIREWALL DO ALVO MAIS FORTE! O Firewall.fwl (v${reqFwl.toFixed(1)}) de ${host.hostname} bloqueou seu hash! Seu ${chosen?.filename || 'Cracker.crc'} (v${crcVer.toFixed(1)}) precisa ser >= v${reqFwl.toFixed(1)}.`;
+        const msg = `FIREWALL DO ALVO MAIS FORTE! O Firewall.fwl (v${reqFwl.toFixed(1)}) de ${host.hostname} bloqueou seu hash! Seu ${chosen?.filename || 'Cracker.crc'} (v${crcVer.toFixed(1)}) precisa ser >= v${reqFwl.toFixed(1)} (ou use Matriz Hex ICEPICK / Zero-Day!).`;
         if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
         alert(msg);
         return { started: false, code: 'BLOCKED_BY_FIREWALL', message: msg };
@@ -2247,7 +2250,10 @@
       this.crackPct = 0;
       this.activeCrackDriveName = driveName;
       this.activeCrackVer = crcVer;
-      const speedFactor = +(this.getCpuSpeedFactor() * driveMult).toFixed(2);
+      const wmBoost = (window.ecosystemHub && typeof window.ecosystemHub.getWorldMapActiveMultipliers === 'function')
+        ? (1 + Number(window.ecosystemHub.getWorldMapActiveMultipliers().crackerSpeedPct || 0) / 100)
+        : 1.0;
+      const speedFactor = +(this.getCpuSpeedFactor() * driveMult * wmBoost).toFixed(2);
       const verAdvantage = 1 + Math.max(0, crcVer - Math.max(reqHasher, reqFwl)) * 0.45;
       const idealSec = Math.max(1.2, Math.min(9.5, +((2.4 * Math.max(reqHasher, reqFwl)) / Math.max(0.6, speedFactor * verAdvantage)).toFixed(1)));
       this.activeCrackPid = null;
@@ -2682,6 +2688,9 @@
       if (!route.bounced && loot >= 800 && window.safenetFbiEngine) {
         window.safenetFbiEngine.evaluatePlayerCrime(`Transferência ilícita de $ ${loot} HC`, loot, host.ip);
       }
+      if (window.ecosystemHub && typeof window.ecosystemHub.onCorporateHostSabotaged === 'function') {
+        window.ecosystemHub.onCorporateHostSabotaged(host.ip, 'bank_drain');
+      }
       if (window.hackerAudio) window.hackerAudio.playMoneyCollect();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       if (typeof window.showToast === 'function') {
@@ -2760,6 +2769,9 @@
       }
 
       const res = window.softwareEngine.executeStagedVirusOnRemote(host, virusKey);
+      if (res && res.success && window.ecosystemHub && typeof window.ecosystemHub.onCorporateHostSabotaged === 'function') {
+        window.ecosystemHub.onCorporateHostSabotaged(host.ip, 'virus_exec');
+      }
       if (res && typeof window.showToast === 'function') {
         window.showToast(res.message);
       }
@@ -2784,6 +2796,9 @@
           if (res && res.success) {
             if (window.tutorialEngine) {
               window.tutorialEngine.onFileReadOrVirusPlanted(host.ip);
+            }
+            if (window.ecosystemHub && typeof window.ecosystemHub.onCorporateHostSabotaged === 'function') {
+              window.ecosystemHub.onCorporateHostSabotaged(host.ip, 'virus_exec');
             }
             if (typeof window.showToast === 'function') window.showToast(res.message);
           } else if (res && typeof window.showToast === 'function') {
@@ -2813,6 +2828,9 @@
         ? window.bounceEngine.routeConnectionAndGetVisibleIp(ip).visibleIp
         : (window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0');
       this.appendServerLog(ip, `${visibleIp} deleted file /root/${fileName} (disk space freed)`);
+      if (window.ecosystemHub && typeof window.ecosystemHub.onCorporateHostSabotaged === 'function') {
+        window.ecosystemHub.onCorporateHostSabotaged(ip, 'file_delete');
+      }
       if (typeof window.addLocalLog === 'function') {
         window.addLocalLog('RM-REMOTE', `Arquivo ${fileName} removido de ${ip}:/root (espaço em disco liberado no alvo)`, 'info');
       }
@@ -3340,6 +3358,17 @@
               </button>
             </div>
 
+            <!-- Forja Forense False-Flag (Incriminar Rival/Bot na Safenet!) -->
+            ${window.ecosystemHub ? `
+              <div id="remoteFalseFlagBar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 10px;background:var(--hc-inset);border:1px solid rgba(53,184,119,0.32);border-radius:7px;">
+                <span style="font-size:0.77rem;color:var(--hc-text-2);">🎭 <strong>Forja False-Flag:</strong> apaga seu IP e planta rastro falso incriminando outro IP na Safenet:</span>
+                <input type="text" id="falseFlagTargetIpInput" class="form-input" style="width:155px;font-family:var(--hc-font-mono);font-size:0.77rem;" value="149.56.28.11" placeholder="IP p/ incriminar">
+                <button type="button" id="btnPlantFalseFlag" class="hc-btn primary sm" onclick="window.ecosystemHub.plantFalseFlagOnHost('${esc(host.ip)}', document.getElementById('falseFlagTargetIpInput')?.value)">
+                  🎭 Plantar IP Falso
+                </button>
+              </div>
+            ` : ''}
+
             <textarea id="remoteSyslogTextarea" class="ssh-syslog-editor" spellcheck="false">${esc(logs.join('\n'))}</textarea>
           </div>
         `;
@@ -3616,6 +3645,35 @@
 
         const seekerRevealed = window.stealthXhdEngine ? window.stealthXhdEngine.revealedHosts.has(host.ip) : false;
         const seekerClaimed = window.stealthXhdEngine ? window.stealthXhdEngine.claimedHiddenLoot.has(host.ip) : false;
+        const cctMeta = (window.ecosystemHub && typeof window.ecosystemHub.getHostCctContract === 'function')
+          ? window.ecosystemHub.getHostCctContract(host.ip)
+          : null;
+        if (cctMeta) {
+          remoteSoftRows.push(`
+            <tr>
+              <td class="soft-col-icon">
+                <span class="soft-mini-glyph kind-attack" data-tip-title="Contrato Criptografado (.CCT)" data-tip-meta="${cctMeta.solved ? 'Decodificado ✓' : cctMeta.attemptsLeft + ' tentativas'}" data-tip-desc="Arquivo de desafio algorítmico que paga $ HC + BTC + Catalisador do Laboratório de Vírus!">
+                  ${HC.icon('lock')}
+                </span>
+              </td>
+              <td>
+                <span class="soft-name-trigger" tabindex="0">
+                  <strong style="color:${cctMeta.solved ? '#5fd39a' : 'var(--hc-warning-text)'};">${esc(cctMeta.filename)}</strong>
+                  <span style="font-size:11px;color:var(--hc-text-3);">${cctMeta.solved ? '(resolvido ✓)' : `(${cctMeta.attemptsLeft} tent.)`}</span>
+                </span>
+              </td>
+              <td class="soft-col-ver"><span class="soft-ver-badge v-tier2">.CCT</span></td>
+              <td class="soft-col-size">12 MB</td>
+              <td class="soft-col-acts">
+                <div class="soft-icon-actions">
+                  ${cctMeta.solved
+                    ? `<span style="font-size:11px;color:#5fd39a;">✓ Pago</span>`
+                    : `<button type="button" id="btnOpenRemoteCct" class="hc-btn primary sm" onclick="window.ecosystemHub.openHostCctContract('${esc(host.ip)}')">🔓 Decodificar .CCT</button>`}
+                </div>
+              </td>
+            </tr>
+          `);
+        }
         const donutHtml = window.softwareEngine
           ? window.softwareEngine.renderDonutSvg(specs.hddUsedMb, specs.hddTotalMb, 'Disco da Vítima')
           : '';
@@ -3743,6 +3801,11 @@
                     <button type="button" id="btnDrainRemoteVault" class="hc-btn ${host.bankBalance > 0 ? 'primary' : 'ghost'} sm block" ${host.bankBalance <= 0 ? 'disabled' : ''} onclick="window.internetEngine.drainRemoteHostFunds()">
                       Saque Local ($ ${host.bankBalance})
                     </button>
+                    ${host.kind === 'empresa' && window.ecosystemHub ? `
+                      <button type="button" id="btnPivotCorpLan" class="hc-btn ghost sm block" style="border-color:rgba(53,184,119,0.45);color:var(--hc-accent-text);" onclick="window.ecosystemHub.scanInternalCorporateLan('${esc(host.ip)}')">
+                        🖧 Vasculhar Sub-rede 10.x
+                      </button>
+                    ` : ''}
                     ${remoteBtcSats > 0 ? `
                       <button type="button" id="btnDrainRemoteBtc" class="hc-btn sm block" style="border-color:var(--hc-warning);color:var(--hc-warning-text);" onclick="window.internetEngine.drainCurrentHostBtcWallet()">
                         Roubar ${remoteBtcStr} BTC

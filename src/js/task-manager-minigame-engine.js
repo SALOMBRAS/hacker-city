@@ -239,7 +239,10 @@
             ${window.HC ? HC.icon(iconName) : ''}
             <span>${t.sharePct}%</span>
             ${window.attackMinigame && p.workTotal >= 3.2
-              ? `<button type="button" class="soft-icon-act ic-run" data-tip-title="Acelerar tarefa" data-tip-desc="Abrir cofre giratório para cortar o tempo restante" onclick="window.attackMinigame.openForProcess(${p.pid})" aria-label="Acelerar tarefa">${window.HC ? HC.icon('zap') : '⚡'}</button>`
+              ? `<button type="button" class="soft-icon-act ic-run" data-tip-title="Acelerar tarefa (Cofre)" data-tip-desc="Abrir cofre giratório para cortar o tempo restante" onclick="window.attackMinigame.openForProcess(${p.pid})" aria-label="Acelerar tarefa">${window.HC ? HC.icon('zap') : '⚡'}</button>`
+              : ''}
+            ${window.ecosystemHub && p.workTotal >= 3.2
+              ? `<button type="button" class="soft-icon-act ic-info" data-tip-title="Overclock Matriz Hex (+55%)" data-tip-desc="Resolver Matriz Hexadecimal 5x5 para acelerar +55% de todas as tarefas!" onclick="window.ecosystemHub.startTaskOverclockWithHex()" aria-label="Overclock Matriz Hex">🧩</button>`
               : ''}
           </div>
 

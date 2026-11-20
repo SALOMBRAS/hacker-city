@@ -138,6 +138,41 @@ class SkillTreeEngine {
         max: 2, 
         cost: 1, 
         desc: 'Dobra a velocidade do rmlog e garante anulação de retaliações.' 
+      },
+      lab_synergy: {
+        id: 'lab_synergy',
+        name: 'Engenharia de Blocos (Lab)',
+        max: 3,
+        cost: 1,
+        desc: '+4 pts de encaixe base e +10% XP por rank no Laboratório de Vírus.'
+      },
+      nvme_compression: {
+        id: 'nvme_compression',
+        name: 'Compressão de Binários',
+        max: 3,
+        cost: 1,
+        desc: '+12% velocidade de upload de vírus em alvos remotos por rank.'
+      },
+      submarine_routing: {
+        id: 'submarine_routing',
+        name: 'Roteamento Submarino',
+        max: 3,
+        cost: 1,
+        desc: '+10% potência nos bônus de cidades conectadas no Mapa-Múndi por rank.'
+      },
+      syndicate_negotiator: {
+        id: 'syndicate_negotiator',
+        name: 'Negociador Clandestino',
+        max: 3,
+        cost: 1,
+        desc: '+12% pagamento em Contratos, Missões CFTV e arquivos .cct por rank.'
+      },
+      thermal_shield: {
+        id: 'thermal_shield',
+        name: 'Blindagem Anti-Sobrecarga',
+        max: 2,
+        cost: 1,
+        desc: '-20% dano físico recebido nas peças do PC em ataques DDoS por rank.'
       }
     };
 
@@ -395,15 +430,144 @@ class SkillTreeEngine {
           expectedPayload: 'CLEANSE_TUMBLED_CRYPTO',
           rewards: { rep: 280, cash: 8500, badge: 'CONTA OFFSHORE BLINDADA' }
         }
+      },
+      sub_malware_arch: {
+        id: 'sub_malware_arch',
+        name: 'Arquiteto de Malware (Lab)',
+        icon: 'flask-conical',
+        cat: 'Engenharia Viral & Blocos',
+        catBadge: 'VIRUS LAB',
+        detailedBenefits: [
+          '+10 pts fixos de Encaixe de Código em toda montagem no Laboratório de Vírus',
+          '+25% de XP de Pesquisa ganho por cepa compilada na bancada',
+          '+15% de rendimento em vírus customizados rodando em servidores corporativos'
+        ],
+        minRep: 100,
+        mission: {
+          title: 'Operação Mutação Polimórfica',
+          targetHost: 'BIOTECH-SANDBOX-LAB',
+          targetIp: '194.88.14.202',
+          difficulty: 'Tier 1 // Fácil',
+          difficultyClass: 'diff-easy',
+          briefing: 'Extraia o kernel polimórfico da câmara limpa da Meridian BioLabs para calibrar sua bancada do Laboratório de Vírus.',
+          expectedPayload: 'SPLICE_POLYMORPHIC_ABI',
+          rewards: { rep: 110, cash: 1500, badge: 'ENGENHEIRO DE CEPAS V1' }
+        }
+      },
+      sub_cctv_saboteur: {
+        id: 'sub_cctv_saboteur',
+        name: 'Sabotador CFTV & Físico',
+        icon: 'video',
+        cat: 'Vigilância & Infiltração',
+        catBadge: 'CFTV / DVR',
+        detailedBenefits: [
+          '+35% de pagamento em contratos de desligar câmeras e apagar gravações DVR',
+          'Aumenta em +40% o impacto de queda nas ações da empresa ao sabotar suas câmeras',
+          'Reduz pela metade o rastro deixado ao manipular matrizes de vigilância ao vivo'
+        ],
+        minRep: 120,
+        mission: {
+          title: 'Operação Olho Cego Corporativo',
+          targetHost: 'AEGIS-NVR-CENTRAL',
+          targetIp: '172.66.40.18',
+          difficulty: 'Tier 2 // Médio',
+          difficultyClass: 'diff-medium',
+          briefing: 'Congele simultaneamente os 6 canais da matriz de vigilância da Aegis Security e substitua o índice de fita do NVR.',
+          expectedPayload: 'LOOP_RTSP_MULTIPLEXER',
+          rewards: { rep: 135, cash: 2100, badge: 'FANTASMA DO NVR' }
+        }
+      },
+      sub_quant_runner: {
+        id: 'sub_quant_runner',
+        name: 'Quant de Dark-Pool (TIX)',
+        icon: 'trending-up',
+        cat: 'Bolsa CyberStock & Arbitragem',
+        catBadge: 'CYBERSTOCK',
+        detailedBenefits: [
+          '-50% nas taxas de corretagem de posições Compradas (Long) e Vendidas (Short) na CyberStock',
+          '+25% nos dividendos corporativos pagos automaticamente todo dia às 12:00',
+          '+18% de lucro realizado ao derrubar ações via sabotagem coordenada de servidores'
+        ],
+        minRep: 160,
+        mission: {
+          title: 'Operação Flash Crash HEBC',
+          targetHost: 'HEBC-DARKPOOL-ENGINE',
+          targetIp: '77.3.10.44',
+          difficulty: 'Tier 2 // Médio',
+          difficultyClass: 'diff-medium',
+          briefing: 'Intercepte o livro de ofertas de alta frequência do banco de compensação HEBC e sincronize seu terminal TIX.',
+          expectedPayload: 'SYNC_FIX_ORDERBOOK_4S',
+          rewards: { rep: 155, cash: 2800, badge: 'OPERADOR TIX QUANT' }
+        }
+      },
+      sub_fed_hunter: {
+        id: 'sub_fed_hunter',
+        name: 'Caçador Forense Federal',
+        icon: 'radar',
+        cat: 'Contra-Inteligência & Bounties',
+        catBadge: 'CAÇA-RECOMPENSA',
+        detailedBenefits: [
+          '+30% em todas as recompensas de Procurados do FBI e Quadro de Vingança',
+          'Forja de Log False-Flag incrimina alvos rivais com 2x mais prioridade na Safenet',
+          'Reduz -1 Nível de Alerta Policial sempre que concluir um contrato de incidente Blue-Team'
+        ],
+        minRep: 180,
+        mission: {
+          title: 'Operação Mandado Cruzado',
+          targetHost: 'SAFENET-FORENSIC-CORE',
+          targetIp: '109.64.211.37',
+          difficulty: 'Tier 3 // Difícil',
+          difficultyClass: 'diff-hard',
+          briefing: 'Valide sua chave criptográfica de perito terceirizado na Safenet para rastrear assinaturas e receber mandados premiados.',
+          expectedPayload: 'AUTH_FORENSIC_MARSHAL',
+          rewards: { rep: 175, cash: 3100, badge: 'PERITO SAFENET' }
+        }
       }
     };
 
-    this.activeTab = 'subclasses'; // Inicia na aba de subclasses com cards de desbloqueio
+    // 4. Habilidades Ativas Táticas de Operador (Interagem direto c/ Fila de Ações, Logs, Vírus e Bolsa!)
+    this.activeSkills = {
+      overdrive_cpu: {
+        id: 'overdrive_cpu',
+        name: 'Injeção Overdrive',
+        cooldownMs: 90 * 1000,
+        desc: 'Acelera instantaneamente em +40% todos os processos ativos na Fila de Ações (TaskManager).'
+      },
+      ghost_shroud: {
+        id: 'ghost_shroud',
+        name: 'Manto Fantasma',
+        cooldownMs: 120 * 1000,
+        desc: 'Apaga seu IP atual de até 3 servidores remotos esquecidos e reduz o Alerta Policial em -1.'
+      },
+      swarm_harvest: {
+        id: 'swarm_harvest',
+        name: 'Pulso Coletor C2',
+        cooldownMs: 120 * 1000,
+        desc: 'Dispara um pulso nos seus vírus remotos ativos coletando bônus imediato ($ HC) proporcional à rede.'
+      },
+      insider_ping: {
+        id: 'insider_ping',
+        name: 'Sonda OSINT & Mercado',
+        cooldownMs: 120 * 1000,
+        desc: 'Gera +1 Dossiê OSINT e revela qual ação da Bolsa CyberStock está prestes a oscilar com maior força.'
+      }
+    };
+
+    this.activeTab = 'subclasses';
     this.ranks = {};
     this.selectedSubclass = null;
     this.unlockedSubclasses = {};
     this.completedMissions = {};
+    this.completedMasteries = {};
+    this.bonusSp = 0;
+    this.skillCooldowns = {};
+    this.loadouts = [
+      { slot: 1, name: 'Invasão Furtiva', subclass: null, bounceRoute: ['sao_paulo'], c2Profile: 'ghost' },
+      { slot: 2, name: 'Bolsa & Mineração', subclass: null, bounceRoute: ['sao_paulo'], c2Profile: 'miner' },
+      { slot: 3, name: 'Guerra DDoS', subclass: null, bounceRoute: ['sao_paulo'], c2Profile: 'ddos' }
+    ];
     this.activeMission = null;
+    this.activePrimaryMastery = null;
 
     this.load();
   }
@@ -417,8 +581,13 @@ class SkillTreeEngine {
         this.selectedSubclass = parsed.selectedSubclass || null;
         this.unlockedSubclasses = parsed.unlockedSubclasses || {};
         this.completedMissions = parsed.completedMissions || {};
+        this.completedMasteries = parsed.completedMasteries || {};
+        this.bonusSp = Number(parsed.bonusSp || 0);
+        this.skillCooldowns = parsed.skillCooldowns || {};
+        if (Array.isArray(parsed.loadouts) && parsed.loadouts.length === 3) {
+          this.loadouts = parsed.loadouts;
+        }
 
-        // Se o jogador já tinha uma subclasse selecionada no passado, garante que está marcada como desbloqueada
         if (this.selectedSubclass) {
           this.unlockedSubclasses[this.selectedSubclass] = true;
         }
@@ -434,12 +603,23 @@ class SkillTreeEngine {
         ranks: this.ranks,
         selectedSubclass: this.selectedSubclass,
         unlockedSubclasses: this.unlockedSubclasses,
-        completedMissions: this.completedMissions
+        completedMissions: this.completedMissions,
+        completedMasteries: this.completedMasteries,
+        bonusSp: this.bonusSp,
+        skillCooldowns: this.skillCooldowns,
+        loadouts: this.loadouts
       };
       localStorage.setItem('HC_SKILL_TREE', JSON.stringify(payload));
+      if (window.onlineEngine && typeof window.onlineEngine.scheduleSave === 'function') {
+        window.onlineEngine.scheduleSave(false);
+      }
     } catch (e) {
       console.warn('Erro ao salvar árvore de habilidades:', e);
     }
+  }
+
+  saveState() {
+    this.save();
   }
 
   getRank(skillId) {
@@ -451,8 +631,287 @@ class SkillTreeEngine {
   }
 
   getAvailableSP(reputation = 100) {
-    const totalEarned = Math.floor(reputation / 50);
+    const milestoneBonus = (window.ecosystemHub && typeof window.ecosystemHub.getBonusSkillPoints === 'function')
+      ? window.ecosystemHub.getBonusSkillPoints()
+      : 0;
+    const totalEarned = Math.floor(reputation / 50) + Number(this.bonusSp || 0) + milestoneBonus;
     return Math.max(0, totalEarned - this.getSpentSP());
+  }
+
+  // Ressonância Híbrida Dual-Spec: conecta Classe Principal + Subclasse Equipada + Passivas com todos os sistemas do jogo!
+  getActiveResonanceBonus(primarySpecOverride = null) {
+    const primary = primarySpecOverride || (window.currentProfile && window.currentProfile.specialty) || 'exploiter';
+    const sub = this.selectedSubclass;
+    const bonus = {
+      title: 'Operador Monoclasse',
+      desc: 'Equipe uma Subclasse desbloqueada para ativar um Bônus de Ressonância Híbrida entre sistemas!',
+      active: false,
+      labFitBonus: this.getRank('lab_synergy') * 4,
+      labXpMult: 1 + this.getRank('lab_synergy') * 0.10,
+      stockProfitMult: 1.0,
+      stockFeeDiscount: 0,
+      dividendMult: 1.0,
+      cctvCashMult: 1 + this.getRank('syndicate_negotiator') * 0.12,
+      contractCashMult: 1 + this.getRank('syndicate_negotiator') * 0.12 + this.getRank('firewall_bypass') * 0.10,
+      uploadSpeedMult: 1 + this.getRank('nvme_compression') * 0.12,
+      worldMapBoostMult: 1 + this.getRank('submarine_routing') * 0.10,
+      ddosArmorPct: this.getRank('thermal_shield') * 20,
+      collectorMult: 1 + this.getRank('botnet_boost') * 0.15 + (primary === 'botmaster' ? 0.20 : 0),
+      bountyMult: 1.0,
+      falseFlagPower: 1
+    };
+
+    if (sub === 'sub_malware_arch') {
+      bonus.labFitBonus += 10;
+      bonus.labXpMult += 0.25;
+      bonus.collectorMult += 0.15;
+    } else if (sub === 'sub_cctv_saboteur') {
+      bonus.cctvCashMult += 0.35;
+      bonus.stockProfitMult += 0.10;
+    } else if (sub === 'sub_quant_runner') {
+      bonus.stockFeeDiscount = 0.50;
+      bonus.dividendMult += 0.25;
+      bonus.stockProfitMult += 0.18;
+    } else if (sub === 'sub_fed_hunter') {
+      bonus.bountyMult += 0.30;
+      bonus.falseFlagPower = 2;
+    } else if (sub === 'sub_carder' || sub === 'sub_blackhat_finance') {
+      bonus.contractCashMult += 0.15;
+      bonus.dividendMult += 0.10;
+    } else if (sub === 'sub_redteam' || sub === 'sub_botmaster') {
+      bonus.collectorMult += 0.20;
+    }
+
+    if (sub && this.subclasses[sub]) {
+      bonus.active = true;
+      const combos = {
+        'exploiter:sub_malware_arch': {
+          title: 'Ressonância Zero-Day Polimórfico',
+          desc: 'Infiltrador + Arquiteto de Malware: +14 pts totais de Encaixe no Lab e +15% rendimento viral!',
+          fn: (b) => { b.labFitBonus += 4; }
+        },
+        'exploiter:sub_cctv_saboteur': {
+          title: 'Ressonância Invasor Tático CFTV',
+          desc: 'Infiltrador + Sabotador CFTV: +50% recompensa em câmeras/DVR e derrubada acelerada de ações!',
+          fn: (b) => { b.cctvCashMult += 0.15; b.stockProfitMult += 0.08; }
+        },
+        'carder:sub_quant_runner': {
+          title: 'Ressonância Lobo de CyberStreet',
+          desc: 'Cripto-Carder + Quant Dark-Pool: +30% lucro em Short/Long e +35% dividendos às 12:00!',
+          fn: (b) => { b.stockProfitMult += 0.12; b.dividendMult += 0.10; }
+        },
+        'sentinel:sub_fed_hunter': {
+          title: 'Ressonância Agente Duplo Safenet',
+          desc: 'Cyber Sentinel + Caçador Forense: +45% Bounties FBI, Forja False-Flag dupla e blindagem contra DDoS!',
+          fn: (b) => { b.bountyMult += 0.15; b.ddosArmorPct = Math.min(70, b.ddosArmorPct + 15); }
+        },
+        'botmaster:sub_redteam': {
+          title: 'Ressonância Enxame Soberano',
+          desc: 'Botmaster + Comandante Red Team: +45% rendimento no Coletor Viral e sobrecarga DDoS amplificada!',
+          fn: (b) => { b.collectorMult += 0.15; }
+        }
+      };
+      const key = `${primary}:${sub}`;
+      if (combos[key]) {
+        bonus.title = combos[key].title;
+        bonus.desc = combos[key].desc;
+        combos[key].fn(bonus);
+      } else {
+        const pName = (this.primaryClasses[primary] && this.primaryClasses[primary].name) || primary;
+        bonus.title = `Sinergia Dual-Spec (${pName} + ${this.subclasses[sub].name})`;
+        bonus.desc = '+8% em Contratos, +4 pts de Encaixe no Lab e +10% em Dividendos por operar especialização dupla.';
+        bonus.labFitBonus += 4;
+        bonus.contractCashMult += 0.08;
+        bonus.dividendMult += 0.10;
+      }
+    }
+    return bonus;
+  }
+
+  getSkillCooldownRemainingMs(skillId) {
+    const sk = this.activeSkills[skillId];
+    if (!sk) return 0;
+    const last = Number(this.skillCooldowns[skillId] || 0);
+    if (!last) return 0;
+    return Math.max(0, (last + sk.cooldownMs) - Date.now());
+  }
+
+  castActiveClassSkill(skillId) {
+    const sk = this.activeSkills[skillId];
+    if (!sk) return { success: false, message: 'Habilidade tática desconhecida.' };
+    const rem = this.getSkillCooldownRemainingMs(skillId);
+    if (rem > 0) {
+      const msg = `Recarregando ${sk.name}: aguarde ${Math.ceil(rem / 1000)}s.`;
+      if (typeof showToast === 'function') showToast(msg);
+      return { success: false, code: 'COOLDOWN', message: msg };
+    }
+
+    let summaryMsg = '';
+    if (skillId === 'overdrive_cpu') {
+      let boosted = 0;
+      if (window.taskManager && typeof window.taskManager.getRunningAll === 'function') {
+        const procs = window.taskManager.getRunningAll();
+        procs.forEach((p) => {
+          p.workDone = Math.min(p.workTotal, Number(p.workDone || 0) + Number(p.workTotal || 1) * 0.40);
+          boosted += 1;
+        });
+        if (typeof window.taskManager.tick === 'function') window.taskManager.tick();
+      }
+      summaryMsg = boosted > 0
+        ? `⚡ Injeção Overdrive acelerou ${boosted} processo(s) em +40% na Fila de Ações!`
+        : '⚡ Injeção Overdrive ativada (+15 REP táticos — inicie downloads/cracks na Fila p/ acelerar em +40%)!';
+      if (boosted === 0 && window.currentProfile) {
+        const grant = () => { window.currentProfile.reputation = Number(window.currentProfile.reputation || 100) + 15; };
+        if (window.integrityGuard) window.integrityGuard.runAuthorized(grant); else grant();
+      }
+    } else if (skillId === 'ghost_shroud') {
+      let wipedCount = 0;
+      const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '';
+      if (myIp && window.botAI && window.botAI.syslogRegistry) {
+        for (const [ip, lines] of window.botAI.syslogRegistry.entries()) {
+          if (wipedCount >= 3) break;
+          if (ip !== myIp && Array.isArray(lines) && lines.some((l) => String(l).includes(myIp))) {
+            window.botAI.wipeLogs(ip);
+            wipedCount += 1;
+          }
+        }
+      }
+      if (window.currentProfile) {
+        const cool = () => {
+          window.currentProfile.heat_level = Math.max(1, Number(window.currentProfile.heat_level || 1) - 1);
+        };
+        if (window.integrityGuard) window.integrityGuard.runAuthorized(cool); else cool();
+      }
+      summaryMsg = `👻 Manto Fantasma purgou ${wipedCount} rastro(s) remoto(s) e reduziu seu Alerta Policial!`;
+    } else if (skillId === 'swarm_harvest') {
+      const activeViruses = (window.softwareEngine && window.softwareEngine.state && Array.isArray(window.softwareEngine.state.remoteInfections))
+        ? window.softwareEngine.state.remoteInfections.length
+        : 0;
+      const pulseCash = Math.min(1800, 140 + activeViruses * 165);
+      if (window.currentWallet) {
+        const pay = () => {
+          window.currentWallet.balance = +(Number(window.currentWallet.balance || 0) + pulseCash).toFixed(2);
+        };
+        if (window.integrityGuard) window.integrityGuard.runAuthorized(pay); else pay();
+      }
+      summaryMsg = `🐝 Pulso Coletor C2 extraiu +$ ${pulseCash} HC de ${activeViruses} máquina(s) infectada(s)!`;
+    } else if (skillId === 'insider_ping') {
+      let tip = 'CyberStock calibrada';
+      if (window.ecosystemHub && typeof window.ecosystemHub.grantInsiderIntelAndOsint === 'function') {
+        const intel = window.ecosystemHub.grantInsiderIntelAndOsint();
+        tip = intel.message;
+      }
+      summaryMsg = `📡 Sonda OSINT: ${tip}`;
+    }
+
+    this.skillCooldowns[skillId] = Date.now();
+    this.save();
+    if (window.hackerAudio) window.hackerAudio.playEnterBeep();
+    if (typeof updateHudDisplays === 'function') updateHudDisplays();
+    if (typeof showToast === 'function') showToast(summaryMsg);
+    if (typeof updateSkillTreeDisplay === 'function') updateSkillTreeDisplay();
+    return { success: true, message: summaryMsg };
+  }
+
+  respecPassives() {
+    const spent = this.getSpentSP();
+    if (spent <= 0) {
+      const msg = 'Você ainda não gastou Pontos de Habilidade (SP) para redistribuir.';
+      if (typeof showToast === 'function') showToast(msg);
+      return { success: false, message: msg };
+    }
+    const fee = 500;
+    const bal = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
+    if (bal < fee) {
+      const msg = `Saldo insuficiente! Redistribuir SP custa $ ${fee} HC.`;
+      if (typeof showToast === 'function') showToast(msg);
+      return { success: false, message: msg };
+    }
+    const charge = () => {
+      window.currentWallet.balance = Math.max(0, +(bal - fee).toFixed(2));
+    };
+    if (window.integrityGuard) window.integrityGuard.runAuthorized(charge); else charge();
+    this.ranks = {};
+    this.save();
+    if (typeof updateHudDisplays === 'function') updateHudDisplays();
+    if (typeof updateSkillTreeDisplay === 'function') updateSkillTreeDisplay();
+    const okMsg = `♻️ ${spent} SP devolvidos para redistribuição (-$ ${fee} HC)!`;
+    if (typeof showToast === 'function') showToast(okMsg);
+    return { success: true, refundedSp: spent, message: okMsg };
+  }
+
+  saveLoadout(slotNum) {
+    const idx = this.loadouts.findIndex((l) => l.slot === Number(slotNum));
+    if (idx < 0) return { success: false };
+    this.loadouts[idx].subclass = this.selectedSubclass || null;
+    this.loadouts[idx].bounceRoute = (window.worldMapEngine && Array.isArray(window.worldMapEngine.bounceRoute))
+      ? window.worldMapEngine.bounceRoute.slice()
+      : ['sao_paulo'];
+    this.loadouts[idx].c2Profile = (window.botnetC2 && window.botnetC2.profile) || 'ghost';
+    this.save();
+    const msg = `💾 Perfil "${this.loadouts[idx].name}" salvo (${this.loadouts[idx].bounceRoute.length} saltos + ${this.selectedSubclass || 'sem subclasse'})!`;
+    if (typeof showToast === 'function') showToast(msg);
+    if (typeof updateSkillTreeDisplay === 'function') updateSkillTreeDisplay();
+    return { success: true, loadout: this.loadouts[idx], message: msg };
+  }
+
+  applyLoadout(slotNum) {
+    const ld = this.loadouts.find((l) => l.slot === Number(slotNum));
+    if (!ld) return { success: false };
+    const pSpec = (window.currentProfile && window.currentProfile.specialty) || 'exploiter';
+    const pRep = (window.currentProfile && window.currentProfile.reputation) || 100;
+    if (ld.subclass && this.unlockedSubclasses[ld.subclass]) {
+      this.selectSubclass(ld.subclass, pRep, pSpec);
+    }
+    if (window.worldMapEngine && Array.isArray(ld.bounceRoute) && ld.bounceRoute.length > 0) {
+      window.worldMapEngine.bounceRoute = ld.bounceRoute.slice(0, 8);
+      window.worldMapEngine.saveState();
+    }
+    if (window.botnetC2 && ld.c2Profile) {
+      window.botnetC2.profile = ld.c2Profile;
+    }
+    this.save();
+    if (typeof updateHudDisplays === 'function') updateHudDisplays();
+    if (typeof updateSkillTreeDisplay === 'function') updateSkillTreeDisplay();
+    const msg = `⚡ Perfil "${ld.name}" aplicado com sucesso!`;
+    if (typeof showToast === 'function') showToast(msg);
+    return { success: true, message: msg };
+  }
+
+  startPrimaryMastery(specId) {
+    const pc = this.primaryClasses[specId];
+    if (!pc) return { success: false, message: 'Classe primária inválida.' };
+    this.activePrimaryMastery = specId;
+    if (typeof showToast === 'function') showToast(`[PROVA DE MAESTRIA] Conectando a ${pc.masteryMission.targetHost}...`);
+    if (typeof updateSkillTreeDisplay === 'function') updateSkillTreeDisplay();
+    return { success: true };
+  }
+
+  completePrimaryMastery(specId) {
+    const pc = this.primaryClasses[specId];
+    if (!pc) return { success: false, message: 'Classe primária inválida.' };
+    if (this.completedMasteries[specId]) {
+      this.activePrimaryMastery = null;
+      return { success: false, message: 'Prova de Maestria já concluída!' };
+    }
+    this.completedMasteries[specId] = true;
+    this.bonusSp = Number(this.bonusSp || 0) + 1;
+    this.activePrimaryMastery = null;
+    this.save();
+
+    const m = pc.masteryMission;
+    const grant = () => {
+      if (window.currentProfile) window.currentProfile.reputation = Number(window.currentProfile.reputation || 100) + (m.rewards.rep || 60);
+      if (window.currentWallet) window.currentWallet.balance = +(Number(window.currentWallet.balance || 0) + (m.rewards.cash || 600)).toFixed(2);
+    };
+    if (window.integrityGuard) window.integrityGuard.runAuthorized(grant); else grant();
+
+    if (window.hackerAudio) window.hackerAudio.playCashChime();
+    if (typeof updateHudDisplays === 'function') updateHudDisplays();
+    if (typeof updateSkillTreeDisplay === 'function') updateSkillTreeDisplay();
+    const msg = `🏆 Prova de Maestria "${m.title}" concluída! +$ ${m.rewards.cash} HC, +${m.rewards.rep} REP e +1 SP Permanente!`;
+    if (typeof showToast === 'function') showToast(msg);
+    return { success: true, message: msg };
   }
 
   getPlayerTitle(primarySpec = 'exploiter', reputation = 100) {
@@ -593,6 +1052,42 @@ class SkillTreeEngine {
     const primary = profile ? profile.specialty : 'exploiter';
     const sp = this.getAvailableSP(rep);
     const title = this.getPlayerTitle(primary, rep);
+    const resonance = this.getActiveResonanceBonus(primary);
+
+    const activeSkillsHtml = Object.values(this.activeSkills).map((sk) => {
+      const remMs = this.getSkillCooldownRemainingMs(sk.id);
+      const ready = remMs <= 0;
+      return `
+        <div style="flex:1;min-width:210px;background:#11161d;border:1px solid ${ready ? 'rgba(53,184,119,0.38)' : '#252d39'};border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
+              <strong style="font-size:12.5px;color:#eceff3;">⚡ ${sk.name}</strong>
+              <span class="hc-badge ${ready ? 'success' : 'warn'}">${ready ? 'PRONTA' : Math.ceil(remMs / 1000) + 's'}</span>
+            </div>
+            <div style="font-size:11.5px;color:#9aa4b2;margin-top:4px;line-height:1.35;">${sk.desc}</div>
+          </div>
+          <button type="button" id="btnCastSkill_${sk.id}" class="hc-btn ${ready ? 'primary' : 'ghost'} sm" ${ready ? '' : 'disabled'} onclick="window.skillTreeEngine.castActiveClassSkill('${sk.id}')">
+            ${ready ? 'Ativar Poder Tático' : 'Em Recarga'}
+          </button>
+        </div>
+      `;
+    }).join('');
+
+    const loadoutsHtml = this.loadouts.map((ld) => {
+      const subName = ld.subclass && this.subclasses[ld.subclass] ? this.subclasses[ld.subclass].name : 'Sem subclasse';
+      return `
+        <div style="flex:1;min-width:200px;background:#10141a;border:1px solid #242c38;border-radius:8px;padding:9px 11px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#eceff3;">Slot ${ld.slot}: ${ld.name}</div>
+            <div style="font-size:11px;color:#8b95a5;">${subName} · ${ld.bounceRoute.length} salto(s)</div>
+          </div>
+          <div style="display:flex;gap:5px;">
+            <button type="button" class="hc-btn ghost sm" onclick="window.skillTreeEngine.saveLoadout(${ld.slot})">Salvar</button>
+            <button type="button" class="hc-btn primary sm" onclick="window.skillTreeEngine.applyLoadout(${ld.slot})">Usar</button>
+          </div>
+        </div>
+      `;
+    }).join('');
 
     let html = `
       <div class="skill-tree-layout">
@@ -610,6 +1105,20 @@ class SkillTreeEngine {
           </div>
         </div>
 
+        <!-- Ressonância Dual-Spec + Poderes Ativos + Perfis Rápidos -->
+        <div style="background:#0f141b;border:1px solid ${resonance.active ? 'rgba(53,184,119,0.45)' : '#242c38'};border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div>
+              <span class="hc-badge ${resonance.active ? 'success' : 'info'}">${resonance.active ? 'RESSONÂNCIA DUAL-SPEC ATIVA' : 'SINERGIA AGUARDANDO SUBCLASSE'}</span>
+              <strong style="margin-left:8px;font-size:13.5px;color:#eceff3;">${resonance.title}</strong>
+              <div style="font-size:12px;color:#9aa4b2;margin-top:3px;">${resonance.desc}</div>
+            </div>
+            ${this.getSpentSP() > 0 ? `<button type="button" id="btnRespecPassives" class="hc-btn ghost sm" onclick="window.skillTreeEngine.respecPassives()">♻️ Redistribuir SP ($ 500)</button>` : ''}
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">${activeSkillsHtml}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">${loadoutsHtml}</div>
+        </div>
+
         <!-- Abas de Navegação -->
         <div class="skill-tabs">
           <button class="skill-tab-btn ${this.activeTab === 'subclasses' ? 'active' : ''}" onclick="window.skillTreeEngine.switchTab('subclasses', '${containerId}')">
@@ -619,7 +1128,7 @@ class SkillTreeEngine {
             Classes principais (4)
           </button>
           <button class="skill-tab-btn ${this.activeTab === 'passives' ? 'active' : ''}" onclick="window.skillTreeEngine.switchTab('passives', '${containerId}')">
-            Passivas
+            Passivas (${Object.keys(this.passiveSkills).length})
           </button>
           <button class="skill-tab-btn ${this.activeTab === 'missions' ? 'active' : ''}" onclick="window.skillTreeEngine.switchTab('missions', '${containerId}')">
             Missões concluídas
@@ -804,11 +1313,15 @@ class SkillTreeEngine {
             </div>
 
             <div>
-              ${isCurrent ? `
+              ${isCurrent ? (this.completedMasteries[pc.id] ? `
                 <div class="btn-card-action btn-equipped-locked" style="text-align:center;">
-                  ✓ OPERADOR ATIVO NESTA ESPECIALIDADE
+                  🏆 PROVA DE MAESTRIA CONCLUÍDA (+1 SP PERMANENTE)
                 </div>
               ` : `
+                <button type="button" id="btnStartPrimaryMastery_${pc.id}" class="btn-card-action btn-start-mission" onclick="window.skillTreeEngine.startPrimaryMastery('${pc.id}')">
+                  🏆 EXECUTAR PROVA DE MAESTRIA (+$ ${pc.masteryMission.rewards.cash} &amp; +1 SP)
+                </button>
+              `) : `
                 <div class="btn-card-action btn-disabled-locked" style="text-align:center;font-size:0.75rem;">
                   CLASSE DEFINIDA NO CADASTRO DO SUPABASE
                 </div>
@@ -936,6 +1449,44 @@ class SkillTreeEngine {
       `;
     }
 
+    // 5b. MODAL INTERATIVO DA PROVA DE MAESTRIA DA CLASSE PRINCIPAL
+    if (this.activePrimaryMastery && this.primaryClasses[this.activePrimaryMastery]) {
+      const pc = this.primaryClasses[this.activePrimaryMastery];
+      const m = pc.masteryMission;
+      html += `
+        <div class="mission-runner-overlay" id="primaryMasteryOverlay">
+          <div class="mission-runner-terminal">
+            <div class="runner-terminal-header">
+              <div class="runner-terminal-title">
+                <span>🏆 PROVA DE MAESTRIA: ${m.title}</span>
+                <span class="mission-difficulty-pill ${m.difficultyClass}">${m.difficulty}</span>
+              </div>
+              <button class="btn-runner-close" onclick="window.skillTreeEngine.activePrimaryMastery=null; updateSkillTreeDisplay();">&times;</button>
+            </div>
+            <div class="runner-terminal-body">
+              <div class="runner-briefing-box">
+                <div><strong>ALVO DE CONSAGRAÇÃO:</strong> <span style="color:var(--cyan-neon);">${m.targetHost}</span> [${m.targetIp}]</div>
+                <div style="margin-top:0.4rem;"><strong>BRIEFING:</strong> ${m.briefing}</div>
+                <div style="margin-top:0.4rem;color:#35b877;"><strong>RECOMPENSA:</strong> +$ ${m.rewards.cash} HC &nbsp;|&nbsp; +${m.rewards.rep} REP &nbsp;|&nbsp; <strong>+1 SP Permanente</strong></div>
+              </div>
+              <div class="runner-log-console">
+                [MAESTRIA] Handshake tático estabelecido com ${m.targetIp}...<br>
+                [KERNEL] Assinatura da classe ${pc.name} autenticada. Payload: <code>${m.expectedPayload}</code>.
+              </div>
+              <div class="runner-challenge-box">
+                <div class="runner-challenge-input-row">
+                  <input type="text" class="runner-input" value="${m.expectedPayload}" readonly>
+                  <button id="btnExecPrimaryMastery" onclick="window.skillTreeEngine.completePrimaryMastery('${pc.id}')" class="btn-runner-execute">
+                    CONSAGRAR MAESTRIA (+1 SP)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
     html += `</div>`;
     el.innerHTML = html;
   }
@@ -961,11 +1512,18 @@ class SkillTreeEngine {
       return;
     }
 
-    if (typeof currentProfile !== 'undefined' && currentProfile) {
-      currentProfile.reputation = (currentProfile.reputation || 0) + res.repReward;
-    }
-    if (typeof currentWallet !== 'undefined' && currentWallet) {
-      currentWallet.balance = (currentWallet.balance || 0) + res.cashReward;
+    const grantRewards = () => {
+      if (typeof currentProfile !== 'undefined' && currentProfile) {
+        currentProfile.reputation = (currentProfile.reputation || 0) + res.repReward;
+      }
+      if (typeof currentWallet !== 'undefined' && currentWallet) {
+        currentWallet.balance = +(Number(currentWallet.balance || 0) + res.cashReward).toFixed(2);
+      }
+    };
+    if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+      window.integrityGuard.runAuthorized(grantRewards);
+    } else {
+      grantRewards();
     }
 
     if (window.hackerAudio) {

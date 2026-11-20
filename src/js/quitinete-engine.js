@@ -286,6 +286,10 @@ class QuitineteEngine {
       this.save();
       this.applyEffects();
 
+      if (typeof window !== 'undefined' && window.ecosystemHub && typeof window.ecosystemHub.payNoonDividends === 'function') {
+        window.ecosystemHub.payNoonDividends(applied);
+      }
+
       if (!isEnteringGame && typeof window !== 'undefined') {
         if (typeof window.showToast === 'function') {
           window.showToast(
@@ -345,8 +349,19 @@ class QuitineteEngine {
       }
     }
 
-    this.bills.power.monthlyBase = pcEnergyMonthly;
-    this.bills.internet.monthlyBase = netAndVpsMonthly;
+    const energyDiscPct = (typeof window !== 'undefined' && window.ecosystemHub && window.ecosystemHub.state)
+      ? Number(window.ecosystemHub.state.energyDiscountPct || 0)
+      : 0;
+    const wmDiscPct = (typeof window !== 'undefined' && window.ecosystemHub && typeof window.ecosystemHub.getWorldMapActiveMultipliers === 'function')
+      ? Number(window.ecosystemHub.getWorldMapActiveMultipliers().billDiscountPct || 0)
+      : 0;
+    const subBlackHatDisc = (typeof window !== 'undefined' && window.skillTreeEngine && window.skillTreeEngine.selectedSubclass === 'sub_blackhat_finance')
+      ? 25
+      : 0;
+    const totalBillKeep = Math.max(0.55, 1 - (energyDiscPct + wmDiscPct + subBlackHatDisc) / 100);
+
+    this.bills.power.monthlyBase = Math.max(40, Math.round(pcEnergyMonthly * totalBillKeep));
+    this.bills.internet.monthlyBase = Math.max(20, Math.round(netAndVpsMonthly * Math.max(0.65, 1 - (wmDiscPct + subBlackHatDisc) / 100)));
 
     Object.values(this.bills).forEach((b) => {
       b.monthsDue = Math.max(0, Math.min(GAME_TIME_CONFIG.MAX_ACCUMULATED_MONTHS, Number(b.monthsDue || 0)));

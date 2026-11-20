@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="src/css/software-explorer.css">
   <link rel="stylesheet" href="src/css/cctv.css">
   <link rel="stylesheet" href="src/css/virus-lab.css">
+  <link rel="stylesheet" href="src/css/ecosystem-hub.css">
 
   <!-- Modular Core Scripts -->
   <script src="src/js/audio-synth.js"></script>
@@ -56,6 +57,7 @@
   <script src="src/js/lan-servers-engine.js"></script>
   <script src="src/js/world-map-engine.js"></script>
   <script src="src/js/darknet-social-news-engine.js"></script>
+  <script src="src/js/ecosystem-interconnected-hub.js"></script>
 </head>
 <body>
 
@@ -337,6 +339,10 @@
               <i data-icon="shield-alert"></i>
               <span class="nav-item-copy"><span>Polícia &amp; Recompensas</span><small>Procurados do FBI e Safenet</small></span>
             </button>
+            <button type="button" class="nav-item" id="navBtnCctArena" data-win="winOpsHub" onclick="if(window.ecosystemHub) window.ecosystemHub.activeTab='minigames'; navTo('winOpsHub')">
+              <i data-icon="gamepad-2"></i>
+              <span class="nav-item-copy"><span>Arena .CCT &amp; 6 Minigames</span><small>Matriz Hex 5x5, OSINT, Relés e Zero-Days</small></span>
+            </button>
           </div>
         </details>
 
@@ -349,6 +355,10 @@
           </summary>
           <div class="nav-sublist">
             <div class="flyout-head">Dinheiro &amp; Vida</div>
+            <button type="button" class="nav-item" id="navBtnCyberStock" data-win="winOpsHub" onclick="if(window.ecosystemHub) window.ecosystemHub.activeTab='stocks'; navTo('winOpsHub')">
+              <i data-icon="trending-up"></i>
+              <span class="nav-item-copy"><span>Bolsa CyberStock &amp; Operações</span><small>Ações ao vivo, Short/Hack, Seguros e VPS Cron</small></span>
+            </button>
             <button type="button" class="nav-item" data-win="winBank" onclick="navTo('winBank')">
               <i data-icon="landmark"></i>
               <span class="nav-item-copy"><span>Banco &amp; Cofres</span><small>Saldo, transferências e offshore</small></span>
@@ -1024,6 +1034,18 @@
         </div>
       </div>
       <div class="window-body" id="newsAppBody"></div>
+    </div>
+
+    <!-- PÁGINA 31: CENTRAL DE ECOSSISTEMA, BOLSA CYBERSTOCK, 6 MINIGAMES, OSINT, FACÇÕES & CRONDAEMONS -->
+    <div class="window-frame" id="winOpsHub" style="display: none;">
+      <div class="window-header">
+        <div>
+          <div class="hc-breadcrumb"><span>Ecossistema Interligado</span><span class="sep">›</span><span class="curr">Bolsa CyberStock, .CCT, OSINT &amp; Automação VPS</span></div>
+          <div class="window-title">Operações &amp; Bolsa CyberStock</div>
+          <p class="page-sub">Negocie ações conectadas às suas invasões reais, resolva 6 minigames táticos e contratos .CCT, use OSINT/Zero-Days, lidere golpes 4x e rode CronDaemons nas suas VPS.</p>
+        </div>
+      </div>
+      <div class="window-body" id="opsHubAppBody"></div>
     </div>
 
     <!-- WIDGET FLUTUANTE DE PROCESSOS (CANTO INFERIOR DIREITO) -->
@@ -2406,8 +2428,57 @@
         appendCli('  banco                - Exibe número de conta e saldo real');
         appendCli('  whoami               - Informações do operador autenticado');
         appendCli('  reputation           - Pontuação e nível no submundo');
+        appendCli('  stock [ticker]       - Abre a Bolsa CyberStock (TIX) ou mostra cotação/integridade', 'var(--hc-accent-text)');
+        appendCli('  breach               - Abre a Arena de 6 Minigames Táticos & Matriz Hex 5x5', 'var(--hc-accent-text)');
+        appendCli('  osint [ip]           - Usa Dossiê OSINT para descobrir senha root de alvo Tier 1-3', 'var(--hc-warning)');
+        appendCli('  factions / heist     - Abre Facções Underground e Golpes de Equipe de 4 Papéis', 'var(--hc-violet)');
+        appendCli('  cron / audit         - Gerencia CronDaemons nas suas VPS ou roda Pentest Pessoal', 'var(--hc-success)');
         appendCli('  clear                - Limpa a tela');
         appendCli('  panic                - Dispara o Protocolo 404 (batida policial)');
+      } else if (cmd === 'stock' || cmd === 'cyberstock' || cmd === 'tix') {
+        if (window.ecosystemHub) {
+          window.ecosystemHub.activeTab = 'stocks';
+          navTo('winOpsHub');
+          const nw = window.ecosystemHub.computeNetWorthAnalytics();
+          appendCli(`=== BOLSA CYBERSTOCK (TIX) // PATRIMÔNIO: $ ${nw.totalNetWorth.toFixed(2)} ===`, 'var(--hc-accent-text)');
+        }
+      } else if (cmd === 'breach' || cmd === 'cct') {
+        if (window.ecosystemHub) {
+          window.ecosystemHub.activeTab = 'minigames';
+          navTo('winOpsHub');
+          appendCli('Arena de 6 Minigames Táticos & Decodificador .CCT aberta.', 'var(--hc-success)');
+        }
+      } else if (cmd === 'osint') {
+        const ipArg = parts[1];
+        if (window.ecosystemHub) {
+          if (ipArg) {
+            const res = window.ecosystemHub.useOsintDossierOnIp(ipArg);
+            appendCli(res.message, res.success ? 'var(--hc-success)' : 'var(--hc-danger)');
+          } else {
+            window.ecosystemHub.activeTab = 'intel';
+            navTo('winOpsHub');
+            appendCli(`Central OSINT aberta (${window.ecosystemHub.state.osintDossiers} dossiês disponíveis). Uso direto: osint <ip>`, 'var(--hc-accent-text)');
+          }
+        }
+      } else if (cmd === 'factions' || cmd === 'heist') {
+        if (window.ecosystemHub) {
+          window.ecosystemHub.activeTab = 'factions';
+          navTo('winOpsHub');
+          appendCli('Painel de Facções Underground & Golpes Coordenados 4x aberto.', 'var(--hc-violet)');
+        }
+      } else if (cmd === 'cron') {
+        if (window.ecosystemHub) {
+          window.ecosystemHub.activeTab = 'automation';
+          navTo('winOpsHub');
+          appendCli(`Frota de Automação CronDaemons aberta (${window.ecosystemHub.getOwnedVpsCount()} VPS detectadas).`, 'var(--hc-success)');
+        }
+      } else if (cmd === 'audit' || cmd === 'pentest') {
+        if (window.ecosystemHub) {
+          const rep = window.ecosystemHub.runSelfSecurityAudit();
+          window.ecosystemHub.activeTab = 'intel';
+          navTo('winOpsHub');
+          appendCli(`[PENTEST LOCAL] Nota de Blindagem: ${rep.score}/100 | FW v${rep.fwVer.toFixed(1)} | Rastros expostos: ${rep.exposedTraces}`, 'var(--hc-accent-text)');
+        }
       } else if (cmd === 'clear') {
         document.getElementById('cliOutput').innerHTML = '';
       } else if (cmd === 'ip' || cmd === 'meuip' || cmd === 'myip') {
@@ -3272,6 +3343,9 @@
             <h1 class="home-title">Bem-vindo de volta, ${escapeHtml(currentProfile.hacker_tag)}</h1>
           </div>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="hc-btn primary" onclick="if(window.ecosystemHub) window.ecosystemHub.activeTab='stocks'; navTo('winOpsHub');">
+              ${HC.icon('trending-up')} Bolsa CyberStock &amp; .CCT
+            </button>
             <button type="button" id="btnHomeStartTour" class="hc-btn ghost" style="border-color: var(--hc-border);" onclick="if(window.spotlightTour) window.spotlightTour.start(true);">
               ${HC.icon('help-circle')} Tour Guiado
             </button>
@@ -3280,6 +3354,8 @@
             </button>
           </div>
         </div>
+
+        ${window.ecosystemHub && typeof window.ecosystemHub.renderHomeStripHtml === 'function' ? window.ecosystemHub.renderHomeStripHtml() : ''}
 
         <!-- Faixa Unificada de 4 Métricas -->
         <div class="hc-stat-strip">
@@ -3524,6 +3600,9 @@
       }
       if (winId === 'winBank' && window.multiBankEngine) {
         window.multiBankEngine.renderMultiBankOverview('multiBankMount');
+      }
+      if (winId === 'winOpsHub' && window.ecosystemHub) {
+        window.ecosystemHub.renderUI('opsHubAppBody');
       }
     }
     function closeWindow(winId) { window.winManager ? window.winManager.close(winId) : null; }

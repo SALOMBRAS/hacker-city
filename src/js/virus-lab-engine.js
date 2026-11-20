@@ -811,16 +811,25 @@
         return { success: false, code: 'COOLDOWN_ACTIVE', remainingMs: remMs, message: msg };
       }
 
+      const couponDiscount = (window.ecosystemHub && typeof window.ecosystemHub.peekLabFeeDiscount === 'function')
+        ? window.ecosystemHub.peekLabFeeDiscount()
+        : 0;
+      const effectiveFee = Math.max(0, LAB_SESSION_FEE - couponDiscount);
+
       const curBal = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
-      if (curBal < LAB_SESSION_FEE) {
-        const msg = `Saldo insuficiente! Usar o Laboratório de Vírus custa $ ${LAB_SESSION_FEE.toLocaleString('pt-BR')} (você tem $ ${curBal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}).`;
+      if (curBal < effectiveFee) {
+        const msg = `Saldo insuficiente! Usar o Laboratório de Vírus custa $ ${effectiveFee.toLocaleString('pt-BR')} (você tem $ ${curBal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}).`;
         if (window.hackerAudio && typeof window.hackerAudio.playErrorBuzz === 'function') window.hackerAudio.playErrorBuzz();
         if (typeof window.showToast === 'function') window.showToast(msg);
-        return { success: false, code: 'INSUFFICIENT_FUNDS', required: LAB_SESSION_FEE, balance: curBal, message: msg };
+        return { success: false, code: 'INSUFFICIENT_FUNDS', required: effectiveFee, balance: curBal, message: msg };
+      }
+
+      if (couponDiscount > 0 && window.ecosystemHub && typeof window.ecosystemHub.consumeLabFeeCouponIfArmed === 'function') {
+        window.ecosystemHub.consumeLabFeeCouponIfArmed();
       }
 
       const deductFee = () => {
-        window.currentWallet.balance = Math.max(0, +(Number(window.currentWallet.balance) - LAB_SESSION_FEE).toFixed(2));
+        window.currentWallet.balance = Math.max(0, +(Number(window.currentWallet.balance) - effectiveFee).toFixed(2));
       };
       if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
         window.integrityGuard.runAuthorized(deductFee);
@@ -832,7 +841,7 @@
       this.activeTab = 'workbench';
       this.state.activeDraft = {
         startedAt: Date.now(),
-        paidFee: LAB_SESSION_FEE,
+        paidFee: effectiveFee,
         round: 1,
         optionsByRound: {
           1: this.drawThreeRandomBlocks(1),
@@ -1206,6 +1215,25 @@
       }
 
       const lvlMeta = this.getLevelMeta();
+      const labBoosts = (window.ecosystemHub && typeof window.ecosystemHub.consumeLabCompileBoosts === 'function')
+        ? window.ecosystemHub.consumeLabCompileBoosts()
+        : { fitBonus: 0, extraXp: 0, xpMult: 1, usedCatalyst: false };
+
+      if (labBoosts.fitBonus > 0) {
+        evalRes.fitScore = Math.min(100, evalRes.fitScore + labBoosts.fitBonus);
+        if (evalRes.fitScore >= 94) evalRes.fitGrade = 'S+';
+        else if (evalRes.fitScore >= 85) evalRes.fitGrade = 'S';
+        else if (evalRes.fitScore >= 74) evalRes.fitGrade = 'A';
+        else if (evalRes.fitScore >= 62) evalRes.fitGrade = 'B';
+        const boostedVer = Math.max(evalRes.versionInt, Math.min(lvlMeta.maxVerInt, evalRes.versionInt + Math.round(labBoosts.fitBonus * 0.4)));
+        evalRes.versionInt = boostedVer;
+        evalRes.versionLabel = 'v' + (boostedVer / 10).toFixed(1);
+        evalRes.yieldMultiplier = calcVirusMultiplier(boostedVer);
+        evalRes.diagnostics.push({
+          kind: 'good',
+          text: `Sinergia Externa Aplicada (+${labBoosts.fitBonus} pts de Encaixe${labBoosts.usedCatalyst ? ' c/ Catalisador de Bancada' : ' via Classe/Passivas'}): potência calibrada para ${evalRes.versionLabel}!`
+        });
+      }
 
       let isNewSetDiscovery = false;
       if (evalRes.matchedSet && !this.state.discoveredSets.includes(evalRes.matchedSet.id)) {
@@ -1235,7 +1263,7 @@
       const duplicateRecycleXp = (diskDelivery && (diskDelivery.outcomeMode === 'duplicate_refined' || diskDelivery.outcomeMode === 'duplicate_maxed'))
         ? Math.round(baseXp * 0.35)
         : 0;
-      const gainedXp = baseXp + discoveryBonusXp + duplicateRecycleXp;
+      const gainedXp = Math.round((baseXp + discoveryBonusXp + duplicateRecycleXp + (labBoosts.extraXp || 0)) * Number(labBoosts.xpMult || 1));
 
       this.state.xp += gainedXp;
       const updatedLvl = this.computeLevelFromXp(this.state.xp, prevLevel);

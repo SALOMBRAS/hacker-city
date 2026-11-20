@@ -124,7 +124,11 @@ class HardwareEngine {
   applyDdosDamage(damagePct = 35, attackerLabel = 'Enxame DDoS') {
     this.ensureForProfile();
     const prev = this.getHealthPct();
-    const dmg = Math.max(8, Math.min(65, Math.round(Number(damagePct || 35))));
+    const armorPct = (window.skillTreeEngine && typeof window.skillTreeEngine.getActiveResonanceBonus === 'function')
+      ? Number(window.skillTreeEngine.getActiveResonanceBonus().ddosArmorPct || 0)
+      : 0;
+    const rawDmg = Math.max(8, Math.min(65, Math.round(Number(damagePct || 35))));
+    const dmg = Math.max(5, Math.round(rawDmg * (1 - Math.min(0.65, armorPct / 100))));
     const next = Math.max(20, prev - dmg);
     this.saveRig({ healthPct: next, lastDdosBy: attackerLabel });
 
@@ -162,8 +166,12 @@ class HardwareEngine {
     }
 
     this.saveRig({ healthPct: 100, lastDdosBy: null });
+    let insRefund = 0;
+    if (window.ecosystemHub && typeof window.ecosystemHub.claimInsuranceReimbursement === 'function') {
+      insRefund = window.ecosystemHub.claimInsuranceReimbursement(cost);
+    }
     if (typeof window.addLocalLog === 'function') {
-      window.addLocalLog('HARDWARE-REPAIR', `Peças danificadas por DDoS consertadas (100% integridade): -$ ${cost} HC`, 'success');
+      window.addLocalLog('HARDWARE-REPAIR', `Peças danificadas por DDoS consertadas (100% integridade): -$ ${cost} HC${insRefund > 0 ? ` (Seguro reembolsou +$ ${insRefund} HC)` : ''}`, 'success');
     }
     if (window.hackerAudio && typeof window.hackerAudio.playCashChime === 'function') {
       window.hackerAudio.playCashChime();
@@ -171,7 +179,7 @@ class HardwareEngine {
     if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
     if (typeof window.updateHardwareDisplay === 'function') window.updateHardwareDisplay();
     if (window.onlineEngine) window.onlineEngine.scheduleSave(true);
-    return { success: true, cost, healthPct: 100, message: `🔧 Peças consertadas! Integridade restaurada para 100% (-$ ${cost} HC).` };
+    return { success: true, cost, insRefund, healthPct: 100, message: `🔧 Peças consertadas! Integridade restaurada para 100% (-$ ${cost} HC${insRefund > 0 ? ` · Reembolso Seguro +$ ${insRefund}` : ''}).` };
   }
 
   getCpu() {
