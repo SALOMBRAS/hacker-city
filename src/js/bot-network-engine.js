@@ -892,15 +892,23 @@ function drainBotBank(ip) {
   if (bot && bot.bankAccount) {
     const loot = bot.bankAccount.balance;
     bot.bankAccount.balance = 0;
-    if (window.currentWallet) {
-      window.currentWallet.balance = parseFloat(window.currentWallet.balance) + loot;
-      if (typeof updateHudDisplays === 'function') updateHudDisplays();
+    if (loot >= 100 && window.nineSystemsEngine) {
+      window.nineSystemsEngine.addDirtyMoney(loot, `Bot ${bot.handle} [${ip}]`);
+    } else if (window.currentWallet) {
+      const fn = () => { window.currentWallet.balance = parseFloat(window.currentWallet.balance) + loot; };
+      if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') window.integrityGuard.runAuthorized(fn);
+      else fn();
     }
+    if (typeof updateHudDisplays === 'function') updateHudDisplays();
     if (typeof window.addLocalLog === 'function') {
-      window.addLocalLog('BANK-WIRE', `Saldo drenado de ${bot.handle} [${ip}]: +$ ${loot}.00 HC`, 'success');
+      window.addLocalLog('BANK-WIRE', `Saldo drenado de ${bot.handle} [${ip}]: +$ ${loot}.00 HC (${loot >= 100 ? 'Dinheiro Sujo' : 'Limpo'})`, 'success');
     }
     if (window.hackerAudio) window.hackerAudio.playMoneyCollect();
-    alert(`Transação wire concluída! Drenado $ ${loot}.00 HC da conta de ${bot.handle}.`);
+    if (typeof window.showToast === 'function') {
+      window.showToast(loot >= 100
+        ? `🩸 +$ ${loot}.00 em Dinheiro Sujo drenado de ${bot.handle}! Lave nas Empresas de Lavagem antes de gastar!`
+        : `+$ ${loot}.00 HC drenados de ${bot.handle}!`);
+    }
   }
 }
 

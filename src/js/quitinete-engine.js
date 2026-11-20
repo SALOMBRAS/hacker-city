@@ -360,8 +360,12 @@ class QuitineteEngine {
       : 0;
     const totalBillKeep = Math.max(0.55, 1 - (energyDiscPct + wmDiscPct + subBlackHatDisc) / 100);
 
+    const companyPermitMonthly = (typeof window !== 'undefined' && window.nineSystemsEngine && typeof window.nineSystemsEngine.getMyCompanyNoonPermitFee === 'function')
+      ? Number(window.nineSystemsEngine.getMyCompanyNoonPermitFee() || 0)
+      : 0;
+
     this.bills.power.monthlyBase = Math.max(40, Math.round(pcEnergyMonthly * totalBillKeep));
-    this.bills.internet.monthlyBase = Math.max(20, Math.round(netAndVpsMonthly * Math.max(0.65, 1 - (wmDiscPct + subBlackHatDisc) / 100)));
+    this.bills.internet.monthlyBase = Math.max(20, Math.round((netAndVpsMonthly + companyPermitMonthly) * Math.max(0.65, 1 - (wmDiscPct + subBlackHatDisc) / 100)));
 
     Object.values(this.bills).forEach((b) => {
       b.monthsDue = Math.max(0, Math.min(GAME_TIME_CONFIG.MAX_ACCUMULATED_MONTHS, Number(b.monthsDue || 0)));

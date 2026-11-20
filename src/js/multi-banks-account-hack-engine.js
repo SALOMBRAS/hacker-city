@@ -481,7 +481,9 @@
       if (hackedEntry) hackedEntry.lastBalance = 0;
       this.save();
 
-      if (window.currentWallet) {
+      if (window.nineSystemsEngine) {
+        window.nineSystemsEngine.addDirtyMoney(amount, `Conta #${targetAcc.accNumber} (${bank.shortName})`);
+      } else if (window.currentWallet) {
         window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + amount).toFixed(2);
       }
 

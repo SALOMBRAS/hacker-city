@@ -1000,6 +1000,7 @@
 
           <div class="soft-explorer-shell">
             <div class="soft-main-col">
+              ${window.nineSystemsEngine && typeof window.nineSystemsEngine.renderSeasonAndHallOfFameHtml === 'function' ? window.nineSystemsEngine.renderSeasonAndHallOfFameHtml() : ''}
               ${mainHtml}
             </div>
 

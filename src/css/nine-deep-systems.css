@@ -1,0 +1,238 @@
+/* ==========================================================================
+   Hacker City // 9 Mecânicas Profundas Aprovadas (Design System .soft-frame)
+   1. Mercado P2P Licenças Lab   2. Temporadas & Hall da Fama   3. Empresas Lavagem
+   4. Termodinâmica (°C/Cooler)  5. Botnet Hijacking C2         6. Delegados FBI
+   7. Pilha Forense 7-Passos     8. Popover Defesa Ativa 15s    9. hc://vazamentos
+   ========================================================================== */
+
+.nds-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.nds-dual-wallet {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.nds-wallet-box {
+  padding: 13px 16px;
+  border-radius: 10px;
+  background: #0f151e;
+  border: 1px solid var(--hc-border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nds-wallet-box.clean {
+  border-color: rgba(53, 184, 119, 0.45);
+}
+
+.nds-wallet-box.dirty {
+  border-color: rgba(229, 83, 75, 0.52);
+  background: linear-gradient(145deg, #191114 0%, #0f141c 100%);
+}
+
+.nds-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 6px;
+  background: #0d1219;
+  border: 1px solid var(--hc-border);
+  border-radius: 10px;
+}
+
+.nds-tab-btn {
+  padding: 8px 13px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--hc-text-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.14s ease;
+}
+
+.nds-tab-btn:hover {
+  color: var(--hc-text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.nds-tab-btn.active {
+  background: rgba(53, 184, 119, 0.14);
+  border-color: rgba(53, 184, 119, 0.48);
+  color: var(--hc-accent-text);
+}
+
+.nds-card {
+  background: #10161f;
+  border: 1px solid var(--hc-border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nds-card.emerald { border-color: rgba(53, 184, 119, 0.45); }
+.nds-card.amber   { border-color: rgba(240, 168, 58, 0.45); }
+.nds-card.crimson { border-color: rgba(229, 83, 75, 0.5); }
+
+.nds-pros-cons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 10px;
+}
+
+.nds-pc-box {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  background: #0b1017;
+  border: 1px solid #1e2a3a;
+}
+
+.nds-pc-box.pro {
+  border-left: 3px solid #35b877;
+}
+
+.nds-pc-box.con {
+  border-left: 3px solid #e5534b;
+}
+
+.nds-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 11px 13px;
+  border-radius: 9px;
+  background: #0c1118;
+  border: 1px solid #1e2938;
+}
+
+.nds-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+/* Popover Tático de Defesa Ativa de 15 Segundos (Canto Superior Direito) */
+.hc-defense-popover {
+  position: fixed;
+  top: 66px;
+  right: 18px;
+  width: min(390px, calc(100vw - 32px));
+  z-index: 9500;
+  background: linear-gradient(150deg, #1d1014 0%, #10151e 100%);
+  border: 1px solid #e5534b;
+  border-radius: 12px;
+  padding: 14px 15px;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.65);
+  display: none;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.hc-defense-popover.open {
+  display: flex;
+  animation: ndsSlideIn 0.2s ease-out;
+}
+
+@keyframes ndsSlideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hc-def-bar-track {
+  height: 6px;
+  background: #28161a;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.hc-def-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f0a83a, #e5534b);
+  transition: width 0.25s linear;
+}
+
+/* Modal de Prisão Federal por Gastar Dinheiro Sujo */
+.hc-jail-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9800;
+  background: rgba(6, 9, 14, 0.86);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.hc-jail-overlay.active {
+  display: flex;
+}
+
+.hc-jail-card {
+  max-width: 540px;
+  width: 100%;
+  background: #141014;
+  border: 2px solid #e5534b;
+  border-radius: 14px;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+}
+
+/* Chips de HUD para Dinheiro Sujo e Temperatura °C */
+.hud-dirty-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(229, 83, 75, 0.14);
+  border: 1px solid rgba(229, 83, 75, 0.45);
+  color: #fca5a5;
+  font-family: var(--hc-font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hud-temp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(53, 184, 119, 0.12);
+  border: 1px solid rgba(53, 184, 119, 0.35);
+  color: #6ee7b7;
+  font-family: var(--hc-font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hud-temp-chip.hot {
+  background: rgba(240, 168, 58, 0.16);
+  border-color: rgba(240, 168, 58, 0.5);
+  color: #fbbf24;
+}
+
+.hud-temp-chip.throttle {
+  background: rgba(229, 83, 75, 0.18);
+  border-color: rgba(229, 83, 75, 0.55);
+  color: #fca5a5;
+}

@@ -491,6 +491,9 @@
         } : null,
         ecosystemState: window.ecosystemHub && typeof window.ecosystemHub.getSnapshotState === 'function'
           ? window.ecosystemHub.getSnapshotState()
+          : null,
+        nineSystemsState: window.nineSystemsEngine && typeof window.nineSystemsEngine.getSnapshotState === 'function'
+          ? window.nineSystemsEngine.getSnapshotState()
           : null
       };
       return window.integrityGuard && typeof window.integrityGuard.signSnapshot === 'function'
@@ -709,6 +712,10 @@
 
       if (snap.ecosystemState && window.ecosystemHub && typeof window.ecosystemHub.applySnapshotState === 'function') {
         window.ecosystemHub.applySnapshotState(snap.ecosystemState);
+      }
+
+      if (snap.nineSystemsState && window.nineSystemsEngine && typeof window.nineSystemsEngine.applySnapshotState === 'function') {
+        window.nineSystemsEngine.applySnapshotState(snap.nineSystemsState);
       }
 
       if (snap.stealthLoot && window.stealthXhdEngine) {
