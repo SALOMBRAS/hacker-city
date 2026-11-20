@@ -455,6 +455,18 @@
           loopedCameras: { ...(window.cctvEngine.state.loopedCameras || {}) },
           disabledCameras: { ...(window.cctvEngine.state.disabledCameras || {}) },
           deletedRecordings: { ...(window.cctvEngine.state.deletedRecordings || {}) }
+        } : null,
+        virusLabState: window.virusLabEngine && window.virusLabEngine.state ? {
+          xp: Number(window.virusLabEngine.state.xp || 0),
+          level: Number(window.virusLabEngine.state.level || 1),
+          totalCompiled: Number(window.virusLabEngine.state.totalCompiled || 0),
+          discoveredSets: Array.isArray(window.virusLabEngine.state.discoveredSets)
+            ? window.virusLabEngine.state.discoveredSets.slice(0, 60)
+            : [],
+          creations: Array.isArray(window.virusLabEngine.state.creations)
+            ? window.virusLabEngine.state.creations.slice(0, 30)
+            : [],
+          activeDraft: window.virusLabEngine.state.activeDraft || null
         } : null
       };
       return window.integrityGuard && typeof window.integrityGuard.signSnapshot === 'function'
@@ -642,6 +654,14 @@
           deletedRecordings: snap.cctvState.deletedRecordings && typeof snap.cctvState.deletedRecordings === 'object' ? snap.cctvState.deletedRecordings : {}
         };
         window.cctvEngine.save();
+      }
+
+      if (snap.virusLabState && window.virusLabEngine) {
+        window.virusLabEngine.userId = uid;
+        window.virusLabEngine.state = typeof window.virusLabEngine.normalizeState === 'function'
+          ? window.virusLabEngine.normalizeState(snap.virusLabState)
+          : snap.virusLabState;
+        window.virusLabEngine.save();
       }
 
       if (snap.stealthLoot && window.stealthXhdEngine) {

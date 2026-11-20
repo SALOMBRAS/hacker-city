@@ -1293,11 +1293,15 @@
     }
 
     // Crescimento quadrático realista de Tamanho em Disco (MB) conforme a potência sobe (v1.0 -> v10.0)
+    // Binários autorais enxutos compilados no Laboratório de Vírus possuem footprint otimizado (-55% bloat)
     getItemSizeMb(softKey, versionInt) {
       const def = SOFTWARE_DEFINITIONS[softKey];
       if (!def) return 20;
       const v = Math.max(1, (versionInt || 10) / 10) - 1;
-      return Math.round(def.baseMb * (1 + 0.16 * v + 0.24 * v * v));
+      const rawMb = def.baseMb * (1 + 0.16 * v + 0.24 * v * v);
+      const st = this.state && this.state.inventory && this.state.inventory[softKey];
+      const labFactor = (def.category === 'virus' && st && st.customLabStrain) ? 0.45 : 1.0;
+      return Math.max(4, Math.round(rawMb * labFactor));
     }
 
     // Consumo de RAM: apenas daemons residentes (no seu PC) e vírus (no PC da vítima!)
@@ -1565,6 +1569,90 @@
         message: needsSwap
           ? `${def.friendlyTitle || def.filename} ${this.fmtVer(nextVer)} salvo no disco! Como já há o ${this.fmtVer(cur.runningVerInt || 10)} rodando (não pode ter 2 iguais!), clique em "🔄 Trocar Versão" e aguarde a carência!`
           : `${def.friendlyTitle || def.filename} compilado na potência ${this.fmtVer(nextVer)}!`
+      };
+    }
+
+    // Registra no disco um vírus autoral desenvolvido no Laboratório de Vírus (3 Rounds: 1 + 2 + 1 blocos)
+    registerLabCompiledVirus({ virusKey, versionInt, strainName, setId, setTitle, fitGrade, fitScore }) {
+      this.ensureLoaded();
+      const def = SOFTWARE_DEFINITIONS[virusKey];
+      if (!def || def.category !== 'virus') {
+        return { success: false, message: 'Família de vírus inválida.' };
+      }
+      const clampedVerInt = Math.max(6, Math.min(100, Math.round(Number(versionInt) || 10)));
+      const cur = this.state.inventory[virusKey] || {
+        owned: false,
+        installed: false,
+        versionInt: 0,
+        runningVerInt: 0,
+        drive: 'hd',
+        hiddenWithVer: 0
+      };
+
+      const prevVerInt = cur.owned ? (cur.versionInt || 0) : 0;
+      const upgradedMain = !cur.owned || clampedVerInt >= prevVerInt;
+
+      cur.owned = true;
+      cur.licensed = true; // Vírus desenvolvido por você já nasce licenciado!
+      if (clampedVerInt > (cur.versionInt || 0)) {
+        cur.versionInt = clampedVerInt;
+      }
+      if (!['hd', 'ssd', 'nvme'].includes(cur.drive)) {
+        cur.drive = 'hd';
+      }
+      if (upgradedMain) {
+        cur.customLabStrain = {
+          strainName: strainName || def.filename,
+          setId: setId || null,
+          setTitle: setTitle || null,
+          fitGrade: fitGrade || 'B',
+          fitScore: fitScore || 65
+        };
+      }
+      this.state.inventory[virusKey] = cur;
+
+      // Salva também uma cópia nomeada da cepa no disco (até 8 cepas customizadas) se couber no armazenamento
+      if (!Array.isArray(this.state.extraCopies)) this.state.extraCopies = [];
+      const extSuffix = def.filename.includes('.') ? def.filename.slice(def.filename.lastIndexOf('.')) : '.vir';
+      const safeStem = String(strainName || 'Cepa_Lab')
+        .replace(/[^a-zA-Z0-9_-]/g, '_')
+        .replace(/_+/g, '_')
+        .slice(0, 22) || 'Cepa_Lab';
+      const customFilename = safeStem.endsWith(extSuffix) ? safeStem : `${safeStem}${extSuffix}`;
+      const copyMb = Math.max(4, Math.round(this.getItemSizeMb(virusKey, clampedVerInt) * 0.65));
+
+      const labVirusCopies = this.state.extraCopies.filter((c) => c.isLabVirus);
+      if (labVirusCopies.length >= 8) {
+        const oldestIdx = this.state.extraCopies.findIndex((c) => c.isLabVirus);
+        if (oldestIdx >= 0) this.state.extraCopies.splice(oldestIdx, 1);
+      }
+
+      if (this.getUsedHddMb() + copyMb <= this.getMaxHddMb()) {
+        this.state.extraCopies.unshift({
+          id: 'lab_vir_' + Date.now() + '_' + Math.floor(Math.random() * 999),
+          isLabVirus: true,
+          softKey: virusKey,
+          customFilename,
+          customTitle: `${strainName || customFilename} · ${setTitle ? `Conjunto ${setTitle}` : 'Protótipo'} (Nota ${fitGrade || 'B'})`,
+          versionInt: clampedVerInt,
+          sizeMb: copyMb,
+          drive: cur.drive || 'hd',
+          folderId: null,
+          hiddenWithVer: 0
+        });
+      }
+
+      this.save();
+      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+      this.renderUI();
+
+      return {
+        success: true,
+        upgradedMain,
+        prevVersion: prevVerInt > 0 ? this.fmtVer(prevVerInt) : null,
+        activeVersion: this.fmtVer(cur.versionInt),
+        compiledVersion: this.fmtVer(clampedVerInt),
+        customFilename
       };
     }
 
@@ -4017,20 +4105,39 @@
           const verStr = (cp.versionInt / 10).toFixed(1);
           const fn = cp.customFilename || def.filename;
           const title = cp.customTitle || def.friendlyTitle;
+          const isVirusCopy = def.category === 'virus' || !!cp.isLabVirus;
+          const copyDesc = isVirusCopy
+            ? `${title} — Cepa autoral compilada no Laboratório de Vírus.`
+            : `Hash alternativo salvo na unidade ${drv.toUpperCase()} para escolha rápida no Mini-PC.`;
+          const primaryCopyBtn = isVirusCopy
+            ? (connectedRemoteIp
+                ? `<button type="button" class="soft-icon-act ic-run" aria-label="Subir ${esc(fn)} para ${esc(connectedRemoteIp)}"
+                    data-tip-title="Subir cepa para PC invadido" data-tip-meta="${esc(connectedRemoteIp)}"
+                    data-tip-desc="Enviar ${esc(fn)} (v${verStr}) pela rede para ${esc(connectedRemoteIp)}."
+                    onclick="window.navTo('winBrowser');window.internetEngine.switchTab('entrar');window.internetEngine.sshSubTab='files';window.internetEngine.render();">${HC.icon('upload')}</button>`
+                : `<button type="button" class="soft-icon-act ic-info" aria-label="Abrir Laboratório de Vírus"
+                    data-tip-title="Cepa do Laboratório" data-tip-meta="v${verStr}"
+                    data-tip-desc="${esc(title)}"
+                    onclick="window.navTo('winVirusLab')">${HC.icon('flask-conical')}</button>`)
+            : `<button type="button" class="soft-icon-act ic-run" aria-label="Rodar ${esc(fn)}"
+                data-tip-title="Rodar programa" data-tip-meta="2º plano"
+                data-tip-desc="Ativar ${esc(fn)} (${verStr}) em segundo plano."
+                onclick="window.softwareEngine.startSoftwareViaTaskManager('copy', '${esc(cp.id)}')">${HC.icon('settings')}</button>`;
           tableRows.push(`
             <tr class="${isHidden ? 'row-hidden' : ''}">
               <td class="soft-col-icon">
                 <span class="soft-mini-glyph kind-${def.iconKind || 'attack'}"
                   data-tip-title="${esc(title)}" data-tip-meta="v${verStr} · ${drv.toUpperCase()}"
-                  data-tip-desc="Cópia auxiliar disponível no Mini-PC ao clicar em Quebrar senha.">
+                  data-tip-desc="${esc(copyDesc)}">
                   ${HC.icon(def.icon || 'key-round')}
                 </span>
               </td>
               <td>
                 <span class="soft-name-trigger" tabindex="0"
                   data-tip-title="${esc(title)}" data-tip-meta="v${verStr} · ${drv.toUpperCase()}"
-                  data-tip-desc="Hash alternativo salvo na unidade ${drv.toUpperCase()} para escolha rápida no Mini-PC.">
+                  data-tip-desc="${esc(copyDesc)}">
                   <span>${esc(fn)}</span>
+                  ${cp.isLabVirus ? `<span class="hc-badge success" style="font-size:10px;padding:1px 5px;margin-left:4px;">LAB</span>` : ''}
                   ${isHidden ? `<span style="font-size:11px;color:var(--hc-text-3);">(oculto)</span>` : ''}
                 </span>
               </td>
@@ -4038,10 +4145,7 @@
               <td class="soft-col-size">${cp.sizeMb || 8} MB</td>
               <td class="soft-col-acts">
                 <div class="soft-icon-actions">
-                  <button type="button" class="soft-icon-act ic-run" aria-label="Rodar ${esc(fn)}"
-                    data-tip-title="Rodar programa" data-tip-meta="2º plano"
-                    data-tip-desc="Ativar ${esc(fn)} (${verStr}) em segundo plano."
-                    onclick="window.softwareEngine.startSoftwareViaTaskManager('copy', '${esc(cp.id)}')">${HC.icon('settings')}</button>
+                  ${primaryCopyBtn}
                   <button type="button" class="soft-icon-act ic-hide" aria-label="${isHidden ? 'Revelar' : 'Esconder'} ${esc(fn)}"
                     data-tip-title="${isHidden ? 'Revelar cópia' : 'Esconder cópia'}" data-tip-meta="${isHidden ? 'Seeker' : 'Hider'}"
                     data-tip-desc="${isHidden ? 'Tornar visível novamente.' : 'Esconder esta cópia no disco.'}"

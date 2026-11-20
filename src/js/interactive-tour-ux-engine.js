@@ -318,11 +318,11 @@
         {
           id: 'my_ip',
           selector: '#hudMyIpChip',
-          pointerLabel: '👀 Seu Endereço (IP)',
+          pointerLabel: '👀 Seu IP (Com Blur Anti-Curiosos)',
           requiresDirectClick: false,
-          title: '1. O Endereço do Seu PC (Seu IP)',
-          desc: 'Pense nesse número aqui em cima como a <strong>placa do seu carro</strong> na rede. Tudo o que você fizer em outro computador grava esse número lá dentro!',
-          hint: '💡 Se você invadir alguém, subir um vírus e esquecer seu IP anotado na log da vítima, outros jogadores vão descobrir quem você é e te invadir de volta!',
+          title: '1. Seu Endereço IP & Proteção Anti-Curiosos',
+          desc: 'Esse número no topo é a <strong>placa do seu PC</strong> na rede. Repare que os <strong>últimos 7 dígitos ficam desfocados automaticamente</strong> para ninguém ao seu lado espiar — passe o mouse por cima quando quiser ver!',
+          hint: '💡 Tudo o que você fizer em outro PC grava seu IP na log da vítima; e suas contas mensais chegam às <strong>12:00</strong> (1h real = 1 dia; acumula no máx. 3 meses e pausa se ficar offline).',
           nextLabel: 'Entendi, Próximo →',
           onEnter: () => {
             if (typeof window.navTo === 'function') window.navTo('winHome');
@@ -375,9 +375,9 @@
           fallbackSelector: '#runningProgramsPanel',
           pointerLabel: '👀 Seus Aplicativos no PC',
           requiresDirectClick: false,
-          title: '4. Programas no Disco vs. Segundo Plano',
-          desc: 'Aqui ficam os apps do seu PC (<strong>HD, SSD e NVMe</strong>) com ações de <strong>Rodar, Esconder, Mover e Apagar</strong>. O <strong>Firewall</strong> e o <strong>Hasher</strong> ficam rodando direto (1 por vez, com carência ao trocar).',
-          hint: '⚡ Já o <strong>Quebrador de Senha (Cracker)</strong> e o <strong>Antivírus</strong> ficam em <strong>segundo plano</strong>: não precisam rodar direto no PC — basta clicar na hora de usar!',
+          title: '4. Programas no Disco & Laboratório de Vírus',
+          desc: 'Aqui ficam os apps do seu PC (<strong>HD, SSD e NVMe</strong>). E logo abaixo no menu <strong>Meu Computador</strong> você tem o <strong>Laboratório de Vírus</strong> para criar seus próprios vírus combinando blocos de código (<code>1 + 2 + 1</code>) em 54 conjuntos!',
+          hint: '⚡ Já nas empresas invadidas você também encontra <strong>Câmeras CFTV Ao Vivo</strong> (para desativar câmeras ou apagar gravações do DVR em missões)!',
           nextLabel: 'Entendi! Vamos Invadir →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
@@ -1135,11 +1135,18 @@
       if (!alreadyRewarded) {
         this.rewardedByUid[uid] = '1';
         try { localStorage.setItem(this.rewardKey(uid), '1'); } catch (e) {}
-        if (window.currentWallet) {
-          window.currentWallet.balance = +(parseFloat(window.currentWallet.balance || 0) + TOUR_REWARD_CASH).toFixed(2);
-        }
-        if (window.currentProfile) {
-          window.currentProfile.reputation = (window.currentProfile.reputation || 0) + TOUR_REWARD_REP;
+        const grantTourReward = () => {
+          if (window.currentWallet) {
+            window.currentWallet.balance = +(parseFloat(window.currentWallet.balance || 0) + TOUR_REWARD_CASH).toFixed(2);
+          }
+          if (window.currentProfile) {
+            window.currentProfile.reputation = (window.currentProfile.reputation || 0) + TOUR_REWARD_REP;
+          }
+        };
+        if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+          window.integrityGuard.runAuthorized(grantTourReward);
+        } else {
+          grantTourReward();
         }
         if (window.tutorialEngine && typeof window.tutorialEngine.ensureLoaded === 'function') {
           const ts = window.tutorialEngine.ensureLoaded();
