@@ -28,6 +28,7 @@
   <link rel="stylesheet" href="src/css/cctv.css">
   <link rel="stylesheet" href="src/css/virus-lab.css">
   <link rel="stylesheet" href="src/css/ecosystem-hub.css">
+  <link rel="stylesheet" href="src/css/nine-deep-systems.css">
 
   <!-- Modular Core Scripts -->
   <script src="src/js/audio-synth.js"></script>
@@ -58,6 +59,7 @@
   <script src="src/js/world-map-engine.js"></script>
   <script src="src/js/darknet-social-news-engine.js"></script>
   <script src="src/js/ecosystem-interconnected-hub.js"></script>
+  <script src="src/js/nine-deep-systems-engine.js"></script>
 </head>
 <body>
 
@@ -355,6 +357,10 @@
           </summary>
           <div class="nav-sublist">
             <div class="flyout-head">Dinheiro &amp; Vida</div>
+            <button type="button" class="nav-item" id="navBtnLaundering" data-win="winLaundering" onclick="navTo('winLaundering')">
+              <i data-icon="briefcase"></i>
+              <span class="nav-item-copy"><span>Empresas de Lavagem &amp; P2P</span><small>5 empresas/1h, 3 portes, anúncios $10K e licenças</small></span>
+            </button>
             <button type="button" class="nav-item" id="navBtnCyberStock" data-win="winOpsHub" onclick="if(window.ecosystemHub) window.ecosystemHub.activeTab='stocks'; navTo('winOpsHub')">
               <i data-icon="trending-up"></i>
               <span class="nav-item-copy"><span>Bolsa CyberStock &amp; Operações</span><small>Ações ao vivo, Short/Hack, Seguros e VPS Cron</small></span>
@@ -1048,6 +1054,18 @@
       <div class="window-body" id="opsHubAppBody"></div>
     </div>
 
+    <!-- PÁGINA 32: EMPRESAS DE LAVAGEM DE DINHEIRO (3 PORTES, 5/1H, 15 VAGAS $10K, 15 MIN) & MERCADO P2P -->
+    <div class="window-frame" id="winLaundering" style="display: none;">
+      <div class="window-header">
+        <div>
+          <div class="hc-breadcrumb"><span>Dinheiro &amp; Vida</span><span class="sep">›</span><span class="curr">Empresas de Lavagem &amp; Mercado Clandestino P2P</span></div>
+          <div class="window-title">Empresas de Lavagem &amp; Licenças P2P</div>
+          <p class="page-sub">Lave Dinheiro Sujo nas 5 empresas da hora (mín. 17% s/ teto, 15 min reais), compre sua empresa com Dinheiro Limpo ($50K / $150K / $400K), anuncie por $10K (15 vagas = 3h) e negocie cepas do Lab!</p>
+        </div>
+      </div>
+      <div class="window-body" id="launderingAppBody"></div>
+    </div>
+
     <!-- WIDGET FLUTUANTE DE PROCESSOS (CANTO INFERIOR DIREITO) -->
     <div class="hc-floating-tasks" id="hcFloatingTasksPill" onclick="navTo('winTaskManager')" title="Clique para abrir a Fila de Ações">
       <div class="hc-floating-tasks-inner">
@@ -1140,9 +1158,12 @@
     window.clearLocalLogs = function () {
       window.systemLogs = [];
       try { localStorage.setItem(window.getSystemLogsStorageKey(), JSON.stringify(window.systemLogs)); } catch (e) {}
+      if (window.nineSystemsEngine && typeof window.nineSystemsEngine.recordSimpleLogWipe === 'function') {
+        window.nineSystemsEngine.recordSimpleLogWipe('localhost');
+      }
       if (window.onlineEngine && window.currentProfile) window.onlineEngine.scheduleSave(false);
       window.renderLogsPage();
-      showToast('Arquivo /var/log/syslog local truncado com sucesso.');
+      showToast('Arquivo /var/log/syslog local truncado (sombra magnética ativa por 5m — use Shred 7-Passos p/ zerar setores!).');
     };
 
     window.saveEditedLocalLogs = function () {
@@ -1173,6 +1194,9 @@
     window.wipeRemoteLogFromUI = function (ip) {
       if (!window.botAI) return;
       const aborted = window.botAI.wipeLogs(ip);
+      if (window.nineSystemsEngine && typeof window.nineSystemsEngine.recordSimpleLogWipe === 'function') {
+        window.nineSystemsEngine.recordSimpleLogWipe(ip);
+      }
       if (window.hackerAudio) window.hackerAudio.playKeyClick();
       showToast(aborted
         ? `Rastro em ${ip} apagado e contra-ataque neutralizado!`
@@ -1369,11 +1393,16 @@
             ` : ''}
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
               <span class="mono" style="font-size:12px;color:var(--hc-text-2);">${blurredIp}:/var/log/syslog (${window.systemLogs.length} linha${window.systemLogs.length === 1 ? '' : 's'})</span>
-              <div style="display:flex;gap:8px;">
-                <button type="button" class="hc-btn ghost sm" onclick="clearLocalLogs()">Limpar Tudo</button>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button type="button" id="btnSimpleClearLocalLogs" class="hc-btn ghost sm" onclick="clearLocalLogs()">Limpar Simples (Deixa Sombra)</button>
+                ${window.nineSystemsEngine ? `
+                  <button type="button" id="btnSevenPassShredLocal" class="hc-btn sm" style="border-color:var(--hc-danger);color:var(--hc-danger-text);" onclick="window.nineSystemsEngine.executeSevenPassShred('localhost')">🔥 Shred 7-Passos (Zero Sombra)</button>
+                  <button type="button" id="btnScanMagneticShadowLocal" class="hc-btn ghost sm" onclick="const r = window.nineSystemsEngine.scanMagneticShadowsOnHost('localhost'); const bx = document.getElementById('localMagShadowBox'); if (bx) { bx.style.display='block'; bx.innerHTML = r.shadows && r.shadows.length ? r.shadows.map(s => '🔬 Setor Magnético Recuperado: <code>' + s.subnetPrefix + '</code> (apagado às ' + s.wipedAt + ')').join('<br>') : r.message; }">🔬 Ler Setor Magnético</button>
+                ` : ''}
                 <button type="button" id="btnSaveLocalSyslogRaw" class="hc-btn primary sm" onclick="saveEditedLocalLogs()">Salvar Arquivo de Log</button>
               </div>
             </div>
+            <div id="localMagShadowBox" style="display:none;padding:8px 10px;background:#0d1520;border:1px solid #2b3e57;border-radius:7px;font-size:12px;color:#7dd3fc;"></div>
             <textarea id="localSyslogTextarea" class="ssh-syslog-editor" style="min-height:290px;color:#d6e2ee;background:var(--hc-inset);border:1px solid var(--hc-border);border-radius:8px;padding:12px 14px;line-height:1.55;" spellcheck="false">${escapeHtml(localRawText)}</textarea>
           </div>
         `;
@@ -1839,6 +1868,9 @@
       if (window.onlineEngine) {
         window.onlineEngine.updateHudSyncChip();
         window.onlineEngine.scheduleSave(false);
+      }
+      if (window.nineSystemsEngine) {
+        window.nineSystemsEngine.syncHudBadges();
       }
       updateSkillTreeDisplay();
     }
@@ -2433,8 +2465,31 @@
         appendCli('  osint [ip]           - Usa Dossiê OSINT para descobrir senha root de alvo Tier 1-3', 'var(--hc-warning)');
         appendCli('  factions / heist     - Abre Facções Underground e Golpes de Equipe de 4 Papéis', 'var(--hc-violet)');
         appendCli('  cron / audit         - Gerencia CronDaemons nas suas VPS ou roda Pentest Pessoal', 'var(--hc-success)');
+        appendCli('  lavar / launder      - Abre Empresas de Lavagem (5/1h, 3 Portes, Anúncios $10K) & P2P', 'var(--hc-warning)');
+        appendCli('  vazamentos / leaks   - Abre Portal Underground hc://vazamentos (185.220.101.77)', 'var(--hc-accent-text)');
+        appendCli('  temp / delegado      - Mostra Termodinâmica da CPU (°C) ou Delegado em Exercício', 'var(--hc-info-text)');
         appendCli('  clear                - Limpa a tela');
         appendCli('  panic                - Dispara o Protocolo 404 (batida policial)');
+      } else if (cmd === 'lavar' || cmd === 'launder' || cmd === 'p2p') {
+        navTo('winLaundering');
+        if (window.nineSystemsEngine) {
+          appendCli(`=== EMPRESAS DE LAVAGEM & P2P // LIMPO: $ ${window.nineSystemsEngine.getCleanBalance().toFixed(2)} | SUJO: $ ${window.nineSystemsEngine.getDirtyBalance().toFixed(2)} ===`, 'var(--hc-warning)');
+        }
+      } else if (cmd === 'vazamentos' || cmd === 'leaks' || cmd === 'zerobin') {
+        if (window.internetEngine) window.internetEngine.openIp('185.220.101.77');
+        appendCli('Navegando para hc://vazamentos (185.220.101.77) — verifique o PGP antes de explorar!', 'var(--hc-accent-text)');
+      } else if (cmd === 'temp' || cmd === 'cooler') {
+        navTo('winHardware');
+        if (window.nineSystemsEngine) {
+          const tel = window.nineSystemsEngine.getLiveThermalTelemetry();
+          appendCli(`[CPU THERMALS] ${tel.tempC}°C | ${tel.cooler.name} | Velocidade: ${tel.cpuSpeedMult}x`, 'var(--hc-accent-text)');
+        }
+      } else if (cmd === 'delegado') {
+        navTo('winFbi');
+        if (window.nineSystemsEngine) {
+          const del = window.nineSystemsEngine.getActiveDelegate();
+          appendCli(`[COMANDO FBI 6H] ${del.name} (${del.archetype}) — ${del.proText}`, 'var(--hc-warning)');
+        }
       } else if (cmd === 'stock' || cmd === 'cyberstock' || cmd === 'tix') {
         if (window.ecosystemHub) {
           window.ecosystemHub.activeTab = 'stocks';
@@ -3603,6 +3658,9 @@
       }
       if (winId === 'winOpsHub' && window.ecosystemHub) {
         window.ecosystemHub.renderUI('opsHubAppBody');
+      }
+      if (winId === 'winLaundering' && window.nineSystemsEngine) {
+        window.nineSystemsEngine.renderLaunderingHub('launderingAppBody');
       }
     }
     function closeWindow(winId) { window.winManager ? window.winManager.close(winId) : null; }

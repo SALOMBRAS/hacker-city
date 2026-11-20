@@ -168,7 +168,10 @@
       existingSafenet.reason = reason;
 
       let fbiEntry = this.fbiWantedList.find((w) => w.ip === ip);
-      const addedBounty = Math.max(550, Math.round(amountValue * 0.42));
+      const top3Mult = (kind === 'player' && window.nineSystemsEngine && typeof window.nineSystemsEngine.isPlayerInSeasonTop3 === 'function' && window.nineSystemsEngine.isPlayerInSeasonTop3())
+        ? 1.5 // Contrapeso Holofote da Temporada Mensal: Top 3 tem +50% de recompensa no FBI!
+        : 1.0;
+      const addedBounty = Math.max(550, Math.round(amountValue * 0.42 * top3Mult));
       const addedSats = Math.round(addedBounty * 65);
 
       if (fbiEntry) {
@@ -297,12 +300,20 @@
         };
       }
 
-      // SUCESSO: Derrubou o Procurado do FBI e capturou o Bounty!
+      // SUCESSO: Derrubou o Procurado do FBI e capturou o Bounty (com bônus do Delegado em Exercício)!
       this.fbiWantedList = this.fbiWantedList.filter((w) => w.ip !== targetIp);
       this.safenetList = this.safenetList.filter((s) => s.ip !== targetIp);
 
+      const delMult = (window.nineSystemsEngine && typeof window.nineSystemsEngine.getActiveDelegate === 'function')
+        ? Number(window.nineSystemsEngine.getActiveDelegate().bountyMult || 1.0)
+        : 1.0;
+      const finalBountyCash = Math.round(target.bountyCash * delMult);
+
       if (window.currentWallet) {
-        window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + target.bountyCash).toFixed(2);
+        window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + finalBountyCash).toFixed(2);
+      }
+      if (window.nineSystemsEngine) {
+        window.nineSystemsEngine.awardSeasonPoints(Math.round(finalBountyCash * 0.08), targetIp);
       }
       if (target.bountySats > 0 && window.bitcoinEngine) {
         window.bitcoinEngine.creditSats(
@@ -443,6 +454,7 @@
 
       container.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:14px;">
+          ${window.nineSystemsEngine && typeof window.nineSystemsEngine.renderDelegateBannerHtml === 'function' ? window.nineSystemsEngine.renderDelegateBannerHtml() : ''}
           ${statusAlert}
 
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:12px;">

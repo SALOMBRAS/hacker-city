@@ -97,11 +97,14 @@
           window.audioEngine.playAlertSiren(1.2);
         }
 
-        if (window.showToast) {
+          if (window.showToast) {
           window.showToast(
             `Intrusão detectada: ${session.originIp} (${session.originAlias}) conectou via ${session.protocol}.`,
             'danger'
           );
+        }
+        if (window.nineSystemsEngine && typeof window.nineSystemsEngine.triggerActiveDefensePopover === 'function') {
+          window.nineSystemsEngine.triggerActiveDefensePopover(session);
         }
       }
       this.updateUI();
@@ -356,9 +359,14 @@
         </div>
 
         <div class="hc-card" style="padding: 0; overflow: hidden; margin-bottom: 18px;">
-          <div style="padding: 14px 18px; border-bottom: 1px solid var(--hc-border); display: flex; justify-content: space-between; align-items: center;">
+          <div style="padding: 14px 18px; border-bottom: 1px solid var(--hc-border); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
             <strong style="font-size: 14px;">Sessões entrando no seu computador</strong>
-            <span class="hc-badge ${inCount > 0 ? 'danger' : 'success'}">${inCount > 0 ? `${inCount} invasão ativa` : 'Seguro'}</span>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <button type="button" id="btnSimulateActiveDefense15s" class="hc-btn ghost sm" style="border-color:var(--hc-danger);color:var(--hc-danger-text);" onclick="window.connManagerEngine.registerInboundSession({ id: 'sim_' + Date.now(), originIp: '91.134.72.19', originAlias: 'nyx_0day', protocol: 'SSH', action: 'Quebrando senha root (48%)', progressPct: 48, startedAt: new Date().toLocaleTimeString('pt-BR') })">
+                🚨 Simular Intrusão p/ Testar Defesa 15s
+              </button>
+              <span class="hc-badge ${inCount > 0 ? 'danger' : 'success'}">${inCount > 0 ? `${inCount} invasão ativa` : 'Seguro'}</span>
+            </div>
           </div>
           ${inboundHtml}
         </div>

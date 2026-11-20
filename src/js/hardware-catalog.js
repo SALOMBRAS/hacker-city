@@ -261,9 +261,12 @@ class HardwareEngine {
     const usedHdd = window.softwareEngine ? window.softwareEngine.getUsedHddMb() : 0;
     const usedRam = window.softwareEngine ? window.softwareEngine.getUsedRamMb() : 0;
 
-    // Consumo elétrico do PC Principal: placa-mãe/fonte (28W) + peças + carga dinâmica da RAM
+    // Consumo elétrico do PC Principal: placa-mãe/fonte (28W) + peças + carga dinâmica da RAM + Air Cooler (Watercooler 360mm = +0W!)
     const activeLoadW = ram.ramMb > 0 ? Math.round((usedRam / ram.ramMb) * 18) : 0;
-    const pcWatts = 28 + (cpu.watts || 55) + (ram.watts || 6) + (hdd.watts || 9) + (net.watts || 5) + activeLoadW;
+    const coolerExtraW = (window.nineSystemsEngine && typeof window.nineSystemsEngine.getLiveThermalTelemetry === 'function')
+      ? Number(window.nineSystemsEngine.getLiveThermalTelemetry().extraWatts || 0)
+      : 0;
+    const pcWatts = 28 + (cpu.watts || 55) + (ram.watts || 6) + (hdd.watts || 9) + (net.watts || 5) + activeLoadW + coolerExtraW;
     const pcEnergyRate = this.getEnergyRatePerWattMonth(pcWatts);
     const pcEnergyMonthly = Math.round(pcWatts * pcEnergyRate);
     const pcNetMonthly = net.monthlyFee || 35;
@@ -1045,6 +1048,7 @@ class HardwareEngine {
               </div>
             ` : ''}
             ${mainColHtml}
+            ${window.nineSystemsEngine && typeof window.nineSystemsEngine.renderHardwareThermalSectionHtml === 'function' ? window.nineSystemsEngine.renderHardwareThermalSectionHtml() : ''}
           </div>
 
           <aside class="soft-side-bar" id="hardwareHealthCard">

@@ -173,6 +173,8 @@ class WindowManager {
       window.virusLabEngine.renderUI('virusLabAppBody');
     } else if (winId === 'winOpsHub' && window.ecosystemHub) {
       window.ecosystemHub.renderUI('opsHubAppBody');
+    } else if (winId === 'winLaundering' && window.nineSystemsEngine) {
+      window.nineSystemsEngine.renderLaunderingHub('launderingAppBody');
     }
 
     // Fecha o flyout após escolher um destino (a menos que o Tour esteja guiando o menu)

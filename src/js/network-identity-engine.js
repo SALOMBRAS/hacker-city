@@ -932,6 +932,29 @@
         { name: 'catalogo_0day.gpg', size: '32 MB', sizeMb: 32, content: 'Exploits v2 e limpadores de ficha policial.' }
       ]
     },
+    '185.220.101.77': {
+      ip: '185.220.101.77',
+      domain: 'vazamentos',
+      hostname: 'ZeroBin // Portal hc://vazamentos',
+      kind: 'zerobin',
+      badge: 'Underground Pastebin',
+      tier: 2,
+      securityLevel: 2,
+      cpuMhz: 6400,
+      netMbps: 500,
+      hddTotalMb: 4096,
+      hddOsBaseMb: 1200,
+      ramTotalMb: 2048,
+      ramOsBaseMb: 640,
+      hasherVer: 2.0,
+      firewallVer: 2.0,
+      antivirusVer: 2.5,
+      cpuSpec: '6.400 MHz · 500 Mbps · HDD 4GB · AV v2.5',
+      bankBalance: 650,
+      files: [
+        { name: 'pgp_relay_index.asc', size: '14 MB', sizeMb: 14, content: 'Índice horário de vazamentos criptografados e alertas de Honey-Paste da Safenet.' }
+      ]
+    },
     '109.64.211.37': {
       ip: '109.64.211.37',
       domain: 'safenet.hc',
@@ -1311,6 +1334,7 @@
     { ip: '203.17.88.40', label: 'Farofa Systems' },
     { ip: '187.22.5.60', label: 'Boteco h4x0r' },
     { ip: '109.64.211.37', label: 'Safenet Authority' },
+    { ip: '185.220.101.77', label: 'hc://vazamentos' },
     { ip: '161.89.1.1', label: 'FBI Mainframe' }
   ];
 
@@ -1433,6 +1457,7 @@
       if (q === 'quantum' || q === 'quantum-bank.hc') return '77.3.13.99';
       if (q === 'puzzle' || q === 'firstpuzzle') return '109.64.200.10';
       if (q === 'market' || q === 'blackmarket' || q === 'blackmarket.onion') return '185.220.101.9';
+      if (q === 'vazamentos' || q === 'leaks' || q === 'zerobin') return '185.220.101.77';
       if (q === 'safenet') return '109.64.211.37';
       if (q === 'fbi' || q === 'mainframe' || q === 'fbi.gov.internal' || q === 'fbi.gov') return '161.89.1.1';
       if (q === 'farofa') return '203.17.88.40';
@@ -1940,7 +1965,10 @@
       const overclockRank = (window.skillTreeEngine && typeof window.skillTreeEngine.getRank === 'function')
         ? window.skillTreeEngine.getRank('cpu_overclock')
         : 0;
-      return +(cpuMult * certSpeed * (1 + overclockRank * 0.15)).toFixed(2);
+      const thermalMult = (window.nineSystemsEngine && typeof window.nineSystemsEngine.getLiveThermalTelemetry === 'function')
+        ? Number(window.nineSystemsEngine.getLiveThermalTelemetry().cpuSpeedMult || 1.0)
+        : 1.0;
+      return +(cpuMult * certSpeed * (1 + overclockRank * 0.15) * thermalMult).toFixed(2);
     }
 
     getPlayerCrackerVer() {
@@ -2602,6 +2630,9 @@
       if (window.dynamicContractsEngine) {
         window.dynamicContractsEngine.onGameAction('wipe_log', this.activeSshIp);
       }
+      if (newLines.length < prevLines.length && window.nineSystemsEngine && typeof window.nineSystemsEngine.recordSimpleLogWipe === 'function') {
+        window.nineSystemsEngine.recordSimpleLogWipe(this.activeSshIp);
+      }
       const sshHost = this.resolveHost(this.activeSshIp);
       if (sshHost && sshHost.isRealHuman && window.onlineEngine) {
         const myReal = window.networkIdentity.getPublicIp();
@@ -2658,7 +2689,12 @@
 
       const loot = host.bankBalance;
       this.drainedNpcIps.add(host.ip);
-      if (window.currentWallet) {
+      if (loot >= 100 && window.nineSystemsEngine) {
+        window.nineSystemsEngine.addDirtyMoney(loot, `${host.hostname} [${host.ip}]`);
+        if (typeof window.showToast === 'function') {
+          window.showToast(`🩸 +$ ${loot.toLocaleString('pt-BR')} em Dinheiro Sujo drenado! Lave nas Empresas de Lavagem antes de gastar!`);
+        }
+      } else if (window.currentWallet) {
         window.currentWallet.balance = parseFloat(window.currentWallet.balance) + loot;
       }
       const route = window.bounceEngine
@@ -3101,7 +3137,12 @@
         `;
       }
 
-      // 5. Blackmarket Onion (185.220.101.9) — Preserva compras PostgreSQL!
+      // 4b. Portal Underground ZeroBin (hc://vazamentos — 185.220.101.77)
+      if (host.kind === 'zerobin' && window.nineSystemsEngine) {
+        return window.nineSystemsEngine.renderZeroBinPortalHtml();
+      }
+
+      // 5. Blackmarket Onion (185.220.101.9) — Preserva compras PostgreSQL + Mercado Clandestino P2P!
       if (host.kind === 'darknet') {
         return `
           <div class="hc-card" style="padding: 1.15rem;">
@@ -3124,6 +3165,7 @@
               </div>
             </div>
           </div>
+          ${window.nineSystemsEngine ? `<div style="margin-top:14px;">${window.nineSystemsEngine.renderP2pMarketSectionHtml()}</div>` : ''}
         `;
       }
 
@@ -3345,10 +3387,15 @@
                 </div>
               </div>
               <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                <button type="button" id="btnWipeAllRemoteLogs" class="hc-btn ghost sm" onclick="document.getElementById('remoteSyslogTextarea').value=''; window.internetEngine.saveEditedRemoteLogs();">Apagar Tudo</button>
+                <button type="button" id="btnWipeAllRemoteLogs" class="hc-btn ghost sm" onclick="document.getElementById('remoteSyslogTextarea').value=''; window.internetEngine.saveEditedRemoteLogs();">Apagar Simples (Deixa Sombra)</button>
+                ${window.nineSystemsEngine ? `
+                  <button type="button" id="btnSevenPassShredRemote" class="hc-btn sm" style="border-color:var(--hc-danger);color:var(--hc-danger-text);" onclick="window.nineSystemsEngine.executeSevenPassShred('${esc(host.ip)}'); document.getElementById('remoteSyslogTextarea').value='';">🔥 Shred 7-Passos (Zero Sombra)</button>
+                  <button type="button" id="btnScanMagneticShadowRemote" class="hc-btn ghost sm" onclick="const r = window.nineSystemsEngine.scanMagneticShadowsOnHost('${esc(host.ip)}'); const bx = document.getElementById('remoteMagShadowResultBox'); if (bx) { bx.style.display='block'; bx.innerHTML = r.shadows && r.shadows.length ? r.shadows.map(s => '🔬 Setor Magnético Recuperado: <code>' + s.subnetPrefix + '</code> (apagado às ' + s.wipedAt + ')').join('<br>') : r.message; }">🔬 Ler Sombra Magnética</button>
+                ` : ''}
                 <button type="button" id="btnSaveRemoteSyslog" class="hc-btn primary sm" onclick="window.internetEngine.saveEditedRemoteLogs()">Salvar Alteração</button>
               </div>
             </div>
+            <div id="remoteMagShadowResultBox" style="display:none;padding:8px 10px;background:#0d1520;border:1px solid #2b3e57;border-radius:7px;font-size:12px;color:#7dd3fc;"></div>
 
             <!-- Barra Rápida: Apagar Próprio IP & Deixar Farpa / Recado para o Alvo! -->
             <div id="remoteTauntQuickBar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 10px;background:var(--hc-inset);border:1px solid rgba(216,155,56,0.35);border-radius:7px;">
@@ -3645,6 +3692,35 @@
 
         const seekerRevealed = window.stealthXhdEngine ? window.stealthXhdEngine.revealedHosts.has(host.ip) : false;
         const seekerClaimed = window.stealthXhdEngine ? window.stealthXhdEngine.claimedHiddenLoot.has(host.ip) : false;
+        const foreignViruses = (window.nineSystemsEngine && typeof window.nineSystemsEngine.getForeignVirusesOnHost === 'function')
+          ? window.nineSystemsEngine.getForeignVirusesOnHost(host.ip)
+          : [];
+        foreignViruses.forEach((fv) => {
+          remoteSoftRows.push(`
+            <tr>
+              <td class="soft-col-icon">
+                <span class="soft-mini-glyph kind-virus" data-tip-title="Vírus Alheio (${esc(fv.ownerTag)})" data-tip-meta="Revelado por Seeker.skr" data-tip-desc="Sequestre a chave C2 para desviar 70% do fluxo deste zumbi para sua conta (Máx. 4 simultâneos)!">
+                  ${HC.icon('bug')}
+                </span>
+              </td>
+              <td>
+                <span class="soft-name-trigger" tabindex="0">
+                  <strong style="color:#fbbf24;">${esc(fv.family)}_c2.${esc(fv.ownerTag)}</strong>
+                  <span style="font-size:11px;color:var(--hc-text-3);">(${fv.hijacked ? 'C2 sequestrado ✓' : 'vírus de rival detectado!'})</span>
+                </span>
+              </td>
+              <td class="soft-col-ver"><span class="soft-ver-badge v-tier2">${esc(fv.versionLabel)}</span></td>
+              <td class="soft-col-size">24 MB</td>
+              <td class="soft-col-acts">
+                <div class="soft-icon-actions">
+                  ${fv.hijacked
+                    ? `<span class="hc-badge success">✓ 70% Desviado</span>`
+                    : `<button type="button" id="btnHijackForeignC2" class="hc-btn primary sm" onclick="window.nineSystemsEngine.hijackForeignVirus('${esc(host.ip)}')">🏴‍☠️ Sequestrar C2 (70%)</button>`}
+                </div>
+              </td>
+            </tr>
+          `);
+        });
         const cctMeta = (window.ecosystemHub && typeof window.ecosystemHub.getHostCctContract === 'function')
           ? window.ecosystemHub.getHostCctContract(host.ip)
           : null;
@@ -3891,7 +3967,8 @@
         { ip: '33.8.2.71', name: 'Download Center', role: 'service', iconCls: 'service', icon: 'download', tier: 1, useLabel: 'Baixar utilitários gratuitos v1.0 (Antivírus, Analyzer, Cracker)', fw: 1.0 },
         { ip: '71.4.5.1', name: 'HC Telecom ISP', role: 'service', iconCls: 'service', icon: 'wifi', tier: 1, useLabel: 'Consultar e renovar seu endereço IP público (1 troca grátis/semana)', fw: 3.0 },
         { ip: '77.3.9.21', name: 'Banco Colchão', role: 'service', iconCls: 'bank', icon: 'landmark', tier: 1, useLabel: 'Abrir conta, transferir dinheiro ou quebrar senhas de contas bancárias', fw: 2.5 },
-        { ip: '185.220.101.9', name: 'Blackmarket Store', role: 'service', iconCls: 'service', icon: 'package', tier: 1, useLabel: 'Adquirir kits táticos e limpadores de alerta policial', fw: 1.5 },
+        { ip: '185.220.101.9', name: 'Blackmarket Store', role: 'service', iconCls: 'service', icon: 'package', tier: 1, useLabel: 'Adquirir kits táticos, limpadores e Licenças P2P do Lab', fw: 1.5 },
+        { ip: '185.220.101.77', name: 'hc://vazamentos (ZeroBin)', role: 'service', iconCls: 'service', icon: 'file-text', tier: 1, useLabel: 'Portal horário de senhas vazadas, rumores TIX e Iscas PGP', fw: 2.0 },
         { ip: '77.3.10.44', name: 'HEBC Clearing Bank', role: 'service', iconCls: 'bank', icon: 'landmark', tier: 2, useLabel: 'Banco comercial corporativo para contas secundárias e transferências', fw: 4.0 },
         { ip: '144.202.44.8', name: 'Bitcoin Market Exchange', role: 'service', iconCls: 'service', icon: 'bitcoin', tier: 3, useLabel: 'Comprar e vender Bitcoins na cotação em tempo real', fw: 3.5 },
         { ip: '109.64.211.37', name: 'Safenet Authority', role: 'service', iconCls: 'gov', icon: 'shield', tier: 3, useLabel: 'Consultar IPs rastreados por transferências e invasões sem limpeza', fw: 3.5 },

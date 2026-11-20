@@ -1332,7 +1332,15 @@
       if (!def) return 12;
       if ((def.category === 'virus' || def.onDemandTool) && !forVictim) return 0;
       const v = Math.max(1, (versionInt || 10) / 10) - 1;
-      return Math.round(def.baseRam * (1 + 0.14 * v + 0.20 * v * v));
+      let base = Math.round(def.baseRam * (1 + 0.14 * v + 0.20 * v * v));
+      // Contrapeso de Licença DRM P2P: vírus alugado consome +20% de RAM no alvo!
+      if (forVictim && this.state && this.state.inventory && this.state.inventory[softKey]) {
+        const inv = this.state.inventory[softKey];
+        if (inv.licensed && inv.rentedExpiresAt && inv.rentedExpiresAt > Date.now()) {
+          base = Math.round(base * 1.2);
+        }
+      }
+      return base;
     }
 
     getMaxRamMb() {
