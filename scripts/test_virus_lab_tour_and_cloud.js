@@ -89,16 +89,21 @@ function assert(cond, msg) {
   assert(coreChecks.spamRatio === 3.00, `Spam v10.0 deve render 3.00x o Spam v1.0, rendeu ${coreChecks.spamRatio}x`);
   assert(coreChecks.minerRatio === 3.00, `Miner v10.0 deve minerar 3.00x o Miner v1.0, minerou ${coreChecks.minerRatio}x`);
 
-  // 3) Abrir menu Meu Computador -> Laboratório de Vírus e validar os 3 Rounds com Leve Explicação!
-  console.log('2) Testando ritual 3 Rounds (3->1, 3->2, 3->1) + Leve Explicação nos Cartões e Combo...');
+  // 3) Abrir menu Meu Computador -> Laboratório de Vírus, pagar $ 1.000 e validar os 3 Rounds com Leve Explicação!
+  console.log('2) Testando ritual 3 Rounds (3->1, 3->2, 3->1) + Taxa $ 1.000 + Leve Explicação...');
   await page.evaluate(() => {
+    window.integrityGuard.runAuthorized(() => { window.currentWallet.balance = 2000; });
+    window.updateHudDisplays();
     const det = document.getElementById('navTopic_pc');
     if (det) det.open = true;
   });
   await page.waitForSelector('#navBtnVirusLab', { visible: true });
   await page.click('#navBtnVirusLab');
   await page.waitForSelector('#winVirusLab', { visible: true });
-  await new Promise((r) => setTimeout(r, 300));
+  await new Promise((r) => setTimeout(r, 250));
+  await page.waitForSelector('#btnVlabPayAndStart', { visible: true });
+  await page.click('#btnVlabPayAndStart');
+  await new Promise((r) => setTimeout(r, 250));
 
   const r1Check = await page.evaluate(() => {
     const hints = Array.from(document.querySelectorAll('#winVirusLab .vlab-block-hint')).map((el) => el.textContent.trim());
@@ -152,6 +157,7 @@ function assert(cond, msg) {
     // Agora compila uma combinação que dá o MESMO Miner.vminer porém mais fraca (ex: Camada I -> ~v1.2..v2.4)
     window.virusLabEngine.state.activeDraft = {
       startedAt: Date.now(),
+      paidFee: 1000,
       round: 3,
       optionsByRound: { 1: ['R1_09', 'R1_01', 'R1_05'], 2: ['R2_09', 'R2_01', 'R2_23'], 3: ['R3_07', 'R3_01', 'R3_04'] },
       picks: { r1: 'R1_09', r2: ['R2_09', 'R2_01'], r3: 'R3_07' },
@@ -188,6 +194,7 @@ function assert(cond, msg) {
     window.virusLabEngine.state.discoveredSets = ['SET_01', 'SET_12', 'SET_23', 'SET_34', 'SET_45', 'SET_51', 'SET_52'];
     window.virusLabEngine.state.activeDraft = {
       startedAt: Date.now(),
+      paidFee: 1000,
       round: 3,
       optionsByRound: {
         1: ['R1_12', 'R1_16', 'R1_20'],

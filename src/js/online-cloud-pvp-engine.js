@@ -66,6 +66,21 @@
       return `HC_MASTER_SAVE_V2_${uid || 'guest'}`;
     }
 
+    getOrCreateWriteSecret(uid) {
+      const k = `HC_WRITE_SECRET_V1_${uid || 'guest'}`;
+      try {
+        let sec = localStorage.getItem(k);
+        if (!sec || sec.length < 16) {
+          const rand = Array.from({ length: 4 }, () => Math.random().toString(36).slice(2, 10)).join('');
+          sec = `wcs_${Date.now().toString(36)}_${rand}`;
+          localStorage.setItem(k, sec);
+        }
+        return sec;
+      } catch (e) {
+        return `wcs_mem_${String(uid || 'guest')}`;
+      }
+    }
+
     bindLifecycleHooks() {
       const flushNow = (pushCloud) => {
         if (window.currentProfile && window.currentWallet) {
@@ -460,6 +475,7 @@
           xp: Number(window.virusLabEngine.state.xp || 0),
           level: Number(window.virusLabEngine.state.level || 1),
           totalCompiled: Number(window.virusLabEngine.state.totalCompiled || 0),
+          lastCompiledAtMs: Number(window.virusLabEngine.state.lastCompiledAtMs || 0),
           discoveredSets: Array.isArray(window.virusLabEngine.state.discoveredSets)
             ? window.virusLabEngine.state.discoveredSets.slice(0, 60)
             : [],
@@ -787,10 +803,10 @@
 
       let cloudSaved = false;
 
-      // 1) Tentar Stored Procedure Anti-Cheat sync_account_snapshot_secure (funciona p/ Auth e 1-Clique!)
+      // 1) Tentar Stored Procedure Anti-Cheat sync_account_snapshot_secure (com trava de posse p_write_secret + fallback compatível)
       if (this.cloudTablesAvailable !== false && typeof window.supabase.rpc === 'function') {
         try {
-          const { data, error } = await window.supabase.rpc('sync_account_snapshot_secure', {
+          const baseRpcArgs = {
             p_operator_key: String(snap.userId),
             p_hacker_tag: me.hackerTag,
             p_specialty: me.specialty,
@@ -812,7 +828,16 @@
             p_custom_web_page: me.customWebPage,
             p_public_syslog: (window.systemLogs || []).slice(0, 18),
             p_save_payload: snap
+          };
+          let { data, error } = await window.supabase.rpc('sync_account_snapshot_secure', {
+            ...baseRpcArgs,
+            p_write_secret: this.getOrCreateWriteSecret(snap.userId)
           });
+          if (error && (error.code === 'PGRST202' || String(error.message || '').includes('p_write_secret'))) {
+            const retry = await window.supabase.rpc('sync_account_snapshot_secure', baseRpcArgs);
+            data = retry.data;
+            error = retry.error;
+          }
           if (!error && data && data.success) {
             this.cloudTablesAvailable = true;
             if (data.cheat_blocked && window.integrityGuard) {
@@ -897,19 +922,33 @@
         !!sessionStorage.getItem('HC_TAB_INSTANT_SESSION');
 
       if (window.supabase) {
-        // 1) Checar player_cloud_saves por operator_key (funciona p/ Auth e p/ 1-Clique com UUID!)
+        // 1) Carregar save privado APENAS via RPC autenticada load_my_account_snapshot_secure (impede leitura de save_payload de terceiros!)
         if (this.cloudTablesAvailable !== false) {
           try {
-            const { data, error } = await window.supabase
-              .from('player_cloud_saves')
-              .select('save_payload, wallet_balance')
-              .eq('operator_key', String(userId))
-              .maybeSingle();
-            if (!error && data && data.save_payload && data.save_payload.savedAt) {
-              this.cloudTablesAvailable = true;
-              cloudSnap = data.save_payload;
-            } else if (error && (error.code === 'PGRST205' || error.code === '42703')) {
-              this.cloudTablesAvailable = false;
+            let loadedViaSecureRpc = false;
+            if (typeof window.supabase.rpc === 'function') {
+              const { data: secData, error: secErr } = await window.supabase.rpc('load_my_account_snapshot_secure', {
+                p_operator_key: String(userId),
+                p_write_secret: this.getOrCreateWriteSecret(userId)
+              });
+              if (!secErr && secData && secData.success && secData.save_payload && secData.save_payload.savedAt) {
+                this.cloudTablesAvailable = true;
+                cloudSnap = secData.save_payload;
+                loadedViaSecureRpc = true;
+              }
+            }
+            if (!loadedViaSecureRpc) {
+              const { data, error } = await window.supabase
+                .from('player_cloud_saves')
+                .select('save_payload, wallet_balance')
+                .eq('operator_key', String(userId))
+                .maybeSingle();
+              if (!error && data && data.save_payload && data.save_payload.savedAt) {
+                this.cloudTablesAvailable = true;
+                cloudSnap = data.save_payload;
+              } else if (error && (error.code === 'PGRST205' || error.code === '42703')) {
+                this.cloudTablesAvailable = false;
+              }
             }
           } catch (e) {}
         }
@@ -1012,13 +1051,25 @@
         }
       } catch (e) {}
 
-      // 2. Se player_cloud_saves existir, enriquecer IPs públicos, defesas e integridade de TODOS os operadores (Auth e 1-Clique)!
+      // 2. Diretório público seguro (via get_public_mmo_directory sem nunca expor save_payload privado!)
       if (this.cloudTablesAvailable !== false) {
         try {
-          const { data: saves, error: sErr } = await window.supabase
-            .from('player_cloud_saves')
-            .select('operator_key, user_id, hacker_tag, public_ip, specialty, reputation, heat_level, best_soft_ver, ddos_gbps, firewall_ver, hasher_ver, antivirus_ver, cpu_mhz, net_mbps, hardware_health_pct, clan_tag, last_seen_at')
-            .limit(60);
+          let saves = null;
+          let sErr = null;
+          if (typeof window.supabase.rpc === 'function') {
+            const rpcRes = await window.supabase.rpc('get_public_mmo_directory', { p_limit: 60 });
+            if (!rpcRes.error && Array.isArray(rpcRes.data)) {
+              saves = rpcRes.data;
+            }
+          }
+          if (!saves) {
+            const fbRes = await window.supabase
+              .from('player_cloud_saves')
+              .select('operator_key, user_id, hacker_tag, public_ip, specialty, reputation, heat_level, best_soft_ver, ddos_gbps, firewall_ver, hasher_ver, antivirus_ver, cpu_mhz, net_mbps, hardware_health_pct, clan_tag, last_seen_at')
+              .limit(60);
+            saves = fbRes.data;
+            sErr = fbRes.error;
+          }
           if (!sErr && Array.isArray(saves)) {
             this.cloudTablesAvailable = true;
             saves.forEach((sv) => {

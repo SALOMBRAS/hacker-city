@@ -30,6 +30,21 @@
 
   function computeSnapshotSig(snap) {
     if (!snap || typeof snap !== 'object') return '';
+    const softInvSig = snap.soft && snap.soft.inventory
+      ? ['cracker', 'firewall', 'hasher', 'antivirus', 'collector', 'vspam', 'vwarez', 'vminer', 'vbank', 'vddos']
+          .map((k) => {
+            const it = snap.soft.inventory[k];
+            return it && it.owned ? `${k}:${it.versionInt || 0}` : `${k}:0`;
+          })
+          .join(',')
+      : '';
+    const uniSig = snap.uni && Array.isArray(snap.uni.completed)
+      ? snap.uni.completed.slice().sort((a, b) => a - b).join(',')
+      : '';
+    const vlabSig = snap.virusLabState
+      ? `${snap.virusLabState.level || 1}|${snap.virusLabState.xp || 0}|${snap.virusLabState.totalCompiled || 0}|${snap.virusLabState.lastCompiledAtMs || 0}`
+      : '1|0|0|0';
+
     const canonical = [
       SNAPSHOT_PEPPER,
       String(snap.userId || ''),
@@ -37,9 +52,12 @@
       String(Math.round(Number(snap.reputation || 0))),
       String(Math.round(Number(snap.heatLevel || 1))),
       snap.hw ? `${snap.hw.cpu}|${snap.hw.ram}|${snap.hw.hdd}|${snap.hw.network}|${snap.hw.healthPct ?? 100}` : '',
-      snap.btc ? String(Math.round(Number(snap.btc.balanceSats || 0))) : '0'
+      snap.btc ? String(Math.round(Number(snap.btc.balanceSats || 0))) : '0',
+      softInvSig,
+      uniSig,
+      vlabSig
     ].join('::');
-    return 'hcsig4_' + fnv32(canonical, 2166136261) + fnv32(canonical + '::B', 291543107);
+    return 'hcsig5_' + fnv32(canonical, 2166136261) + fnv32(canonical + '::B', 291543107);
   }
 
   // =========================================================================
