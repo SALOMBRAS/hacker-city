@@ -421,6 +421,9 @@
           window.missionsEngine.notifyCctvAction(ip, null, 'disable_all');
         }
       }
+      if (!currentlyOff && window.ecosystemHub && typeof window.ecosystemHub.onCorporateHostSabotaged === 'function') {
+        window.ecosystemHub.onCorporateHostSabotaged(ip, 'cctv_disable');
+      }
       if (window.onlineEngine && typeof window.onlineEngine.saveLocalSnapshotImmediate === 'function') {
         window.onlineEngine.saveLocalSnapshotImmediate();
       }
@@ -457,6 +460,9 @@
 
       if (window.missionsEngine && typeof window.missionsEngine.notifyCctvAction === 'function') {
         window.missionsEngine.notifyCctvAction(ip, null, 'disable_all');
+      }
+      if (window.ecosystemHub && typeof window.ecosystemHub.onCorporateHostSabotaged === 'function') {
+        window.ecosystemHub.onCorporateHostSabotaged(ip, 'cctv_disable');
       }
       if (window.onlineEngine && typeof window.onlineEngine.saveLocalSnapshotImmediate === 'function') {
         window.onlineEngine.saveLocalSnapshotImmediate();
@@ -510,6 +516,9 @@
         if (this.areAllRecordingsDeleted(ip)) {
           window.missionsEngine.notifyCctvAction(ip, null, 'wipe_all_dvr');
         }
+      }
+      if (window.ecosystemHub && typeof window.ecosystemHub.onCorporateHostSabotaged === 'function') {
+        window.ecosystemHub.onCorporateHostSabotaged(ip, 'cctv_wipe');
       }
       if (window.onlineEngine && typeof window.onlineEngine.saveLocalSnapshotImmediate === 'function') {
         window.onlineEngine.saveLocalSnapshotImmediate();

@@ -444,9 +444,14 @@
           sent: (window.mailEngine.state.sent || []).slice(0, 15)
         } : null,
         skills: window.skillTreeEngine ? {
-          passiveRanks: window.skillTreeEngine.passiveRanks || {},
+          ranks: window.skillTreeEngine.ranks || {},
+          passiveRanks: window.skillTreeEngine.ranks || {},
           selectedSubclass: window.skillTreeEngine.selectedSubclass || null,
-          completedMissions: Array.from(window.skillTreeEngine.completedMissions || [])
+          unlockedSubclasses: window.skillTreeEngine.unlockedSubclasses || {},
+          completedMissions: window.skillTreeEngine.completedMissions || {},
+          completedMasteries: window.skillTreeEngine.completedMasteries || {},
+          bonusSp: Number(window.skillTreeEngine.bonusSp || 0),
+          loadouts: window.skillTreeEngine.loadouts || []
         } : null,
         sysLogs: Array.isArray(window.systemLogs) ? window.systemLogs.slice(0, 45) : null,
         netWorld: window.internetEngine ? {
@@ -483,7 +488,10 @@
             ? window.virusLabEngine.state.creations.slice(0, 30)
             : [],
           activeDraft: window.virusLabEngine.state.activeDraft || null
-        } : null
+        } : null,
+        ecosystemState: window.ecosystemHub && typeof window.ecosystemHub.getSnapshotState === 'function'
+          ? window.ecosystemHub.getSnapshotState()
+          : null
       };
       return window.integrityGuard && typeof window.integrityGuard.signSnapshot === 'function'
         ? window.integrityGuard.signSnapshot(rawSnap)
@@ -618,12 +626,31 @@
       }
 
       if (snap.skills && window.skillTreeEngine) {
-        window.skillTreeEngine.passiveRanks = snap.skills.passiveRanks || {};
+        window.skillTreeEngine.ranks = snap.skills.ranks || snap.skills.passiveRanks || {};
         window.skillTreeEngine.selectedSubclass = snap.skills.selectedSubclass || null;
-        window.skillTreeEngine.completedMissions = new Set(snap.skills.completedMissions || []);
-        if (typeof window.skillTreeEngine.saveState === 'function') {
-          window.skillTreeEngine.saveState();
+        if (snap.skills.unlockedSubclasses && typeof snap.skills.unlockedSubclasses === 'object') {
+          window.skillTreeEngine.unlockedSubclasses = { ...snap.skills.unlockedSubclasses };
         }
+        if (Array.isArray(snap.skills.completedMissions)) {
+          const obj = {};
+          snap.skills.completedMissions.forEach((k) => { obj[k] = true; window.skillTreeEngine.unlockedSubclasses[k] = true; });
+          window.skillTreeEngine.completedMissions = obj;
+        } else if (snap.skills.completedMissions && typeof snap.skills.completedMissions === 'object') {
+          window.skillTreeEngine.completedMissions = { ...snap.skills.completedMissions };
+        }
+        if (snap.skills.completedMasteries && typeof snap.skills.completedMasteries === 'object') {
+          window.skillTreeEngine.completedMasteries = { ...snap.skills.completedMasteries };
+        }
+        if (snap.skills.bonusSp != null) {
+          window.skillTreeEngine.bonusSp = Number(snap.skills.bonusSp || 0);
+        }
+        if (Array.isArray(snap.skills.loadouts) && snap.skills.loadouts.length === 3) {
+          window.skillTreeEngine.loadouts = snap.skills.loadouts;
+        }
+        if (window.skillTreeEngine.selectedSubclass) {
+          window.skillTreeEngine.unlockedSubclasses[window.skillTreeEngine.selectedSubclass] = true;
+        }
+        window.skillTreeEngine.save();
       }
 
       if (window.quitineteEngine && window.quitineteEngine.bills) {
@@ -678,6 +705,10 @@
           ? window.virusLabEngine.normalizeState(snap.virusLabState)
           : snap.virusLabState;
         window.virusLabEngine.save();
+      }
+
+      if (snap.ecosystemState && window.ecosystemHub && typeof window.ecosystemHub.applySnapshotState === 'function') {
+        window.ecosystemHub.applySnapshotState(snap.ecosystemState);
       }
 
       if (snap.stealthLoot && window.stealthXhdEngine) {

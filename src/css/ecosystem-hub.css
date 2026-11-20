@@ -1,0 +1,304 @@
+/* ==========================================================================
+   Hacker City // Central de Ecossistema Interligado (Bolsa CyberStock,
+   Arena .CCT & 6 Minigames, OSINT/Forense, Facções/Heists & CronDaemons VPS)
+   Segue 100% o Design System (.soft-frame, paleta escura sóbria e acentos vivos)
+   ========================================================================== */
+
+.eco-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.eco-top-ticker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  background: #0d1219;
+  border: 1px solid var(--hc-border);
+  border-radius: 10px;
+}
+
+.eco-ticker-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.eco-ticker-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  background: #131a24;
+  border: 1px solid #222d3d;
+  border-radius: 6px;
+  font-family: var(--hc-font-mono);
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.12s ease;
+}
+
+.eco-ticker-chip:hover {
+  border-color: var(--hc-accent);
+  transform: translateY(-1px);
+}
+
+.eco-ticker-chip .up {
+  color: #35b877;
+  font-weight: 700;
+}
+
+.eco-ticker-chip .down {
+  color: #e5534b;
+  font-weight: 700;
+}
+
+.eco-nav-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 6px;
+  background: #0e131a;
+  border: 1px solid var(--hc-border);
+  border-radius: 10px;
+}
+
+.eco-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 13px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--hc-text-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.eco-nav-btn:hover {
+  color: var(--hc-text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.eco-nav-btn.active {
+  background: rgba(53, 184, 119, 0.13);
+  border-color: rgba(53, 184, 119, 0.45);
+  color: var(--hc-accent-text);
+}
+
+.eco-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.eco-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+}
+
+.eco-card {
+  background: #10151d;
+  border: 1px solid var(--hc-border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.eco-card.accent {
+  border-color: rgba(53, 184, 119, 0.4);
+}
+
+.eco-card.warn {
+  border-color: rgba(240, 168, 58, 0.42);
+}
+
+.eco-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.eco-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--hc-text);
+}
+
+.eco-card-sub {
+  font-size: 12px;
+  color: var(--hc-text-2);
+  line-height: 1.45;
+}
+
+/* Hex Matrix 5x5 (Breach Protocol Multi-Daemon) */
+.hex-breach-wrap {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 780px) {
+  .hex-breach-wrap {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hex-matrix-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  padding: 12px;
+  background: #0a0e14;
+  border: 1px solid #243040;
+  border-radius: 10px;
+}
+
+.hex-cell {
+  height: 44px;
+  border-radius: 6px;
+  border: 1px solid #233042;
+  background: #121923;
+  color: #9fb0c7;
+  font-family: var(--hc-font-mono);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.hex-cell.selectable {
+  border-color: rgba(53, 184, 119, 0.65);
+  background: rgba(53, 184, 119, 0.12);
+  color: #7ef0b8;
+}
+
+.hex-cell.selectable:hover {
+  background: rgba(53, 184, 119, 0.25);
+  transform: scale(1.03);
+}
+
+.hex-cell.used {
+  background: #0b0f14;
+  border-color: #18202b;
+  color: #3f4c5d;
+  cursor: default;
+}
+
+.hex-buffer-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.hex-buf-slot {
+  width: 38px;
+  height: 34px;
+  border-radius: 6px;
+  border: 1px dashed #314156;
+  background: #0c1118;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--hc-font-mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #5fd39a;
+}
+
+.daemon-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: #0c1118;
+  border: 1px solid #202b3a;
+}
+
+.daemon-row.matched {
+  border-color: rgba(53, 184, 119, 0.6);
+  background: rgba(53, 184, 119, 0.1);
+}
+
+/* Packet Sniffer & Logic Gate Cards */
+.pkt-stream-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  gap: 8px;
+}
+
+.pkt-card {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #263344;
+  background: #0c1219;
+  font-family: var(--hc-font-mono);
+  font-size: 11.5px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pkt-card.captured {
+  border-color: #35b877;
+  background: rgba(53, 184, 119, 0.1);
+}
+
+.pkt-card.tripped {
+  border-color: #e5534b;
+  background: rgba(229, 83, 75, 0.12);
+}
+
+.logic-switch-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.logic-bit-btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-family: var(--hc-font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid #2c3a4e;
+  background: #121923;
+  color: #cbd5e1;
+  cursor: pointer;
+}
+
+.logic-bit-btn.on {
+  border-color: #35b877;
+  background: rgba(53, 184, 119, 0.18);
+  color: #6ee7b7;
+}
+
+.stock-spark-bar {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 22px;
+}
+
+.stock-spark-bar span {
+  width: 4px;
+  border-radius: 2px;
+  background: #3b82f6;
+}

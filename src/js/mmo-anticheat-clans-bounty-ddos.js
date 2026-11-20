@@ -605,6 +605,9 @@
       if (window.hackerAudio && typeof window.hackerAudio.playCashChime === 'function') {
         window.hackerAudio.playCashChime();
       }
+      if (window.ecosystemHub && typeof window.ecosystemHub.onCorporateHostSabotaged === 'function') {
+        window.ecosystemHub.onCorporateHostSabotaged(host.ip, 'ddos');
+      }
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
       window.internetEngine.render();
