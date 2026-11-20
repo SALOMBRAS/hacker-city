@@ -21,6 +21,8 @@
   'use strict';
 
   const MAX_LAB_LEVEL = 10;
+  const LAB_SESSION_FEE = 1000; // $ 1.000 cobrados por uso do Laboratório
+  const LAB_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 1 vez por Mês no jogo (= 1 Dia real / 24h)
 
   // Cálculo regressivo oficial (espelhado de SoftwareEngine.getVirusYieldMultiplier):
   // v10.0 = 3.00x MÁXIMO -> regredindo até v1.0 = 1.00x e v0.5 = 0.60x
@@ -634,6 +636,18 @@
       this.activeTab = 'workbench';
       this.lastCompileReport = null;
       this.state = this.defaultState();
+      this._cooldownTicker = setInterval(() => {
+        if (typeof document === 'undefined') return;
+        const cdEl = document.getElementById('vlabLiveCooldownTimer');
+        if (!cdEl) return;
+        const rem = this.getCooldownRemainingMs();
+        if (rem <= 0) {
+          this.lastCompileReport = null;
+          this.renderUI();
+        } else {
+          cdEl.textContent = this.formatCooldownMs(rem);
+        }
+      }, 1000);
     }
 
     defaultState() {
@@ -641,6 +655,7 @@
         xp: 0,
         level: 1,
         totalCompiled: 0,
+        lastCompiledAtMs: 0,
         discoveredSets: [],
         creations: [],
         activeDraft: null
@@ -669,9 +684,6 @@
             this.state = this.defaultState();
           }
         }
-        if (!this.state.activeDraft && !this.lastCompileReport) {
-          this.startNewDraft(true);
-        }
       } finally {
         this._loadingGuard = false;
       }
@@ -686,12 +698,31 @@
         xp,
         level: lvlObj.level,
         totalCompiled: Math.max(0, Math.round(Number(raw.totalCompiled) || 0)),
+        lastCompiledAtMs: Math.max(0, Math.round(Number(raw.lastCompiledAtMs) || 0)),
         discoveredSets: Array.isArray(raw.discoveredSets)
           ? Array.from(new Set(raw.discoveredSets.filter((id) => SET_BY_ID.has(id))))
           : [],
         creations: Array.isArray(raw.creations) ? raw.creations.slice(0, 30) : [],
-        activeDraft: raw.activeDraft && typeof raw.activeDraft === 'object' ? raw.activeDraft : null
+        activeDraft: raw.activeDraft && typeof raw.activeDraft === 'object' && raw.activeDraft.paidFee
+          ? raw.activeDraft
+          : null
       };
+    }
+
+    getCooldownRemainingMs(nowMs = Date.now()) {
+      this.ensureLoaded();
+      const last = Number(this.state.lastCompiledAtMs || 0);
+      if (!last || last <= 0) return 0;
+      const elapsed = nowMs - last;
+      return elapsed >= LAB_COOLDOWN_MS ? 0 : Math.max(0, LAB_COOLDOWN_MS - elapsed);
+    }
+
+    formatCooldownMs(ms) {
+      const totalSec = Math.max(0, Math.ceil(ms / 1000));
+      const h = Math.floor(totalSec / 3600);
+      const m = Math.floor((totalSec % 3600) / 60);
+      const s = totalSec % 60;
+      return `${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
     }
 
     save() {
@@ -764,14 +795,44 @@
       return shuffleCopy(pool).slice(0, 3).map((b) => b.id);
     }
 
-    startNewDraft(silent = false) {
-      if (this.userId !== ((window.currentProfile && window.currentProfile.id) || 'guest')) {
-        this.userId = (window.currentProfile && window.currentProfile.id) || 'guest';
+    // Cobra $ 1.000 e abre a única chance do Mês (1 dia real = 24h) para montar um vírus!
+    unlockPaidLabSession() {
+      this.ensureLoaded();
+      if (this.state.activeDraft && this.state.activeDraft.paidFee) {
+        this.activeTab = 'workbench';
+        this.renderUI();
+        return { success: true, alreadyOpen: true, draft: this.state.activeDraft };
       }
+
+      const remMs = this.getCooldownRemainingMs();
+      if (remMs > 0) {
+        const msg = `Limite atingido (1x por Mês/Dia)! Aguarde ${this.formatCooldownMs(remMs)} para usar o Laboratório novamente.`;
+        if (typeof window.showToast === 'function') window.showToast(msg);
+        return { success: false, code: 'COOLDOWN_ACTIVE', remainingMs: remMs, message: msg };
+      }
+
+      const curBal = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
+      if (curBal < LAB_SESSION_FEE) {
+        const msg = `Saldo insuficiente! Usar o Laboratório de Vírus custa $ ${LAB_SESSION_FEE.toLocaleString('pt-BR')} (você tem $ ${curBal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}).`;
+        if (window.hackerAudio && typeof window.hackerAudio.playErrorBuzz === 'function') window.hackerAudio.playErrorBuzz();
+        if (typeof window.showToast === 'function') window.showToast(msg);
+        return { success: false, code: 'INSUFFICIENT_FUNDS', required: LAB_SESSION_FEE, balance: curBal, message: msg };
+      }
+
+      const deductFee = () => {
+        window.currentWallet.balance = Math.max(0, +(Number(window.currentWallet.balance) - LAB_SESSION_FEE).toFixed(2));
+      };
+      if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+        window.integrityGuard.runAuthorized(deductFee);
+      } else {
+        deductFee();
+      }
+
       this.lastCompileReport = null;
       this.activeTab = 'workbench';
       this.state.activeDraft = {
         startedAt: Date.now(),
+        paidFee: LAB_SESSION_FEE,
         round: 1,
         optionsByRound: {
           1: this.drawThreeRandomBlocks(1),
@@ -785,12 +846,25 @@
         },
         customName: `${STRAIN_PREFIXES[Math.floor(Math.random() * STRAIN_PREFIXES.length)]}-${STRAIN_SUFFIXES[Math.floor(Math.random() * STRAIN_SUFFIXES.length)]}`
       };
+
       this.save();
-      if (!silent) {
-        this.renderUI();
-        this.scrollLabToTop();
+      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+      if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('VIRUS-LAB-FEE', `Taxa de uso da bancada paga (-$ ${LAB_SESSION_FEE.toLocaleString('pt-BR')}) — sessão mensal/diária iniciada!`, 'info');
       }
-      return this.state.activeDraft;
+      if (typeof window.showToast === 'function') {
+        window.showToast(`🔓 Bancada liberada (-$ ${LAB_SESSION_FEE.toLocaleString('pt-BR')})! Escolha com atenção seus blocos nos 3 rounds.`);
+      }
+
+      this.renderUI();
+      this.scrollLabToTop();
+      return { success: true, draft: this.state.activeDraft };
+    }
+
+    startNewDraft(silent = false) {
+      if (silent) return this.state.activeDraft;
+      return this.unlockPaidLabSession();
     }
 
     scrollLabToTop() {
@@ -1205,6 +1279,8 @@
       this.state.creations.unshift(creationRecord);
       if (this.state.creations.length > 30) this.state.creations.length = 30;
 
+      // Registra o timestamp da compilação concluída para travar 1x por Mês (1 dia real = 24h)!
+      this.state.lastCompiledAtMs = Date.now();
       this.state.activeDraft = null;
       this.lastCompileReport = {
         ...evalRes,
@@ -1317,7 +1393,69 @@
         return this.renderCompileReportHtml(this.lastCompileReport);
       }
 
-      const draft = this.state.activeDraft || this.startNewDraft(true);
+      const remCooldownMs = this.getCooldownRemainingMs();
+      if (!this.state.activeDraft && remCooldownMs > 0) {
+        return `
+          <div class="hc-card" id="vlabCooldownGateCard" style="padding:26px 24px;border-color:rgba(245,158,11,0.45);background:linear-gradient(160deg,rgba(20,24,32,0.98),rgba(12,16,22,0.98));">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;">
+              <div>
+                <div class="hc-eyebrow" style="color:#fbbf24;">Bancada em Resfriamento · Limite de 1 Vez por Mês (Dia)</div>
+                <h3 style="margin:6px 0 8px;font-size:1.18rem;color:var(--hc-text);">Você já utilizou o Laboratório neste Mês (Dia)!</h3>
+                <p style="margin:0;font-size:0.86rem;color:var(--hc-text-2);max-width:640px;line-height:1.55;">
+                  O sintetizador compila apenas <strong>1 vírus por Mês do jogo (equivalente a 1 dia / 24h reais)</strong>,
+                  mediante a taxa de operação de <strong>$ ${LAB_SESSION_FEE.toLocaleString('pt-BR')}</strong>. Enquanto aguarda a próxima janela,
+                  use seus vírus já criados em invasões!
+                </p>
+              </div>
+              <div style="padding:12px 16px;border-radius:10px;background:#090d12;border:1px solid rgba(245,158,11,0.4);text-align:center;min-width:190px;">
+                <div style="font-size:0.68rem;color:var(--hc-text-3);font-family:var(--hc-font-mono);text-transform:uppercase;">Próximo Uso Liberado Em</div>
+                <div id="vlabLiveCooldownTimer" style="font-family:var(--hc-font-mono);font-size:1.25rem;font-weight:800;color:#fbbf24;margin-top:4px;">
+                  ${esc(this.formatCooldownMs(remCooldownMs))}
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;padding-top:14px;border-top:1px solid var(--hc-border);">
+              <button type="button" class="hc-btn ghost sm" onclick="window.virusLabEngine.switchTab('creations')">Ver Minhas Criações (${this.state.creations.length})</button>
+              <button type="button" class="hc-btn ghost sm" onclick="window.virusLabEngine.switchTab('codex')">Abrir Códice de 54 Conjuntos</button>
+              <button type="button" class="hc-btn primary sm" onclick="window.navTo('winSoftware')">Ir p/ Programas &amp; Proteção</button>
+            </div>
+          </div>
+        `;
+      }
+
+      if (!this.state.activeDraft) {
+        const bal = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
+        const canAfford = bal >= LAB_SESSION_FEE;
+        return `
+          <div class="hc-card" id="vlabPayGateCard" style="padding:26px 24px;border-color:rgba(53,184,119,0.45);background:linear-gradient(160deg,rgba(15,24,24,0.96),rgba(11,15,21,0.98));">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+              <div style="max-width:640px;">
+                <div class="hc-eyebrow" style="color:#4ade80;">Acesso Controlado · 1 Tentativa por Mês (Dia)</div>
+                <h3 style="margin:6px 0 8px;font-size:1.22rem;color:var(--hc-text);">Iniciar Sessão no Laboratório de Vírus</h3>
+                <p style="margin:0 0 12px;font-size:0.86rem;color:var(--hc-text-2);line-height:1.55;">
+                  Cada abertura da bancada custa <strong>$ ${LAB_SESSION_FEE.toLocaleString('pt-BR')}</strong> e pode ser realizada
+                  <strong>apenas 1 vez por Mês (1 dia real / 24h)</strong>. Você passará por <strong>3 rounds aleatórios</strong>
+                  (escolher 1 → escolher 2 → escolher 1 bloco de código) para gerar um vírus inédito ou lapidar um existente até <strong>v10.0 (3.00x)</strong>!
+                </p>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;font-family:var(--hc-font-mono);font-size:0.75rem;">
+                  <span class="hc-badge info">Taxa única: $ ${LAB_SESSION_FEE.toLocaleString('pt-BR')}</span>
+                  <span class="hc-badge">Limite: 1x a cada 24h (1 Mês)</span>
+                  <span class="hc-badge ${canAfford ? 'success' : 'danger'}">Seu saldo: $ ${bal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+                <button type="button" id="btnVlabPayAndStart" class="hc-btn primary" ${canAfford ? '' : 'disabled'}
+                  onclick="window.virusLabEngine.unlockPaidLabSession()">
+                  🔓 Pagar $ ${LAB_SESSION_FEE.toLocaleString('pt-BR')} &amp; Abrir Bancada (3 Rounds)
+                </button>
+                ${!canAfford ? `<span style="font-size:0.75rem;color:#fca5a5;">Junte pelo menos $ ${LAB_SESSION_FEE.toLocaleString('pt-BR')} em missões ou coletas para usar o laboratório!</span>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      const draft = this.state.activeDraft;
       const r = draft.round;
       const cardIds = draft.optionsByRound[r] || [];
 
@@ -1442,9 +1580,9 @@
         </div>
 
         <div class="vlab-actions-bar">
-          <button type="button" class="hc-btn ghost sm" onclick="window.virusLabEngine.startNewDraft()">
-            🔄 Descartar Rascunho &amp; Sortear Novos Blocos
-          </button>
+          <div style="font-family:var(--hc-font-mono);font-size:0.75rem;color:var(--hc-text-2);">
+            🔒 Sessão paga ($ ${LAB_SESSION_FEE.toLocaleString('pt-BR')}) ativa · Tentativa única deste Mês (Dia)
+          </div>
           ${actionRightHtml}
         </div>
       `;
@@ -1534,9 +1672,14 @@
             <button type="button" class="hc-btn ghost" onclick="window.navTo('winSoftware')">
               📦 Ver em Programas &amp; Proteção (${esc(rep.familyMeta.filename)})
             </button>
-            <button type="button" id="btnVlabDevelopAnother" class="hc-btn primary" onclick="window.virusLabEngine.startNewDraft()">
-              🧬 Desenvolver Novo Vírus (Sortear 3 Opções)
-            </button>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <span style="font-family:var(--hc-font-mono);font-size:0.76rem;color:#fbbf24;">
+                ⏳ Próxima chance em <strong id="vlabLiveCooldownTimer">${esc(this.formatCooldownMs(this.getCooldownRemainingMs()))}</strong> (1x por Mês/Dia · $ ${LAB_SESSION_FEE.toLocaleString('pt-BR')})
+              </span>
+              <button type="button" id="btnVlabCloseReport" class="hc-btn sm" onclick="window.virusLabEngine.lastCompileReport=null;window.virusLabEngine.renderUI();">
+                Ver Painel de Espera
+              </button>
+            </div>
           </div>
         </div>
       `;
@@ -1579,7 +1722,7 @@
               <div class="hc-eyebrow">Arquivo de Cepas Compiladas</div>
               <div style="font-size:0.92rem;font-weight:700;">Histórico de Vírus &amp; Multiplicadores (Teto v10.0 = 3.00x)</div>
             </div>
-            <button type="button" class="hc-btn sm primary" onclick="window.virusLabEngine.startNewDraft()">+ Novo Experimento</button>
+            <button type="button" class="hc-btn sm primary" onclick="window.virusLabEngine.switchTab('workbench')">Ir p/ Bancada</button>
           </div>
           <table class="soft-table" style="width:100%;">
             <thead>
@@ -1737,6 +1880,8 @@
 
   window.VIRUS_LAB_CONSTANTS = {
     MAX_LAB_LEVEL,
+    LAB_SESSION_FEE,
+    LAB_COOLDOWN_MS,
     LAB_LEVEL_TABLE,
     ROUND_1_BLOCKS,
     ROUND_2_BLOCKS,

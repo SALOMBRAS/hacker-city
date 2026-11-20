@@ -18,109 +18,158 @@
   }
 
   // =========================================================================
-  // 1. UNIVERSIDADE & CERTIFICAÇÕES SEQUENCIAIS (5 CURSOS REAIS)
+  // 1. UNIVERSIDADE & CERTIFICAÇÕES SEQUENCIAIS (5 CURSOS REFINADOS + EXAME PRÁTICO + DIPLOMA OFICIAL)
   // =========================================================================
   const CERT_COURSES = [
     {
       id: 1,
       code: 'CERT-101',
-      title: 'Fundamentos & Identidade de Rede',
+      title: 'Fundamentos, Privacidade de IP & Ciclo de Contas',
       cost: 0,
       repReward: 100,
       unlockBadge: 'Acesso à Rede & Tutorial',
       bonusDesc: '+100 REP · Destrava o Curso #2 e a operação inicial da Numataka',
+      exam: {
+        question: 'O que acontece se você esquecer seu IP gravado no /var/log/syslog de uma máquina invadida?',
+        options: [
+          'Nada, os registros somem sozinhos em 5 segundos.',
+          'A vítima, outros jogadores ou o FBI rastreiam seu IP real e podem contra-atacar seu PC!',
+          'Você ganha bônus automático de reputação.'
+        ],
+        correctIdx: 1
+      },
       pages: [
         {
-          heading: 'Módulo 1/2 — Seu IP Público Dinâmico',
-          body: 'Na Hacker City, cada operador e servidor possui um endereço IPv4 público único. Toda vez que você invade um servidor ou faz login SSH sem proxy, o seu IP real fica gravado no arquivo /var/log/syslog da máquina alvo.'
+          heading: 'Módulo 1/2 — Seu IP Público & Blur Anti-Curiosos',
+          body: 'Cada operador possui um endereço IPv4 público único na rede. No topo da tela, os últimos 7 dígitos ficam desfocados automaticamente (só aparecem ao passar o mouse) para proteger você caso um amigo esteja jogando ao seu lado! Porém, dentro dos computadores que você invade, seu IP completo fica gravado em /var/log/syslog.'
         },
         {
-          heading: 'Módulo 2/2 — Provedor ISP (71.4.5.1) e Regra Semanal',
-          body: 'Você tem direito a 1 troca de IP 100% gratuita por semana no servidor 71.4.5.1 (HC Telecom ISP) ou na aba Minha Conta. Precisar trocar de IP antes dos 7 dias para fugir do FBI ou de bots caçadores custa caro ($ 50.000 HC+). Por isso, limpar seus logs sempre vem primeiro!'
+          heading: 'Módulo 2/2 — Troca Semanal no ISP (71.4.5.1) & Relógio de Contas às 12:00',
+          body: 'Você tem direito a 1 troca gratuita de IP por semana no ISP (71.4.5.1). Já no relógio do mundo, 1 hora real equivale a 1 dia no jogo e 24h reais equivalem a 1 Mês: todo dia às 12:00 chega a fatura mensal de Luz do PC, Internet/VPS, Aluguel e Água (acumulando no máximo 3 meses antes de pausar caso você fique offline).'
         }
       ]
     },
     {
       id: 2,
       code: 'CERT-102',
-      title: 'Hacking 101: Força-Bruta, Firewall & Limpeza Forense',
+      title: 'Hacking 101: Mini-PC de Hashes, Daemons vs Sob Demanda & Logs',
       cost: 0,
       repReward: 100,
       unlockBadge: '+20% Velocidade CPU em Quebras',
       bonusDesc: '+100 REP · +20% velocidade de tempo no Cracker · Libera Invasão Tutorial',
+      exam: {
+        question: 'Qual é a regra obrigatória para quebrar a senha de um servidor alvo?',
+        options: [
+          'Ter apenas um processador caro, mesmo com Cracker v0.5 contra Firewall v5.0.',
+          'Seu Cracker.crc escolhido no Mini-PC precisa ter versão maior ou igual ao Firewall E ao Hasher do alvo.',
+          'Desligar seu próprio Firewall antes de atacar.'
+        ],
+        correctIdx: 1
+      },
       pages: [
         {
-          heading: 'Módulo 1/3 — Regra Estrita de Versão (Firewall & Hasher vs Cracker)',
-          body: 'Para invadir por Força-Bruta, seu Cracker.crc precisa estar ATIVO na RAM e ter versão >= Firewall.fwl E >= Hasher.hash da vítima! Ter uma CPU rápida acelera o TEMPO do processo, mas NUNCA substitui a versão do software.'
+          heading: 'Módulo 1/3 — Daemons em Memória vs Ferramentas Sob Demanda',
+          body: 'Programas de proteção contínua (Firewall.fwl, Hasher.hash, Collector.vcol e Torrent.torrent) ficam rodando na sua Memória RAM (1 de cada tipo por vez, com tempo de carência ao trocar). Já o Cracker.crc, PortScan.scan e Antivirus.av funcionam SOB DEMANDA direto do seu HD, SSD ou NVMe (unidades NVMe dão até +25% de velocidade!).'
         },
         {
-          heading: 'Módulo 2/3 — Entrando via SSH e Operando Arquivos',
-          body: 'Com a senha salva no Hacked Database, vá à guia Entrar para abrir o shell root@alvo. Lembre-se: se a vítima evoluir o Firewall ou Hasher depois, você precisará evoluir seu Cracker para continuar entrando!'
+          heading: 'Módulo 2/3 — Regra Estrita de Versão no Mini-PC',
+          body: 'Para quebrar uma senha, o Cracker.crc selecionado no Mini-PC precisa ter versão >= Firewall.fwl E >= Hasher.hash da vítima! Uma CPU mais potente reduz os segundos de espera, mas nunca substitui a versão do software.'
         },
         {
-          heading: 'Módulo 3/3 — Regra de Ouro: Apague seu IP na Saída',
-          body: 'Antes de desconectar do servidor invadido, abra a sub-aba Logs (/var/log/syslog), apague todas as linhas com seu IP público e clique em Salvar / Reescrever Syslog.'
+          heading: 'Módulo 3/3 — Regra de Ouro: Limpe a Log Por Último!',
+          body: 'Tanto entrar quanto subir ou executar um vírus gravam novas linhas com seu IP em /var/log/syslog! Sempre volte à aba Logs da vítima como último passo, apague seu IP (ou deixe uma farpa anônima) antes de sair.'
         }
       ]
     },
     {
       id: 3,
       code: 'CERT-201',
-      title: 'Exploits FTP/SSH, PortScan & Reconhecimento Nmap',
+      title: 'Exploits FTP/SSH, Bancos & Invasão de Câmeras CFTV/DVR',
       cost: 250,
       repReward: 120,
-      unlockBadge: 'Domínio FTP/SSH & Bank Hack',
-      bonusDesc: '+120 REP · Destrava táticas avançadas de Exploit Dual (FTP+SSH = Root) e Contas Bancárias',
+      unlockBadge: 'Domínio FTP/SSH, Bank & CFTV',
+      bonusDesc: '+120 REP · Destrava táticas avançadas de Exploit Dual (FTP+SSH), Contas Bancárias e Operações CFTV',
+      exam: {
+        question: 'Como obter acesso ROOT sem precisar quebrar a senha do servidor?',
+        options: [
+          'Executando PortScan.scan e depois combinando FTP_Exploit.exp + SSH_Exploit.exp em versões >= Firewall do alvo.',
+          'Apenas olhando a página inicial do servidor.',
+          'Instalando um arquivo .txt no seu próprio HD.'
+        ],
+        correctIdx: 0
+      },
       pages: [
         {
-          heading: 'Módulo 1/2 — Mapeamento de Portas com PortScan.scan',
-          body: 'Mantenha PortScan.scan ativo na RAM e execute a varredura na aba Invadir para sondar as portas 21/FTP e 22/SSH contra o Firewall.fwl do alvo.'
+          heading: 'Módulo 1/3 — Varredura PortScan & Acesso Root sem Senha',
+          body: 'Rode o PortScan.scan na aba Invadir para mapear as portas 21 (FTP) e 22 (SSH). FTP_Exploit.exp >= Firewall libera arquivos; SSH_Exploit.exp >= Firewall libera comandos; combinar AMBOS concede acesso ROOT imediato sem precisar da senha!'
         },
         {
-          heading: 'Módulo 2/2 — Permissões FTP vs SSH vs ROOT',
-          body: 'FTP_Exploit.exp >= Firewall libera transferência de arquivos (Download/Upload); SSH_Exploit.exp >= Firewall libera execução/deleção; rodar AMBOS acima do Firewall concede acesso ROOT completo sem precisar da senha!'
+          heading: 'Módulo 2/3 — Auditoria e Dreno de Contas Bancárias',
+          body: 'Em contratos financeiros, invada o servidor indicado para descobrir o número da conta e auditar saldos ou transferir valores entre os bancos internacionais da rede.'
+        },
+        {
+          heading: 'Módulo 3/3 — Câmeras de Segurança CFTV Ao Vivo & Queima de DVR',
+          body: 'Ao invadir empresas corporativas, você pode acessar o circuito interno CFTV ao vivo para desativar todas as câmeras (ajudando operações de roubo) ou apagar gravações comprometedoras em /var/nvr/recordings!'
         }
       ]
     },
     {
       id: 4,
       code: 'CERT-301',
-      title: 'Engenharia de Vírus, Torrent, Mineração BTC & DDoS',
+      title: 'Laboratório de Vírus (1+2+1), Escala 3.00x & Rede Zumbi DDoS',
       cost: 800,
       repReward: 150,
       unlockBadge: 'Libera Ataques DDoS & +15% Coletor',
       bonusDesc: '+150 REP · Destrava Canhão DDoS (com DDoS_Breaker.vbrk) · +15% no Collector.vcol',
+      exam: {
+        question: 'Qual é o multiplicador máximo do vírus mais forte (v10.0) e a regra de uso do Laboratório?',
+        options: [
+          'v10.0 rende 50x e pode ser usado infinitas vezes por minuto de graça.',
+          'v10.0 rende 3.00x (regredindo nas versões menores), custando $ 1.000 com limite de 1 vez por Mês (dia).',
+          'Vírus não precisam ser executados na memória da vítima para render.'
+        ],
+        correctIdx: 1
+      },
       pages: [
         {
-          heading: 'Módulo 1/3 — As 5 Famílias de Vírus e o Tracker Torrent',
-          body: 'Spam.vspam ($/CPU), Warez.vwarez ($/Banda — exige Torrent.torrent ativo na SUA RAM!), Miner.vminer (BTC/CPU), BankTrojan.vbank ($ alto) e DDoS_Node.vddos (Gbps).'
+          heading: 'Módulo 1/3 — As 5 Famílias de Vírus & Escala Regressiva (v10.0 = 3.00x)',
+          body: 'Spam.vspam ($/CPU), Warez.vwarez ($/Banda — exige Torrent.torrent rodando no seu PC!), Miner.vminer (BTC/CPU), BankTrojan.vbank ($ bancário) e DDoS_Node.vddos (Gbps). A versão máxima atual é v10.0 com multiplicador de 3.00x, regredindo proporcionalmente até v1.0 (1.00x) e protótipos abaixo disso.'
         },
         {
-          heading: 'Módulo 2/3 — Antivírus vs Vírus & Formatar HD',
-          body: 'Tanto nos alvos quanto no SEU PC, o Antivirus.av SÓ consegue remover vírus visíveis de versão <= Antivírus! Se um inimigo plantar um vírus mais forte que seu Antivírus, evolua seu Antivirus.av ou use Formatar HD (salvando backups no XHD!).'
+          heading: 'Módulo 2/3 — Laboratório de Vírus ($ 1.000 · 1x por Mês/Dia)',
+          body: 'Em Meu Computador > Laboratório de Vírus, por $ 1.000 (1 vez por Mês / 24h reais), você monta seu próprio vírus em 3 rounds aleatórios (escolher 1 -> escolher 2 -> escolher 1 bloco de código) entre 54 conjuntos! Se cair um vírus que você já tem, o sistema preserva sua versão mais forte e lapida +v0.1/+v0.2 sem entupir seu HD.'
         },
         {
-          heading: 'Módulo 3/3 — Derrubando Procurados do FBI via DDoS',
-          body: 'Ative o DDoS_Breaker.vbrk na sua RAM e plante DDoS_Node.vddos em múltiplos servidores para disparar ataques DDoS em Missões e capturar recompensas na Lista do FBI!'
+          heading: 'Módulo 3/3 — Antivírus, Coletor e Ataques DDoS',
+          body: 'Ative o Collector.vcol para recolher dólares e Bitcoins dos vírus espalhados, e use o DDoS_Breaker.vbrk para disparar sobrecargas DDoS que derrubam alvos do FBI e danificam o hardware de rivais!'
         }
       ]
     },
     {
       id: 5,
       code: 'CERT-401',
-      title: 'Defesa Cibernética & Mitigação Automática de DDoS',
+      title: 'Defesa Cibernética, Mitigação DDoS & Contra-Espionagem',
       cost: 2000,
       repReward: 200,
       unlockBadge: 'Mitigação DDoS via Firewall.fwl',
       bonusDesc: '+200 REP · Medalha [GRADUADO MIT-HC] · Seu Firewall.fwl passa a mitigar/anular ataques DDoS!',
+      exam: {
+        question: 'Se um invasor apagar o próprio IP da sua log e deixar apenas uma farpa com o nick dele, como reagir?',
+        options: [
+          'É impossível fazer qualquer coisa.',
+          'Colocar a cabeça dele a prêmio pelo Nick no Quadro Público de Vingança e reforçar Firewall/Hasher!',
+          'Apagar seu próprio sistema operacional.'
+        ],
+        correctIdx: 1
+      },
       pages: [
         {
-          heading: 'Módulo 1/2 — Protegendo Seu PC (Firewall + Hasher + Antivirus)',
-          body: 'Bots caçadores e jogadores rivais só conseguem invadir seu PC se os softwares de invasão deles superarem seu Firewall.fwl e Hasher.hash ativos na RAM!'
+          heading: 'Módulo 1/2 — Blindagem Ativa, Reparo Físico & Backup em HD Externo',
+          body: 'Mantenha Firewall.fwl e Hasher.hash evoluídos rodando na RAM, guarde cópias seguras no HD Externo e verifique a Saúde Física das peças caso sofra sobrecarga DDoS.'
         },
         {
-          heading: 'Módulo 2/2 — Mitigação DDoS Automática',
-          body: 'Com esta certificação concluída, seu Firewall.fwl mitiga automaticamente ataques DDoS proporcionalmente à versão dele (podendo anular 100% do ataque em versões altas!).'
+          heading: 'Módulo 2/2 — Mitigação DDoS Automática & Quadro de Vingança',
+          body: 'Com este diploma máximo (MIT-HC), seu Firewall.fwl mitiga automaticamente ataques DDoS proporcionalmente à versão dele — e você domina a contra-inteligência via Nmap.nmap, Conexões ao Vivo e Recompensas por Nick!'
         }
       ]
     }
@@ -132,6 +181,9 @@
       this.state = null;
       this.readingCourseId = null;
       this.readingPageIdx = 0;
+      this.selectedExamOption = null;
+      this.examFeedback = null;
+      this.viewingDiplomaId = null;
     }
 
     storageKey(uid) {
@@ -149,7 +201,9 @@
         if (raw) saved = JSON.parse(raw);
       } catch (e) {}
 
-      this.state = saved && Array.isArray(saved.completed) ? saved : { completed: [] };
+      this.state = saved && Array.isArray(saved.completed)
+        ? { completed: saved.completed, issuedAt: saved.issuedAt || {} }
+        : { completed: [], issuedAt: {} };
       return this.state;
     }
 
@@ -175,11 +229,36 @@
       const course = CERT_COURSES.find((c) => c.id === certId);
       if (!course) return;
       if (certId > 1 && !this.hasCert(certId - 1)) {
-        alert(`Pré-requisito pendente: conclua primeiro a Certificação #${certId - 1}!`);
+        if (typeof window.showToast === 'function') {
+          window.showToast(`Pré-requisito pendente: conclua primeiro a Certificação #${certId - 1}!`);
+        }
         return;
       }
+      this.viewingDiplomaId = null;
       this.readingCourseId = certId;
       this.readingPageIdx = 0;
+      this.selectedExamOption = null;
+      this.examFeedback = null;
+      this.renderUI();
+    }
+
+    selectExamAnswer(optIdx) {
+      const course = CERT_COURSES.find((c) => c.id === this.readingCourseId);
+      if (!course || !course.exam) return;
+      this.selectedExamOption = Number(optIdx);
+      if (this.selectedExamOption === course.exam.correctIdx) {
+        this.examFeedback = { ok: true, text: '✅ Resposta exata! Exame aprovado — você já pode emitir seu Certificado Oficial.' };
+      } else {
+        this.examFeedback = { ok: false, text: '❌ Resposta incorreta. Revise a regra apresentada na aula acima e tente outra alternativa!' };
+      }
+      this.renderUI();
+    }
+
+    openDiplomaView(certId) {
+      this.ensureLoaded();
+      if (!this.hasCert(certId)) return;
+      this.readingCourseId = null;
+      this.viewingDiplomaId = Number(certId);
       this.renderUI();
     }
 
@@ -199,7 +278,7 @@
       }
     }
 
-    async completeCourse(certId) {
+    async completeCourse(certId, opts = {}) {
       this.ensureLoaded();
       const course = CERT_COURSES.find((c) => c.id === certId);
       if (!course) return { success: false, message: 'Curso inexistente.' };
@@ -207,11 +286,15 @@
       if (certId > 1 && !this.hasCert(certId - 1)) {
         return { success: false, message: `Conclua primeiro o Curso #${certId - 1}!` };
       }
+      if (!opts.skipExam && this.readingCourseId === certId && course.exam && this.selectedExamOption !== course.exam.correctIdx) {
+        return { success: false, message: 'Responda corretamente à pergunta rápida do Exame Prático antes de emitir o certificado!' };
+      }
 
       if (course.cost > 0) {
         if (!window.currentWallet || parseFloat(window.currentWallet.balance) < course.cost) {
           return { success: false, message: `Saldo insuficiente para a taxa acadêmica de ${fmtUsd(course.cost)}!` };
         }
+        let nextBal = Math.max(0, +(parseFloat(window.currentWallet.balance) - course.cost).toFixed(2));
         if (window.supabase && typeof window.supabase.rpc === 'function') {
           try {
             const { data } = await window.supabase.rpc('buy_black_market_item', {
@@ -219,24 +302,34 @@
               p_cost: course.cost
             });
             if (data && data.new_balance !== undefined) {
-              window.currentWallet.balance = Number(data.new_balance);
-            } else {
-              window.currentWallet.balance = Math.max(0, parseFloat(window.currentWallet.balance) - course.cost);
+              nextBal = Number(data.new_balance);
             }
-          } catch (e) {
-            window.currentWallet.balance = Math.max(0, parseFloat(window.currentWallet.balance) - course.cost);
-          }
+          } catch (e) {}
+        }
+        const applyFee = () => { window.currentWallet.balance = nextBal; };
+        if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+          window.integrityGuard.runAuthorized(applyFee);
         } else {
-          window.currentWallet.balance = Math.max(0, parseFloat(window.currentWallet.balance) - course.cost);
+          applyFee();
         }
       }
 
       this.state.completed.push(certId);
+      if (!this.state.issuedAt) this.state.issuedAt = {};
+      this.state.issuedAt[certId] = new Date().toLocaleDateString('pt-BR') + ' · ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
       this.readingCourseId = null;
+      this.viewingDiplomaId = certId;
       this.save();
 
       if (window.currentProfile) {
-        window.currentProfile.reputation = (window.currentProfile.reputation || 0) + course.repReward;
+        const applyRep = () => {
+          window.currentProfile.reputation = (window.currentProfile.reputation || 0) + course.repReward;
+        };
+        if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+          window.integrityGuard.runAuthorized(applyRep);
+        } else {
+          applyRep();
+        }
       }
       if (typeof window.addLocalLog === 'function') {
         window.addLocalLog('UNIVERSITY', `Certificação ${course.code} (${course.title}) concluída! (+${course.repReward} REP)`, 'success');
@@ -246,6 +339,7 @@
       if (window.tutorialEngine) {
         window.tutorialEngine.onCertCompleted(certId);
       }
+      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       this.renderUI();
       return { success: true, message: `Diploma ${course.code} emitido! ${course.unlockBadge}` };
@@ -257,11 +351,77 @@
       this.ensureLoaded();
       const ic = (n) => (window.HC && window.HC.icon ? window.HC.icon(n) : '');
 
+      // Visualização do Certificado / Diploma Oficial Emitido
+      if (this.viewingDiplomaId) {
+        const course = CERT_COURSES.find((c) => c.id === this.viewingDiplomaId);
+        if (course && this.hasCert(course.id)) {
+          const opName = (window.currentProfile && window.currentProfile.hacker_tag) || 'Operador';
+          const issuedStr = (this.state.issuedAt && this.state.issuedAt[course.id]) || new Date().toLocaleDateString('pt-BR');
+          const serialHash = ('MIT-HC-' + course.code + '-' + opName.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8)).padEnd(20, 'X');
+          container.innerHTML = `
+            <div class="soft-frame" id="universityDiplomaCard">
+              <div class="soft-tabs-bar">
+                <div class="soft-tabs-left">
+                  <button type="button" class="soft-tab-btn active">
+                    ${ic('award')} <span>Certificado Oficial · ${esc(course.code)}</span>
+                  </button>
+                </div>
+                <button type="button" class="hc-btn ghost sm" onclick="window.universityEngine.viewingDiplomaId=null;window.universityEngine.renderUI();">← Voltar à Grade</button>
+              </div>
+              <div style="padding:26px;display:flex;justify-content:center;">
+                <div style="max-width:680px;width:100%;padding:28px 30px;border-radius:14px;background:linear-gradient(155deg,#101923,#0b1118);border:2px solid rgba(53,184,119,0.55);box-shadow:0 18px 48px rgba(0,0,0,0.55);text-align:center;">
+                  <div class="hc-eyebrow" style="color:#4ade80;letter-spacing:0.12em;">INSTITUTO DE ENGENHARIA CIBERNÉTICA · MIT-HC</div>
+                  <h2 style="margin:8px 0 6px;font-size:1.45rem;color:#f8fafc;">CERTIFICADO DE HABILITAÇÃO</h2>
+                  <div style="font-size:0.84rem;color:var(--hc-text-2);margin-bottom:16px;">Certificamos que o operador registrado sob o codinome</div>
+                  <div style="display:inline-block;padding:8px 22px;border-radius:999px;background:rgba(53,184,119,0.12);border:1px solid rgba(53,184,119,0.45);font-family:var(--hc-font-mono);font-size:1.15rem;font-weight:800;color:#4ade80;margin-bottom:16px;">
+                    @${esc(opName)}
+                  </div>
+                  <div style="font-size:0.9rem;color:var(--hc-text);margin-bottom:6px;">concluiu com aprovação integral o exame prático de</div>
+                  <div style="font-size:1.1rem;font-weight:700;color:#38bdf8;margin-bottom:14px;">${esc(course.code)} — ${esc(course.title)}</div>
+                  <div style="padding:10px 14px;border-radius:8px;background:#090d12;border:1px solid var(--hc-border);font-size:0.82rem;color:#d1fae5;margin-bottom:16px;">
+                    ⚡ <strong>Bônus Passivo Vitalício Ativado:</strong> ${esc(course.bonusDesc)}
+                  </div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding-top:12px;border-top:1px dashed var(--hc-border);font-family:var(--hc-font-mono);font-size:0.72rem;color:var(--hc-text-3);">
+                    <span>SÉRIE: ${esc(serialHash)}</span>
+                    <span>EMISSÃO: ${esc(issuedStr)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          return;
+        }
+      }
+
       if (this.readingCourseId) {
         const course = CERT_COURSES.find((c) => c.id === this.readingCourseId);
         const page = course.pages[this.readingPageIdx];
         const isLast = this.readingPageIdx === course.pages.length - 1;
         const done = this.hasCert(course.id);
+        const examPassed = !course.exam || done || this.selectedExamOption === course.exam.correctIdx;
+
+        const examBlockHtml = (isLast && !done && course.exam) ? `
+          <div id="uniExamBox" style="background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.35);border-radius:10px;padding:15px 16px;">
+            <div class="hc-eyebrow" style="color:#38bdf8;margin-bottom:5px;">Exame Prático Rápido (Obrigatório p/ Emitir Diploma)</div>
+            <div style="font-size:0.9rem;font-weight:700;color:var(--hc-text);margin-bottom:10px;">${esc(course.exam.question)}</div>
+            <div style="display:flex;flex-direction:column;gap:7px;">
+              ${course.exam.options.map((opt, oIdx) => {
+                const isSel = this.selectedExamOption === oIdx;
+                const borderCol = isSel
+                  ? (oIdx === course.exam.correctIdx ? '#35b877' : '#ef4444')
+                  : 'var(--hc-border)';
+                return `
+                  <button type="button" class="uni-exam-opt" data-opt-idx="${oIdx}"
+                    style="text-align:left;padding:9px 12px;border-radius:7px;background:#0b1016;border:1.5px solid ${borderCol};color:var(--hc-text);font-size:0.82rem;cursor:pointer;"
+                    onclick="window.universityEngine.selectExamAnswer(${oIdx})">
+                    <strong>${String.fromCharCode(65 + oIdx)})</strong> ${esc(opt)}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+            ${this.examFeedback ? `<div style="margin-top:9px;font-size:0.8rem;color:${this.examFeedback.ok ? '#86efac' : '#fca5a5'};">${esc(this.examFeedback.text)}</div>` : ''}
+          </div>
+        ` : '';
 
         container.innerHTML = `
           <div class="soft-frame">
@@ -284,6 +444,8 @@
                 ${esc(page.body)}
               </div>
 
+              ${examBlockHtml}
+
               <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
                 <div style="font-size:12.5px;color:var(--hc-text-2);">Vantagem do Diploma: <strong style="color:var(--hc-accent-text);">${esc(course.unlockBadge)}</strong></div>
                 <div style="display:flex;gap:8px;">
@@ -293,8 +455,8 @@
                   ${!isLast
                     ? `<button type="button" id="btnNextLesson" class="hc-btn primary sm" onclick="window.universityEngine.nextLessonPage()">Próxima Aula →</button>`
                     : (done
-                        ? `<button type="button" class="hc-btn primary sm" onclick="window.universityEngine.readingCourseId=null;window.universityEngine.renderUI();">Concluir Revisão</button>`
-                        : `<button type="button" id="btnFinishCert_${course.id}" class="hc-btn primary sm" onclick="window.handleCompleteCourse(${course.id})">
+                        ? `<button type="button" class="hc-btn primary sm" onclick="window.universityEngine.openDiplomaView(${course.id})">📜 Ver Certificado</button>`
+                        : `<button type="button" id="btnFinishCert_${course.id}" class="hc-btn primary sm" ${examPassed ? '' : 'disabled'} onclick="window.handleCompleteCourse(${course.id})">
                              Emitir Certificado ${course.cost > 0 ? `(${fmtUsd(course.cost)})` : '(Grátis)'}
                            </button>`)}
                 </div>
@@ -340,10 +502,16 @@
             <td class="soft-col-size" style="width:110px;color:${c.cost === 0 ? 'var(--hc-accent-text)' : 'var(--hc-warning-text)'};">${esc(costStr)}</td>
             <td class="soft-col-acts">
               <div class="soft-icon-actions">
-                <button type="button" class="soft-icon-act ic-info" aria-label="Ver bônus de ${esc(c.title)}"
-                  data-tip-title="${esc(c.unlockBadge)}" data-tip-meta="${esc(c.code)}" data-tip-desc="${esc(c.bonusDesc)}">
-                  ${ic('info')}
-                </button>
+                ${done ? `
+                  <button type="button" id="btnViewDiploma_${c.id}" class="soft-icon-act ic-run" aria-label="Ver Certificado Oficial de ${esc(c.title)}"
+                    data-tip-title="Ver Certificado Emitido" data-tip-meta="${esc(c.code)}" data-tip-desc="Abrir diploma assinado com seu bônus passivo."
+                    onclick="window.universityEngine.openDiplomaView(${c.id})">
+                    ${ic('award')}
+                  </button>` : `
+                  <button type="button" class="soft-icon-act ic-info" aria-label="Ver bônus de ${esc(c.title)}"
+                    data-tip-title="${esc(c.unlockBadge)}" data-tip-meta="${esc(c.code)}" data-tip-desc="${esc(c.bonusDesc)}">
+                    ${ic('info')}
+                  </button>`}
                 <button type="button" id="btnOpenCourse_${c.id}" class="soft-icon-act ${done ? 'ic-hide' : 'ic-run'}" ${!unlocked && !done ? 'disabled' : ''}
                   aria-label="${done ? 'Revisar' : 'Estudar'} ${esc(c.title)}"
                   data-tip-title="${done ? 'Revisar aulas' : (!unlocked ? `Conclua o Curso #${c.id - 1} antes` : (c.cost === 0 ? 'Iniciar curso gratuito' : `Matricular (${costStr})`))}"
@@ -550,9 +718,17 @@
       if (!this.state.completed && this.state.step === 1 && certId >= 1) {
         this.state.step = 2;
         if (window.currentWallet) {
-          window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + 80).toFixed(2);
+          const grantStep1 = () => {
+            window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + 80).toFixed(2);
+          };
+          if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+            window.integrityGuard.runAuthorized(grantStep1);
+          } else {
+            grantStep1();
+          }
         }
         this.save();
+        if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
         if (typeof window.showToast === 'function') {
           window.showToast(`Etapa 1 concluída (+$ 80 HC)! Agora invada ${TUTORIAL_TARGET_IP} na aba Internet.`);
         }
@@ -613,15 +789,23 @@
       this.state.step = 6;
       this.save();
 
-      if (window.currentWallet) {
-        window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + 350).toFixed(2);
+      const grantTutFinal = () => {
+        if (window.currentWallet) {
+          window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + 350).toFixed(2);
+        }
+        if (window.currentProfile) {
+          window.currentProfile.reputation = (window.currentProfile.reputation || 0) + 120;
+        }
+      };
+      if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+        window.integrityGuard.runAuthorized(grantTutFinal);
+      } else {
+        grantTutFinal();
       }
       if (window.bitcoinEngine) {
         window.bitcoinEngine.creditSats(200000, 'TUTORIAL', 'Pagamento inicial Numataka // Conclusão da Invasão Tutorial (+0.00200000 BTC)');
       }
-      if (window.currentProfile) {
-        window.currentProfile.reputation = (window.currentProfile.reputation || 0) + 120;
-      }
+      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
 
       if (typeof window.addLocalLog === 'function') {
         window.addLocalLog('STORY-OK', 'Invasão Tutorial Numataka concluída! Recebido +$ 350.00 HC, +0.00200000 BTC e +120 REP.', 'success');
