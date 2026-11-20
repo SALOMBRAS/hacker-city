@@ -26,6 +26,7 @@
   <link rel="stylesheet" href="src/css/internet.css">
   <link rel="stylesheet" href="src/css/software-explorer.css">
   <link rel="stylesheet" href="src/css/cctv.css">
+  <link rel="stylesheet" href="src/css/virus-lab.css">
 
   <!-- Modular Core Scripts -->
   <script src="src/js/audio-synth.js"></script>
@@ -39,6 +40,7 @@
   <script src="src/js/cctv-surveillance-engine.js"></script>
   <script src="src/js/network-identity-engine.js"></script>
   <script src="src/js/software-bitcoin-engine.js"></script>
+  <script src="src/js/virus-lab-engine.js"></script>
   <script src="src/js/progression-missions-engine.js"></script>
   <script src="src/js/safenet-fbi-living-bots-engine.js"></script>
   <script src="src/js/classic-puzzles-engine.js"></script>
@@ -264,6 +266,10 @@
             <button type="button" class="nav-item" data-win="winSoftware" onclick="navTo('winSoftware')">
               <i data-icon="package"></i>
               <span class="nav-item-copy"><span>Programas &amp; Proteção</span><small>Vírus, escudo ativo e antivírus</small></span>
+            </button>
+            <button type="button" class="nav-item" id="navBtnVirusLab" data-win="winVirusLab" onclick="navTo('winVirusLab')">
+              <i data-icon="flask-conical"></i>
+              <span class="nav-item-copy"><span>Laboratório de Vírus</span><small>Monte vírus combinando códigos (1+2+1)</small></span>
             </button>
             <button type="button" class="nav-item" data-win="winTaskManager" onclick="navTo('winTaskManager')">
               <i data-icon="activity"></i>
@@ -846,6 +852,18 @@
         </div>
       </div>
       <div class="window-body" id="softwareAppBody"></div>
+    </div>
+
+    <!-- JANELA 16B: LABORATÓRIO DE VÍRUS (COMBINAÇÃO DE CÓDIGO 1 + 2 + 1) -->
+    <div class="window-frame" id="winVirusLab" style="display: none;">
+      <div class="window-header">
+        <div>
+          <div class="hc-breadcrumb"><span>Meu Computador</span><span class="sep">›</span><span class="curr">Laboratório de Vírus</span></div>
+          <div class="window-title">Laboratório de Vírus</div>
+          <p class="page-sub">Desenvolva seus próprios vírus em 3 rounds aleatórios (escolha 1 → escolha 2 → escolha 1 bloco de programação), teste o encaixe de código e desbloqueie os 54 conjuntos até o Nível Máximo!</p>
+        </div>
+      </div>
+      <div class="window-body" id="virusLabAppBody"></div>
     </div>
 
     <!-- JANELA 17: CARTEIRA & CORRETORA BITCOIN -->
@@ -3464,6 +3482,9 @@
       }
       if (winId === 'winSoftware' && window.softwareEngine) {
         window.softwareEngine.renderUI('softwareAppBody');
+      }
+      if (winId === 'winVirusLab' && window.virusLabEngine) {
+        window.virusLabEngine.renderUI('virusLabAppBody');
       }
       if (winId === 'winBitcoin' && window.bitcoinEngine) {
         window.bitcoinEngine.renderUI('bitcoinAppBody');
