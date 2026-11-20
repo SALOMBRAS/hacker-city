@@ -1158,6 +1158,28 @@
       return 'v' + (Number(versionInt || 10) / 10).toFixed(1);
     }
 
+    // ESCALA REGRESSIVA OFICIAL DE MULTIPLICADOR DE VÍRUS (Teto v10.0 = 3.00x MÁXIMO!)
+    // - v10.0 (100) -> 3.00x (máximo atual: 3x mineração BTC, 3x dinheiro Spam/Warez/Bank, 3x Gbps DDoS)
+    // - Regressão linear limpa de v10.0 (3.00x) até v1.0 (1.00x): mult = 1.00 + ((v - 1.0) / 9.0) * 2.00
+    // - Protótipos instáveis abaixo de v1.0 (v0.5..v0.9): regridem de 0.92x até 0.60x
+    getVirusYieldMultiplier(versionInt) {
+      const v = Math.max(0.5, Math.min(10.0, Number(versionInt || 10) / 10));
+      if (v >= 1.0) {
+        return +(1.0 + ((v - 1.0) / 9.0) * 2.0).toFixed(2);
+      }
+      return +(0.60 + (v - 0.5) * 0.80).toFixed(2);
+    }
+
+    getVirusEffectShortLabel(virusKey, versionInt) {
+      const multStr = this.getVirusYieldMultiplier(versionInt).toFixed(2) + 'x';
+      if (virusKey === 'vminer') return `${multStr} BTC`;
+      if (virusKey === 'vspam') return `${multStr} $ Spam`;
+      if (virusKey === 'vwarez') return `${multStr} $ P2P`;
+      if (virusKey === 'vbank') return `${multStr} $ Banco`;
+      if (virusKey === 'vddos') return `${multStr} DDoS`;
+      return multStr;
+    }
+
     getDefinition(softKey) {
       return SOFTWARE_DEFINITIONS[softKey] || null;
     }
@@ -1573,13 +1595,15 @@
     }
 
     // Registra no disco um vírus autoral desenvolvido no Laboratório de Vírus (3 Rounds: 1 + 2 + 1 blocos)
-    registerLabCompiledVirus({ virusKey, versionInt, strainName, setId, setTitle, fitGrade, fitScore }) {
+    // Trata automaticamente quando sai o MESMO VÍRUS que o jogador já possui (sem perder a versão maior e sem lotar o HD com cópias repetidas!)
+    registerLabCompiledVirus({ virusKey, versionInt, maxLabVerInt, strainName, setId, setTitle, fitGrade, fitScore }) {
       this.ensureLoaded();
       const def = SOFTWARE_DEFINITIONS[virusKey];
       if (!def || def.category !== 'virus') {
         return { success: false, message: 'Família de vírus inválida.' };
       }
       const clampedVerInt = Math.max(6, Math.min(100, Math.round(Number(versionInt) || 10)));
+      const capVerInt = Math.max(clampedVerInt, Math.min(100, Math.round(Number(maxLabVerInt) || 100)));
       const cur = this.state.inventory[virusKey] || {
         owned: false,
         installed: false,
@@ -1589,18 +1613,20 @@
         hiddenWithVer: 0
       };
 
-      const prevVerInt = cur.owned ? (cur.versionInt || 0) : 0;
-      const upgradedMain = !cur.owned || clampedVerInt >= prevVerInt;
+      const alreadyOwned = !!(cur.owned && (cur.versionInt || 0) > 0);
+      const prevVerInt = alreadyOwned ? (cur.versionInt || 0) : 0;
+      let outcomeMode = 'new_unlock'; // 'new_unlock' | 'upgraded_existing' | 'duplicate_refined' | 'duplicate_maxed'
+      let refineBonusInt = 0;
 
       cur.owned = true;
       cur.licensed = true; // Vírus desenvolvido por você já nasce licenciado!
-      if (clampedVerInt > (cur.versionInt || 0)) {
-        cur.versionInt = clampedVerInt;
-      }
       if (!['hd', 'ssd', 'nvme'].includes(cur.drive)) {
         cur.drive = 'hd';
       }
-      if (upgradedMain) {
+
+      if (!alreadyOwned) {
+        outcomeMode = 'new_unlock';
+        cur.versionInt = clampedVerInt;
         cur.customLabStrain = {
           strainName: strainName || def.filename,
           setId: setId || null,
@@ -1608,38 +1634,42 @@
           fitGrade: fitGrade || 'B',
           fitScore: fitScore || 65
         };
+      } else if (clampedVerInt > prevVerInt) {
+        outcomeMode = 'upgraded_existing';
+        cur.versionInt = clampedVerInt;
+        cur.customLabStrain = {
+          strainName: strainName || def.filename,
+          setId: setId || null,
+          setTitle: setTitle || null,
+          fitGrade: fitGrade || 'B',
+          fitScore: fitScore || 65
+        };
+      } else {
+        // O jogador JÁ TINHA esse mesmo vírus em versão igual ou mais forte!
+        // Preserva o mais forte, recicla os blocos compatíveis para lapidar +v0.1/+v0.2 (até o teto do nível/v10.0) e não entope o HD!
+        if (prevVerInt < capVerInt && prevVerInt < 100) {
+          refineBonusInt = (Number(fitScore) >= 74) ? 2 : 1;
+          cur.versionInt = Math.min(100, Math.min(capVerInt, prevVerInt + refineBonusInt));
+          outcomeMode = 'duplicate_refined';
+        } else {
+          outcomeMode = 'duplicate_maxed';
+        }
+        if (!cur.customLabStrain) {
+          cur.customLabStrain = {
+            strainName: strainName || def.filename,
+            setId: setId || null,
+            setTitle: setTitle || null,
+            fitGrade: fitGrade || 'B',
+            fitScore: fitScore || 65
+          };
+        }
       }
+
       this.state.inventory[virusKey] = cur;
 
-      // Salva também uma cópia nomeada da cepa no disco (até 8 cepas customizadas) se couber no armazenamento
-      if (!Array.isArray(this.state.extraCopies)) this.state.extraCopies = [];
-      const extSuffix = def.filename.includes('.') ? def.filename.slice(def.filename.lastIndexOf('.')) : '.vir';
-      const safeStem = String(strainName || 'Cepa_Lab')
-        .replace(/[^a-zA-Z0-9_-]/g, '_')
-        .replace(/_+/g, '_')
-        .slice(0, 22) || 'Cepa_Lab';
-      const customFilename = safeStem.endsWith(extSuffix) ? safeStem : `${safeStem}${extSuffix}`;
-      const copyMb = Math.max(4, Math.round(this.getItemSizeMb(virusKey, clampedVerInt) * 0.65));
-
-      const labVirusCopies = this.state.extraCopies.filter((c) => c.isLabVirus);
-      if (labVirusCopies.length >= 8) {
-        const oldestIdx = this.state.extraCopies.findIndex((c) => c.isLabVirus);
-        if (oldestIdx >= 0) this.state.extraCopies.splice(oldestIdx, 1);
-      }
-
-      if (this.getUsedHddMb() + copyMb <= this.getMaxHddMb()) {
-        this.state.extraCopies.unshift({
-          id: 'lab_vir_' + Date.now() + '_' + Math.floor(Math.random() * 999),
-          isLabVirus: true,
-          softKey: virusKey,
-          customFilename,
-          customTitle: `${strainName || customFilename} · ${setTitle ? `Conjunto ${setTitle}` : 'Protótipo'} (Nota ${fitGrade || 'B'})`,
-          versionInt: clampedVerInt,
-          sizeMb: copyMb,
-          drive: cur.drive || 'hd',
-          folderId: null,
-          hiddenWithVer: 0
-        });
+      // Remove antigas cópias duplicadas da mesma família em extraCopies para não desperdiçar espaço com repetidos!
+      if (Array.isArray(this.state.extraCopies)) {
+        this.state.extraCopies = this.state.extraCopies.filter((c) => !(c.isLabVirus && c.softKey === virusKey));
       }
 
       this.save();
@@ -1648,11 +1678,17 @@
 
       return {
         success: true,
-        upgradedMain,
+        alreadyOwned,
+        outcomeMode,
+        refineBonusInt,
+        upgradedMain: outcomeMode === 'new_unlock' || outcomeMode === 'upgraded_existing' || refineBonusInt > 0,
         prevVersion: prevVerInt > 0 ? this.fmtVer(prevVerInt) : null,
+        prevMultiplier: prevVerInt > 0 ? this.getVirusYieldMultiplier(prevVerInt) : null,
         activeVersion: this.fmtVer(cur.versionInt),
+        activeVersionInt: cur.versionInt,
+        activeMultiplier: this.getVirusYieldMultiplier(cur.versionInt),
         compiledVersion: this.fmtVer(clampedVerInt),
-        customFilename
+        compiledMultiplier: this.getVirusYieldMultiplier(clampedVerInt)
       };
     }
 
@@ -2766,16 +2802,16 @@
       return before - this.state.remoteInfections.length;
     }
 
-    // FÓRMULA MONETÁRIA HARDCORE: depende de CPU (MHz) do alvo, Internet (Mbps) do alvo, Potência^1.75, Torrent.torrent (p/ Warez) e Divisão de Carga!
+    // FÓRMULA MONETÁRIA REGRESSIVA OFICIAL (Base Teto v10.0 = 3.00x -> regredindo até v1.0 = 1.00x e v0.5 = 0.60x):
+    // Depende de CPU (MHz) do alvo, Internet (Mbps) do alvo, Multiplicador Regressivo da Versão (getVirusYieldMultiplier) e Divisão de Carga!
     computeInfectionPerSec(v) {
       const def = SOFTWARE_DEFINITIONS[v.virusKey];
-      if (!def) return { cashPerSec: 0, satsPerSec: 0, gbps: 0, pausedReason: null };
+      if (!def) return { cashPerSec: 0, satsPerSec: 0, gbps: 0, yieldMult: 1, pausedReason: null };
 
       const host = window.internetEngine ? window.internetEngine.resolveHost(v.targetIp) : null;
       const cpuMhz = (host && host.cpuMhz) || v.targetCpuMhz || 800;
       const netMbps = (host && host.netMbps) || v.targetNetMbps || 4;
-      const potency = Math.max(1, (v.versionInt || 10) / 10);
-      const potencyFactor = Math.pow(potency, 1.75);
+      const yieldMult = this.getVirusYieldMultiplier(v.versionInt || 10);
 
       const siblings = this.getRemoteVirusesOnIp(v.targetIp);
       const cpuSiblings = Math.max(1, siblings.filter((s) => ['vspam', 'vminer', 'vbank'].includes(s.virusKey)).length);
@@ -2784,31 +2820,31 @@
       const netShare = 1 / Math.pow(netSiblings, 0.75);
 
       if (v.virusKey === 'vspam') {
-        const cashPerSec = +(((cpuMhz / 1000) * 0.022 * potencyFactor * cpuShare)).toFixed(4);
-        return { cashPerSec, satsPerSec: 0, gbps: 0, pausedReason: null };
+        const cashPerSec = +(((cpuMhz / 1000) * 0.036 * yieldMult * cpuShare)).toFixed(4);
+        return { cashPerSec, satsPerSec: 0, gbps: 0, yieldMult, pausedReason: null };
       }
       if (v.virusKey === 'vwarez') {
         // Regra Oficial HE (softwares.txt): Vírus Warez EXIGE Torrent.torrent rodando na SUA lista de software!
         if (!this.isTorrentActive()) {
-          return { cashPerSec: 0, satsPerSec: 0, gbps: 0, pausedReason: 'PAUSADO: Ative Torrent.torrent na sua RAM!' };
+          return { cashPerSec: 0, satsPerSec: 0, gbps: 0, yieldMult, pausedReason: 'PAUSADO: Ative Torrent.torrent na sua RAM!' };
         }
-        const cashPerSec = +(((Math.pow(netMbps, 0.68) / 8) * 0.032 * potencyFactor * netShare)).toFixed(4);
-        return { cashPerSec, satsPerSec: 0, gbps: 0, pausedReason: null };
+        const cashPerSec = +(((Math.pow(netMbps, 0.68) / 8) * 0.052 * yieldMult * netShare)).toFixed(4);
+        return { cashPerSec, satsPerSec: 0, gbps: 0, yieldMult, pausedReason: null };
       }
       if (v.virusKey === 'vbank') {
         const finMult = v.targetKind === 'banco' ? 1.85 : (v.targetKind === 'empresa' ? 1.35 : 0.65);
-        const cashPerSec = +((((cpuMhz / 1000) * 0.026 + (Math.pow(netMbps, 0.55) / 10) * 0.020) * potencyFactor * finMult * cpuShare)).toFixed(4);
-        return { cashPerSec, satsPerSec: 0, gbps: 0, pausedReason: null };
+        const cashPerSec = +((((cpuMhz / 1000) * 0.042 + (Math.pow(netMbps, 0.55) / 10) * 0.030) * yieldMult * finMult * cpuShare)).toFixed(4);
+        return { cashPerSec, satsPerSec: 0, gbps: 0, yieldMult, pausedReason: null };
       }
       if (v.virusKey === 'vminer') {
-        const satsPerSec = Math.max(1, Math.round((cpuMhz / 1000) * 14 * potencyFactor * cpuShare));
-        return { cashPerSec: 0, satsPerSec, gbps: 0, pausedReason: null };
+        const satsPerSec = Math.max(1, Math.round((cpuMhz / 1000) * 20 * yieldMult * cpuShare));
+        return { cashPerSec: 0, satsPerSec, gbps: 0, yieldMult, pausedReason: null };
       }
       if (v.virusKey === 'vddos') {
-        const gbps = +((((cpuMhz / 2200) + (netMbps / 220)) * 0.45 * Math.pow(potency, 1.3) * netShare)).toFixed(2);
-        return { cashPerSec: 0, satsPerSec: 0, gbps: Math.max(0.15, gbps), pausedReason: null };
+        const gbps = +((((cpuMhz / 2200) + (netMbps / 220)) * 0.65 * yieldMult * netShare)).toFixed(2);
+        return { cashPerSec: 0, satsPerSec: 0, gbps: Math.max(0.15, gbps), yieldMult, pausedReason: null };
       }
-      return { cashPerSec: 0, satsPerSec: 0, gbps: 0, pausedReason: null };
+      return { cashPerSec: 0, satsPerSec: 0, gbps: 0, yieldMult, pausedReason: null };
     }
 
     startVirusYieldTicker() {
@@ -2873,8 +2909,19 @@
       });
       this.save();
 
-      if (summary.cashReady > 0 && window.currentWallet) {
-        window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + summary.cashReady).toFixed(2);
+      const applyHarvestRewards = () => {
+        if (summary.cashReady > 0 && window.currentWallet) {
+          window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + summary.cashReady).toFixed(2);
+        }
+        const repGain = Math.min(60, 5 + Math.floor(summary.cashReady * 0.12) + Math.floor(summary.satsReady / 1500));
+        if (window.currentProfile) {
+          window.currentProfile.reputation = (window.currentProfile.reputation || 0) + repGain;
+        }
+      };
+      if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+        window.integrityGuard.runAuthorized(applyHarvestRewards);
+      } else {
+        applyHarvestRewards();
       }
       if (summary.satsReady > 0 && window.bitcoinEngine) {
         window.bitcoinEngine.creditSats(
@@ -2882,11 +2929,6 @@
           'VMINER',
           `Coleta Collector.vcol (${summary.collectorMult.toFixed(2)}x) de mineradores remotos`
         );
-      }
-
-      const repGain = Math.min(60, 5 + Math.floor(summary.cashReady * 0.12) + Math.floor(summary.satsReady / 1500));
-      if (window.currentProfile) {
-        window.currentProfile.reputation = (window.currentProfile.reputation || 0) + repGain;
       }
 
       if (typeof window.addLocalLog === 'function') {
@@ -4052,6 +4094,8 @@
                   data-tip-title="${esc(def.friendlyTitle)}" data-tip-meta="${esc(stateLabel)}" data-tip-desc="${esc(def.desc)}">
                   ${isRunning ? '<span class="soft-run-dot"></span>' : ''}
                   <span>${esc(def.filename)}</span>
+                  ${def.category === 'virus' ? `<span class="hc-badge info" style="font-size:10px;padding:1px 6px;margin-left:5px;">${esc(this.getVirusEffectShortLabel(k, st.versionInt))}</span>` : ''}
+                  ${st.customLabStrain ? `<span class="hc-badge success" style="font-size:10px;padding:1px 5px;margin-left:4px;" title="Cepa ${esc(st.customLabStrain.strainName)}">LAB</span>` : ''}
                   ${isHidden ? `<span style="font-size:11px;color:var(--hc-text-3);">(oculto)</span>` : ''}
                 </span>
               </td>

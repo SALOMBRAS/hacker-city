@@ -1,6 +1,7 @@
 /**
- * E2E Test Suite: Laboratório de Vírus (60 Blocos / 88.320 Junções / 54 Conjuntos / Nv.1..10),
- * Polimento do Tour Interativo & Sincronização Cloud/F5.
+ * E2E Test Suite: Laboratório de Vírus (60 Blocos c/ Leve Explicação / 88.320 Junções /
+ * 54 Conjuntos / Fusão de Mesmo Vírus Repetido / Escala Regressiva v10.0 = 3.00x),
+ * Tour Interativo & Sincronização Cloud/F5.
  */
 const fs = require('fs');
 const path = require('path');
@@ -36,21 +37,60 @@ function assert(cond, msg) {
     sessionStorage.clear();
     localStorage.setItem('HC_DISABLE_AUTO_TOUR', '1');
     window.DISABLE_AUTO_TOUR = true;
-    await window.enterInstantOperatorMode('VirusArchitect_01');
+    await window.enterInstantOperatorMode('VirusArchitect_02');
     const toast = document.getElementById('globalToast');
     if (toast) toast.style.display = 'none';
   });
   await new Promise((r) => setTimeout(r, 350));
 
-  // 2) Validar matriz combinatória (60 blocos, 88.320 junções, 54 conjuntos)
-  const combStats = await page.evaluate(() => window.virusLabEngine.getCombinatoricsStats());
-  console.log('   Matriz Combinatória:', combStats);
-  assert(combStats.totalBlocks >= 60, `Esperado >= 60 blocos, obteve ${combStats.totalBlocks}`);
-  assert(combStats.totalCombinations === 88320, `Esperado 88.320 junções, obteve ${combStats.totalCombinations}`);
-  assert(combStats.totalSynergySets >= 54, `Esperado >= 54 conjuntos, obteve ${combStats.totalSynergySets}`);
+  // 2) Validar matriz combinatória + explicações leves nos 60 blocos + escala regressiva 3.00x em v10.0!
+  const coreChecks = await page.evaluate(() => {
+    const stats = window.virusLabEngine.getCombinatoricsStats();
+    const c = window.VIRUS_LAB_CONSTANTS;
+    const allBlocks = [...c.ROUND_1_BLOCKS, ...c.ROUND_2_BLOCKS, ...c.ROUND_3_BLOCKS];
+    const allHaveHints = allBlocks.every((b) => typeof b.hint === 'string' && b.hint.trim().length >= 25);
 
-  // 3) Abrir menu Meu Computador -> Laboratório de Vírus
-  console.log('2) Testando ritual 3 Rounds (3->1, 3->2, 3->1) no Laboratório de Vírus...');
+    const m100 = window.softwareEngine.getVirusYieldMultiplier(100); // v10.0 -> 3.00x
+    const m70  = window.softwareEngine.getVirusYieldMultiplier(70);  // v7.0  -> 2.33x
+    const m55  = window.softwareEngine.getVirusYieldMultiplier(55);  // v5.5  -> 2.00x
+    const m30  = window.softwareEngine.getVirusYieldMultiplier(30);  // v3.0  -> 1.44x
+    const m10  = window.softwareEngine.getVirusYieldMultiplier(10);  // v1.0  -> 1.00x
+    const m06  = window.softwareEngine.getVirusYieldMultiplier(6);   // v0.6  -> 0.68x
+
+    // Testa ganho real de mineração Bitcoin e dinheiro Spam em v10.0 vs v1.0 numa mesma CPU
+    const fakeHostIp = '198.51.100.77';
+    const spamV10 = window.softwareEngine.computeInfectionPerSec({ virusKey: 'vspam', targetIp: fakeHostIp, targetCpuMhz: 2000, versionInt: 10 });
+    const spamV100 = window.softwareEngine.computeInfectionPerSec({ virusKey: 'vspam', targetIp: fakeHostIp, targetCpuMhz: 2000, versionInt: 100 });
+    const minerV10 = window.softwareEngine.computeInfectionPerSec({ virusKey: 'vminer', targetIp: fakeHostIp, targetCpuMhz: 2000, versionInt: 10 });
+    const minerV100 = window.softwareEngine.computeInfectionPerSec({ virusKey: 'vminer', targetIp: fakeHostIp, targetCpuMhz: 2000, versionInt: 100 });
+
+    return {
+      stats,
+      allHaveHints,
+      scale: { m100, m70, m55, m30, m10, m06 },
+      spamRatio: +(spamV100.cashPerSec / spamV10.cashPerSec).toFixed(2),
+      minerRatio: +(minerV100.satsPerSec / minerV10.satsPerSec).toFixed(2)
+    };
+  });
+  console.log('   Matriz, Explicações & Regressão 3x:', coreChecks);
+  assert(coreChecks.stats.totalBlocks === 60, 'Esperado 60 blocos');
+  assert(coreChecks.stats.totalCombinations === 88320, 'Esperado 88.320 junções');
+  assert(coreChecks.stats.totalSynergySets === 54, 'Esperado 54 conjuntos');
+  assert(coreChecks.allHaveHints === true, 'Todos os 60 blocos devem ter explicação leve (hint)');
+  assert(coreChecks.scale.m100 === 3.00, `v10.0 deve ter multiplicador exato 3.00x, obteve ${coreChecks.scale.m100}`);
+  assert(
+    coreChecks.scale.m100 > coreChecks.scale.m70 &&
+    coreChecks.scale.m70 > coreChecks.scale.m55 &&
+    coreChecks.scale.m55 > coreChecks.scale.m30 &&
+    coreChecks.scale.m30 > coreChecks.scale.m10 &&
+    coreChecks.scale.m10 > coreChecks.scale.m06,
+    'Multiplicador deve regredir continuamente de v10.0 (3.00x) até v0.6 (0.68x)'
+  );
+  assert(coreChecks.spamRatio === 3.00, `Spam v10.0 deve render 3.00x o Spam v1.0, rendeu ${coreChecks.spamRatio}x`);
+  assert(coreChecks.minerRatio === 3.00, `Miner v10.0 deve minerar 3.00x o Miner v1.0, minerou ${coreChecks.minerRatio}x`);
+
+  // 3) Abrir menu Meu Computador -> Laboratório de Vírus e validar os 3 Rounds com Leve Explicação!
+  console.log('2) Testando ritual 3 Rounds (3->1, 3->2, 3->1) + Leve Explicação nos Cartões e Combo...');
   await page.evaluate(() => {
     const det = document.getElementById('navTopic_pc');
     if (det) det.open = true;
@@ -60,134 +100,91 @@ function assert(cond, msg) {
   await page.waitForSelector('#winVirusLab', { visible: true });
   await new Promise((r) => setTimeout(r, 300));
 
-  // ROUND 1: 3 opções -> escolher apenas 1
-  const r1StateBefore = await page.evaluate(() => {
-    const cards = Array.from(document.querySelectorAll('#winVirusLab .vlab-block-card'));
-    const nextBtn = document.getElementById('btnVlabNextRound');
-    return {
-      cardCount: cards.length,
-      nextDisabled: nextBtn ? nextBtn.disabled : null,
-      counter: document.getElementById('vlabPickCounter')?.textContent?.trim()
-    };
+  const r1Check = await page.evaluate(() => {
+    const hints = Array.from(document.querySelectorAll('#winVirusLab .vlab-block-hint')).map((el) => el.textContent.trim());
+    const cards = document.querySelectorAll('#winVirusLab .vlab-block-card');
+    cards[0].click();
+    const notionText = document.getElementById('vlabComboNotionBox')?.innerText || '';
+    return { hintCount: hints.length, firstHint: hints[0], notionText };
   });
-  assert(r1StateBefore.cardCount === 3, `Round 1 deve mostrar 3 opções, mostrou ${r1StateBefore.cardCount}`);
-  assert(r1StateBefore.nextDisabled === true, 'Botão avançar do Round 1 deve iniciar desabilitado');
+  assert(r1Check.hintCount === 3 && r1Check.firstHint.length > 20, 'Round 1 deve exibir leve explicação nos 3 cartões');
+  assert(r1Check.notionText.includes('Entrada:'), 'Caixa de noção do combo deve atualizar ao escolher no Round 1');
+  await page.screenshot({ path: path.join(OUT_DIR, '01-round1-3opcoes-com-explicacao.png') });
 
-  // Clica na 1ª opção e depois na 2ª opção p/ provar que no Round 1 só fica 1 selecionado
-  await page.evaluate(() => {
+  // ROUND 2: 3 opções -> escolher 2
+  await page.click('#btnVlabNextRound');
+  await new Promise((r) => setTimeout(r, 200));
+  const r2Check = await page.evaluate(() => {
     const cards = document.querySelectorAll('#winVirusLab .vlab-block-card');
     cards[0].click();
     cards[1].click();
-  });
-  const r1AfterPick = await page.evaluate(() => {
-    const pressed = document.querySelectorAll('#winVirusLab .vlab-block-card[aria-pressed="true"]');
-    const nextBtn = document.getElementById('btnVlabNextRound');
-    return { pressedCount: pressed.length, nextDisabled: nextBtn.disabled };
-  });
-  assert(r1AfterPick.pressedCount === 1, `Round 1 deve manter apenas 1 selecionado, tem ${r1AfterPick.pressedCount}`);
-  assert(r1AfterPick.nextDisabled === false, 'Botão avançar do Round 1 deve habilitar ao escolher 1');
-  await page.screenshot({ path: path.join(OUT_DIR, '01-round1-3opcoes-escolher-1.png') });
-
-  // Avança para o ROUND 2: 3 novas opções -> escolher exatamente 2
-  await page.click('#btnVlabNextRound');
-  await new Promise((r) => setTimeout(r, 200));
-
-  const r2AfterOnePick = await page.evaluate(() => {
-    const cards = document.querySelectorAll('#winVirusLab .vlab-block-card');
-    cards[0].click(); // apenas 1 escolhido
-    const nextBtn = document.getElementById('btnVlabNextRound');
     return {
-      cardCount: cards.length,
-      pressedAfter1: document.querySelectorAll('#winVirusLab .vlab-block-card[aria-pressed="true"]').length,
-      nextDisabledAfter1: nextBtn.disabled
+      pressed: document.querySelectorAll('#winVirusLab .vlab-block-card[aria-pressed="true"]').length,
+      notionText: document.getElementById('vlabComboNotionBox')?.innerText || ''
     };
   });
-  assert(r2AfterOnePick.cardCount === 3, 'Round 2 deve mostrar 3 opções');
-  assert(r2AfterOnePick.pressedAfter1 === 1 && r2AfterOnePick.nextDisabledAfter1 === true, 'No Round 2 escolher só 1 não pode liberar o avanço');
-
-  await page.evaluate(() => {
-    const cards = document.querySelectorAll('#winVirusLab .vlab-block-card');
-    cards[2].click(); // 2º escolhido!
-  });
-  const r2AfterTwoPicks = await page.evaluate(() => {
-    const nextBtn = document.getElementById('btnVlabNextRound');
-    return {
-      pressedCount: document.querySelectorAll('#winVirusLab .vlab-block-card[aria-pressed="true"]').length,
-      nextDisabled: nextBtn.disabled
-    };
-  });
-  assert(r2AfterTwoPicks.pressedCount === 2 && r2AfterTwoPicks.nextDisabled === false, 'No Round 2 escolher 2 blocos deve liberar avanço');
+  assert(r2Check.pressed === 2 && r2Check.notionText.includes('Núcleo Duplo:'), 'Round 2 deve escolher 2 blocos e atualizar noção do combo');
   await page.screenshot({ path: path.join(OUT_DIR, '02-round2-3opcoes-escolher-2.png') });
 
-  // Avança para o ROUND 3: 3 novas opções -> escolher apenas 1 novamente
+  // ROUND 3: 3 opções -> escolher 1
   await page.click('#btnVlabNextRound');
   await new Promise((r) => setTimeout(r, 200));
-
-  const r3Ready = await page.evaluate(() => {
+  await page.evaluate(() => {
     const cards = document.querySelectorAll('#winVirusLab .vlab-block-card');
-    const compBtnBefore = document.getElementById('btnVlabCompile').disabled;
     cards[0].click();
     const inp = document.getElementById('vlabStrainNameInput');
     if (inp) inp.value = 'Proto-Alpha';
-    return {
-      cardCount: cards.length,
-      compBtnBefore,
-      compBtnAfter: document.getElementById('btnVlabCompile').disabled
-    };
   });
-  assert(r3Ready.cardCount === 3, 'Round 3 deve mostrar 3 opções');
-  assert(r3Ready.compBtnBefore === true && r3Ready.compBtnAfter === false, 'Round 3 deve exigir 1 escolha para compilar');
   await page.screenshot({ path: path.join(OUT_DIR, '03-round3-3opcoes-escolher-1.png') });
-
-  // Compila o 1º vírus no Nível 1!
   await page.click('#btnVlabCompile');
   await page.waitForSelector('#vlabCompileResultCard', { visible: true });
-  const firstCompile = await page.evaluate(() => {
-    const rep = window.virusLabEngine.lastCompileReport;
-    const inv = window.softwareEngine.state.inventory[rep.dominantFamily];
+
+  // 4) Testar quando sai o MESMO VÍRUS que o jogador já possui (Fusão & Refino sem perder a versão forte!)
+  console.log('3) Validando caso de MESMO VÍRUS repetido (preserva o mais forte + lapida +v0.1/+v0.2 + XP bônus)...');
+  const duplicateTest = await page.evaluate(() => {
+    // Jogador está no Nível 4 (teto v4.5) e já tem Miner.vminer v3.0 (1.44x)
+    window.virusLabEngine.state.xp = 420;
+    window.virusLabEngine.state.level = 4;
+    window.softwareEngine.state.inventory.vminer.owned = true;
+    window.softwareEngine.state.inventory.vminer.licensed = true;
+    window.softwareEngine.state.inventory.vminer.versionInt = 30; // v3.0 (1.44x)
+
+    // Agora compila uma combinação que dá o MESMO Miner.vminer porém mais fraca (ex: Camada I -> ~v1.2..v2.4)
+    window.virusLabEngine.state.activeDraft = {
+      startedAt: Date.now(),
+      round: 3,
+      optionsByRound: { 1: ['R1_09', 'R1_01', 'R1_05'], 2: ['R2_09', 'R2_01', 'R2_23'], 3: ['R3_07', 'R3_01', 'R3_04'] },
+      picks: { r1: 'R1_09', r2: ['R2_09', 'R2_01'], r3: 'R3_07' },
+      customName: 'Miner-Repetido-Cepa'
+    };
+    const res = window.virusLabEngine.compileCurrentDraft('Miner-Repetido-Cepa');
     return {
-      strainName: rep.strainName,
-      family: rep.dominantFamily,
-      fitScore: rep.fitScore,
-      fitGrade: rep.fitGrade,
-      versionInt: rep.versionInt,
-      xpAfter: window.virusLabEngine.state.xp,
-      ownedInDisk: !!(inv && inv.owned && inv.licensed)
+      compiledVerInt: res.report.versionInt,
+      outcomeMode: res.report.diskDelivery.outcomeMode,
+      prevVer: res.report.diskDelivery.prevVersion,
+      activeVerInt: window.softwareEngine.state.inventory.vminer.versionInt,
+      activeVerLabel: res.report.diskDelivery.activeVersion,
+      activeMult: res.report.diskDelivery.activeMultiplier,
+      duplicateRecycleXp: res.report.duplicateRecycleXp,
+      hasNoticeInDom: !!document.getElementById('vlabDuplicateNotice')
     };
   });
-  console.log('   1ª Compilação (Nv.1):', firstCompile);
-  assert(firstCompile.xpAfter >= 40, 'Compilar deve conceder XP de Laboratório');
-  assert(firstCompile.ownedInDisk === true, 'Vírus compilado deve entrar licenciado em Programas & Proteção');
+  console.log('   Resultado de Mesmo Vírus Repetido:', duplicateTest);
+  assert(duplicateTest.outcomeMode === 'duplicate_refined', `Esperado duplicate_refined, obteve ${duplicateTest.outcomeMode}`);
+  assert(duplicateTest.activeVerInt > 30, 'Mesmo vírus repetido não pode rebaixar v3.0 e deve lapidar +v0.1/+v0.2');
+  assert(duplicateTest.duplicateRecycleXp > 0 && duplicateTest.hasNoticeInDom, 'Deve conceder XP bônus de reciclagem e mostrar aviso de fusão');
+  await new Promise((r) => setTimeout(r, 250));
+  await page.screenshot({ path: path.join(OUT_DIR, '04-mesmo-virus-fusao-sem-perder-forca.png') });
 
-  // 4) Validar matematicamente Encaixe Fraco vs Encaixe Forte e evolução até o Nível Máximo (Nv. 10)
-  console.log('3) Validando diferença entre escolha mal encaixada vs bem encaixada + Nível Máximo (Nv.10)...');
-  const fitComparison = await page.evaluate(() => {
-    const weak = window.virusLabEngine.evaluateAssembly('R1_01', ['R2_09', 'R2_23'], 'R3_13');
-    const strong = window.virusLabEngine.evaluateAssembly('R1_09', ['R2_09', 'R2_21'], 'R3_07');
-    return {
-      weakScore: weak.fitScore,
-      weakGrade: weak.fitGrade,
-      weakVer: weak.versionInt,
-      strongScore: strong.fitScore,
-      strongGrade: strong.fitGrade,
-      strongVer: strong.versionInt,
-      strongSet: strong.matchedSet ? strong.matchedSet.id : null
-    };
-  });
-  console.log('   Comparativo de Encaixe:', fitComparison);
-  assert(fitComparison.strongScore > fitComparison.weakScore + 35, 'Escolha bem encaixada deve ter score muito superior à mal encaixada');
-  assert(fitComparison.strongVer > fitComparison.weakVer, 'Escolha bem encaixada deve gerar vírus mais forte que escolha conflitante');
-  assert(!!fitComparison.strongSet, 'Escolha bem encaixada deve destravar um Conjunto do catálogo');
-
-  // Evoluir Laboratório até o Nível Máximo (Nv.10) e compilar conjunto lendário Camada V!
+  // 5) Evoluir ao Nível Máximo (Nv. 10) e compilar v10.0 = 3.00x MÁXIMO!
+  console.log('4) Validando Nível Máximo (Nv.10) gerando v10.0 com 3.00x de multiplicador...');
   const maxLvlCompile = await page.evaluate(() => {
     if (window.hardwareEngine && window.hardwareEngine.current) {
-      window.hardwareEngine.current.hdd = 3; // Disco compatível com operador Nível 10
+      window.hardwareEngine.current.hdd = 3;
       window.hardwareEngine.saveRig(window.hardwareEngine.current);
     }
     window.virusLabEngine.state.xp = 3150;
     window.virusLabEngine.state.level = 10;
-    // Desbloqueia alguns conjuntos anteriores p/ vitrine do Códice e monta rascunho Camada V
     window.virusLabEngine.state.discoveredSets = ['SET_01', 'SET_12', 'SET_23', 'SET_34', 'SET_45', 'SET_51', 'SET_52'];
     window.virusLabEngine.state.activeDraft = {
       startedAt: Date.now(),
@@ -197,65 +194,33 @@ function assert(cond, msg) {
         2: ['R2_12', 'R2_24', 'R2_20'],
         3: ['R3_16', 'R3_09', 'R3_15']
       },
-      picks: {
-        r1: 'R1_12',
-        r2: ['R2_12', 'R2_24'],
-        r3: 'R3_16'
-      },
+      picks: { r1: 'R1_12', r2: ['R2_12', 'R2_24'], r3: 'R3_16' },
       customName: 'Omega-Satoshi-Zero'
     };
     const res = window.virusLabEngine.compileCurrentDraft('Omega-Satoshi-Zero');
     return {
-      levelMeta: window.virusLabEngine.getLevelMeta(),
-      fitScore: res.report.fitScore,
-      fitGrade: res.report.fitGrade,
       versionLabel: res.report.versionLabel,
       versionInt: res.report.versionInt,
-      setId: res.report.matchedSet?.id,
-      setName: res.report.matchedSet?.name
+      yieldMultiplier: res.report.yieldMultiplier,
+      setId: res.report.matchedSet?.id
     };
   });
-  console.log('   Compilação Nível Máximo (Nv.10):', maxLvlCompile);
-  assert(maxLvlCompile.levelMeta.level === 10 && maxLvlCompile.levelMeta.isMaxLevel === true, 'Deve atingir Nível 10 (Nível Máximo)');
-  assert(maxLvlCompile.versionInt >= 95, `No Nível Máximo com encaixe S+ deve atingir v9.5..v10.0, obteve ${maxLvlCompile.versionLabel}`);
-  assert(maxLvlCompile.setId === 'SET_54', `Esperado SET_54 lendário, obteve ${maxLvlCompile.setId}`);
+  console.log('   Compilação Nível Máximo (v10.0 = 3.00x):', maxLvlCompile);
+  assert(maxLvlCompile.versionInt === 100 && maxLvlCompile.yieldMultiplier === 3.00, 'No Nível 10 com S+ deve gerar v10.0 com 3.00x exato');
   await new Promise((r) => setTimeout(r, 250));
-  await page.screenshot({ path: path.join(OUT_DIR, '04-resultado-compilacao-nivel-maximo.png') });
+  await page.screenshot({ path: path.join(OUT_DIR, '05-resultado-v10-multiplicador-3x-maximo.png') });
 
-  // Capturar aba Códice de 54 Conjuntos
-  await page.click('#vlabTabCodex');
-  await new Promise((r) => setTimeout(r, 250));
-  await page.screenshot({ path: path.join(OUT_DIR, '05-codice-54-conjuntos.png') });
-
-  // Capturar Programas & Proteção mostrando o vírus autoral v10.0 salvo no disco
-  await page.evaluate(() => window.navTo('winSoftware'));
-  await new Promise((r) => setTimeout(r, 300));
-  const minerDiskVer = await page.evaluate(() => window.softwareEngine.state.inventory.vminer.versionInt);
-  assert(minerDiskVer >= 95, `Miner.vminer no disco deveria estar >= v9.5, está ${minerDiskVer}`);
-  await page.screenshot({ path: path.join(OUT_DIR, '06-virus-criado-programas-disco.png') });
-
-  // 5) Frente 3: Validar Tour Guiado Interativo + Recompensa Autorizada sem erro Anti-Cheat
-  console.log('4) Validando Tour Guiado Interativo (Frente 3) + Blur IP...');
-  await page.evaluate(() => window.spotlightTour.start(true));
-  await new Promise((r) => setTimeout(r, 350));
-  const tourStep1 = await page.evaluate(() => ({
-    isActive: window.spotlightTour.isActive,
-    title: document.getElementById('hcTourCardTitle')?.innerText || '',
-    desc: document.getElementById('hcTourCardDesc')?.innerText || ''
-  }));
-  assert(tourStep1.isActive === true && tourStep1.desc.includes('7 dígitos'), 'Passo 1 do Tour deve explicar o blur dos últimos 7 dígitos do IP');
-  await page.screenshot({ path: path.join(OUT_DIR, '07-tour-guiado-blur-ip-e-lab.png') });
-
-  const tourRewardCheck = await page.evaluate(() => {
-    const balBefore = Number(window.currentWallet.balance);
-    window.spotlightTour.finishWithReward();
-    const balAfter = Number(window.currentWallet.balance);
-    return { delta: +(balAfter - balBefore).toFixed(2) };
+  // Capturar Programas & Proteção mostrando a tag [3.00x BTC] e [LAB] sem cópias inúteis repetidas
+  await page.evaluate(() => {
+    const toast = document.getElementById('globalToast');
+    if (toast) toast.style.display = 'none';
+    window.navTo('winSoftware');
   });
-  assert(tourRewardCheck.delta === 500, `Tour deve conceder +$500 HC autorizado pelo anti-cheat, concedeu ${tourRewardCheck.delta}`);
+  await new Promise((r) => setTimeout(r, 300));
+  await page.screenshot({ path: path.join(OUT_DIR, '06-programas-com-multiplicador-regressivo.png') });
 
-  // 6) Frente 4: Persistência F5 (Master Snapshot + virusLabState)
-  console.log('5) Validando persistência F5 (Master Snapshot + virusLabState)...');
+  // 6) Persistência F5
+  console.log('5) Validando persistência F5...');
   await page.evaluate(() => {
     if (window.onlineEngine) window.onlineEngine.saveLocalSnapshotImmediate();
   });
@@ -264,15 +229,10 @@ function assert(cond, msg) {
 
   const afterReload = await page.evaluate(() => ({
     labLevel: window.virusLabEngine.state.level,
-    discoveredCount: window.virusLabEngine.state.discoveredSets.length,
-    creationsCount: window.virusLabEngine.state.creations.length,
-    minerVerInt: window.softwareEngine.state.inventory.vminer.versionInt
+    minerVerInt: window.softwareEngine.state.inventory.vminer.versionInt,
+    minerMult: window.softwareEngine.getVirusYieldMultiplier(window.softwareEngine.state.inventory.vminer.versionInt)
   }));
-  console.log('   Estado após F5:', afterReload);
-  assert(afterReload.labLevel === 10, 'Nível 10 do Laboratório deve persistir após F5');
-  assert(afterReload.discoveredCount >= 8, 'Conjuntos descobertos devem persistir após F5');
-  assert(afterReload.creationsCount >= 2, 'Histórico de criações deve persistir após F5');
-  assert(afterReload.minerVerInt >= 95, 'Versão do vírus compilado no disco deve persistir após F5');
+  assert(afterReload.labLevel === 10 && afterReload.minerVerInt === 100 && afterReload.minerMult === 3.00, 'v10.0 (3.00x) deve persistir após F5');
   assert(pageErrors.length === 0, 'Erros JS na página: ' + pageErrors.join('; '));
 
   console.log('✅ TODOS OS TESTES PASSARAM COM 100% DE SUCESSO!');

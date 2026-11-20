@@ -252,7 +252,7 @@
 }
 
 .vlab-code-pre {
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   padding: 10px 11px;
   border-radius: 7px;
   background: #090d12;
@@ -264,6 +264,54 @@
   white-space: pre-wrap;
   word-break: break-word;
   flex: 1;
+}
+
+.vlab-block-hint {
+  margin: 0 0 9px;
+  padding: 7px 9px;
+  border-radius: 6px;
+  background: rgba(56, 189, 248, 0.07);
+  border-left: 2.5px solid rgba(56, 189, 248, 0.55);
+  font-size: 0.74rem;
+  line-height: 1.38;
+  color: #dbeafe;
+}
+
+.vlab-combo-notion-box {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 9px;
+  background: rgba(53, 184, 119, 0.07);
+  border: 1px solid rgba(53, 184, 119, 0.32);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #e2e8f0;
+}
+
+.vlab-scale-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.vlab-scale-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 8px;
+  border-radius: 5px;
+  background: #0a0e13;
+  border: 1px solid #1d2632;
+  font-family: var(--hc-font-mono, monospace);
+  font-size: 0.71rem;
+  color: var(--hc-text-2, #9aa4b2);
+}
+
+.vlab-scale-row.peak {
+  border-color: rgba(74, 222, 128, 0.45);
+  background: rgba(74, 222, 128, 0.08);
+  color: #dcfce7;
 }
 
 .vlab-block-foot {
