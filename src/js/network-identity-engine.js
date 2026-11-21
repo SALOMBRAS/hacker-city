@@ -3813,6 +3813,17 @@
               ` : ''}
             </div>
 
+            ${foreignViruses.length > 0 ? `
+              <details class="nds-rules-drawer">
+                <summary>📖 Regras de Funcionamento do Sequestro Tático de Zumbis (Botnet Hijacking C2 — 70%)</summary>
+                <ol class="nds-rules-list">
+                  <li><strong>Pré-Requisito:</strong> Vírus de rivais/Bots só aparecem na tabela abaixo quando você obtém acesso SSH/Root ao servidor e roda <code>Seeker.skr</code> nele.</li>
+                  <li><strong>Divisão 70% / 30% &amp; Duração:</strong> Clicar em <strong>🏴‍☠️ Sequestrar C2 (70%)</strong> coleta na hora o buffer retido (<strong>+$ 480,00 em Dinheiro Sujo</strong>) e desvia <strong>70% dos rendimentos por 6 horas reais</strong> sem gastar upload (deixando 30% de fachada pro dono original).</li>
+                  <li><strong>Limite &amp; Rastro Crítico:</strong> Máximo estrito de <strong>4 servidores sequestrados simultâneos</strong>; a ação grava <code>injected C2_KEY_HIJACK</code> no <code>/var/log/syslog</code> do alvo — limpe com Shred 7-Passos antes de sair!</li>
+                </ol>
+              </details>
+            ` : ''}
+
             <!-- Gerenciador de Programas & Arquivos do PC da Vítima (Estilo Foto 2: Ícones Compactos + Mini-Aba Hover!) -->
             <div class="soft-frame" id="remoteTargetSpecsCard">
               <div class="soft-explorer-shell" style="min-height:360px;">

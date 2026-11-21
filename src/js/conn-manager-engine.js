@@ -368,6 +368,17 @@
               <span class="hc-badge ${inCount > 0 ? 'danger' : 'success'}">${inCount > 0 ? `${inCount} invasão ativa` : 'Seguro'}</span>
             </div>
           </div>
+          <div style="padding: 10px 18px; border-bottom: 1px solid var(--hc-border);">
+            <details class="nds-rules-drawer">
+              <summary>📖 Regras de Funcionamento do Popover de Defesa Ativa de 15 Segundos</summary>
+              <ol class="nds-rules-list">
+                <li><strong>Gatilho &amp; Prazo de 15s:</strong> Abre automaticamente no canto superior direito quando alguém invade sua porta 22. Se você não reagir em <strong>15 segundos reais</strong>, o alerta fecha e o invasor prossegue normalmente.</li>
+                <li><strong>✂️ Cortar Cabo:</strong> Grátis e sem recarga — derruba o invasor na hora, mas o reset da placa <strong>pausa suas transferências por 15s</strong>.</li>
+                <li><strong>🍯 Honeypot:</strong> Derruba o invasor, salva o IP dele em <em>Senhas Descobertas</em> (+25% bônus contra-ataque) e dá <strong>+45 pts na Temporada</strong>, mas entra em <strong>recarga de 60s</strong>.</li>
+                <li><strong>⚡ Pulso Reverso EMP:</strong> Frita o invasor na hora, porém aquece sua própria CPU em <strong>+12°C por 60s</strong> e entra em <strong>recarga de 3 minutos (180s)</strong>.</li>
+              </ol>
+            </details>
+          </div>
           ${inboundHtml}
         </div>
 

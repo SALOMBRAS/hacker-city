@@ -1403,6 +1403,14 @@
               </div>
             </div>
             <div id="localMagShadowBox" style="display:none;padding:8px 10px;background:#0d1520;border:1px solid #2b3e57;border-radius:7px;font-size:12px;color:#7dd3fc;"></div>
+            <details class="nds-rules-drawer">
+              <summary>📖 Regras de Funcionamento da Pilha Forense &amp; Shred 7-Passos (DoD 5220.22-M)</summary>
+              <ol class="nds-rules-list">
+                <li><strong>Limpeza Simples vs. Sombra Magnética:</strong> Apagar logs pelo botão comum remove o texto visível e cancela perseguição de bots comuns, mas deixa uma <strong>Sombra Magnética nos setores do disco por 5 minutos reais</strong> (<strong>10 minutos</strong> sob o Inspetor Sato!).</li>
+                <li><strong>Requisitos p/ Perícia:</strong> Clicar em <strong>🔬 Ler Setor Magnético</strong> exige ter <code>Analyzer.ana v2.0+</code> instalado na RAM (ou subclasse <em>Forense Ofensivo</em>) e recupera apenas os 2 primeiros blocos da sub-rede (ex.: <code>143.186.***.**</code> + horário).</li>
+                <li><strong>🔥 Shred 7-Passos:</strong> Sobrescreve os setores com <code>0x00000000</code> tornando impossível qualquer recuperação forense, mas o esforço de I/O aquece sua CPU em <strong>+12°C por 45 segundos</strong>.</li>
+              </ol>
+            </details>
             <textarea id="localSyslogTextarea" class="ssh-syslog-editor" style="min-height:290px;color:#d6e2ee;background:var(--hc-inset);border:1px solid var(--hc-border);border-radius:8px;padding:12px 14px;line-height:1.55;" spellcheck="false">${escapeHtml(localRawText)}</textarea>
           </div>
         `;
