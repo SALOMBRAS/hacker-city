@@ -1276,19 +1276,31 @@
       }
 
       if (actionKind === 'honeypot') {
-        if (this.state.honeypotCooldownUntil > Date.now()) {
-          const msg = 'Armadilha Honeypot recarregando! Use Cortar Cabo ou Pulso EMP.';
+        const sacVps = (window.lanServersEngine && typeof window.lanServersEngine.getSacrificeableVps === 'function')
+          ? window.lanServersEngine.getSacrificeableVps()
+          : null;
+        if (!sacVps) {
+          const msg = '🔒 VOCÊ NÃO POSSUI NENHUMA VPS PARA SACRIFICAR! Desviar invasão exige ter comprado uma VPS ($ 2.500+ Limpos), pois o invasor destrói a VPS permanentemente! Use Cortar Cabo ou Pulso EMP.';
           if (typeof window.showToast === 'function') window.showToast(msg);
-          return { success: false, code: 'HONEYPOT_CD', message: msg };
+          return { success: false, code: 'NO_VPS_TO_SACRIFICE', message: msg };
         }
-        this.state.honeypotCooldownUntil = Date.now() + 60000;
+
+        // PREÇO ALTÍSSIMO: O invasor entra na VPS e você PERDE ELA PERMANENTEMENTE (sem opção de reformatar — tem que comprar e montar outra!)
+        const wreck = window.lanServersEngine.sacrificeAndDestroyVps(attIp, attAlias);
         if (window.hackedDb) {
           window.hackedDb.upsertHost({
             ip: attIp,
             hostname: `Intruso Capturado (${attAlias})`,
             kind: 'player',
-            analyzedHw: 'Capturado no Honeypot (+25% Bônus Contra-Ataque)'
+            analyzedHw: `Capturado no sacrifício irreversível de ${wreck ? wreck.label : 'VPS'} (+25% Bônus Contra-Ataque)`
           });
+        }
+        if (typeof window.addLocalLog === 'function' && wreck) {
+          window.addLocalLog(
+            'VPS-DESTRUIDA',
+            `DESVIO DE EMERGÊNCIA: Ataque de ${attIp} (${attAlias}) desviado p/ ${wreck.label} (${wreck.ip}). A VPS e suas peças foram DESTRUÍDAS PERMANENTEMENTE (sem reformatação — compre e monte outra!).`,
+            'danger'
+          );
         }
         if (window.connManagerEngine) {
           window.connManagerEngine.inboundSessions = [];
@@ -1298,9 +1310,9 @@
         this.awardSeasonPoints(45, 'honeypot_trap');
         this.save();
         this.renderDefensePopoverDom();
-        const msg = `🍯 ${attAlias} (${attIp}) desviado pro seu Honeypot e salvo em Senhas Descobertas (+45 pts Temporada · Recarga isca: 60s)!`;
+        const msg = `💀🔥 Ataque desviado! Seu PC Principal foi salvo e o IP de ${attAlias} (${attIp}) foi capturado, MAS sua "${wreck ? wreck.label : 'VPS'}" foi DESTRUÍDA PERMANENTEMENTE (sem reformatação — compre e monte outra VPS)!`;
         if (typeof window.showToast === 'function') window.showToast(msg);
-        return { success: true, action: 'honeypot', capturedIp: attIp, message: msg };
+        return { success: true, action: 'honeypot', capturedIp: attIp, burnedVps: wreck, message: msg };
       }
 
       if (actionKind === 'emp_pulse') {
@@ -1808,6 +1820,9 @@
       }
       const remMs = Math.max(0, a.expiresAt - Date.now());
       const pct = Math.round((remMs / 15000) * 100);
+      const sacVps = (window.lanServersEngine && typeof window.lanServersEngine.getSacrificeableVps === 'function')
+        ? window.lanServersEngine.getSacrificeableVps()
+        : null;
       pop.classList.add('open');
       pop.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -1820,7 +1835,7 @@
         <div class="hc-def-bar-track"><div class="hc-def-bar-fill" style="width:${pct}%;"></div></div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
           <button type="button" id="btnDefCutCable" class="hc-btn sm" style="border-color:#e5534b;color:#fca5a5;" title="Grátis, mas pausa sua rede 15s" onclick="window.nineSystemsEngine.respondActiveDefense('cut_cable')">✂️ Cortar</button>
-          <button type="button" id="btnDefHoneypot" class="hc-btn primary sm" title="Engana invasor e dá +25% contra-ataque" onclick="window.nineSystemsEngine.respondActiveDefense('honeypot')">🍯 Honeypot</button>
+          <button type="button" id="btnDefHoneypot" class="hc-btn ${sacVps ? 'primary' : 'ghost'} sm" ${!sacVps ? 'style="opacity:0.55;border-color:#4b5563;"' : 'style="background:#d97706;border-color:#f59e0b;color:#090d12;"'} title="${sacVps ? `ATENÇÃO: Salva seu PC e captura o IP do invasor, MAS DESTRÓI PERMANENTEMENTE sua ${sacVps.label} (sem reformatação — terá que comprar e montar outra!)` : 'Bloqueado: compre uma VPS ($ 2.500+) para poder sacrificar em desvios'}" onclick="window.nineSystemsEngine.respondActiveDefense('honeypot')">${sacVps ? '🔥 Desviar (Perde VPS!)' : '🔒 Sem VPS'}</button>
           <button type="button" id="btnDefEmp" class="hc-btn ghost sm" title="Frita invasor, mas sobe +12°C na sua CPU" onclick="window.nineSystemsEngine.respondActiveDefense('emp_pulse')">⚡ Pulso EMP</button>
         </div>
       `;

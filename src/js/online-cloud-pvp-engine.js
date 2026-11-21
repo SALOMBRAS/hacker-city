@@ -494,6 +494,9 @@
           : null,
         nineSystemsState: window.nineSystemsEngine && typeof window.nineSystemsEngine.getSnapshotState === 'function'
           ? window.nineSystemsEngine.getSnapshotState()
+          : null,
+        lanServersState: window.lanServersEngine && typeof window.lanServersEngine.getSnapshotState === 'function'
+          ? window.lanServersEngine.getSnapshotState()
           : null
       };
       return window.integrityGuard && typeof window.integrityGuard.signSnapshot === 'function'
@@ -716,6 +719,10 @@
 
       if (snap.nineSystemsState && window.nineSystemsEngine && typeof window.nineSystemsEngine.applySnapshotState === 'function') {
         window.nineSystemsEngine.applySnapshotState(snap.nineSystemsState);
+      }
+
+      if (snap.lanServersState && window.lanServersEngine && typeof window.lanServersEngine.applySnapshotState === 'function') {
+        window.lanServersEngine.applySnapshotState(snap.lanServersState);
       }
 
       if (snap.stealthLoot && window.stealthXhdEngine) {

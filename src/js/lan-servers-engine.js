@@ -61,6 +61,7 @@
   class LanServersEngine {
     constructor() {
       this.servers = [];
+      this.burnedServers = [];
       this.topology = { nodes: [], edges: [] };
       this.isModalOpen = false;
       this.loadedUid = null;
@@ -76,6 +77,7 @@
       if (this.loadedUid !== uid) {
         this.loadedUid = uid;
         this.servers = [];
+        this.burnedServers = [];
         this.loadFromStorage();
         if (this.servers.length === 0) {
           this.seedInitialServers();
@@ -111,6 +113,7 @@
         if (raw) {
           const data = JSON.parse(raw);
           this.servers = data.servers || [];
+          this.burnedServers = Array.isArray(data.burnedServers) ? data.burnedServers : [];
           this.topology = data.topology || { nodes: [], edges: [] };
         }
       } catch (e) {}
@@ -120,6 +123,35 @@
       try {
         localStorage.setItem(this.storageKey(), JSON.stringify({
           servers: this.servers,
+          burnedServers: this.burnedServers || [],
+          topology: this.topology
+        }));
+      } catch (e) {}
+      if (window.onlineEngine && typeof window.onlineEngine.scheduleSave === 'function') {
+        window.onlineEngine.scheduleSave(false);
+      }
+    }
+
+    getSnapshotState() {
+      this.ensureSyncedWithProfile();
+      return {
+        servers: JSON.parse(JSON.stringify(this.servers || [])),
+        burnedServers: JSON.parse(JSON.stringify(this.burnedServers || []))
+      };
+    }
+
+    applySnapshotState(snap) {
+      if (!snap || typeof snap !== 'object') return;
+      this.loadedUid = (window.currentProfile && window.currentProfile.id) || 'guest';
+      if (Array.isArray(snap.servers) && snap.servers.length > 0) {
+        this.servers = snap.servers;
+      }
+      this.burnedServers = Array.isArray(snap.burnedServers) ? snap.burnedServers : [];
+      this.rebuildTopology();
+      try {
+        localStorage.setItem(this.storageKey(), JSON.stringify({
+          servers: this.servers,
+          burnedServers: this.burnedServers,
           topology: this.topology
         }));
       } catch (e) {}
@@ -128,6 +160,8 @@
     seedInitialServers() {
       const myPublicIp = (window.networkIdentity && window.networkIdentity.getPublicIp()) || '187.45.12.90';
 
+      // Operador começa SOMENTE com seu PC Principal (0 VPS extras).
+      // Para usar CronDaemons ou Desviar Ataque p/ VPS (queimando a VPS!), precisa comprar e montar uma VPS!
       this.servers = [
         {
           id: 'srv_gateway_01',
@@ -140,18 +174,6 @@
           specs: { cpuMhz: 2400, netMbps: 100, hddMb: 1024, ramMb: 512 },
           firewallVer: 2.0,
           services: ['ssh', 'routing']
-        },
-        {
-          id: 'srv_honeypot_02',
-          label: 'Servidor Isca',
-          type: 'vps',
-          ip: '185.220.11.10',
-          internalIp: '10.0.0.2',
-          isGateway: false,
-          isHoneypot: true,
-          specs: { cpuMhz: 1800, netMbps: 50, hddMb: 512, ramMb: 256 },
-          firewallVer: 1.0,
-          services: ['trap_logger', 'fake_fs']
         }
       ];
 
@@ -222,6 +244,59 @@
 
     getHoneypotServer() {
       return this.servers.find((s) => s.isHoneypot) || null;
+    }
+
+    // Retorna a VPS disponível para ser sacrificada no Desvio de Ataque (prioriza Isca Honeypot, depois a mais barata)
+    getSacrificeableVps() {
+      this.ensureSyncedWithProfile();
+      const extras = this.servers.filter((s) => s.id !== 'srv_gateway_01');
+      if (extras.length === 0) return null;
+      const markedHoneypot = extras.find((s) => s.isHoneypot);
+      if (markedHoneypot) return markedHoneypot;
+      const costOrder = { vps_starter: 1, vps: 2, dedicated: 3, mainframe: 4 };
+      return extras.slice().sort((a, b) => (costOrder[a.catalogKey || a.type] || 2) - (costOrder[b.catalogKey || b.type] || 2))[0];
+    }
+
+    // DESTRÓI IRREVERSIVELMENTE a VPS usada para desviar invasão (SEM opção de reformatar: tem que comprar e montar outra!)
+    sacrificeAndDestroyVps(attackerIp, attackerAlias) {
+      const target = this.getSacrificeableVps();
+      if (!target) return null;
+
+      const tpl = SERVER_TYPES_CATALOG[target.catalogKey || target.type] || SERVER_TYPES_CATALOG.vps_starter;
+      const upgradedPartsCount = target.parts ? Object.keys(target.parts).length : 0;
+
+      // Remove permanentemente da frota
+      this.servers = this.servers.filter((s) => s.id !== target.id);
+
+      // Se a VPS sacrificada era Gateway secundário, devolve imediatamente para o PC Principal
+      if (!this.servers.some((s) => s.isGateway) && this.servers[0]) {
+        this.servers[0].isGateway = true;
+        if (window.networkIdentity) {
+          window.networkIdentity.publicIp = this.servers[0].ip;
+          try { localStorage.setItem('hc_public_ip', this.servers[0].ip); } catch (e) {}
+        }
+      }
+
+      const wreck = {
+        id: target.id,
+        label: target.label,
+        ip: target.ip,
+        specsSummary: `${(target.specs.cpuMhz / 1000).toFixed(1)} GHz · ${Math.round((target.specs.ramMb || 512) / 1024 * 10) / 10} GB RAM · ${upgradedPartsCount} upgrade(s) perdido(s)`,
+        baseCostLost: tpl ? tpl.cost : 2500,
+        attackerIp: attackerIp || '0.0.0.0',
+        attackerAlias: attackerAlias || 'Invasor',
+        burnedAt: new Date().toLocaleTimeString('pt-BR')
+      };
+      if (!Array.isArray(this.burnedServers)) this.burnedServers = [];
+      this.burnedServers.unshift(wreck);
+      if (this.burnedServers.length > 10) this.burnedServers.length = 10;
+
+      this.rebuildTopology();
+      this.saveToStorage();
+      if (typeof window.updateHardwareDisplay === 'function') window.updateHardwareDisplay();
+      if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+      this.renderUI();
+      return wreck;
     }
 
     setGateway(serverId) {
@@ -481,6 +556,24 @@
             <tbody>${rowsHtml}</tbody>
           </table>
         </div>
+
+        ${Array.isArray(this.burnedServers) && this.burnedServers.length > 0 ? `
+          <div class="hc-card" style="padding: 14px 18px; margin-bottom: 20px; border-color: rgba(229, 83, 75, 0.55); background: rgba(229, 83, 75, 0.06);">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+              <strong style="color:#fca5a5;font-size:13.5px;">💀 VPS Destruídas ao Desviar Ataque (Perda Permanente — Sem Opção de Reformatar!)</strong>
+              <span class="hc-badge danger">Compre &amp; monte outra abaixo para repor</span>
+            </div>
+            ${this.burnedServers.map((b) => `
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;background:#120d10;border:1px solid #3c1d24;border-radius:7px;margin-top:6px;font-size:12px;">
+                <div>
+                  <strong style="color:#fca5a5;">${esc(b.label)} (${esc(b.ip)})</strong> · <span class="mono" style="color:var(--hc-text-2);">${esc(b.specsSummary)}</span>
+                  <div style="font-size:11px;color:var(--hc-text-3);">Comprometida e incinerada às ${esc(b.burnedAt)} ao desviar ataque de <code>${esc(b.attackerIp)}</code> (${esc(b.attackerAlias)}).</div>
+                </div>
+                <span class="hc-badge danger">IRRECUPERÁVEL</span>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
 
         <!-- Catálogo de Expansão -->
         <div class="hc-eyebrow" style="margin-bottom: 10px;">Contratar novos servidores</div>
