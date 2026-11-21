@@ -373,6 +373,16 @@
             <div class="nds-pc-box pro"><strong>✅ ${esc(del.proText)}</strong></div>
             <div class="nds-pc-box con"><strong>⚠️ ${esc(del.conText)}</strong></div>
           </div>
+          <details class="nds-rules-drawer">
+            <summary>📖 Regras de Funcionamento dos 4 Delegados FBI/Safenet (Rotação 6h Reais)</summary>
+            <ol class="nds-rules-list">
+              <li><strong>Troca de Comando:</strong> A cada <strong>6 horas reais</strong> (00h, 06h, 12h, 18h) assume automaticamente 1 dos 4 delegados para todo o servidor.</li>
+              <li><strong>Comissário Vargas (Venal):</strong> Aceita propina por <strong>$ 270 Limpos</strong> (-2 níveis de Heat e limpa cola policial), porém cobra Fiança +40% mais cara (<strong>$ 910 Limpos</strong>) se você for preso.</li>
+              <li><strong>Diretora Kovács (Incorruptível):</strong> Paga <strong>+35% em dinheiro limpo</strong> em todas as capturas de Procurados do FBI, mas tentar suborná-la confisca seus <strong>$ 450 Limpos</strong> e joga seu Heat direto para <strong>5/5</strong>!</li>
+              <li><strong>Agente Sterling (Colarinho Branco):</strong> Paga +15% Bounties e aceita propina cara ($ 550), mas aplica <strong>Tolerância Zero</strong>: prende já na <strong>1ª tentativa</strong> de gastar Dinheiro Sujo (sem aviso prévio!).</li>
+              <li><strong>Inspetor Sato (Perito Forense):</strong> Paga +25% Bounties e dá -30% no Protocolo Fênix, mas rejeita suborno (confisca $ 500 + Heat 5/5) e faz as Sombras Magnéticas de logs durarem <strong>10 minutos reais</strong> (o dobro do padrão).</li>
+            </ol>
+          </details>
         </div>
       `;
     }
@@ -465,6 +475,15 @@
             <div style="font-size:12px;font-weight:700;margin-bottom:6px;color:#fcd34d;">🏛️ Hall da Fama Imutável (Campeões Eternizados):</div>
             ${hofRows}
           </div>
+          <details class="nds-rules-drawer">
+            <summary>📖 Regras de Funcionamento da Temporada Mensal &amp; Hall da Fama</summary>
+            <ol class="nds-rules-list">
+              <li><strong>Ciclo &amp; Zero Reset:</strong> Dura do dia 01 às 00:00 até o último dia do mês às 23:59. <strong>Nada da sua conta reseta</strong> (dinheiro, peças, VPS, certificados, cepas e reputação vitalícia ficam 100% intactos); apenas o placar paralelo do mês zera para todos competirem de igual p/ igual.</li>
+              <li><strong>Como Pontuar:</strong> +4 pts a cada $ 100 em saques/operações (mín. +5 pts); +8 pts a cada $ 100 em Bounties do FBI; +85/+170/+255 pts ao abrir/evoluir Empresa; +45 pts ao capturar invasor no Honeypot; +25 pts ao desmascarar Isca PGP.</li>
+              <li><strong>Trava Anti-Farm (Fadiga Diária):</strong> Você só ganha pontos nas <strong>primeiras 3 ações por dia real contra o mesmo IP</strong>. A partir da 4ª vez no mesmo alvo no dia, rende <strong>0 pts</strong>.</li>
+              <li><strong>Holofote &amp; Punição de Prisão:</strong> Estar no Top 3 (ou &ge; 950 pts) aumenta em <strong>+50%</strong> sua recompensa caso caia no FBI; ser preso gastando Dinheiro Sujo confisca <strong>-15% dos seus pontos do mês</strong>.</li>
+            </ol>
+          </details>
         </div>
       `;
     }
@@ -1082,6 +1101,15 @@
               <button type="button" id="btnBuyWater360" class="hc-btn primary sm" onclick="window.nineSystemsEngine.buyCoolingUpgrade('water_360')">$ 2.400</button>
             </div>
           </div>
+          <details class="nds-rules-drawer">
+            <summary>📖 Regras de Funcionamento da Termodinâmica Física (°C, Pasta &amp; Coolers)</summary>
+            <ol class="nds-rules-list">
+              <li><strong>Fórmula em Tempo Real:</strong> <code>38°C base + (12°C × processos ativos) + (3°C × vírus ativos, máx +9°C) + calor temporário EMP/Shred (+12°C) − redução do Cooler − redução da Pasta</code> (limitado entre 31°C e 98°C).</li>
+              <li><strong>Peças &amp; Duração (100% Dinheiro Limpo):</strong> Pasta Prata ($ 250) reduz <strong>-9°C por exatas 7 horas reais</strong> e depois seca; Air Cooler Duplo ($ 850) reduz <strong>-16°C</strong> fixos, mas adiciona <strong>+12 Watts</strong> na conta de Luz das 12:00; Watercooler 360mm ($ 2.400) reduz <strong>-28°C</strong> fixos com <strong>+0 Watts</strong> extras.</li>
+              <li><strong>Overclock Frio (+22%):</strong> Exclusivo para quem tem Watercooler 360mm instalado — acelera CPU/Cracker em <strong>1.22x</strong> sem cobrar +$ 0 de luz extra.</li>
+              <li><strong>Thermal Throttling (&ge; 80°C):</strong> Se bater 80°C ou mais, a CPU reduz automaticamente a velocidade para <strong>0.80x (-20%)</strong> até esfriar. Superaquecer <strong>jamais quebra ou apaga suas peças</strong>.</li>
+            </ol>
+          </details>
         </div>
       `;
     }
@@ -1478,6 +1506,15 @@
               </div>
             </div>
             ${rows}
+            <details class="nds-rules-drawer">
+              <summary>📖 Regras de Funcionamento do Portal hc://vazamentos (185.220.101.77)</summary>
+              <ol class="nds-rules-list">
+                <li><strong>Rotação de 1 Hora Real:</strong> A cada 1 hora da vida real entram exatamente <strong>4 itens</strong>: 1 Credencial Corporativa verdadeira, 1 Isca Falsa da Safenet (<em>Honey-Paste</em>), 1 Rumor da Bolsa CyberStock (TIX) e 1 Dica de Sinergia do Laboratório. Cada credencial só pode ser resgatada 1 vez por hora.</li>
+                <li><strong>Verificação PGP (Grátis) vs. Emboscada:</strong> Clicar em <strong>🔍 Verificar PGP</strong> testa a assinatura digital. Se for verdadeira, libera o uso seguro (+$ 420 Sujos + senha root salva em Senhas Descobertas). Se revelar a Isca da Safenet, você ganha <strong>+25 REP e +25 pts na Temporada</strong>!</li>
+                <li><strong>Punição por Pular o PGP:</strong> Se você clicar direto em <em>Usar Vazamento</em> na Isca Falsa sem ter verificado o PGP antes, cai na armadilha federal e recebe <strong>+2 Níveis de Heat Policial na hora</strong>!</li>
+                <li><strong>Mural Anônimo ($ 200 Limpos):</strong> Publicar nota custa $ 200 Limpos (+15 REP) e censura automaticamente qualquer IP digitado (<code>[IP-REDACTED]</code>) para proibir doxxing.</li>
+              </ol>
+            </details>
           </div>
         </div>
       `;
@@ -1512,6 +1549,15 @@
             <div class="nds-pc-box pro"><strong>✅ Lado Bom:</strong> Monetiza cepas de famílias que você não usa e permite alugar poder imediato sem quebrar o limite de 1 compilação/dia do Lab.</div>
             <div class="nds-pc-box con"><strong>⚠️ Lado Negativo (DRM):</strong> Licença comprada consome <strong>+20% mais RAM</strong> no servidor alvo, <strong>não pode ser revendida</strong> e cada cepa só emite no máx. <strong>2 licenças</strong>!</div>
           </div>
+          <details class="nds-rules-drawer">
+            <summary>📖 Regras de Funcionamento do Mercado Clandestino P2P (Licenças do Lab)</summary>
+            <ol class="nds-rules-list">
+              <li><strong>Quem Pode Vender:</strong> Apenas cepas originais compiladas por você no Laboratório ($ 1.000 · 1x/24h reais). Cada cepa compilada tem limite vitalício estrito de <strong>no máximo 2 licenças emitidas</strong> (depois trava em 2/2).</li>
+              <li><strong>Durações &amp; Taxa de Queima:</strong> Licenças de <strong>24h reais</strong> queimam <strong>12%</strong> de taxa; <strong>48h reais</strong> queimam <strong>15%</strong>; <strong>72h reais</strong> queimam <strong>20%</strong>. Todas as compras exigem <strong>100% Dinheiro Limpo</strong>.</li>
+              <li><strong>Piso &amp; Teto de Preço (Anti-Transferência Ilegal):</strong> Preço mínimo obrigatório de <code>max($ 400, versãoInt × $ 25)</code> e máximo de <code>max($ 2.500, versãoInt × $ 250)</code>. 4 ofertas rotativas de Bots entram a cada 1h real garantindo liquidez inicial.</li>
+              <li><strong>Regras do DRM p/ o Comprador:</strong> O vírus alugado exige <strong>+20% mais Memória RAM no servidor da vítima</strong>, não pode ser revendido nem copiado pro HD Externo, e desativa sozinho quando o cronômetro real expira.</li>
+            </ol>
+          </details>
 
           ${offers.map((o) => `
             <div class="nds-row">
@@ -1709,6 +1755,17 @@
             <button type="button" id="ndsTab_company" class="nds-tab-btn ${this.activeLaunderingTab === 'company' ? 'active' : ''}" onclick="window.nineSystemsEngine.activeLaunderingTab='company'; window.nineSystemsEngine.renderLaunderingHub();">🏢 3 Portes ($50K/$150K/$400K) &amp; Risco</button>
             <button type="button" id="ndsTab_p2p" class="nds-tab-btn ${this.activeLaunderingTab === 'p2p' ? 'active' : ''}" onclick="window.nineSystemsEngine.activeLaunderingTab='p2p'; window.nineSystemsEngine.renderLaunderingHub();">🧬 Mercado P2P (Cepas do Lab)</button>
           </div>
+
+          <details class="nds-rules-drawer">
+            <summary>📖 Regras Completas da Lavagem de Dinheiro (Moeda, 3 Portes, 5/1h, 15 Vagas $10K, 15 Min &amp; Prisão)</summary>
+            <ol class="nds-rules-list">
+              <li><strong>Dinheiro Sujo vs. Limpo:</strong> Drenos de servidores (&ge; $ 100), bancos NPC/Bots, Hijacks e ZeroBin caem como <strong>Dinheiro Sujo</strong>. Comprar empresa, anunciar ($ 10K), licenças P2P e peças aceitam <strong>100% Dinheiro Limpo</strong> — no início você obrigatoriamente lava nas empresas de outros jogadores/Bots!</li>
+              <li><strong>Os 3 Portes (100% Dinheiro Limpo):</strong> <strong>Porte 1 ($ 50.000)</strong> lava até <strong>$ 5.000/vez</strong> por jogador (alvará $ 250 às 12h); <strong>Porte 2 ($ 150.000)</strong> lava até <strong>$ 15.000/vez</strong> (alvará $ 600); <strong>Porte 3 ($ 400.000)</strong> lava até <strong>$ 50.000/vez</strong> (alvará $ 1.400). Evoluir cobra só a diferença!</li>
+              <li><strong>Espera Real &amp; Trava por Empresa:</strong> Cada lote leva exatos <strong>15 minutos da vida real</strong> p/ limpar, e cada empresa só processa 1 remessa ativa sua por vez (mas você pode usar outras das 5 empresas simultaneamente).</li>
+              <li><strong>Vitrine 5/Hora &amp; Fila de 15 Vagas ($ 10.000 = 3h Reais):</strong> A cada <strong>1h real</strong> aparecem <strong>5 empresas diferentes</strong> (anúncios de jogadores + Bots preenchendo vagas livres). Anunciar sua empresa custa <strong>$ 10.000 Limpos</strong> na fila de <strong>15 vagas</strong> (3h × 5 empresas).</li>
+              <li><strong>Taxa Livre (&ge; 17% s/ Teto) &amp; Prisão:</strong> Piso obrigatório de <strong>17%</strong> e sem teto máximo (cobrar caro demais afasta clientes e perde os $ 10K do anúncio!). Tentar gastar Dinheiro Sujo direto: <strong>1ª vez = Polícia na cola (Heat 4/5)</strong>; <strong>2ª vez (ou 1ª c/ Sterling) = Prisão Federal</strong> (confisca o valor sujo, tira -15% pts da Temporada e tranca 60s até pagar Fiança Limpa).</li>
+            </ol>
+          </details>
 
           ${tabBody}
         </div>

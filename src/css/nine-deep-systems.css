@@ -236,3 +236,52 @@
   border-color: rgba(229, 83, 75, 0.55);
   color: #fca5a5;
 }
+
+/* Gaveta de Regras Completas de Funcionamento em todas as 9 telas */
+.nds-rules-drawer {
+  background: #0b111a;
+  border: 1px solid #263952;
+  border-radius: 9px;
+  overflow: hidden;
+}
+
+.nds-rules-drawer > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 9px 13px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #7dd3fc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.nds-rules-drawer > summary::-webkit-details-marker {
+  display: none;
+}
+
+.nds-rules-drawer > summary::after {
+  content: '▼ Abrir Regras';
+  font-family: var(--hc-font-mono);
+  font-size: 11px;
+  color: #93c5fd;
+}
+
+.nds-rules-drawer[open] > summary::after {
+  content: '▲ Fechar Regras';
+}
+
+.nds-rules-list {
+  padding: 11px 15px 13px 30px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.52;
+  color: #dbe5f2;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border-top: 1px solid #1e2d42;
+}
