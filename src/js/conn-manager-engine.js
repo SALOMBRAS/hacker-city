@@ -374,7 +374,7 @@
               <ol class="nds-rules-list">
                 <li><strong>Gatilho &amp; Prazo de 15s:</strong> Abre automaticamente no canto superior direito quando alguém invade sua porta 22. Se você não reagir em <strong>15 segundos reais</strong>, o alerta fecha e o invasor prossegue normalmente.</li>
                 <li><strong>✂️ Cortar Cabo:</strong> Grátis e sem recarga — derruba o invasor na hora, mas o reset da placa <strong>pausa suas transferências por 15s</strong>.</li>
-                <li><strong>🍯 Honeypot:</strong> Derruba o invasor, salva o IP dele em <em>Senhas Descobertas</em> (+25% bônus contra-ataque) e dá <strong>+45 pts na Temporada</strong>, mas entra em <strong>recarga de 60s</strong>.</li>
+                <li><strong>🔥 Desviar Ataque p/ VPS (SACRIFÍCIO TOTAL DA VPS):</strong> Exige ter pelo menos <strong>1 VPS comprada</strong> na sua frota. Salva 100% seu PC Principal, captura o IP real do invasor em <em>Senhas Descobertas</em> (+25% contra-ataque) e dá +45 pts na Temporada, <strong>MAS VOCÊ PERDE A VPS PERMANENTEMENTE (o invasor destrói ela junto com todas as peças montadas nela — NÃO existe opção de reformatar, tem que comprar e montar outra do zero!)</strong>.</li>
                 <li><strong>⚡ Pulso Reverso EMP:</strong> Frita o invasor na hora, porém aquece sua própria CPU em <strong>+12°C por 60s</strong> e entra em <strong>recarga de 3 minutos (180s)</strong>.</li>
               </ol>
             </details>
