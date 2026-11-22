@@ -1012,6 +1012,7 @@
         ? Math.min(3, window.softwareEngine.state.remoteInfections.length)
         : 0;
       const empHeat = t.empHeatUntil > Date.now() ? 12 : 0;
+      const kpHeat = t.kernelPanicUntil && t.kernelPanicUntil > Date.now() ? Number(t.extraKernelPanicC || 18) : 0;
       const ocHeat = t.coldOverclockOn ? (cooler.allowsColdOc ? 6 : 22) : 0;
       const bottleneckHeat = (window.progressionLocksEngine && typeof window.progressionLocksEngine.hasAnyBottleneckedSoftware === 'function' && window.progressionLocksEngine.hasAnyBottleneckedSoftware())
         ? 15
@@ -1020,7 +1021,7 @@
         ? window.topTenMechanics.getSafehouseThermalBonusC()
         : 0;
 
-      const rawTemp = 38 + runningTasks * 12 + activeViruses * 3 + empHeat + ocHeat + bottleneckHeat - cooler.coolingC - pasteCooling - basePropertyCool;
+      const rawTemp = 38 + runningTasks * 12 + activeViruses * 3 + empHeat + kpHeat + ocHeat + bottleneckHeat - cooler.coolingC - pasteCooling - basePropertyCool;
       const tempC = Math.max(31, Math.min(98, Math.round(rawTemp)));
       const throttling = tempC >= 80;
       const cpuSpeedMult = throttling ? 0.80 : (t.coldOverclockOn && cooler.allowsColdOc ? 1.22 : 1.0);
@@ -1245,11 +1246,16 @@
       this.ensureLoaded();
       const attackerIp = (sessionMeta && sessionMeta.originIp) || '91.134.72.19';
       const alias = (sessionMeta && sessionMeta.originAlias) || 'nyx_0day';
+      const bunkerBonusSec = (window.topTenMechanics && typeof window.topTenMechanics.getActiveDefenseBonusSeconds === 'function')
+        ? Number(window.topTenMechanics.getActiveDefenseBonusSeconds() || 0)
+        : 0;
+      const totalWindowMs = (15 + bunkerBonusSec) * 1000;
       this.activeDefenseAlert = {
         attackerIp,
         alias,
         startedAt: Date.now(),
-        expiresAt: Date.now() + 15000
+        expiresAt: Date.now() + totalWindowMs,
+        windowSeconds: 15 + bunkerBonusSec
       };
       this.renderDefensePopoverDom();
       if (this._defenseTimer) clearInterval(this._defenseTimer);

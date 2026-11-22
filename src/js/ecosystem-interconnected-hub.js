@@ -724,6 +724,9 @@
       if (this.state.shortPositions[corp.symbol]) {
         this.state.shortPositions[corp.symbol].sabotagedWhileOpen = true;
       }
+      if (window.topTenMechanics && typeof window.topTenMechanics.evaluateSponsoredCorpIntegrity === 'function') {
+        window.topTenMechanics.evaluateSponsoredCorpIntegrity();
+      }
 
       // Verifica se concluiu Flash Bounty ativo!
       if (this.state.flashBounty && !this.state.flashBounty.completed && this.state.flashBounty.targetIp === ip && this.state.flashBounty.expiresAt > Date.now()) {
@@ -2404,7 +2407,9 @@
       else if (this.activeTab === 'minigames') bodyHtml = this.renderMinigamesTab();
       else if (this.activeTab === 'intel') bodyHtml = this.renderIntelTab();
       else if (this.activeTab === 'factions') bodyHtml = this.renderFactionsTab();
-      else bodyHtml = this.renderAutomationTab();
+      else if (this.activeTab === 'elite' && window.topTenMechanics && typeof window.topTenMechanics.renderEliteAuctionAndOverviewTabHtml === 'function') {
+        bodyHtml = window.topTenMechanics.renderEliteAuctionAndOverviewTabHtml();
+      } else bodyHtml = this.renderAutomationTab();
 
       el.innerHTML = `
         <div class="eco-shell">
@@ -2426,6 +2431,7 @@
             <button type="button" id="ecoTab_intel" class="eco-nav-btn ${this.activeTab === 'intel' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('intel')">🕵️ OSINT, Zero-Days &amp; Seguros</button>
             <button type="button" id="ecoTab_factions" class="eco-nav-btn ${this.activeTab === 'factions' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('factions')">🎭 Facções &amp; Golpes 4x</button>
             <button type="button" id="ecoTab_automation" class="eco-nav-btn ${this.activeTab === 'automation' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('automation')">🤖 CronDaemons VPS &amp; 24 Marcos</button>
+            <button type="button" id="ecoTab_elite" class="eco-nav-btn ${this.activeTab === 'elite' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('elite')">🏆 Leilões 2h &amp; Top 10</button>
           </div>
 
           ${bodyHtml}

@@ -500,6 +500,9 @@
           : null,
         progLocksState: window.progressionLocksEngine && typeof window.progressionLocksEngine.getSnapshotState === 'function'
           ? window.progressionLocksEngine.getSnapshotState()
+          : null,
+        topTenState: window.topTenMechanics && typeof window.topTenMechanics.getSnapshotState === 'function'
+          ? window.topTenMechanics.getSnapshotState()
           : null
       };
       return window.integrityGuard && typeof window.integrityGuard.signSnapshot === 'function'
@@ -730,6 +733,10 @@
 
       if (snap.progLocksState && window.progressionLocksEngine && typeof window.progressionLocksEngine.applySnapshotState === 'function') {
         window.progressionLocksEngine.applySnapshotState(snap.progLocksState);
+      }
+
+      if (snap.topTenState && window.topTenMechanics && typeof window.topTenMechanics.applySnapshotState === 'function') {
+        window.topTenMechanics.applySnapshotState(snap.topTenState);
       }
 
       if (snap.stealthLoot && window.stealthXhdEngine) {

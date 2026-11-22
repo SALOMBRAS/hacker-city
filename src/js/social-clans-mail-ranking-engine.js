@@ -586,6 +586,10 @@
       war.enemyScore += enemyCounterPts;
       war.bountyPool += 320;
       war.strikesCount += 1;
+      if (window.topTenMechanics && typeof window.topTenMechanics.recordClanWarFrontAction === 'function') {
+        window.topTenMechanics.state.warFronts.ddos = Number(window.topTenMechanics.state.warFronts.ddos || 0) + 1;
+        window.topTenMechanics.save();
+      }
       this.save();
 
       if (window.internetEngine) {
@@ -689,6 +693,10 @@
           </div>
 
           ${window.clanCloudChatEngine ? window.clanCloudChatEngine.renderClanChatCardHtml(my) : ''}
+
+          ${window.topTenMechanics && typeof window.topTenMechanics.renderClanSponsorshipAnd3FrontsHtml === 'function'
+            ? window.topTenMechanics.renderClanSponsorshipAnd3FrontsHtml()
+            : ''}
 
           ${war ? `
             <div class="hc-card" style="padding:1.2rem;border-color:var(--hc-danger);background:rgba(208,68,58,0.08);">

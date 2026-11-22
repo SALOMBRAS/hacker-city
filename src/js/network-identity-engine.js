@@ -1496,11 +1496,16 @@
       // 2. Servidor NPC Oficial do Mundo?
       if (WORLD_NPC_HOSTS[ip]) {
         const npc = WORLD_NPC_HOSTS[ip];
+        const dynMods = (window.topTenMechanics && typeof window.topTenMechanics.getHostDynamicDefenseModifiers === 'function')
+          ? window.topTenMechanics.getHostDynamicDefenseModifiers(npc.ip)
+          : { extraFw: 0, extraHasher: 0, cashMult: 1.0 };
         return {
           ...npc,
           online: true,
+          firewallVer: +(Number(npc.firewallVer || 1.0) + dynMods.extraFw).toFixed(1),
+          hasherVer: +(Number(npc.hasherVer || 1.0) + dynMods.extraHasher).toFixed(1),
           rootPassword: deterministicPassword(npc.ip),
-          bankBalance: this.drainedNpcIps.has(npc.ip) ? 0 : npc.bankBalance,
+          bankBalance: this.drainedNpcIps.has(npc.ip) ? 0 : Math.round((npc.bankBalance || 0) * dynMods.cashMult),
           files: (npc.files || []).filter((f) => !deletedSet.has(f.name))
         };
       }
@@ -1615,13 +1620,17 @@
           const ramTotalMb = bot.tier === 3 ? 1024 : (bot.tier === 2 ? 384 : 128);
           const avVer = bot.tier === 3 ? 2.5 : (bot.tier === 2 ? 1.5 : 1.0);
           const baseDefVer = bot.tier === 3 ? 2.5 : (bot.tier === 2 ? 1.5 : 1.0);
-          const effFwVer = Math.max(1.0, +(baseDefVer - ddosFwPen).toFixed(1));
+          const dynBotMods = (window.topTenMechanics && typeof window.topTenMechanics.getHostDynamicDefenseModifiers === 'function')
+            ? window.topTenMechanics.getHostDynamicDefenseModifiers(bot.ip)
+            : { extraFw: 0, extraHasher: 0, cashMult: 1.0 };
+          const effFwVer = Math.max(1.0, +(baseDefVer - ddosFwPen + dynBotMods.extraFw).toFixed(1));
+          const effHasherVer = +(baseDefVer + dynBotMods.extraHasher).toFixed(1);
           const rawBal = bot.bankAccount ? bot.bankAccount.balance : 0;
-          const scaledBal = rawBal > 0 ? Math.max(35, Math.round(rawBal * 0.22)) : 0;
+          const scaledBal = rawBal > 0 ? Math.max(35, Math.round(rawBal * 0.22 * dynBotMods.cashMult)) : 0;
 
           return {
             ip: bot.ip,
-            hostname: `PC de ${bot.handle}`,
+            hostname: `PC de ${bot.handle}${dynBotMods.isNemesis ? ' [⚔️ NÊMESIS]' : ''}`,
             kind: 'bot',
             isOperatorPlayer: true,
             badge: shiftOnline ? '🟢 Jogador Online' : '○ Jogador Offline (PC Ligado)',
@@ -1635,7 +1644,7 @@
             hddOsBaseMb: Math.round(hddTotalMb * 0.58),
             ramTotalMb,
             ramOsBaseMb: Math.round(ramTotalMb * 0.55),
-            hasherVer: baseDefVer,
+            hasherVer: effHasherVer,
             firewallVer: effFwVer,
             antivirusVer: avVer,
             rootPassword: deterministicPassword(bot.ip + '::' + bot.handle),
@@ -2410,6 +2419,15 @@
           return { success: false, code: bg.code, message: bg.message };
         }
       }
+      if (window.topTenMechanics && typeof window.topTenMechanics.areExploitPortsLocked === 'function') {
+        const pl = window.topTenMechanics.areExploitPortsLocked(host.ip);
+        if (pl.locked) {
+          const msg = `🔒 [PORTS 21/22 LOCKED] Um Segfault de Buffer Overflow trancou as portas FTP/SSH de ${host.ip} por mais ${pl.remMin} min! Use Força-Bruta com Cracker.`;
+          if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+          if (typeof window.showToast === 'function') window.showToast(msg);
+          return { success: false, code: 'SEGFAULT_PORTS_LOCKED', message: msg };
+        }
+      }
       if (window.softwareEngine && !window.softwareEngine.isPortScanActive()) {
         const msg = 'Instale/Ative seu PortScan.scan na RAM (aba Software & Vírus) para usar ataques Exploit!';
         alert(msg);
@@ -2470,6 +2488,9 @@
 
       if (window.dynamicContractsEngine) {
         window.dynamicContractsEngine.onGameAction('break_pass', host.ip);
+      }
+      if (window.topTenMechanics && typeof window.topTenMechanics.registerHostIntrusionForNemesisAndDefcon === 'function') {
+        window.topTenMechanics.registerHostIntrusionForNemesisAndDefcon(host, method);
       }
 
       if (host.kind === 'bot' && window.botAI) {
@@ -2744,7 +2765,10 @@
           }
         });
       }
-      if (!route.bounced && loot >= 800 && window.safenetFbiEngine) {
+      const stealthBypassed = (window.topTenMechanics && typeof window.topTenMechanics.consumeIptablesStealthIfArmed === 'function')
+        ? window.topTenMechanics.consumeIptablesStealthIfArmed(host.ip)
+        : false;
+      if (!stealthBypassed && !route.bounced && loot >= 800 && window.safenetFbiEngine) {
         window.safenetFbiEngine.evaluatePlayerCrime(`Transferência ilícita de $ ${loot} HC`, loot, host.ip);
       }
       if (window.ecosystemHub && typeof window.ecosystemHub.onCorporateHostSabotaged === 'function') {
@@ -3782,8 +3806,9 @@
           <div style="display: flex; flex-direction: column; gap: 12px;">
             ${inlineTmBars}
             ${role !== 'root'
-              ? `<div style="padding:10px 12px;background:rgba(216,155,56,0.1);border:1px solid var(--hc-warning);border-radius:8px;font-size:12px;color:var(--hc-warning);">
-                   <strong>Permissão parcial (${role.toUpperCase()}):</strong> ${role === 'ftp' ? 'Somente Download/Upload e Logs.' : 'Somente Execução/Exclusão e Logs.'}
+              ? `<div style="padding:10px 12px;background:rgba(216,155,56,0.1);border:1px solid var(--hc-warning);border-radius:8px;font-size:12px;color:var(--hc-warning);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+                   <div><strong>Permissão parcial (${role.toUpperCase()}):</strong> ${role === 'ftp' ? 'Somente Download/Upload e Logs.' : 'Somente Execução/Exclusão e Logs.'}</div>
+                   ${window.topTenMechanics ? `<button type="button" id="btnOpenBufferOverflow" class="hc-btn primary sm" onclick="window.topTenMechanics.openBufferOverflowModal('${esc(host.ip)}')">🧨 Escalar p/ ROOT (Buffer Overflow 12s)</button>` : ''}
                  </div>`
               : ''}
 
@@ -3914,6 +3939,11 @@
                     ${host.kind === 'empresa' && window.ecosystemHub ? `
                       <button type="button" id="btnPivotCorpLan" class="hc-btn ghost sm block" style="border-color:rgba(53,184,119,0.45);color:var(--hc-accent-text);" onclick="window.ecosystemHub.scanInternalCorporateLan('${esc(host.ip)}')">
                         🖧 Vasculhar Sub-rede 10.x
+                      </button>
+                    ` : ''}
+                    ${['209.141.55.10', '161.89.2.1', '77.3.13.99', '161.89.1.1'].includes(host.ip) && window.topTenMechanics ? `
+                      <button type="button" id="btnExtractRelicRing0" class="hc-btn sm block" style="border-color:rgba(168,85,247,0.65);color:#d8b4fe;" onclick="window.topTenMechanics.extractRelicBlockFromHost('${esc(host.ip)}')">
+                        🧬 Extrair Relíquia Ring-0 (Seeker v3.0+)
                       </button>
                     ` : ''}
                     ${remoteBtcSats > 0 ? `
@@ -4254,6 +4284,9 @@
       return `
         <div class="inet-attack-wrap">
           ${inlineAttackBars}
+          ${window.topTenMechanics && typeof window.topTenMechanics.renderInvadirEliteTacticalStripHtml === 'function'
+            ? window.topTenMechanics.renderInvadirEliteTacticalStripHtml(host)
+            : ''}
 
           <div class="inet-attack-heading">Escolha seu método de ataque:</div>
 

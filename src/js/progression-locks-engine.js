@@ -637,9 +637,11 @@
     // TRAVA #6: ESCALA DE INADIMPLÊNCIA ÀS 12:00 (1/3, 2/3, 3/3) + MICRO-REPARO MUNICIPAL
     // =========================================================================
     getNoonDelinquencyEffects() {
-      const maxMonths = (window.quitineteEngine && typeof window.quitineteEngine.getMaxMonthsDue === 'function')
-        ? window.quitineteEngine.getMaxMonthsDue()
-        : 0;
+      const maxMonths = (window.quitineteEngine && typeof window.quitineteEngine.getMaxAccumulatedMonths === 'function')
+        ? window.quitineteEngine.getMaxAccumulatedMonths()
+        : ((window.quitineteEngine && typeof window.quitineteEngine.getMaxMonthsDue === 'function')
+            ? window.quitineteEngine.getMaxMonthsDue()
+            : 0);
       if (maxMonths >= 3) {
         return {
           monthsDue: 3,

@@ -109,7 +109,10 @@ class HardwareEngine {
   }
 
   getEffectiveNetMbps() {
-    return Math.max(0.5, +(this.getNetwork().mbps * this.getHealthMultiplier()).toFixed(1));
+    const safehouseMult = (window.topTenMechanics && typeof window.topTenMechanics.getSafehouseNetMultiplier === 'function')
+      ? window.topTenMechanics.getSafehouseNetMultiplier()
+      : 1.0;
+    return Math.max(0.5, +(this.getNetwork().mbps * this.getHealthMultiplier() * safehouseMult).toFixed(1));
   }
 
   getRepairCost() {
@@ -131,6 +134,10 @@ class HardwareEngine {
     const dmg = Math.max(5, Math.round(rawDmg * (1 - Math.min(0.65, armorPct / 100))));
     const next = Math.max(20, prev - dmg);
     this.saveRig({ healthPct: next, lastDdosBy: attackerLabel });
+    let raidCorrupted = null;
+    if (window.topTenMechanics && typeof window.topTenMechanics.onPlayerPcHitByDdos === 'function') {
+      raidCorrupted = window.topTenMechanics.onPlayerPcHitByDdos(next);
+    }
 
     if (typeof window.addLocalLog === 'function') {
       window.addLocalLog(
@@ -1049,6 +1056,7 @@ class HardwareEngine {
             ` : ''}
             ${mainColHtml}
             ${window.progressionLocksEngine && typeof window.progressionLocksEngine.renderHardwarePsuAndBottleneckHtml === 'function' ? window.progressionLocksEngine.renderHardwarePsuAndBottleneckHtml() : ''}
+            ${window.topTenMechanics && typeof window.topTenMechanics.renderHardwareRaidSectionHtml === 'function' ? window.topTenMechanics.renderHardwareRaidSectionHtml() : ''}
             ${window.nineSystemsEngine && typeof window.nineSystemsEngine.renderHardwareThermalSectionHtml === 'function' ? window.nineSystemsEngine.renderHardwareThermalSectionHtml() : ''}
           </div>
 
