@@ -658,6 +658,10 @@
             </div>
           ` : ''}
 
+          ${window.topTenMechanics && typeof window.topTenMechanics.renderForumMercenaryEscrowSectionHtml === 'function'
+            ? window.topTenMechanics.renderForumMercenaryEscrowSectionHtml()
+            : ''}
+
           <div class="hc-card" style="padding: 0; overflow: hidden;">
             <table class="hc-table">
               <thead>

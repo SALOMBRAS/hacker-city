@@ -1071,6 +1071,10 @@
 
           ${heistToolbarHtml}
 
+          ${window.topTenMechanics && typeof window.topTenMechanics.renderCctvExtortionBarHtml === 'function'
+            ? window.topTenMechanics.renderCctvExtortionBarHtml(host)
+            : ''}
+
           ${mainStageHtml}
         </div>
       `;

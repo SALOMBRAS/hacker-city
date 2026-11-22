@@ -289,6 +289,14 @@ class QuitineteEngine {
       if (typeof window !== 'undefined' && window.ecosystemHub && typeof window.ecosystemHub.payNoonDividends === 'function') {
         window.ecosystemHub.payNoonDividends(applied);
       }
+      if (typeof window !== 'undefined' && window.topTenMechanics) {
+        if (typeof window.topTenMechanics.checkSafehouseEvictionOnThreeMonths === 'function') {
+          window.topTenMechanics.checkSafehouseEvictionOnThreeMonths();
+        }
+        if (typeof window.topTenMechanics.applyNoonBankingAndSponsorshipSettlement === 'function') {
+          window.topTenMechanics.applyNoonBankingAndSponsorshipSettlement(applied);
+        }
+      }
 
       if (!isEnteringGame && typeof window !== 'undefined') {
         if (typeof window.showToast === 'function') {
@@ -366,6 +374,9 @@ class QuitineteEngine {
 
     this.bills.power.monthlyBase = Math.max(40, Math.round(pcEnergyMonthly * totalBillKeep));
     this.bills.internet.monthlyBase = Math.max(20, Math.round((netAndVpsMonthly + companyPermitMonthly) * Math.max(0.65, 1 - (wmDiscPct + subBlackHatDisc) / 100)));
+    if (typeof window !== 'undefined' && window.topTenMechanics && typeof window.topTenMechanics.getSafehouseNoonRent === 'function') {
+      this.bills.rent.monthlyBase = window.topTenMechanics.getSafehouseNoonRent();
+    }
 
     Object.values(this.bills).forEach((b) => {
       b.monthsDue = Math.max(0, Math.min(GAME_TIME_CONFIG.MAX_ACCUMULATED_MONTHS, Number(b.monthsDue || 0)));
@@ -706,6 +717,9 @@ class QuitineteEngine {
                 <tbody>${rowsHtml}</tbody>
               </table>
             </div>
+            ${typeof window !== 'undefined' && window.topTenMechanics && typeof window.topTenMechanics.renderSafehouseUpgradeSectionHtml === 'function'
+              ? window.topTenMechanics.renderSafehouseUpgradeSectionHtml()
+              : ''}
           </div>
 
           <aside class="soft-side-bar">

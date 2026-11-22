@@ -784,9 +784,20 @@
     }
 
     getUnlockedPoolForRound(roundNum) {
+      if (window.topTenMechanics && typeof window.topTenMechanics.registerRelicBlocksIntoLab === 'function') {
+        window.topTenMechanics.registerRelicBlocksIntoLab();
+      }
+      ROUND_1_BLOCKS.concat(ROUND_2_BLOCKS, ROUND_3_BLOCKS).forEach((b) => {
+        if (!BLOCK_BY_ID.has(b.id)) BLOCK_BY_ID.set(b.id, b);
+      });
       const meta = this.getLevelMeta();
       const source = roundNum === 1 ? ROUND_1_BLOCKS : (roundNum === 2 ? ROUND_2_BLOCKS : ROUND_3_BLOCKS);
-      const unlocked = source.filter((b) => b.tier <= meta.maxTier);
+      const unlocked = source.filter((b) => {
+        if (b.isRelic) {
+          return !!(window.topTenMechanics && typeof window.topTenMechanics.isRelicUnlocked === 'function' && window.topTenMechanics.isRelicUnlocked(b.id));
+        }
+        return b.tier <= meta.maxTier;
+      });
       return unlocked.length >= 3 ? unlocked : source.slice(0, 3);
     }
 
@@ -1209,9 +1220,46 @@
       const rawStrainName = String(customNameInput || (domNameEl && domNameEl.value) || draft.customName || 'Cepa-Zero').trim();
       const strainName = rawStrainName.slice(0, 26) || 'Cepa-Zero';
 
+      ROUND_1_BLOCKS.concat(ROUND_2_BLOCKS, ROUND_3_BLOCKS).forEach((b) => {
+        if (!BLOCK_BY_ID.has(b.id)) BLOCK_BY_ID.set(b.id, b);
+      });
+
       const evalRes = this.evaluateAssembly(draft.picks.r1, draft.picks.r2, draft.picks.r3);
       if (!evalRes) {
         return { success: false, message: 'Falha ao validar os blocos selecionados.' };
+      }
+
+      const pickedIds = [draft.picks.r1, draft.picks.r2[0], draft.picks.r2[1], draft.picks.r3];
+      const kpCheck = (window.topTenMechanics && typeof window.topTenMechanics.evaluateRelicKernelPanic === 'function')
+        ? window.topTenMechanics.evaluateRelicKernelPanic(pickedIds, evalRes.fitGrade)
+        : { kernelPanic: false };
+
+      if (kpCheck.kernelPanic) {
+        this.state.lastCompileAt = Date.now();
+        this.state.activeDraft = null;
+        this.lastCompileReport = {
+          strainName,
+          familyMeta: evalRes.familyMeta,
+          versionLabel: 'v0.0 (KERNEL PANIC)',
+          effectiveVerLabel: 'v0.0 (QUEIMADO)',
+          yieldMultiplier: 0,
+          effectiveMult: 0,
+          fitScore: evalRes.fitScore,
+          fitGrade: evalRes.fitGrade,
+          matchedSet: null,
+          isNewSetDiscovery: false,
+          gainedXp: 10,
+          leveledUp: false,
+          newLevel: this.state.level,
+          outcomeMode: 'kernel_panic_burned',
+          outcomeNote: kpCheck.message,
+          diagnostics: [{ kind: 'bad', text: kpCheck.message }, ...evalRes.diagnostics],
+          fusedCode: evalRes.fusedCode
+        };
+        this.save();
+        if (typeof window.showToast === 'function') window.showToast(kpCheck.message);
+        this.renderUI();
+        return { success: false, code: 'RELIC_KERNEL_PANIC', kernelPanic: true, heatSpikeC: 18, report: this.lastCompileReport, message: kpCheck.message };
       }
 
       const lvlMeta = this.getLevelMeta();
@@ -1406,6 +1454,9 @@
 
           <div class="vlab-layout">
             <div role="tabpanel" aria-labelledby="${this.activeTab === 'workbench' ? 'vlabTabWorkbench' : (this.activeTab === 'creations' ? 'vlabTabCreations' : 'vlabTabCodex')}">
+              ${window.topTenMechanics && typeof window.topTenMechanics.renderLabRelicsAndCommissionBannerHtml === 'function'
+                ? window.topTenMechanics.renderLabRelicsAndCommissionBannerHtml()
+                : ''}
               ${mainHtml}
             </div>
             <aside class="vlab-side-stack" aria-label="Progresso e Escala Regressiva do Laboratório">

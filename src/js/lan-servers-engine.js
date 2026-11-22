@@ -344,6 +344,19 @@
       const tpl = SERVER_TYPES_CATALOG[typeKey];
       if (!tpl) return { success: false, message: 'Modelo de servidor inválido.' };
 
+      const currentVpsCount = this.servers.filter((s) => s.id !== 'srv_gateway_01').length;
+      const maxVpsSlots = (window.topTenMechanics && typeof window.topTenMechanics.getMaxVpsSlots === 'function')
+        ? window.topTenMechanics.getMaxVpsSlots()
+        : 2;
+      if (currentVpsCount >= maxVpsSlots) {
+        const baseName = (window.topTenMechanics && typeof window.topTenMechanics.getSafehouseMeta === 'function')
+          ? window.topTenMechanics.getSafehouseMeta().name
+          : 'Quitinete';
+        const msg = `🏢 Limite físico de VPS atingido (${currentVpsCount}/${maxVpsSlots} slots em ${baseName})! Evolua seu esconderijo para Studio Blindado (5 VPS) ou Bunker Subterrâneo (10 VPS) na aba Contas & Esconderijo.`;
+        if (window.showToast) window.showToast(msg, 'warning');
+        return { success: false, code: 'MAX_SAFEHOUSE_VPS_SLOTS', maxVpsSlots, message: msg };
+      }
+
       const curBal = window.currentWallet ? parseFloat(window.currentWallet.balance || 0) : 0;
       if (curBal < tpl.cost) {
         if (window.showToast) window.showToast(`Saldo insuficiente. ${tpl.name} custa ${fmtUsd(tpl.cost)}.`, 'danger');

@@ -1356,7 +1356,11 @@
 
     getMaxHddMb() {
       if (!window.hardwareEngine) return 350;
-      return window.hardwareEngine.getHdd().hddMb || 350;
+      const rawMb = window.hardwareEngine.getHdd().hddMb || 350;
+      const raidMult = (window.topTenMechanics && typeof window.topTenMechanics.getRaidCapacityMultiplier === 'function')
+        ? window.topTenMechanics.getRaidCapacityMultiplier()
+        : 1.0;
+      return Math.max(175, Math.round(rawMb * raidMult));
     }
 
     // Capacidades e uso por unidade interna (HD, SSD, NVMe) somando o armazenamento total do Hardware
@@ -1385,6 +1389,9 @@
         used[drv] += tf.sizeMb || 1;
       });
       used.hd += (this.state.localHostileInfections || []).reduce((acc, inf) => acc + (inf.hddMb || 18), 0);
+      if (window.topTenMechanics && typeof window.topTenMechanics.getExtortionProofsDiskMb === 'function') {
+        used.hd += window.topTenMechanics.getExtortionProofsDiskMb();
+      }
 
       return {
         hd:   { key: 'hd',   label: 'HD',   speedLabel: '1.00x', speedMult: 1.0,  usedMb: used.hd,   capMb: hdCap,   freeMb: Math.max(0, hdCap - used.hd) },

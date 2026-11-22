@@ -780,6 +780,9 @@
             <tbody>${rows}</tbody>
           </table>
         </div>
+        ${window.topTenMechanics && typeof window.topTenMechanics.renderBankBacenjudAndSwissCardHtml === 'function'
+          ? window.topTenMechanics.renderBankBacenjudAndSwissCardHtml()
+          : ''}
       `;
 
       const sideEl = document.getElementById('bankSideSummaryMount');
