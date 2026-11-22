@@ -1968,7 +1968,16 @@
       const thermalMult = (window.nineSystemsEngine && typeof window.nineSystemsEngine.getLiveThermalTelemetry === 'function')
         ? Number(window.nineSystemsEngine.getLiveThermalTelemetry().cpuSpeedMult || 1.0)
         : 1.0;
-      return +(cpuMult * certSpeed * (1 + overclockRank * 0.15) * thermalMult).toFixed(2);
+      const brownoutMult = (window.progressionLocksEngine && window.progressionLocksEngine.state && window.progressionLocksEngine.state.brownoutActive)
+        ? 0.50
+        : 1.0;
+      const delinqMult = (window.progressionLocksEngine && typeof window.progressionLocksEngine.getNoonDelinquencyEffects === 'function')
+        ? Number(window.progressionLocksEngine.getNoonDelinquencyEffects().cpuMult || 1.0)
+        : 1.0;
+      const raidMult = (window.topTenMechanics && typeof window.topTenMechanics.getRaidSpeedMultiplier === 'function')
+        ? Number(window.topTenMechanics.getRaidSpeedMultiplier() || 1.0)
+        : 1.0;
+      return +(cpuMult * certSpeed * (1 + overclockRank * 0.15) * thermalMult * brownoutMult * delinqMult * raidMult).toFixed(2);
     }
 
     getPlayerCrackerVer() {
@@ -2229,6 +2238,13 @@
         alert('Este host está OFFLINE no turno atual. Aguarde a próxima janela ou escolha um IP online.');
         return { started: false, code: 'HOST_OFFLINE' };
       }
+      if (window.progressionLocksEngine && typeof window.progressionLocksEngine.validateTargetBounceGate === 'function') {
+        const bg = window.progressionLocksEngine.validateTargetBounceGate(host);
+        if (!bg.ok) {
+          if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+          return { started: false, code: bg.code, message: bg.message };
+        }
+      }
 
       // Quando o jogador clica em "Quebrar senha", abre o Mini-PC (HD / SSD / NVMe) p/ escolher qual hash usar!
       if (!opts || (!opts.hashId && !opts.directBest)) {
@@ -2386,6 +2402,13 @@
         const msg = `Proteção de Iniciante (ISP Sandbox): ${host.hostname} possui menos de 100 REP!`;
         alert(msg);
         return { success: false, code: 'NEWBIE_PROTECTED', message: msg };
+      }
+      if (window.progressionLocksEngine && typeof window.progressionLocksEngine.validateTargetBounceGate === 'function') {
+        const bg = window.progressionLocksEngine.validateTargetBounceGate(host);
+        if (!bg.ok) {
+          if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+          return { success: false, code: bg.code, message: bg.message };
+        }
       }
       if (window.softwareEngine && !window.softwareEngine.isPortScanActive()) {
         const msg = 'Instale/Ative seu PortScan.scan na RAM (aba Software & Vírus) para usar ataques Exploit!';

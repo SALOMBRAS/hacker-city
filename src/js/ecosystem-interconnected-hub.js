@@ -516,6 +516,11 @@
       const st = this.state.stocks[corp.symbol];
       const amountUsd = Math.max(0, +(Number(usdRaw || 0)).toFixed(2));
       if (amountUsd < 50) return { success: false, message: 'Ordem mínima de compra: $ 50 HC.' };
+      if (window.progressionLocksEngine) {
+        const prevUsd = (this.state.longPositions[corp.symbol] && this.state.longPositions[corp.symbol].investedUsd) || 0;
+        const capCheck = window.progressionLocksEngine.validateCyberStockCap(prevUsd + amountUsd);
+        if (!capCheck.ok) return { success: false, code: capCheck.code, message: capCheck.message };
+      }
 
       const resBonus = window.skillTreeEngine ? window.skillTreeEngine.getActiveResonanceBonus() : { stockFeeDiscount: 0 };
       const feeRate = 0.01 * (1 - Number(resBonus.stockFeeDiscount || 0));
@@ -587,6 +592,11 @@
       const st = this.state.stocks[corp.symbol];
       const collateral = Math.max(0, +(Number(collateralRaw || 0)).toFixed(2));
       if (collateral < 50) return { success: false, message: 'Margem mínima para Short: $ 50 HC.' };
+      if (window.progressionLocksEngine) {
+        const prevCol = (this.state.shortPositions[corp.symbol] && this.state.shortPositions[corp.symbol].collateralUsd) || 0;
+        const capCheck = window.progressionLocksEngine.validateCyberStockCap(prevCol + collateral);
+        if (!capCheck.ok) return { success: false, code: capCheck.code, message: capCheck.message };
+      }
 
       const curBal = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
       if (curBal < collateral) {
@@ -685,6 +695,12 @@
       if (!corp) return null;
       const st = this.state.stocks[corp.symbol];
       if (!st) return null;
+      if (window.progressionLocksEngine && typeof window.progressionLocksEngine.canTriggerSabotageStockDrop === 'function') {
+        const cdCheck = window.progressionLocksEngine.canTriggerSabotageStockDrop(corp.symbol);
+        if (!cdCheck.ok) {
+          return { symbol: corp.symbol, oldPrice: st.price, newPrice: st.price, dropPct: 0, cooldownBlocked: true };
+        }
+      }
 
       const ev = this.getCurrentGlobalEvent();
       const subId = window.skillTreeEngine ? window.skillTreeEngine.selectedSubclass : null;

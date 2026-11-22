@@ -579,6 +579,11 @@
 
     buyOrUpgradeOwnCompany(targetTier, customNameRaw) {
       this.ensureLoaded();
+      if (window.progressionLocksEngine && window.progressionLocksEngine.getNoonDelinquencyEffects().commercialBlocked) {
+        const msg = '🛑 NOME SUJO ÀS 12:00! Quite primeiro suas faturas vencidas (2+ meses) em Meu Esconderijo antes de comprar/evoluir empresa!';
+        if (typeof window.showToast === 'function') window.showToast(msg);
+        return { success: false, code: 'BILLS_OVERDUE_COMMERCIAL_BLOCK', message: msg };
+      }
       const tDef = LAUNDERING_TIERS[targetTier];
       if (!tDef) return { success: false, message: 'Porte empresarial inválido.' };
 
@@ -1008,8 +1013,14 @@
         : 0;
       const empHeat = t.empHeatUntil > Date.now() ? 12 : 0;
       const ocHeat = t.coldOverclockOn ? (cooler.allowsColdOc ? 6 : 22) : 0;
+      const bottleneckHeat = (window.progressionLocksEngine && typeof window.progressionLocksEngine.hasAnyBottleneckedSoftware === 'function' && window.progressionLocksEngine.hasAnyBottleneckedSoftware())
+        ? 15
+        : 0;
+      const basePropertyCool = (window.topTenMechanics && typeof window.topTenMechanics.getSafehouseThermalBonusC === 'function')
+        ? window.topTenMechanics.getSafehouseThermalBonusC()
+        : 0;
 
-      const rawTemp = 38 + runningTasks * 12 + activeViruses * 3 + empHeat + ocHeat - cooler.coolingC - pasteCooling;
+      const rawTemp = 38 + runningTasks * 12 + activeViruses * 3 + empHeat + ocHeat + bottleneckHeat - cooler.coolingC - pasteCooling - basePropertyCool;
       const tempC = Math.max(31, Math.min(98, Math.round(rawTemp)));
       const throttling = tempC >= 80;
       const cpuSpeedMult = throttling ? 0.80 : (t.coldOverclockOn && cooler.allowsColdOc ? 1.22 : 1.0);

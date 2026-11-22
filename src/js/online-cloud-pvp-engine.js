@@ -497,6 +497,9 @@
           : null,
         lanServersState: window.lanServersEngine && typeof window.lanServersEngine.getSnapshotState === 'function'
           ? window.lanServersEngine.getSnapshotState()
+          : null,
+        progLocksState: window.progressionLocksEngine && typeof window.progressionLocksEngine.getSnapshotState === 'function'
+          ? window.progressionLocksEngine.getSnapshotState()
           : null
       };
       return window.integrityGuard && typeof window.integrityGuard.signSnapshot === 'function'
@@ -723,6 +726,10 @@
 
       if (snap.lanServersState && window.lanServersEngine && typeof window.lanServersEngine.applySnapshotState === 'function') {
         window.lanServersEngine.applySnapshotState(snap.lanServersState);
+      }
+
+      if (snap.progLocksState && window.progressionLocksEngine && typeof window.progressionLocksEngine.applySnapshotState === 'function') {
+        window.progressionLocksEngine.applySnapshotState(snap.progLocksState);
       }
 
       if (snap.stealthLoot && window.stealthXhdEngine) {
