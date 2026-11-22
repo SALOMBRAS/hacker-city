@@ -1280,15 +1280,21 @@
         if (softKey === 'seeker' && window.stealthXhdEngine && window.stealthXhdEngine.state) {
           bestInt = Math.max(bestInt, window.stealthXhdEngine.state.seekerVerInt || 0);
         }
-        return bestInt > 0 ? +(bestInt / 10).toFixed(1) : 0;
+        const cpuCap1 = (window.progressionLocksEngine && typeof window.progressionLocksEngine.getCpuMaxSoftwareVersion === 'function')
+          ? window.progressionLocksEngine.getCpuMaxSoftwareVersion()
+          : 10.0;
+        return bestInt > 0 ? Math.min(cpuCap1, +(bestInt / 10).toFixed(1)) : 0;
       }
 
       if (!item || !item.owned || item.versionInt <= 0) return 0;
+      const cpuCap2 = (window.progressionLocksEngine && typeof window.progressionLocksEngine.getCpuMaxSoftwareVersion === 'function')
+        ? window.progressionLocksEngine.getCpuMaxSoftwareVersion()
+        : 10.0;
       if (def.category === 'system') {
         if (!item.installed || this.isSoftwareInTransition(softKey)) return 0;
-        return (item.runningVerInt || item.versionInt) / 10;
+        return Math.min(cpuCap2, (item.runningVerInt || item.versionInt) / 10);
       }
-      return item.versionInt / 10;
+      return Math.min(cpuCap2, item.versionInt / 10);
     }
 
     isSoftwareInstalled(softKey) {
@@ -2884,16 +2890,24 @@
     getPendingHarvestSummary() {
       this.ensureLoaded();
       const mult = this.getCollectorMultiplier();
+      const maxHosts = (window.progressionLocksEngine && typeof window.progressionLocksEngine.getCollectorMaxSupportedHosts === 'function')
+        ? window.progressionLocksEngine.getCollectorMaxSupportedHosts()
+        : 25;
+      const allInf = this.state.remoteInfections || [];
+      const activeSlice = allInf.slice(0, maxHosts);
       let rawCash = 0;
       let rawSats = 0;
       let totalGbps = 0;
-      (this.state.remoteInfections || []).forEach((v) => {
+      activeSlice.forEach((v) => {
         rawCash += v.accumulatedCash || 0;
         rawSats += v.accumulatedSats || 0;
         totalGbps += this.computeInfectionPerSec(v).gbps;
       });
       return {
-        virusCount: (this.state.remoteInfections || []).length,
+        virusCount: allInf.length,
+        supportedCount: activeSlice.length,
+        saturatedCount: Math.max(0, allInf.length - maxHosts),
+        maxCollectorHosts: maxHosts,
         collectorActive: this.isCollectorActive(),
         cashReady: +(rawCash * mult).toFixed(2),
         satsReady: Math.round(rawSats * mult),

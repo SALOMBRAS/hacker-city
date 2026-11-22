@@ -60,6 +60,7 @@
   <script src="src/js/darknet-social-news-engine.js"></script>
   <script src="src/js/ecosystem-interconnected-hub.js"></script>
   <script src="src/js/nine-deep-systems-engine.js"></script>
+  <script src="src/js/progression-locks-engine.js"></script>
 </head>
 <body>
 
@@ -2066,6 +2067,13 @@
     }
 
     async function buyHardwareUpgrade(category, itemId, price, targetMachineId = 'pc_main') {
+      if (window.progressionLocksEngine && typeof window.progressionLocksEngine.validateHardwareStepLadder === 'function') {
+        const check = window.progressionLocksEngine.validateHardwareStepLadder(category, itemId, targetMachineId);
+        if (!check.ok) {
+          if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+          return check;
+        }
+      }
       if (!currentWallet || currentWallet.balance < price) {
         if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
         alert('Saldo insuficiente na conta bancária!');
@@ -2097,6 +2105,12 @@
       // Aplica imediatamente na UI (zero atraso visual) e sincroniza em background caso sessão cloud real
       deductAuthorized(currentWallet.balance - price);
       applyUpgradeToTarget();
+      if (window.progressionLocksEngine && category !== 'network') {
+        const list = window.hardwareEngine ? (window.hardwareEngine.catalog[category] || []) : [];
+        const idx = list.findIndex((x) => x.id === itemId);
+        const mins = [0, 2, 4, 8, 12][Math.max(0, idx)] || 2;
+        window.progressionLocksEngine.recordHardwareBenchAssembly(list[idx] ? list[idx].name : itemId, mins * 60 * 1000);
+      }
       window.addLocalLog('HARDWARE', `Upgrade instalado em ${targetMachineId} (${category.toUpperCase()} -> ${itemId}): -$ ${price}.00 HC`, 'info');
       if (window.hackerAudio) window.hackerAudio.playCashChime();
       showToast('Peça comprada e instalada com sucesso!');

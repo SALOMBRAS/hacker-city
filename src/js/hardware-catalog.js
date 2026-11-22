@@ -1048,6 +1048,7 @@ class HardwareEngine {
               </div>
             ` : ''}
             ${mainColHtml}
+            ${window.progressionLocksEngine && typeof window.progressionLocksEngine.renderHardwarePsuAndBottleneckHtml === 'function' ? window.progressionLocksEngine.renderHardwarePsuAndBottleneckHtml() : ''}
             ${window.nineSystemsEngine && typeof window.nineSystemsEngine.renderHardwareThermalSectionHtml === 'function' ? window.nineSystemsEngine.renderHardwareThermalSectionHtml() : ''}
           </div>
 

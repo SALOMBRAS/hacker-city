@@ -682,9 +682,15 @@ class QuitineteEngine {
 
             ${summary.isPaused ? `
               <div id="quitPausedCapBanner" class="soft-feedback-banner" style="background:rgba(240,160,58,0.14);border-color:rgba(240,160,58,0.45);color:#ffd28a;">
-                <span>⏸ <strong>Conta Pausada no Limite de 3 Meses (Dias):</strong> você atingiu o teto máximo de 3 faturas acumuladas. Nenhum dia extra foi cobrado enquanto você esteve fora — o relógio recomeçou a partir da sua entrada no jogo e novos ciclos só acumulam após quitar!</span>
+                <span>⏸ <strong>Conta Pausada no Limite de 3 Meses (Dias):</strong> você atingiu o teto máximo de 3 faturas acumuladas. Nenhum dia extra foi cobrado enquanto você esteve fora — caso esteja sem Dinheiro Limpo, use o <strong>Micro-Reparo Municipal</strong> abaixo para religar a rede!</span>
+                ${window.progressionLocksEngine ? `<button type="button" id="btnMunicipalEmergencyJob" class="hc-btn primary sm" onclick="window.progressionLocksEngine.executeMunicipalEmergencyJob()">🛠️ Micro-Reparo Municipal (+$ 180 Limpos)</button>` : ''}
               </div>
-            ` : ''}
+            ` : (summary.maxMonths >= 2 && window.progressionLocksEngine ? `
+              <div class="soft-feedback-banner" style="background:rgba(229,83,75,0.12);border-color:rgba(229,83,75,0.45);color:#fca5a5;">
+                <span>⚠️ <strong>Racionamento de Inadimplência (${summary.maxMonths}/3 meses):</strong> Nome Sujo comercial ativo, Internet -50% Mbps e CPU -35%! Quite suas faturas ou faça reparo emergencial:</span>
+                <button type="button" id="btnMunicipalEmergencyJob" class="hc-btn ghost sm" onclick="window.progressionLocksEngine.executeMunicipalEmergencyJob()">🛠️ Micro-Reparo (+$ 180)</button>
+              </div>
+            ` : '')}
 
             <div class="soft-table-wrap" role="region" aria-label="Faturas mensais que chegam às 12:00">
               <table class="soft-table clean-hw-table">

@@ -290,7 +290,7 @@
         return { success: false, message: 'Responda corretamente à pergunta rápida do Exame Prático antes de emitir o certificado!' };
       }
 
-      if (course.cost > 0) {
+      if (course.cost > 0 && !opts.tuitionAlreadyPaid) {
         if (!window.currentWallet || parseFloat(window.currentWallet.balance) < course.cost) {
           return { success: false, message: `Saldo insuficiente para a taxa acadêmica de ${fmtUsd(course.cost)}!` };
         }
@@ -398,30 +398,49 @@
         const page = course.pages[this.readingPageIdx];
         const isLast = this.readingPageIdx === course.pages.length - 1;
         const done = this.hasCert(course.id);
-        const examPassed = !course.exam || done || this.selectedExamOption === course.exam.correctIdx;
+        const pl = window.progressionLocksEngine || null;
+        const gateMeta = pl ? pl.getCourseGateMeta(course.id) : null;
+        const enr = pl && pl.state && pl.state.uniEnrollment && pl.state.uniEnrollment.certId === course.id ? pl.state.uniEnrollment : null;
+        const studyRemMs = enr ? Math.max(0, enr.readyAt - Date.now()) : (course.id > 1 ? (gateMeta ? gateMeta.studyMs : 0) : 0);
+        const lockRemMs = pl && pl.state && pl.state.examLockUntil ? Math.max(0, Number(pl.state.examLockUntil[course.id] || 0) - Date.now()) : 0;
+        const retakeDue = pl && pl.state && pl.state.retakeFeeDue ? Number(pl.state.retakeFeeDue[course.id] || 0) : 0;
 
-        const examBlockHtml = (isLast && !done && course.exam) ? `
-          <div id="uniExamBox" style="background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.35);border-radius:10px;padding:15px 16px;">
-            <div class="hc-eyebrow" style="color:#38bdf8;margin-bottom:5px;">Exame Prático Rápido (Obrigatório p/ Emitir Diploma)</div>
-            <div style="font-size:0.9rem;font-weight:700;color:var(--hc-text);margin-bottom:10px;">${esc(course.exam.question)}</div>
-            <div style="display:flex;flex-direction:column;gap:7px;">
-              ${course.exam.options.map((opt, oIdx) => {
-                const isSel = this.selectedExamOption === oIdx;
-                const borderCol = isSel
-                  ? (oIdx === course.exam.correctIdx ? '#35b877' : '#ef4444')
-                  : 'var(--hc-border)';
-                return `
-                  <button type="button" class="uni-exam-opt" data-opt-idx="${oIdx}"
-                    style="text-align:left;padding:9px 12px;border-radius:7px;background:#0b1016;border:1.5px solid ${borderCol};color:var(--hc-text);font-size:0.82rem;cursor:pointer;"
-                    onclick="window.universityEngine.selectExamAnswer(${oIdx})">
-                    <strong>${String.fromCharCode(65 + oIdx)})</strong> ${esc(opt)}
-                  </button>
-                `;
-              }).join('')}
+        if (!this.multiExamAns || this.multiExamCourseId !== course.id) {
+          this.multiExamCourseId = course.id;
+          this.multiExamAns = [null, null, null];
+        }
+
+        const examBlockHtml = (isLast && !done && gateMeta) ? `
+          <div id="uniExamBox" style="background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.35);border-radius:10px;padding:15px 16px;display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+              <div class="hc-eyebrow" style="color:#38bdf8;">🔒 Banca Oficial MIT-HC (3 Questões · Reprovação trava 30m + 25% Taxa)</div>
+              ${course.id > 1 && !enr ? `
+                <button type="button" id="btnEnrollCourse_${course.id}" class="hc-btn primary sm" onclick="window.progressionLocksEngine.enrollInCourse(${course.id})">
+                  🎓 Matricular e Iniciar Aula (${gateMeta.costClean > 0 ? '$ ' + gateMeta.costClean.toLocaleString('pt-BR') + ' Limpos' : 'Grátis'} · ${Math.round(gateMeta.studyMs / 60000)}m reais)
+                </button>
+              ` : ''}
+              ${enr && studyRemMs > 0 ? `<span class="hc-badge warn mono">⏳ Carga horária em curso: faltam ${Math.ceil(studyRemMs / 60000)} min reais</span>` : ''}
+              ${lockRemMs > 0 ? `<span class="hc-badge danger mono">❌ Reprovado: aguarde ${Math.ceil(lockRemMs / 60000)}m (+$ ${retakeDue} 2ª chamada)</span>` : ''}
             </div>
-            ${this.examFeedback ? `<div style="margin-top:9px;font-size:0.8rem;color:${this.examFeedback.ok ? '#86efac' : '#fca5a5'};">${esc(this.examFeedback.text)}</div>` : ''}
+            ${gateMeta.questions.map((qObj, qIdx) => `
+              <div style="padding:10px 12px;background:#0a0f16;border:1px solid #1e2c3e;border-radius:8px;">
+                <div style="font-size:0.84rem;font-weight:700;margin-bottom:7px;">${esc(qObj.q)}</div>
+                <div style="display:flex;flex-direction:column;gap:5px;">
+                  ${qObj.opts.map((opt, oIdx) => {
+                    const sel = this.multiExamAns[qIdx] === oIdx;
+                    return `
+                      <button type="button" class="uni-exam-opt" style="text-align:left;padding:7px 10px;border-radius:6px;background:${sel ? 'rgba(56,189,248,0.16)' : '#0e151f'};border:1px solid ${sel ? '#38bdf8' : '#223146'};color:var(--hc-text);font-size:0.8rem;cursor:pointer;"
+                        onclick="window.universityEngine.multiExamAns[${qIdx}]=${oIdx}; window.universityEngine.renderUI();">
+                        <strong>${String.fromCharCode(65 + oIdx)})</strong> ${esc(opt)}
+                      </button>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            `).join('')}
           </div>
         ` : '';
+        const examPassed = done || (this.multiExamAns && this.multiExamAns.every((v) => v !== null) && (course.id === 1 || (enr && studyRemMs === 0)) && lockRemMs === 0);
 
         container.innerHTML = `
           <div class="soft-frame">
@@ -456,8 +475,8 @@
                     ? `<button type="button" id="btnNextLesson" class="hc-btn primary sm" onclick="window.universityEngine.nextLessonPage()">Próxima Aula →</button>`
                     : (done
                         ? `<button type="button" class="hc-btn primary sm" onclick="window.universityEngine.openDiplomaView(${course.id})">📜 Ver Certificado</button>`
-                        : `<button type="button" id="btnFinishCert_${course.id}" class="hc-btn primary sm" ${examPassed ? '' : 'disabled'} onclick="window.handleCompleteCourse(${course.id})">
-                             Emitir Certificado ${course.cost > 0 ? `(${fmtUsd(course.cost)})` : '(Grátis)'}
+                        : `<button type="button" id="btnFinishCert_${course.id}" class="hc-btn primary sm" ${examPassed ? '' : 'disabled'} onclick="window.progressionLocksEngine ? window.progressionLocksEngine.submitThreeQuestionExam(${course.id}, window.universityEngine.multiExamAns) : window.handleCompleteCourse(${course.id})">
+                             Submeter Prova &amp; Emitir Diploma
                            </button>`)}
                 </div>
               </div>
