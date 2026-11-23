@@ -373,11 +373,11 @@
           id: 'running_ram_cooldown',
           selector: '#softwareExplorerMain',
           fallbackSelector: '#runningProgramsPanel',
-          pointerLabel: '👀 Seus Aplicativos no PC',
+          pointerLabel: '👀 Programas na RAM & Disco',
           requiresDirectClick: false,
-          title: '4. Programas no Disco & Laboratório de Vírus',
-          desc: 'Aqui ficam os apps do seu PC (<strong>HD, SSD e NVMe</strong>). E logo abaixo no menu <strong>Meu Computador</strong> você tem o <strong>Laboratório de Vírus</strong> para criar seus próprios vírus combinando blocos de código (<code>1 + 2 + 1</code>) em 54 conjuntos!',
-          hint: '⚡ Já nas empresas invadidas você também encontra <strong>Câmeras CFTV Ao Vivo</strong> (para desativar câmeras ou apagar gravações do DVR em missões)!',
+          title: '4. Defesas na Memória vs. Ataques no Disco',
+          desc: 'Defesas como <strong>Firewall</strong> e <strong>Hasher</strong> ficam ligadas na sua Memória RAM (1 de cada por vez). Já o <strong>Quebrador de Senha</strong> roda direto do seu disco quando você ataca!',
+          hint: '💡 Mais adiante (em <strong>500 REP / Curso #4</strong>) também abre aqui o <strong>Laboratório de Vírus</strong> para criar seus próprios vírus e cumprir encomendas de <strong>$ 18.000 Limpos</strong>!',
           nextLabel: 'Entendi! Vamos Invadir →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
@@ -396,8 +396,8 @@
           selector: '#navSummary_net',
           pointerLabel: '👆 Clique neste tópico',
           requiresDirectClick: true,
-          title: '5. Tópico Explorar & Invadir',
-          desc: 'Agora vamos fazer sua <strong>primeira invasão completa do início ao fim</strong>: comparar defesas, escolher o hash no Mini-PC, subir vírus, executar e apagar a log!',
+          title: '5. Explorar & Invadir na Prática',
+          desc: 'Agora vamos fazer sua <strong>1ª invasão completa</strong>: comparar a força dos programas, quebrar a senha, plantar seu 1º vírus, limpar seu IP e ganhar sua 1ª amostra de <strong>Dinheiro Sujo</strong>!',
           hint: '👆 <strong>Clique em "Explorar & Invadir"</strong> na barra lateral!',
           nextLabel: 'Abrir Explorar & Invadir →',
           onEnter: () => {
@@ -416,10 +416,10 @@
           selector: 'button.nav-item[data-win="winBrowser"]',
           pointerLabel: '👆 Clique em Navegar por IPs',
           requiresDirectClick: true,
-          title: '6. O Navegador de Computadores',
-          desc: 'É por aqui que você acessa o diretório de IPs públicos ou digita o IP de qualquer jogador, empresa, banco ou enigma.',
-          hint: '👆 <strong>Clique em "Navegar por IPs"</strong> para colocarmos um PC de treino na sua mira!',
-          nextLabel: 'Ir p/ Navegar por IPs →',
+          title: '6. Abrir a Internet do Jogo',
+          desc: 'É por aqui (ou pelo atalho <strong>Internet</strong> no topo do menu) que você entra em qualquer IP de empresa, banco, fórum secreto ou outro jogador!',
+          hint: '👆 <strong>Clique em "Navegar por IPs"</strong> para mirarmos no computador de treino!',
+          nextLabel: 'Abrir Internet →',
           onEnter: () => {
             const d = document.getElementById('navTopic_net');
             if (d) d.open = true;
