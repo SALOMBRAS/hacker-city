@@ -2048,12 +2048,12 @@
       }
       const g = this.activeGameSession;
       const selectorBtns = [
-        { id: 'hex_breach', label: '1. Matriz Hex 5x5 (Daemons)' },
-        { id: 'packet_sniffer', label: '2. Packet Sniffer (OSINT)' },
-        { id: 'logic_gates', label: '3. Portas Lógicas (Luz -12%)' },
-        { id: 'rf_waveform', label: '4. Satélite RF (Mapa-Múndi)' },
-        { id: 'cipher_cracker', label: '5. Cifra Zero-Day (CVE 24h)' },
-        { id: 'canary_defuse', label: '6. Canário Reverso (Cupom Lab)' }
+        { id: 'hex_breach', label: '1. Matriz 5x5 (Enfraquece Firewall)' },
+        { id: 'packet_sniffer', label: '2. Filtrar Rede (+1 Dossiê Senha)' },
+        { id: 'logic_gates', label: '3. Chaves de Energia (-12% na Luz)' },
+        { id: 'rf_waveform', label: '4. Antena Satélite (+Influência Mapa)' },
+        { id: 'cipher_cracker', label: '5. Quebrar Código (+Fura-Firewall 24h)' },
+        { id: 'canary_defuse', label: '6. Ordem Inversa (Cupom -$250 Lab)' }
       ].map((b) => `
         <button type="button" id="btnPickMg_${b.id}" class="hc-btn ${this.selectedMinigameKind === b.id ? 'primary' : 'ghost'} sm" onclick="window.ecosystemHub.startMinigame('${b.id}')">${b.label}</button>
       `).join('');
@@ -2217,32 +2217,32 @@
 
       return `
         <div class="eco-grid-2">
-          <!-- OSINT & Zero-Days -->
+          <!-- Dossiês de Senha & Fura-Firewall 24h -->
           <div class="eco-card accent">
-            <div class="eco-card-title">🕵️ Central OSINT &amp; Exploits CVE Zero-Day (24h)</div>
-            <div class="eco-card-sub">Dossiês OSINT disponíveis: <strong>${this.state.osintDossiers}</strong>. Use em qualquer servidor Tier 1–3 para descobrir a senha <code>root</code> sem força-bruta!</div>
+            <div class="eco-card-title">🕵️ Descobrir Senha na Hora &amp; Fura-Firewall (24h)</div>
+            <div class="eco-card-sub">Dossiês guardados: <strong>${this.state.osintDossiers}</strong>. Use em qualquer servidor até Nível 3 para descobrir a senha <code>root</code> na hora sem esperar quebrar!</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               <input type="text" id="osintTargetIpInput" class="hc-input mono" style="flex:1;min-width:170px;height:34px;" value="203.17.88.40" placeholder="IP do alvo (ex: 203.17.88.40)">
-              <button type="button" id="btnUseOsintDossier" class="hc-btn primary sm" onclick="window.ecosystemHub.useOsintDossierOnIp(document.getElementById('osintTargetIpInput')?.value)">Investigar c/ OSINT</button>
+              <button type="button" id="btnUseOsintDossier" class="hc-btn primary sm" onclick="window.ecosystemHub.useOsintDossierOnIp(document.getElementById('osintTargetIpInput')?.value)">Descobrir Senha</button>
             </div>
             <div style="border-top:1px solid var(--hc-border);padding-top:8px;margin-top:4px;">
-              <div style="font-size:12px;font-weight:600;margin-bottom:6px;">Arsenal CVE Zero-Day Ativo (${activeZds.length}):</div>
+              <div style="font-size:12px;font-weight:600;margin-bottom:6px;">Fura-Firewalls Ativos de 24h (${activeZds.length}):</div>
               ${activeZds.length === 0
-                ? `<div style="font-size:12px;color:var(--hc-text-3);">Nenhum CVE ativo. Quebre uma Cifra na aba Minigames para gerar um Zero-Day de 24h!</div>`
+                ? `<div style="font-size:12px;color:var(--hc-text-3);">Nenhum ativo agora. Resolva o Desafio #5 (Quebrar Código) para ganhar um Fura-Firewall de 24h!</div>`
                 : activeZds.map((z) => `
                   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #1b2430;">
-                    <span class="mono" style="font-size:12px;color:#5fd39a;">${esc(z.code)} (até Tier ${z.maxTier + 1})</span>
+                    <span class="mono" style="font-size:12px;color:#5fd39a;">${esc(z.code)} (até Nível ${z.maxTier + 1})</span>
                     <button type="button" class="hc-btn primary sm" onclick="window.ecosystemHub.useZeroDayOnHost('${z.id}', document.getElementById('osintTargetIpInput')?.value)">Furar Firewall Agora →</button>
                   </div>
                 `).join('')}
             </div>
           </div>
 
-          <!-- Seguro de Hardware & Protocolo Fênix -->
+          <!-- Seguro do PC & Limpar Ficha -->
           <div class="eco-card warn">
-            <div class="eco-card-title">🛡️ Seguro Físico de Hardware &amp; Protocolo Fênix</div>
+            <div class="eco-card-title">🛡️ Seguro de Peças do PC &amp; Limpar Ficha Policial</div>
             <div class="eco-card-sub">
-              Status da Apólice: <strong>${ins && ins.plan ? `${ins.name} (${ins.coveragePct}% cobertura · ${ins.claimsLeft} sinistros restantes)` : 'Desprotegido contra sobrecarga DDoS'}</strong>
+              Seu Seguro: <strong>${ins && ins.plan ? `${ins.name} (cobre ${ins.coveragePct}% do conserto · ${ins.claimsLeft} usos restantes)` : 'Sem seguro contra ataques DDoS'}</strong>
             </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
               <button type="button" id="btnBuyInsBronze" class="hc-btn sm" onclick="window.ecosystemHub.buyHardwareInsurance('bronze')">Bronze 50% ($350)</button>
@@ -2250,38 +2250,38 @@
               <button type="button" id="btnBuyInsQuantum" class="hc-btn sm" onclick="window.ecosystemHub.buyHardwareInsurance('quantum')">Quantum 90% ($1.400)</button>
             </div>
             <div style="border-top:1px solid var(--hc-border);padding-top:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-              <div style="font-size:11.5px;color:var(--hc-text-2);">Cercado pelo FBI? Queime rastros e gire IP mantendo Diplomas, Clã e Offshore:</div>
-              <button type="button" id="btnPhoenixProtocol" class="hc-btn ghost sm" style="border-color:var(--hc-danger);color:var(--hc-danger-text);" onclick="window.ecosystemHub.triggerPhoenixProtocol()">🔥 Protocolo Fênix ($900)</button>
+              <div style="font-size:11.5px;color:var(--hc-text-2);">Polícia no seu pé? Apague seus rastros e troque de IP mantendo Diplomas, Clã e Banco:</div>
+              <button type="button" id="btnPhoenixProtocol" class="hc-btn ghost sm" style="border-color:var(--hc-danger);color:var(--hc-danger-text);" onclick="window.ecosystemHub.triggerPhoenixProtocol()">🔥 Limpar Ficha &amp; IP ($900)</button>
             </div>
           </div>
 
           <!-- Bônus Reais do Mapa-Múndi -->
           <div class="eco-card">
-            <div class="eco-card-title">🌍 Bônus Ativos da Sua Rota no Mapa-Múndi (${wm.hops} salto[s])</div>
-            <div class="eco-card-sub">Cidades encadeadas: <strong>${esc(wm.activePopNames.join(' → '))}</strong></div>
+            <div class="eco-card-title">🌍 Bônus da Sua Rota no Mapa-Múndi (${wm.hops} cidade[s])</div>
+            <div class="eco-card-sub">Caminho atual: <strong>${esc(wm.activePopNames.join(' → '))}</strong></div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <span class="hc-badge success">+${wm.crackerSpeedPct}% Velocidade Cracker</span>
+              <span class="hc-badge success">+${wm.crackerSpeedPct}% Quebra de Senha</span>
               <span class="hc-badge info">+${wm.btcYieldPct}% Mineração BTC</span>
-              <span class="hc-badge success">+${Math.round((wm.collectorMult - 1) * 100)}% Coletor Viral</span>
-              <span class="hc-badge warn">-${wm.billDiscountPct}% Desconto Continental</span>
+              <span class="hc-badge success">+${Math.round((wm.collectorMult - 1) * 100)}% Coleta de Vírus</span>
+              <span class="hc-badge warn">-${wm.billDiscountPct}% Desconto nas Contas</span>
             </div>
             <div>
-              <button type="button" class="hc-btn ghost sm" onclick="navTo('winWorldMap')">Editar Rota no Mapa-Múndi →</button>
+              <button type="button" class="hc-btn ghost sm" onclick="navTo('winWorldMap')">Mudar Rota no Mapa-Múndi →</button>
             </div>
           </div>
 
-          <!-- Auditoria Pentest Pessoal -->
+          <!-- Testar Segurança do Meu PC -->
           <div class="eco-card">
             <div class="eco-card-head">
-              <div class="eco-card-title">🔬 Pentest Pessoal da Sua Máquina</div>
-              <button type="button" id="btnRunSelfAudit" class="hc-btn primary sm" onclick="window.ecosystemHub.runSelfSecurityAudit()">Rodar Pentest Local</button>
+              <div class="eco-card-title">🔬 Testar Segurança do Meu PC</div>
+              <button type="button" id="btnRunSelfAudit" class="hc-btn primary sm" onclick="window.ecosystemHub.runSelfSecurityAudit()">Testar Meu PC Agora</button>
             </div>
             ${!aud
-              ? `<div class="eco-card-sub">Simule uma invasão contra o seu próprio PC para descobrir falhas em Firewall, Hasher, Antivírus e Rastros Esquecidos.</div>`
+              ? `<div class="eco-card-sub">Veja se seu PC está bem protegido ou se você esqueceu seu IP anotado em algum servidor invadido.</div>`
               : `<div style="font-size:12.5px;display:flex;flex-direction:column;gap:4px;">
-                   <div>Nota de Blindagem: <strong style="color:${aud.score >= 70 ? '#35b877' : '#f0a83a'};">${aud.score}/100</strong></div>
-                   <div>Firewall v${aud.fwVer.toFixed(1)} · Hasher v${aud.hashVer.toFixed(1)} · Antivírus ${aud.avVer > 0 ? 'v' + aud.avVer.toFixed(1) : 'AUSENTE ⚠️'}</div>
-                   <div>Rastros remotos com seu IP: <strong style="color:${aud.exposedTraces > 0 ? '#e5534b' : '#35b877'};">${aud.exposedTraces}</strong> · Saltos: ${aud.hops} · Seguro: ${aud.insured ? 'Ativo ✓' : 'Inativo'}</div>
+                   <div>Nota de Proteção: <strong style="color:${aud.score >= 70 ? '#35b877' : '#f0a83a'};">${aud.score}/100</strong></div>
+                   <div>Firewall v${aud.fwVer.toFixed(1)} · Hasher v${aud.hashVer.toFixed(1)} · Antivírus ${aud.avVer > 0 ? 'v' + aud.avVer.toFixed(1) : 'NÃO INSTALADO ⚠️'}</div>
+                   <div>Lugares onde você esqueceu seu IP: <strong style="color:${aud.exposedTraces > 0 ? '#e5534b' : '#35b877'};">${aud.exposedTraces}</strong> · Cidades na Rota: ${aud.hops} · Seguro: ${aud.insured ? 'Ativo ✓' : 'Sem seguro'}</div>
                  </div>`}
           </div>
         </div>
