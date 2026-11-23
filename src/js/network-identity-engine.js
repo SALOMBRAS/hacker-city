@@ -3434,10 +3434,10 @@
                 </div>
               </div>
               <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                <button type="button" id="btnWipeAllRemoteLogs" class="hc-btn ghost sm" onclick="document.getElementById('remoteSyslogTextarea').value=''; window.internetEngine.saveEditedRemoteLogs();">Apagar Simples (Deixa Sombra)</button>
+                <button type="button" id="btnWipeAllRemoteLogs" class="hc-btn ghost sm" onclick="document.getElementById('remoteSyslogTextarea').value=''; window.internetEngine.saveEditedRemoteLogs();">Apagar Comum (Fica rastro 5m)</button>
                 ${window.nineSystemsEngine ? `
-                  <button type="button" id="btnSevenPassShredRemote" class="hc-btn sm" style="border-color:var(--hc-danger);color:var(--hc-danger-text);" onclick="window.nineSystemsEngine.executeSevenPassShred('${esc(host.ip)}'); document.getElementById('remoteSyslogTextarea').value='';">🔥 Shred 7-Passos (Zero Sombra)</button>
-                  <button type="button" id="btnScanMagneticShadowRemote" class="hc-btn ghost sm" onclick="const r = window.nineSystemsEngine.scanMagneticShadowsOnHost('${esc(host.ip)}'); const bx = document.getElementById('remoteMagShadowResultBox'); if (bx) { bx.style.display='block'; bx.innerHTML = r.shadows && r.shadows.length ? r.shadows.map(s => '🔬 Setor Magnético Recuperado: <code>' + s.subnetPrefix + '</code> (apagado às ' + s.wipedAt + ')').join('<br>') : r.message; }">🔬 Ler Sombra Magnética</button>
+                  <button type="button" id="btnSevenPassShredRemote" class="hc-btn sm" style="border-color:var(--hc-danger);color:var(--hc-danger-text);" onclick="window.nineSystemsEngine.executeSevenPassShred('${esc(host.ip)}'); document.getElementById('remoteSyslogTextarea').value='';">🔥 Apagar de Vez (Sem rastro)</button>
+                  <button type="button" id="btnScanMagneticShadowRemote" class="hc-btn ghost sm" onclick="const r = window.nineSystemsEngine.scanMagneticShadowsOnHost('${esc(host.ip)}'); const bx = document.getElementById('remoteMagShadowResultBox'); if (bx) { bx.style.display='block'; bx.innerHTML = r.shadows && r.shadows.length ? r.shadows.map(s => '🔬 Rastro Apagado Encontrado: <code>' + s.subnetPrefix + '</code> (apagado às ' + s.wipedAt + ')').join('<br>') : r.message; }">🔬 Procurar Rastro Apagado</button>
                 ` : ''}
                 <button type="button" id="btnSaveRemoteSyslog" class="hc-btn primary sm" onclick="window.internetEngine.saveEditedRemoteLogs()">Salvar Alteração</button>
               </div>
@@ -3452,13 +3452,13 @@
               </button>
             </div>
 
-            <!-- Forja Forense False-Flag (Incriminar Rival/Bot na Safenet!) -->
+            <!-- Culpar Outro IP na Safenet! -->
             ${window.ecosystemHub ? `
               <div id="remoteFalseFlagBar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 10px;background:var(--hc-inset);border:1px solid rgba(53,184,119,0.32);border-radius:7px;">
-                <span style="font-size:0.77rem;color:var(--hc-text-2);">🎭 <strong>Forja False-Flag:</strong> apaga seu IP e planta rastro falso incriminando outro IP na Safenet:</span>
+                <span style="font-size:0.77rem;color:var(--hc-text-2);">🎭 <strong>Culpar Outro IP:</strong> apaga seu IP e coloca o IP de um rival no lugar para a polícia ir atrás dele:</span>
                 <input type="text" id="falseFlagTargetIpInput" class="form-input" style="width:155px;font-family:var(--hc-font-mono);font-size:0.77rem;" value="149.56.28.11" placeholder="IP p/ incriminar">
                 <button type="button" id="btnPlantFalseFlag" class="hc-btn primary sm" onclick="window.ecosystemHub.plantFalseFlagOnHost('${esc(host.ip)}', document.getElementById('falseFlagTargetIpInput')?.value)">
-                  🎭 Plantar IP Falso
+                  🎭 Colocar IP Falso
                 </button>
               </div>
             ` : ''}
@@ -3753,7 +3753,7 @@
               <td>
                 <span class="soft-name-trigger" tabindex="0">
                   <strong style="color:#fbbf24;">${esc(fv.family)}_c2.${esc(fv.ownerTag)}</strong>
-                  <span style="font-size:11px;color:var(--hc-text-3);">(${fv.hijacked ? 'C2 sequestrado ✓' : 'vírus de rival detectado!'})</span>
+                  <span style="font-size:11px;color:var(--hc-text-3);">(${fv.hijacked ? 'roubando 70% ✓' : 'vírus de outro jogador!'})</span>
                 </span>
               </td>
               <td class="soft-col-ver"><span class="soft-ver-badge v-tier2">${esc(fv.versionLabel)}</span></td>
@@ -3761,8 +3761,8 @@
               <td class="soft-col-acts">
                 <div class="soft-icon-actions">
                   ${fv.hijacked
-                    ? `<span class="hc-badge success">✓ 70% Desviado</span>`
-                    : `<button type="button" id="btnHijackForeignC2" class="hc-btn primary sm" onclick="window.nineSystemsEngine.hijackForeignVirus('${esc(host.ip)}')">🏴‍☠️ Sequestrar C2 (70%)</button>`}
+                    ? `<span class="hc-badge success">✓ Roubando 70%</span>`
+                    : `<button type="button" id="btnHijackForeignC2" class="hc-btn primary sm" onclick="window.nineSystemsEngine.hijackForeignVirus('${esc(host.ip)}')">🏴‍☠️ Roubar 70% desse Vírus</button>`}
                 </div>
               </td>
             </tr>

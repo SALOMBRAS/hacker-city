@@ -526,14 +526,14 @@
         <div class="nds-card ${del.allowBribe ? 'amber' : 'crimson'}" style="margin-bottom:14px;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
             <div>
-              <span class="hc-badge ${del.badgeCls}">COMANDO EM EXERCÍCIO (ROTAÇÃO 6H)</span>
+              <span class="hc-badge ${del.badgeCls}">DELEGADO DE PLANTÃO (TROCA A CADA 6H)</span>
               <strong style="font-size:15px;margin-left:8px;color:#fff;">${esc(del.name)}</strong>
               <span class="hc-badge info" style="margin-left:6px;">${esc(del.archetype)}</span>
             </div>
             <button type="button" id="btnAttemptDelegateBribe" class="hc-btn ${del.allowBribe ? 'primary' : 'ghost'} sm"
               style="${!del.allowBribe ? 'border-color:var(--hc-danger);color:var(--hc-danger-text);' : ''}"
               onclick="window.nineSystemsEngine.attemptPoliceBribe()">
-              ${del.allowBribe ? `🕶️ Pagar Propina (${fmtMoney(del.bribeCostClean)} Limpos)` : `⚠️ Tentar Suborno (${fmtMoney(del.bribeCostClean)} · ALTO RISCO)`}
+              ${del.allowBribe ? `🕶️ Pagar Propina (${fmtMoney(del.bribeCostClean)} Limpos)` : `⚠️ Tentar Suborno (${fmtMoney(del.bribeCostClean)} · PERIGOSO!)`}
             </button>
           </div>
           <div class="nds-pros-cons">
@@ -541,13 +541,13 @@
             <div class="nds-pc-box con"><strong>⚠️ ${esc(del.conText)}</strong></div>
           </div>
           <details class="nds-rules-drawer">
-            <summary>📖 Regras de Funcionamento dos 4 Delegados FBI/Safenet (Rotação 6h Reais)</summary>
+            <summary>📖 Como funcionam os 4 Delegados da Polícia (Troca a cada 6h reais)</summary>
             <ol class="nds-rules-list">
-              <li><strong>Troca de Comando:</strong> A cada <strong>6 horas reais</strong> (00h, 06h, 12h, 18h) assume automaticamente 1 dos 4 delegados para todo o servidor.</li>
-              <li><strong>Comissário Vargas (Venal):</strong> Aceita propina por <strong>$ 270 Limpos</strong> (-2 níveis de Heat e limpa cola policial), porém cobra Fiança +40% mais cara (<strong>$ 910 Limpos</strong>) se você for preso.</li>
-              <li><strong>Diretora Kovács (Incorruptível):</strong> Paga <strong>+35% em dinheiro limpo</strong> em todas as capturas de Procurados do FBI, mas tentar suborná-la confisca seus <strong>$ 450 Limpos</strong> e joga seu Heat direto para <strong>5/5</strong>!</li>
-              <li><strong>Agente Sterling (Colarinho Branco):</strong> Paga +15% Bounties e aceita propina cara ($ 550), mas aplica <strong>Tolerância Zero</strong>: prende já na <strong>1ª tentativa</strong> de gastar Dinheiro Sujo (sem aviso prévio!).</li>
-              <li><strong>Inspetor Sato (Perito Forense):</strong> Paga +25% Bounties e dá -30% no Protocolo Fênix, mas rejeita suborno (confisca $ 500 + Heat 5/5) e faz as Sombras Magnéticas de logs durarem <strong>10 minutos reais</strong> (o dobro do padrão).</li>
+              <li><strong>Troca de Plantão:</strong> A cada <strong>6 horas da vida real</strong> (00h, 06h, 12h, 18h) muda o delegado no comando para todo o jogo.</li>
+              <li><strong>Comissário Vargas (Aceita Propina):</strong> Aceita <strong>$ 270 Limpos</strong> para baixar -2 níveis de procura e tirar a polícia da sua cola, mas cobra Fiança mais cara (<strong>$ 910 Limpos</strong>) se você for preso.</li>
+              <li><strong>Diretora Kovács (Honesta):</strong> Paga <strong>+35% em Dinheiro Limpo</strong> quando você captura Procurados, mas se tentar suborná-la você perde <strong>$ 450 Limpos</strong> e vira Procurado Nível 5 na hora!</li>
+              <li><strong>Agente Sterling (Rigoroso):</strong> Paga +15% nas capturas e aceita propina cara ($ 550), mas <strong>prende já na 1ª tentativa</strong> de gastar Dinheiro Sujo sem aviso!</li>
+              <li><strong>Inspetor Sato (Detetive):</strong> Paga +25% nas capturas, rejeita suborno (perde $ 500 + Nível 5) e faz os rastros apagados comuns ficarem visíveis no disco por <strong>10 minutos reais</strong> (o dobro do normal).</li>
             </ol>
           </details>
         </div>
@@ -1258,38 +1258,38 @@
         <div class="nds-card ${tel.throttling ? 'crimson' : 'emerald'}" style="margin-top:14px;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
             <div>
-              <span class="hc-badge ${badgeCls}">🌡️ TERMODINÂMICA DA CPU: ${tel.tempC}°C (${tel.throttling ? 'THROTTLING -20%' : 'IDEAL'})</span>
-              <strong style="margin-left:8px;">${esc(tel.cooler.name)} ${tel.pasteFresh ? '+ Pasta Prata Ativa' : '(Pasta Seca)'}</strong>
+              <span class="hc-badge ${badgeCls}">🌡️ TEMPERATURA DO PC: ${tel.tempC}°C (${tel.throttling ? 'MUITO QUENTE · -20% LENTO' : 'NORMAL'})</span>
+              <strong style="margin-left:8px;">${esc(tel.cooler.name)} ${tel.pasteFresh ? '+ Pasta Prata Nova' : '(Pasta Seca)'}</strong>
             </div>
             <button type="button" id="btnToggleColdOverclock" class="hc-btn ${tel.coldOverclockOn ? 'primary' : 'ghost'} sm" onclick="window.nineSystemsEngine.toggleColdOverclock()">
-              ❄️ ${tel.coldOverclockOn ? 'Overclock Frio ON (+22% CPU)' : 'Ativar Overclock Frio (+22%)'}
+              ❄️ ${tel.coldOverclockOn ? 'Turbo Frio LIGADO (+22% Vel.)' : 'Ligar Turbo Frio (+22% Vel.)'}
             </button>
           </div>
           <div class="nds-pros-cons">
-            <div class="nds-pc-box pro"><strong>✅ Lado Bom:</strong> Com Watercooler 360mm você ganha <strong>+22% velocidade real de CPU/Cracker</strong> sem subir 1 centavo na conta de Energia das 12:00!</div>
-            <div class="nds-pc-box con"><strong>⚠️ Lado Negativo:</strong> Empilhar 4+ tarefas sem refrigeração passa de 80°C aplicando <strong>-20% lentidão (Thermal Throttling)</strong>, e a pasta térmica resseca após 7h!</div>
+            <div class="nds-pc-box pro"><strong>✅ Lado Bom:</strong> Com o Watercooler 360mm você liga o <strong>Turbo Frio (+22% velocidade)</strong> sem aumentar sua conta de Luz das 12h!</div>
+            <div class="nds-pc-box con"><strong>⚠️ Lado Negativo:</strong> Rodar 4+ tarefas juntas sem cooler passa de 80°C e deixa seu PC <strong>-20% mais lento</strong> até esfriar, e a pasta seca após 7h!</div>
           </div>
           <div class="nds-grid-3">
             <div class="nds-row">
-              <div><strong>Pasta Térmica Prata</strong><div style="font-size:11px;color:var(--hc-text-2);">-9°C por 7h reais</div></div>
-              <button type="button" id="btnBuyPasteSilver" class="hc-btn sm" onclick="window.nineSystemsEngine.buyCoolingUpgrade('paste_silver')">$ 250</button>
+              <div><strong>Pasta Térmica Prata</strong><div style="font-size:11px;color:var(--hc-text-2);">Esfria -9°C por 7h reais</div></div>
+              <button type="button" id="btnBuyPasteSilver" class="hc-btn sm" onclick="window.nineSystemsEngine.buyCoolingUpgrade('paste_silver')">Comprar ($ 250)</button>
             </div>
             <div class="nds-row">
-              <div><strong>Air Cooler Duplo</strong><div style="font-size:11px;color:var(--hc-text-2);">-16°C (+12W fonte)</div></div>
-              <button type="button" id="btnBuyAirDual" class="hc-btn sm" onclick="window.nineSystemsEngine.buyCoolingUpgrade('air_dual')">$ 850</button>
+              <div><strong>Air Cooler Duplo</strong><div style="font-size:11px;color:var(--hc-text-2);">Esfria -16°C (+12W luz)</div></div>
+              <button type="button" id="btnBuyAirDual" class="hc-btn sm" onclick="window.nineSystemsEngine.buyCoolingUpgrade('air_dual')">Comprar ($ 850)</button>
             </div>
             <div class="nds-row" style="border-color:rgba(53,184,119,0.5);">
-              <div><strong style="color:#6ee7b7;">Watercooler 360mm</strong><div style="font-size:11px;color:var(--hc-text-2);">-28°C · Libera +22% Frio!</div></div>
-              <button type="button" id="btnBuyWater360" class="hc-btn primary sm" onclick="window.nineSystemsEngine.buyCoolingUpgrade('water_360')">$ 2.400</button>
+              <div><strong style="color:#6ee7b7;">Watercooler 360mm</strong><div style="font-size:11px;color:var(--hc-text-2);">Esfria -28°C · Libera +22% Vel.!</div></div>
+              <button type="button" id="btnBuyWater360" class="hc-btn primary sm" onclick="window.nineSystemsEngine.buyCoolingUpgrade('water_360')">Comprar ($ 2.400)</button>
             </div>
           </div>
           <details class="nds-rules-drawer">
-            <summary>📖 Regras de Funcionamento da Termodinâmica Física (°C, Pasta &amp; Coolers)</summary>
+            <summary>📖 Como funciona a Temperatura do PC, Pasta e Coolers</summary>
             <ol class="nds-rules-list">
-              <li><strong>Fórmula em Tempo Real:</strong> <code>38°C base + (12°C × processos ativos) + (3°C × vírus ativos, máx +9°C) + calor temporário EMP/Shred (+12°C) − redução do Cooler − redução da Pasta</code> (limitado entre 31°C e 98°C).</li>
-              <li><strong>Peças &amp; Duração (100% Dinheiro Limpo):</strong> Pasta Prata ($ 250) reduz <strong>-9°C por exatas 7 horas reais</strong> e depois seca; Air Cooler Duplo ($ 850) reduz <strong>-16°C</strong> fixos, mas adiciona <strong>+12 Watts</strong> na conta de Luz das 12:00; Watercooler 360mm ($ 2.400) reduz <strong>-28°C</strong> fixos com <strong>+0 Watts</strong> extras.</li>
-              <li><strong>Overclock Frio (+22%):</strong> Exclusivo para quem tem Watercooler 360mm instalado — acelera CPU/Cracker em <strong>1.22x</strong> sem cobrar +$ 0 de luz extra.</li>
-              <li><strong>Thermal Throttling (&ge; 80°C):</strong> Se bater 80°C ou mais, a CPU reduz automaticamente a velocidade para <strong>0.80x (-20%)</strong> até esfriar. Superaquecer <strong>jamais quebra ou apaga suas peças</strong>.</li>
+              <li><strong>O que esquenta o PC:</strong> Começa em 38°C e sobe +12°C para cada tarefa rodando ao mesmo tempo (mais +3°C por vírus ativo). Melhorar o Esconderijo (Studio -5°C / Bunker -12°C) e instalar coolers esfriam o PC.</li>
+              <li><strong>Peças de Resfriamento (Dinheiro Limpo):</strong> Pasta Prata ($ 250) esfria <strong>-9°C por 7 horas reais</strong>; Air Cooler ($ 850) esfria <strong>-16°C</strong> fixos (+12W de consumo); Watercooler 360mm ($ 2.400) esfria <strong>-28°C</strong> sem gastar energia extra.</li>
+              <li><strong>Turbo Frio (+22%):</strong> Liberado quando você instala o Watercooler 360mm — deixa seu PC <strong>+22% mais rápido</strong> sem subir a conta de luz.</li>
+              <li><strong>Passou de 80°C:</strong> O PC fica <strong>-20% mais lento</strong> para se proteger até a temperatura baixar (o calor nunca queima nem apaga suas peças!).</li>
             </ol>
           </details>
         </div>
@@ -1680,14 +1680,14 @@
               <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
                 <span class="hc-badge ${p.badgeCls}">${esc(p.badge)}</span>
                 <strong style="font-size:13px;">${esc(p.title)}</strong>
-                ${verified ? `<span class="hc-badge ${p.isFbiHoneyTrap ? 'danger' : 'success'}">${p.isFbiHoneyTrap ? '⚠️ ISCA SAFENET!' : '✓ PGP AUTÊNTICO'}</span>` : ''}
+                ${verified ? `<span class="hc-badge ${p.isFbiHoneyTrap ? 'danger' : 'success'}">${p.isFbiHoneyTrap ? '⚠️ ARMADILHA POLICIAL!' : '✓ VAZAMENTO VERDADEIRO'}</span>` : ''}
               </div>
               <div style="font-size:12px;color:var(--hc-text-2);margin-top:4px;">${esc(p.body)}</div>
             </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              ${!verified ? `<button type="button" id="btnVerifyPgp_${p.id}" class="hc-btn ghost sm" onclick="window.nineSystemsEngine.verifyZeroBinPgp('${p.id}')">🔍 Verificar PGP</button>` : ''}
-              ${p.kind === 'cred' && !claimed ? `<button type="button" id="btnExploitLeak_${p.id}" class="hc-btn primary sm" onclick="window.nineSystemsEngine.exploitZeroBinPaste('${p.id}')">Usar Vazamento ↗</button>` : ''}
-              ${claimed ? `<span class="hc-badge">Processado</span>` : ''}
+              ${!verified ? `<button type="button" id="btnVerifyPgp_${p.id}" class="hc-btn ghost sm" onclick="window.nineSystemsEngine.verifyZeroBinPgp('${p.id}')">🔍 Checar se é Verdadeiro</button>` : ''}
+              ${p.kind === 'cred' && !claimed ? `<button type="button" id="btnExploitLeak_${p.id}" class="hc-btn primary sm" onclick="window.nineSystemsEngine.exploitZeroBinPaste('${p.id}')">Pegar Senha Vazada ↗</button>` : ''}
+              ${claimed ? `<span class="hc-badge">Já Usado</span>` : ''}
             </div>
           </div>
         `;
@@ -1698,20 +1698,20 @@
           <div class="nds-card emerald">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
               <div>
-                <span class="hc-badge success">hc://vazamentos · ZeroBin Underground (185.220.101.77)</span>
+                <span class="hc-badge success">hc://vazamentos · Mural Anônimo de Senhas (185.220.101.77)</span>
                 <div style="font-size:12px;color:var(--hc-text-2);margin-top:3px;">
-                  Renova a cada <strong>1 hora real (1 dia no jogo)</strong>! <strong>⚠️ Cuidado (Lado Negativo):</strong> agentes da Safenet plantam 1 Isca Falsa por hora — sempre clique em <em>Verificar PGP</em> antes de explorar!
+                  Troca a cada <strong>1 hora real</strong>! <strong>⚠️ Cuidado:</strong> a polícia coloca 1 armadilha falsa por hora — sempre clique em <em>Checar se é Verdadeiro</em> antes de pegar a senha!
                 </div>
               </div>
             </div>
             ${rows}
             <details class="nds-rules-drawer">
-              <summary>📖 Regras de Funcionamento do Portal hc://vazamentos (185.220.101.77)</summary>
+              <summary>📖 Como funciona o Mural de Vazamentos (185.220.101.77)</summary>
               <ol class="nds-rules-list">
-                <li><strong>Rotação de 1 Hora Real:</strong> A cada 1 hora da vida real entram exatamente <strong>4 itens</strong>: 1 Credencial Corporativa verdadeira, 1 Isca Falsa da Safenet (<em>Honey-Paste</em>), 1 Rumor da Bolsa CyberStock (TIX) e 1 Dica de Sinergia do Laboratório. Cada credencial só pode ser resgatada 1 vez por hora.</li>
-                <li><strong>Verificação PGP (Grátis) vs. Emboscada:</strong> Clicar em <strong>🔍 Verificar PGP</strong> testa a assinatura digital. Se for verdadeira, libera o uso seguro (+$ 420 Sujos + senha root salva em Senhas Descobertas). Se revelar a Isca da Safenet, você ganha <strong>+25 REP e +25 pts na Temporada</strong>!</li>
-                <li><strong>Punição por Pular o PGP:</strong> Se você clicar direto em <em>Usar Vazamento</em> na Isca Falsa sem ter verificado o PGP antes, cai na armadilha federal e recebe <strong>+2 Níveis de Heat Policial na hora</strong>!</li>
-                <li><strong>Mural Anônimo ($ 200 Limpos):</strong> Publicar nota custa $ 200 Limpos (+15 REP) e censura automaticamente qualquer IP digitado (<code>[IP-REDACTED]</code>) para proibir doxxing.</li>
+                <li><strong>Troca a Cada 1 Hora:</strong> Entram <strong>4 publicações</strong> por hora: 1 Senha Real de Empresa, 1 Armadilha da Polícia, 1 Dica da Bolsa e 1 Dica do Laboratório.</li>
+                <li><strong>Checar Antes (Grátis):</strong> Clique em <strong>🔍 Checar se é Verdadeiro</strong> antes de usar! Se for verdadeiro, você pega a senha root e ganha +$ 420 Sujos sem risco. Se descobrir a armadilha da polícia, ganha <strong>+25 REP e +25 pts no mês</strong>!</li>
+                <li><strong>O Que Acontece se Pular a Checagem:</strong> Clicar direto em <em>Pegar Senha Vazada</em> numa armadilha falsa sobe <strong>+2 Níveis de Procura na hora</strong>!</li>
+                <li><strong>Publicar Dica ($ 200 Limpos):</strong> Custam $ 200 Limpos (+15 REP) e qualquer IP digitado é ocultado automaticamente para evitar perseguição.</li>
               </ol>
             </details>
           </div>
@@ -1734,27 +1734,27 @@
         <div class="nds-card emerald">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
             <div>
-              <strong style="font-size:14.5px;">🧬 Mercado Clandestino P2P de Licenças do Laboratório</strong>
-              <div style="font-size:12px;color:var(--hc-text-2);">Alugue cepas por 24h/48h/72h com Dinheiro Limpo ou venda licenças das suas criações (Taxa de queima: 12%–20%).</div>
+              <strong style="font-size:14.5px;">🧬 Alugar ou Vender Vírus do Laboratório (24h a 72h)</strong>
+              <div style="font-size:12px;color:var(--hc-text-2);">Alugue vírus fortes com Dinheiro Limpo ou ganhe dinheiro alugando os vírus que você criou no Lab (taxa: 12% a 20%).</div>
             </div>
             ${firstStrain ? `
               <button type="button" id="btnListMyFirstStrainP2p" class="hc-btn primary sm" onclick="window.nineSystemsEngine.listMyStrainOnP2p('${firstStrain.id}', 48, ${Math.max(500, firstStrain.versionInt * 35)})">
-                + Emitir Licença 48h de "${esc(firstStrain.strainName)}"
+                + Colocar "${esc(firstStrain.strainName)}" p/ Alugar (48h)
               </button>
-            ` : `<button type="button" class="hc-btn ghost sm" onclick="navTo('winVirusLab')">Ir Compilar Cepa no Lab →</button>`}
+            ` : `<button type="button" class="hc-btn ghost sm" onclick="navTo('winVirusLab')">Criar Vírus no Lab →</button>`}
           </div>
 
           <div class="nds-pros-cons">
-            <div class="nds-pc-box pro"><strong>✅ Lado Bom:</strong> Monetiza cepas de famílias que você não usa e permite alugar poder imediato sem quebrar o limite de 1 compilação/dia do Lab.</div>
-            <div class="nds-pc-box con"><strong>⚠️ Lado Negativo (DRM):</strong> Licença comprada consome <strong>+20% mais RAM</strong> no servidor alvo, <strong>não pode ser revendida</strong> e cada cepa só emite no máx. <strong>2 licenças</strong>!</div>
+            <div class="nds-pc-box pro"><strong>✅ Lado Bom:</strong> Ganhe dinheiro Limpo com vírus que você criou e não está usando, ou alugue um vírus forte na hora sem esperar 24h do Lab.</div>
+            <div class="nds-pc-box con"><strong>⚠️ Limites do Aluguel:</strong> Vírus alugado usa <strong>+20% de Memória RAM</strong> no servidor invadido, <strong>não pode ser revendido</strong> e cada vírus criado só pode ser alugado <strong>2 vezes</strong>!</div>
           </div>
           <details class="nds-rules-drawer">
-            <summary>📖 Regras de Funcionamento do Mercado Clandestino P2P (Licenças do Lab)</summary>
+            <summary>📖 Como funciona o Aluguel de Vírus entre Jogadores</summary>
             <ol class="nds-rules-list">
-              <li><strong>Quem Pode Vender:</strong> Apenas cepas originais compiladas por você no Laboratório ($ 1.000 · 1x/24h reais). Cada cepa compilada tem limite vitalício estrito de <strong>no máximo 2 licenças emitidas</strong> (depois trava em 2/2).</li>
-              <li><strong>Durações &amp; Taxa de Queima:</strong> Licenças de <strong>24h reais</strong> queimam <strong>12%</strong> de taxa; <strong>48h reais</strong> queimam <strong>15%</strong>; <strong>72h reais</strong> queimam <strong>20%</strong>. Todas as compras exigem <strong>100% Dinheiro Limpo</strong>.</li>
-              <li><strong>Piso &amp; Teto de Preço (Anti-Transferência Ilegal):</strong> Preço mínimo obrigatório de <code>max($ 400, versãoInt × $ 25)</code> e máximo de <code>max($ 2.500, versãoInt × $ 250)</code>. 4 ofertas rotativas de Bots entram a cada 1h real garantindo liquidez inicial.</li>
-              <li><strong>Regras do DRM p/ o Comprador:</strong> O vírus alugado exige <strong>+20% mais Memória RAM no servidor da vítima</strong>, não pode ser revendido nem copiado pro HD Externo, e desativa sozinho quando o cronômetro real expira.</li>
+              <li><strong>Quem Pode Anunciar:</strong> Qualquer vírus criado por você no Laboratório. Cada criação pode ser alugada no máximo <strong>2 vezes</strong>.</li>
+              <li><strong>Tempo &amp; Taxa:</strong> Aluguel de <strong>24h reais</strong> desconta <strong>12%</strong>; <strong>48h</strong> desconta <strong>15%</strong>; <strong>72h</strong> desconta <strong>20%</strong>. Pago sempre com <strong>Dinheiro Limpo</strong>.</li>
+              <li><strong>Preço Justo:</strong> O jogo define um valor mínimo e máximo conforme a força do vírus para evitar repasse ilegal de dinheiro entre contas.</li>
+              <li><strong>Para Quem Aluga:</strong> O vírus alugado ocupa <strong>+20% de RAM</strong> no alvo, não vai para o HD Externo e desliga sozinho quando o tempo acaba.</li>
             </ol>
           </details>
 
@@ -1762,14 +1762,14 @@
             <div class="nds-row">
               <div>
                 <strong class="mono" style="color:#6ee7b7;">${esc(o.strainName)}.${esc(o.family)} (v${(o.versionInt / 10).toFixed(1)})</strong>
-                <span class="hc-badge success" style="margin-left:6px;">Nota ${esc(o.fitGrade)} · ${o.durationHours}h DRM</span>
-                <div style="font-size:11.5px;color:var(--hc-text-2);margin-top:2px;">Criador: <strong>${esc(o.sellerTag)}</strong> · Taxa rede: ${o.burnTaxPct}%</div>
+                <span class="hc-badge success" style="margin-left:6px;">Nota ${esc(o.fitGrade)} · Vale por ${o.durationHours}h</span>
+                <div style="font-size:11.5px;color:var(--hc-text-2);margin-top:2px;">Criador: <strong>${esc(o.sellerTag)}</strong> · Taxa: ${o.burnTaxPct}%</div>
               </div>
               <div style="display:flex;align-items:center;gap:10px;">
                 <strong class="mono">${fmtMoney(o.priceClean)} Limpos</strong>
                 ${o.isMine
                   ? `<span class="hc-badge info">Seu Anúncio</span>`
-                  : `<button type="button" id="btnBuyP2p_${o.offerId}" class="hc-btn primary sm" onclick="window.nineSystemsEngine.buyP2pLicense('${o.offerId}')">Comprar Licença</button>`}
+                  : `<button type="button" id="btnBuyP2p_${o.offerId}" class="hc-btn primary sm" onclick="window.nineSystemsEngine.buyP2pLicense('${o.offerId}')">Alugar Vírus</button>`}
               </div>
             </div>
           `).join('')}
@@ -2040,24 +2040,48 @@
         return;
       }
       const remMs = Math.max(0, a.expiresAt - Date.now());
-      const pct = Math.round((remMs / 15000) * 100);
+      const maxMs = Math.max(1000, Number(a.windowSeconds || 15) * 1000);
+      const pct = Math.min(100, Math.round((remMs / maxMs) * 100));
       const sacVps = (window.lanServersEngine && typeof window.lanServersEngine.getSacrificeableVps === 'function')
         ? window.lanServersEngine.getSacrificeableVps()
         : null;
       pop.classList.add('open');
       pop.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <strong style="color:#fca5a5;font-size:13px;">🚨 INTRUSÃO AO VIVO NA PORTA 22!</strong>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+          <strong style="color:#fca5a5;font-size:13.5px;">🚨 ALGUÉM ESTÁ INVADINDO SEU PC!</strong>
           <span class="mono hc-badge danger">${(remMs / 1000).toFixed(1)}s</span>
         </div>
         <div style="font-size:12px;color:#e2e8f0;">
-          Atacante: <code class="mono">${esc(a.attackerIp)}</code> (${esc(a.alias)}) · Escolha sua contra-medida:
+          Invasor: <code class="mono">${esc(a.attackerIp)}</code> (${esc(a.alias)}) · Escolha rápido o que fazer:
         </div>
         <div class="hc-def-bar-track"><div class="hc-def-bar-fill" style="width:${pct}%;"></div></div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
-          <button type="button" id="btnDefCutCable" class="hc-btn sm" style="border-color:#e5534b;color:#fca5a5;" title="Grátis, mas pausa sua rede 15s" onclick="window.nineSystemsEngine.respondActiveDefense('cut_cable')">✂️ Cortar</button>
-          <button type="button" id="btnDefHoneypot" class="hc-btn ${sacVps ? 'primary' : 'ghost'} sm" ${!sacVps ? 'style="opacity:0.55;border-color:#4b5563;"' : 'style="background:#d97706;border-color:#f59e0b;color:#090d12;"'} title="${sacVps ? `ATENÇÃO: Salva seu PC e captura o IP do invasor, MAS DESTRÓI PERMANENTEMENTE sua ${sacVps.label} (sem reformatação — terá que comprar e montar outra!)` : 'Bloqueado: compre uma VPS ($ 2.500+) para poder sacrificar em desvios'}" onclick="window.nineSystemsEngine.respondActiveDefense('honeypot')">${sacVps ? '🔥 Desviar (Perde VPS!)' : '🔒 Sem VPS'}</button>
-          <button type="button" id="btnDefEmp" class="hc-btn ghost sm" title="Frita invasor, mas sobe +12°C na sua CPU" onclick="window.nineSystemsEngine.respondActiveDefense('emp_pulse')">⚡ Pulso EMP</button>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <button type="button" id="btnDefCutCable" class="hc-choice-row danger-opt" style="padding:8px 11px;"
+            onclick="window.nineSystemsEngine.respondActiveDefense('cut_cable')">
+            <span class="hc-choice-main">
+              <span class="hc-choice-title" style="color:#fca5a5;">✂️ 1. Cortar Cabo de Rede (Grátis)</span>
+              <span class="hc-choice-desc">Expulsa o invasor na hora, mas pausa sua internet por 15s.</span>
+            </span>
+            <span class="hc-choice-cta" style="color:#fca5a5;">Cortar</span>
+          </button>
+
+          <button type="button" id="btnDefHoneypot" class="hc-choice-row warn-opt" style="padding:8px 11px;${!sacVps ? 'opacity:0.6;' : ''}"
+            onclick="window.nineSystemsEngine.respondActiveDefense('honeypot')">
+            <span class="hc-choice-main">
+              <span class="hc-choice-title" style="color:#fde68a;">${sacVps ? `🔥 2. Jogar Ataque p/ ${esc(sacVps.label)} (Perde a VPS!)` : '🔒 2. Jogar Ataque p/ VPS (Compre 1 VPS antes)'}</span>
+              <span class="hc-choice-desc">${sacVps ? 'Salva seu PC e descobre o IP dele, MAS destrói essa VPS de vez!' : 'Exige ter uma VPS ($ 2.500+) para sacrificar no desvio.'}</span>
+            </span>
+            <span class="hc-choice-cta" style="color:#fde68a;">${sacVps ? 'Desviar' : 'Sem VPS'}</span>
+          </button>
+
+          <button type="button" id="btnDefEmp" class="hc-choice-row info-opt" style="padding:8px 11px;"
+            onclick="window.nineSystemsEngine.respondActiveDefense('emp_pulse')">
+            <span class="hc-choice-main">
+              <span class="hc-choice-title" style="color:#7dd3fc;">⚡ 3. Dar Choque Reverso (+12°C no PC)</span>
+              <span class="hc-choice-desc">Derruba a conexão dele na hora, mas esquenta seu PC por 1 min.</span>
+            </span>
+            <span class="hc-choice-cta" style="color:#7dd3fc;">Choque</span>
+          </button>
         </div>
       `;
     }
@@ -2084,17 +2108,17 @@
       jail.classList.add('active');
       jail.innerHTML = `
         <div class="hc-jail-card">
-          <span class="hc-badge danger" style="align-self:flex-start;">🚔 MANDADO DE PRISÃO FEDERAL EXECUTADO</span>
-          <h2 style="font-size:20px;color:#fff;">Você Foi Preso por Gastar Dinheiro Sujo!</h2>
-          <p style="font-size:13px;color:#e2e8f0;">${esc(js.reason)}</p>
+          <span class="hc-badge danger" style="align-self:flex-start;">🚔 PRESO PELA POLÍCIA FEDERAL</span>
+          <h2 style="font-size:20px;color:#fff;margin:0;">Você Foi Preso por Gastar Dinheiro Sujo!</h2>
+          <p style="font-size:13px;color:#e2e8f0;margin:0;">${esc(js.reason)}</p>
           <div style="padding:10px 12px;background:#1f1418;border:1px solid #4a232b;border-radius:8px;font-size:12.5px;color:#fca5a5;">
-            • Dinheiro Sujo confiscado na batida: <strong>${fmtMoney(js.confiscatedUsd)}</strong><br>
-            • Penalidade na Temporada Mensal: <strong>-15% pts</strong> (Conta Vitalícia 100% preservada!)<br>
-            • Liberação automática em: <strong class="mono">${remS}s</strong>
+            • Dinheiro Sujo tomado pela polícia: <strong>${fmtMoney(js.confiscatedUsd)}</strong><br>
+            • Perda nos pontos do mês: <strong>-15%</strong> (sua conta e peças continuam 100% salvas!)<br>
+            • Solto automaticamente em: <strong class="mono">${remS}s</strong>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
             <button type="button" id="btnPayCleanBail" class="hc-btn primary" onclick="window.nineSystemsEngine.payCleanBail()">
-              💵 Pagar Fiança Imediata (${fmtMoney(del.bailCostClean)} Limpos)
+              💵 Pagar Fiança e Sair Agora (${fmtMoney(del.bailCostClean)} Limpos)
             </button>
           </div>
         </div>
