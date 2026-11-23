@@ -781,16 +781,24 @@
       });
 
       const cleanName = String(customNameRaw || (this.state.myCompany && this.state.myCompany.name) || `${(window.currentProfile && window.currentProfile.hacker_tag) || 'HC'} Holdings S.A.`).trim().slice(0, 42);
+      const actor = window.mmoGlobalMarket ? window.mmoGlobalMarket.getActorIdentity() : { id: this.userId || 'me', tag: (window.currentProfile && window.currentProfile.hacker_tag) || 'Operador' };
       this.state.myCompany = {
-        id: 'plr_co_' + (this.userId || 'me'),
+        id: 'plr_co_' + actor.id,
+        ownerId: actor.id,
         name: cleanName,
-        ownerTag: (window.currentProfile && window.currentProfile.hacker_tag) || 'Operador',
+        ownerTag: actor.tag,
         isPlayerOwned: true,
         tier: targetTier,
         feePct: this.state.myCompany ? Math.max(MIN_LAUNDERING_FEE_PCT, this.state.myCompany.feePct) : 19,
         totalLaundered: this.state.myCompany ? this.state.myCompany.totalLaundered : 0,
         ownerProfits: this.state.myCompany ? this.state.myCompany.ownerProfits : 0
       };
+      if (window.mmoGlobalMarket) {
+        window.mmoGlobalMarket.upsertGlobalCompany({
+          ...this.state.myCompany,
+          capacityPerHour: tDef.maxBatchUsd
+        });
+      }
 
       this.awardSeasonPoints(targetTier * 85, 'company_upgrade');
       this.save();
@@ -815,6 +823,13 @@
       this.state.adQueue.forEach((ad) => {
         if (ad.isMine) ad.feePct = this.state.myCompany.feePct;
       });
+      if (window.mmoGlobalMarket) {
+        const tDef = LAUNDERING_TIERS[this.state.myCompany.tier] || LAUNDERING_TIERS[1];
+        window.mmoGlobalMarket.upsertGlobalCompany({
+          ...this.state.myCompany,
+          capacityPerHour: tDef.maxBatchUsd
+        });
+      }
       this.save();
       if (typeof window.showToast === 'function') {
         window.showToast(`💼 Taxa da sua empresa ajustada para ${this.state.myCompany.feePct}%!`);
@@ -857,14 +872,27 @@
         return { success: false, code: 'INSUFFICIENT_CLEAN_AD_FEE', message: msg };
       }
 
-      // Acha a primeira das 3 horas (curBucket, curBucket+1, curBucket+2) que tenha < 5 anúncios!
+      // Publica na Fila Global Real de 15 vagas (3 horas x 5 vagas compartilhadas entre todos os jogadores!)
       const curBucket = this.currentHourBucket();
       let targetBucket = curBucket;
-      for (let h = 0; h < 3; h++) {
-        const countInHour = q.filter((a) => a.hourBucket === curBucket + h).length;
-        if (countInHour < 5) {
-          targetBucket = curBucket + h;
-          break;
+      if (window.mmoGlobalMarket) {
+        const tDef = LAUNDERING_TIERS[this.state.myCompany.tier] || LAUNDERING_TIERS[1];
+        const globalAd = window.mmoGlobalMarket.publishGlobalAdSlot({
+          ...this.state.myCompany,
+          capacityPerHour: tDef.maxBatchUsd
+        });
+        if (!globalAd.ok) {
+          if (typeof window.showToast === 'function') window.showToast(globalAd.message);
+          return { success: false, code: globalAd.code, message: globalAd.message };
+        }
+        targetBucket = globalAd.hourBucket;
+      } else {
+        for (let h = 0; h < 3; h++) {
+          const countInHour = q.filter((a) => a.hourBucket === curBucket + h).length;
+          if (countInHour < 5) {
+            targetBucket = curBucket + h;
+            break;
+          }
         }
       }
 
@@ -904,28 +932,54 @@
 
       this.save();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
-      const msg = `📢 Anúncio publicado na Vaga #${slotNumber}/15 (-${fmtMoney(AD_SLOT_FEE_CLEAN)} Limpos)!${simulatedClientsNote}`;
+      const msg = `📢 Anúncio publicado na Vitrine Global MMO (Vaga #${slotNumber}/15 · -${fmtMoney(AD_SLOT_FEE_CLEAN)} Limpos)!${simulatedClientsNote}`;
       if (typeof window.showToast === 'function') window.showToast(msg);
       this.renderLaunderingHub();
       return { success: true, slotNumber, hourBucket: targetBucket, message: msg };
     }
 
-    // Retorna SEMPRE 5 empresas diferentes na hora atual (Anúncios da hora atual + Bots rotativos completando!)
+    // Retorna SEMPRE 5 empresas diferentes na hora atual (Anúncios Globais de Jogadores Reais + Bots completando!)
     getCurrentHourFiveCompanies() {
       const q = this.getNormalizedAdQueue();
       const curBucket = this.currentHourBucket();
-      const activeAds = q.filter((a) => a.hourBucket === curBucket).slice(0, 5);
+      const list = [];
 
-      const list = activeAds.map((a) => ({
-        id: a.companyId,
-        name: a.name,
-        ownerTag: a.ownerTag,
-        isBot: false,
-        isMine: !!a.isMine,
-        tier: a.tier,
-        maxBatchUsd: LAUNDERING_TIERS[a.tier].maxBatchUsd,
-        feePct: a.feePct
-      }));
+      if (window.mmoGlobalMarket) {
+        const globalAds = window.mmoGlobalMarket.getGlobalHourAds(curBucket);
+        globalAds.forEach((ga) => {
+          if (list.length < 5 && !list.some((x) => x.id === ga.id)) {
+            const tierDef = LAUNDERING_TIERS[ga.tier] || LAUNDERING_TIERS[1];
+            list.push({
+              id: ga.id,
+              name: ga.name,
+              ownerId: ga.ownerId,
+              ownerTag: ga.ownerTag,
+              isBot: false,
+              isMine: !!ga.isMine,
+              isGlobalPlayer: !!ga.isGlobalPlayer,
+              tier: ga.tier,
+              maxBatchUsd: tierDef.maxBatchUsd,
+              feePct: ga.feePct
+            });
+          }
+        });
+      }
+
+      const activeAds = q.filter((a) => a.hourBucket === curBucket).slice(0, 5);
+      activeAds.forEach((a) => {
+        if (list.length < 5 && !list.some((x) => x.id === a.companyId)) {
+          list.push({
+            id: a.companyId,
+            name: a.name,
+            ownerTag: a.ownerTag,
+            isBot: false,
+            isMine: !!a.isMine,
+            tier: a.tier,
+            maxBatchUsd: LAUNDERING_TIERS[a.tier].maxBatchUsd,
+            feePct: a.feePct
+          });
+        }
+      });
 
       const offset = (curBucket * 5) % SEEDED_BOT_COMPANIES.length;
       let idx = 0;
@@ -974,6 +1028,17 @@
         effectiveFeePct = targetCo.isMine ? LAUNDERING_TIERS[targetCo.tier].selfTaxPct : Math.max(MIN_LAUNDERING_FEE_PCT, Number(targetCo.feePct));
       }
 
+      // Trava Anti-Conta-Fake: máx. 3 lavagens por dia entre a mesma dupla de jogadores!
+      if (!targetCo.isBot && !targetCo.isMine && targetCo.ownerId && window.mmoGlobalMarket) {
+        const me = window.mmoGlobalMarket.getActorIdentity();
+        const pairCheck = window.mmoGlobalMarket.canUsePairDailyLimit(me.id, targetCo.ownerId, 'launder_batch', 3);
+        if (!pairCheck.ok) {
+          const msg = `🛑 Trava Anti-Abuso: você já lavou 3 lotes hoje na empresa de @${targetCo.ownerTag}! Escolha outra empresa da vitrine.`;
+          if (typeof window.showToast === 'function') window.showToast(msg);
+          return { success: false, code: 'MAX_3_PAIR_WASHES_PER_DAY', message: msg };
+        }
+      }
+
       // Verifica se já há lote em lavagem nesta mesma empresa por este jogador (limite por vez!)
       const activeInSame = this.state.washingJobs.find((j) => !j.claimed && j.companyId === targetCo.id && j.completesAt > Date.now());
       if (activeInSame) {
@@ -1011,6 +1076,19 @@
         claimed: false
       };
       this.state.washingJobs.unshift(job);
+
+      // Envia comissão em Dinheiro Limpo direto para a Caixa de Recebimentos (Inbox) do dono real!
+      if (!targetCo.isBot && !targetCo.isMine && targetCo.ownerId && window.mmoGlobalMarket) {
+        window.mmoGlobalMarket.recordGlobalWashInPlayerCompany({
+          companyId: targetCo.id,
+          ownerId: targetCo.ownerId,
+          ownerTag: targetCo.ownerTag,
+          grossDirty,
+          ownerCutClean: ownerCut,
+          companyName: targetCo.name
+        });
+      }
+
       this.save();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       const msg = `🧼 Remessa de ${fmtMoney(grossDirty)} enviada para "${targetCo.name}" (Taxa ${effectiveFeePct}%)! Ficará limpa (${fmtMoney(netClean)}) em 15 minutos da vida real.`;
