@@ -110,8 +110,10 @@
     readShared() {
       try {
         const raw = localStorage.getItem(SHARED_STORAGE_KEY);
-        if (!raw) return createEmptySharedLedger();
-        const parsed = JSON.parse(raw);
+        let parsed = raw ? JSON.parse(raw) : null;
+        if (this._memLedger && (!parsed || Number(this._memLedger.updatedAt || 0) > Number(parsed.updatedAt || 0))) {
+          parsed = JSON.parse(JSON.stringify(this._memLedger));
+        }
         if (!parsed || typeof parsed !== 'object') return createEmptySharedLedger();
         if (!parsed.txIds) parsed.txIds = {};
         if (!parsed.pairDailyLimits) parsed.pairDailyLimits = {};
@@ -136,6 +138,33 @@
 
     writeShared(ledger, eventType, payload) {
       try {
+        // Mescla atômica contra condição de corrida entre abas: preserva itens já marcados claimed=true e novos itens de outras abas!
+        const rawLatest = localStorage.getItem(SHARED_STORAGE_KEY);
+        if (rawLatest) {
+          try {
+            const latest = JSON.parse(rawLatest);
+            if (latest && Array.isArray(latest.walletInbox) && Array.isArray(ledger.walletInbox)) {
+              const latestById = new Map();
+              latest.walletInbox.forEach((it) => { if (it && it.id) latestById.set(it.id, it); });
+              const curIds = new Set();
+              ledger.walletInbox.forEach((it) => {
+                if (!it || !it.id) return;
+                curIds.add(it.id);
+                const prev = latestById.get(it.id);
+                if (prev && prev.claimed) {
+                  it.claimed = true;
+                  it.claimedAt = prev.claimedAt || it.claimedAt;
+                }
+              });
+              latest.walletInbox.forEach((it) => {
+                if (it && it.id && !curIds.has(it.id)) {
+                  ledger.walletInbox.push(it);
+                }
+              });
+            }
+          } catch (e2) {}
+        }
+
         ledger.updatedAt = Date.now();
         // Compacta histórico de transações antigas (> 400 chaves)
         const txKeys = Object.keys(ledger.txIds || {});
@@ -148,17 +177,21 @@
           const claimedRecent = ledger.walletInbox.filter((i) => i.claimed).slice(-80);
           ledger.walletInbox = unclaimed.concat(claimedRecent);
         }
+        this._memLedger = JSON.parse(JSON.stringify(ledger));
         localStorage.setItem(SHARED_STORAGE_KEY, JSON.stringify(ledger));
       } catch (e) {}
-      if (eventType) {
-        this.broadcastEvent(eventType, payload || {});
-      }
+      this.broadcastEvent(eventType || 'ledger_sync', payload || {}, ledger);
     }
 
-    broadcastEvent(type, payload) {
+    broadcastEvent(type, payload, ledgerSnapshot) {
       if (this.bus) {
         try {
-          this.bus.postMessage({ type, payload, ts: Date.now() });
+          this.bus.postMessage({
+            type,
+            payload,
+            ledger: ledgerSnapshot || null,
+            ts: Date.now()
+          });
         } catch (e) {}
       }
     }
@@ -168,7 +201,16 @@
         try {
           this.bus = new BroadcastChannel(CHANNEL_NAME);
           this.bus.onmessage = (ev) => {
-            this.handleExternalMarketSync(ev && ev.data ? ev.data : null);
+            const data = ev && ev.data ? ev.data : null;
+            if (data && data.ledger && typeof data.ledger === 'object') {
+              if (!this._memLedger || Number(data.ledger.updatedAt || 0) >= Number(this._memLedger.updatedAt || 0)) {
+                this._memLedger = data.ledger;
+                try {
+                  localStorage.setItem(SHARED_STORAGE_KEY, JSON.stringify(data.ledger));
+                } catch (e) {}
+              }
+            }
+            this.handleExternalMarketSync(data);
           };
         } catch (e) {}
       }
@@ -347,14 +389,41 @@
       return entry;
     }
 
+    getRecipientClaimedSet(recipientKey) {
+      if (!this._claimedByRecipient) this._claimedByRecipient = {};
+      const k = String(recipientKey || 'default');
+      if (!this._claimedByRecipient[k]) {
+        const set = new Set();
+        try {
+          const raw = localStorage.getItem('HC_MMO_CLAIMED_IDS_V1_' + k);
+          if (raw) {
+            const arr = JSON.parse(raw);
+            if (Array.isArray(arr)) arr.forEach((id) => set.add(id));
+          }
+        } catch (e) {}
+        this._claimedByRecipient[k] = set;
+      }
+      return this._claimedByRecipient[k];
+    }
+
+    persistRecipientClaimedSet(recipientKey) {
+      const k = String(recipientKey || 'default');
+      const set = this.getRecipientClaimedSet(k);
+      try {
+        const arr = Array.from(set).slice(-300);
+        localStorage.setItem('HC_MMO_CLAIMED_IDS_V1_' + k, JSON.stringify(arr));
+      } catch (e) {}
+    }
+
     claimMyInboxPayouts() {
       if (!window.currentProfile || !window.currentWallet) {
         return { claimedCount: 0, totalClean: 0, totalDirty: 0, items: [] };
       }
       const me = this.getActorIdentity();
+      const myClaimedSet = this.getRecipientClaimedSet(me.id);
       const ledger = this.readShared();
       const mine = ledger.walletInbox.filter((item) => {
-        if (!item || item.claimed) return false;
+        if (!item || item.claimed || myClaimedSet.has(item.id)) return false;
         if (item.recipientId && item.recipientId === me.id) return true;
         if (item.recipientTag && item.recipientTag.toLowerCase() === me.tag.toLowerCase()) return true;
         return false;
@@ -369,10 +438,12 @@
       mine.forEach((item) => {
         item.claimed = true;
         item.claimedAt = Date.now();
+        myClaimedSet.add(item.id);
         totalClean += Number(item.amountClean || 0);
         totalDirty += Number(item.amountDirty || 0);
         this.recentClaimedHistory.unshift({ ...item });
       });
+      this.persistRecipientClaimedSet(me.id);
       if (this.recentClaimedHistory.length > 20) this.recentClaimedHistory.length = 20;
 
       totalClean = +(totalClean.toFixed(2));
@@ -607,6 +678,32 @@
     getSharedUpdatedAt() {
       const ledger = this.readShared();
       return Number(ledger.updatedAt || 0);
+    }
+
+    tickGlobalStocksIfDue() {
+      const ledger = this.readShared();
+      const now = Date.now();
+      if (ledger.lastStockTickAt && (now - ledger.lastStockTickAt) < 15000) {
+        return false;
+      }
+      ledger.lastStockTickAt = now;
+      DEFAULT_CORPS.forEach((c) => {
+        const st = ledger.stocks[c.symbol];
+        if (!st) return;
+        if (st.circuitBreakerUntil && st.circuitBreakerUntil > now) return;
+        if (st.integrity < 100) st.integrity = Math.min(100, +(st.integrity + 0.8).toFixed(1));
+        if (st.integrity > 100) st.integrity = Math.max(100, +(st.integrity - 0.5).toFixed(1));
+        const targetFairPrice = c.basePrice * (st.integrity / 100);
+        const pull = (targetFairPrice - st.price) * 0.12;
+        const nextPrice = Math.max(+(c.basePrice * 0.30).toFixed(2), Math.min(+(c.basePrice * 2.20).toFixed(2), +(st.price + pull).toFixed(2)));
+        st.momentum = +(nextPrice - st.price).toFixed(2);
+        st.price = nextPrice;
+        if (!Array.isArray(st.history)) st.history = [c.basePrice];
+        st.history.push(nextPrice);
+        if (st.history.length > 14) st.history.shift();
+      });
+      this.writeShared(ledger);
+      return true;
     }
 
     getGlobalStocks() {

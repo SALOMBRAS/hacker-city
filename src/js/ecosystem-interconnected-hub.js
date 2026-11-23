@@ -524,6 +524,12 @@
 
     tickStockMarket() {
       this.ensureLoaded();
+      if (window.mmoGlobalMarket && typeof window.mmoGlobalMarket.tickGlobalStocksIfDue === 'function') {
+        window.mmoGlobalMarket.tickGlobalStocksIfDue();
+        this.syncStocksFromGlobalMarket(false);
+        this.save(true);
+        return;
+      }
       STOCK_CORPS.forEach((c) => {
         const st = this.state.stocks[c.symbol];
         if (!st) return;
@@ -2092,13 +2098,13 @@
             <table class="hc-table">
               <thead>
                 <tr>
-                  <th>Empresa</th>
-                  <th>IP p/ Invadir</th>
-                  <th>Preço Atual</th>
-                  <th>Histórico</th>
-                  <th>Saúde</th>
-                  <th>Sua Aposta</th>
-                  <th style="text-align:right;">Ações Rápidas</th>
+                  <th style="white-space:nowrap;">Empresa</th>
+                  <th style="white-space:nowrap;">IP p/ Invadir</th>
+                  <th style="white-space:nowrap;">Preço Atual</th>
+                  <th style="white-space:nowrap;">Histórico</th>
+                  <th style="white-space:nowrap;">Saúde</th>
+                  <th style="white-space:nowrap;">Sua Aposta</th>
+                  <th style="text-align:right;white-space:nowrap;">Ações Rápidas</th>
                 </tr>
               </thead>
               <tbody>${rows}</tbody>
