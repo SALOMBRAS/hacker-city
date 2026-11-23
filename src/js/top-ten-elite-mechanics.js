@@ -687,6 +687,16 @@
               `}
             </div>
           </div>
+          <div style="margin-top:8px;padding:8px 11px;border-radius:7px;background:#08111a;border:1px solid rgba(56,189,248,0.3);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:11.8px;">
+            <span style="color:var(--hc-text-2);">
+              📈 <strong>Ponte Direta c/ Bolsa CyberStock:</strong> Cotação atual de <strong>${esc(corp.symbol)}</strong> =
+              <strong style="color:#4ade80;">$ ${(window.ecosystemHub && window.ecosystemHub.ensureLoaded().stocks[corp.symbol] ? window.ecosystemHub.state.stocks[corp.symbol].price : 50).toFixed(2)}</strong>
+              (abra posição <strong>Short</strong> antes de vazar p/ transformar a queda de -18% em <strong>Dinheiro Limpo legalizado</strong>!)
+            </span>
+            <button type="button" id="btnBridgeCctvToShort" class="hc-btn ghost sm" onclick="navTo('winOpsHub');window.ecosystemHub.switchTab('stocks');">
+              📉 Abrir Short em ${esc(corp.symbol)} na Bolsa →
+            </button>
+          </div>
           ${this.renderInlineRulesDrawerHtml(
             'top01_cctv',
             'Chantagem Corporativa CFTV vs. Vazamento de Imprensa',
@@ -754,8 +764,8 @@
       const cleanBal = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
       if (cleanBal < target.buyClean) {
         const dirtyBal = window.nineSystemsEngine ? window.nineSystemsEngine.getDirtyBalance() : 0;
-        if (dirtyBal > 0 && window.nineSystemsEngine && typeof window.nineSystemsEngine.penalizeDirtySpendAttempt === 'function') {
-          window.nineSystemsEngine.penalizeDirtySpendAttempt(`Compra de Imóvel (${target.name})`);
+        if (dirtyBal > 0 && window.nineSystemsEngine && typeof window.nineSystemsEngine.openDirtyMoneyBridgeModal === 'function') {
+          window.nineSystemsEngine.openDirtyMoneyBridgeModal(`Imóvel (${target.name})`, target.buyClean);
         }
         const msg = `Saldo Limpo insuficiente! ${target.name} exige ${fmtMoney(target.buyClean)} 100% em DINHEIRO LIMPO (você tem ${fmtMoney(cleanBal)} Limpos).`;
         if (typeof window.showToast === 'function') window.showToast(msg);
@@ -966,6 +976,9 @@
 
       const cleanBal = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
       if (cleanBal < bid) {
+        if (window.nineSystemsEngine && window.nineSystemsEngine.getDirtyBalance() > 0) {
+          window.nineSystemsEngine.openDirtyMoneyBridgeModal(`Lance Leilão (${lot.lotCode})`, bid);
+        }
         const msg = `Saldo Limpo insuficiente para o lance de ${fmtMoney(bid)}!`;
         if (typeof window.showToast === 'function') window.showToast(msg);
         return { success: false, code: 'INSUFFICIENT_CLEAN_BID', message: msg };
@@ -1294,9 +1307,12 @@
       this.ensureLoaded();
       const count = Math.max(1, Number(monthsCount || 1));
 
-      // 1. Taxa de Custódia de 2% às 12:00 sobre saldo comum > $ 100.000!
+      // 1. Taxa de Custódia de 2% às 12:00 sobre saldo comum > $ 100.000 (ISENTO se dono de Empresa Porte 3 Holding!)
+      const cnpjPerks = (window.nineSystemsEngine && typeof window.nineSystemsEngine.getCompanyCnpjPerks === 'function')
+        ? window.nineSystemsEngine.getCompanyCnpjPerks()
+        : { exemptBankCustody2Pct: false };
       const mainBal = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
-      if (mainBal > 100000) {
+      if (mainBal > 100000 && !cnpjPerks.exemptBankCustody2Pct) {
         const excess = mainBal - 100000;
         const tax = Math.round(excess * 0.02 * count);
         if (tax > 0) {
@@ -1330,6 +1346,9 @@
       const FEE = 25000;
       const cleanBal = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
       if (cleanBal < FEE) {
+        if (window.nineSystemsEngine && window.nineSystemsEngine.getDirtyBalance() > 0) {
+          window.nineSystemsEngine.openDirtyMoneyBridgeModal('Cofre Físico Suíço (77.3.12.15)', FEE);
+        }
         const msg = `Abrir Cofre Físico Numerado na Suíça (77.3.12.15) exige ${fmtMoney(FEE)} em DINHEIRO LIMPO!`;
         if (typeof window.showToast === 'function') window.showToast(msg);
         return { success: false, code: 'INSUFFICIENT_CLEAN_FUNDS', message: msg };
@@ -1358,11 +1377,17 @@
       }
       const cleanBal = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
       if (cleanBal < amt) {
+        if (window.nineSystemsEngine && window.nineSystemsEngine.getDirtyBalance() > 0) {
+          window.nineSystemsEngine.openDirtyMoneyBridgeModal('Remessa Cofre Suíço', amt);
+        }
         return { success: false, message: 'Saldo Limpo insuficiente na conta principal!' };
       }
 
-      const fee4Pct = Math.round(amt * 0.04);
-      const netStored = amt - fee4Pct;
+      const swissFeeRate = (window.nineSystemsEngine && typeof window.nineSystemsEngine.getCompanyCnpjPerks === 'function')
+        ? Number(window.nineSystemsEngine.getCompanyCnpjPerks().swissDepositFeeRate || 0.04)
+        : 0.04;
+      const feeCharged = Math.round(amt * swissFeeRate);
+      const netStored = amt - feeCharged;
       runAuth(() => {
         window.currentWallet.balance = Math.max(0, +(cleanBal - amt).toFixed(2));
       });
@@ -1370,9 +1395,9 @@
       this.save();
       if (window.multiBankEngine) window.multiBankEngine.renderMultiBankOverview();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
-      const msg = `🇨🇭 Guardado em Zurique: +${fmtMoney(netStored)} blindados no Cofre Físico (taxa helvética de 4%: -${fmtMoney(fee4Pct)})!`;
+      const msg = `🇨🇭 Guardado em Zurique: +${fmtMoney(netStored)} blindados no Cofre Físico (taxa helvética ${(swissFeeRate * 100).toFixed(1)}%: -${fmtMoney(feeCharged)})!`;
       if (typeof window.showToast === 'function') window.showToast(msg);
-      return { success: true, netStored, fee4Pct, balance: this.state.swissVaultBalance, message: msg };
+      return { success: true, netStored, fee4Pct: feeCharged, feeRate: swissFeeRate, balance: this.state.swissVaultBalance, message: msg };
     }
 
     requestSwissVaultWithdrawal(amountRaw) {
@@ -1601,6 +1626,9 @@
       const DEPOSIT = 30000;
       const cleanBal = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
       if (cleanBal < DEPOSIT) {
+        if (window.nineSystemsEngine && window.nineSystemsEngine.getDirtyBalance() > 0) {
+          window.nineSystemsEngine.openDirtyMoneyBridgeModal(`Caução Patrocínio SLA (${corpSymbol})`, DEPOSIT);
+        }
         const msg = `Caução SLA insuficiente! Assinar patrocínio corporativo exige travar ${fmtMoney(DEPOSIT)} em DINHEIRO LIMPO.`;
         if (typeof window.showToast === 'function') window.showToast(msg);
         return { success: false, code: 'INSUFFICIENT_SLA_DEPOSIT', message: msg };
@@ -1948,6 +1976,9 @@
       const totalDebitClean = reward + notaryFee;
       const cleanBal = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
       if (cleanBal < totalDebitClean) {
+        if (window.nineSystemsEngine && window.nineSystemsEngine.getDirtyBalance() > 0) {
+          window.nineSystemsEngine.openDirtyMoneyBridgeModal('Contrato Mercenário Escrow (+15%)', totalDebitClean);
+        }
         const msg = `Saldo Limpo insuficiente! Travar ${fmtMoney(reward)} + 15% de Taxa de Custódia (${fmtMoney(notaryFee)}) exige ${fmtMoney(totalDebitClean)} Limpos.`;
         if (typeof window.showToast === 'function') window.showToast(msg);
         return { success: false, code: 'INSUFFICIENT_ESCROW_FUNDS', message: msg };

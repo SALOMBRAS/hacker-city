@@ -1953,6 +1953,11 @@
       const res = window.quitineteEngine.payBill(billId, currentWallet.balance);
       if (!res.success) {
         if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+        if (window.nineSystemsEngine && window.nineSystemsEngine.getDirtyBalance() > 0) {
+          const billObj = window.quitineteEngine.bills[billId];
+          window.nineSystemsEngine.openDirtyMoneyBridgeModal(`Fatura ${billObj ? billObj.shortName : billId}`, billObj ? billObj.price : 500);
+          return;
+        }
         alert(res.message);
         return;
       }
@@ -2005,6 +2010,10 @@
       const res = window.quitineteEngine.payAllBills(currentWallet.balance);
       if (!res.success) {
         if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+        if (window.nineSystemsEngine && window.nineSystemsEngine.getDirtyBalance() > 0) {
+          window.nineSystemsEngine.openDirtyMoneyBridgeModal('Quitação Geral das Contas (12:00)', window.quitineteEngine.getTotalDueAmount());
+          return;
+        }
         alert(res.message);
         return;
       }
@@ -2075,11 +2084,23 @@
           return check;
         }
       }
-      if (!currentWallet || currentWallet.balance < price) {
+      const catListForPrice = window.hardwareEngine ? (window.hardwareEngine.catalog[category] || []) : [];
+      const itemRef = catListForPrice.find((x) => x.id === itemId);
+      const rawItemPrice = itemRef ? itemRef.price : price;
+      const effPrice = (category !== 'network' && window.hardwareEngine && typeof window.hardwareEngine.getDiscountedPartPrice === 'function')
+        ? window.hardwareEngine.getDiscountedPartPrice(rawItemPrice)
+        : rawItemPrice;
+
+      if (!currentWallet || currentWallet.balance < effPrice) {
         if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
-        alert('Saldo insuficiente na conta bancária!');
-        return;
+        if (window.nineSystemsEngine && window.nineSystemsEngine.getDirtyBalance() > 0) {
+          window.nineSystemsEngine.openDirtyMoneyBridgeModal(itemRef ? itemRef.name : `Peça (${itemId})`, effPrice);
+          return { success: false, code: 'DIRTY_BRIDGE_OPENED' };
+        }
+        alert('Saldo Limpo insuficiente na conta bancária!');
+        return { success: false, code: 'INSUFFICIENT_CLEAN_FUNDS' };
       }
+      price = effPrice;
 
       const applyUpgradeToTarget = () => {
         if (!targetMachineId || targetMachineId === 'pc_main') {

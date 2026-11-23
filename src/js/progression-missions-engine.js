@@ -1569,7 +1569,10 @@
       const m = this.state.activeMission;
       if (!m) return { success: false };
 
-      if (window.currentWallet) {
+      const isCriminalMission = m.rewardCash >= 150 && ['cctv_hack', 'steal_file', 'delete_file', 'drain_host', 'bank_hack', 'ddos_attack'].includes(m.type);
+      if (isCriminalMission && window.nineSystemsEngine && typeof window.nineSystemsEngine.addDirtyMoney === 'function') {
+        window.nineSystemsEngine.addDirtyMoney(m.rewardCash, `Contrato Darknet (${m.hirer})`);
+      } else if (window.currentWallet) {
         const payFn = () => {
           window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + m.rewardCash).toFixed(2);
         };

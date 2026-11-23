@@ -250,6 +250,9 @@
       if (!s.claimedLeakIds || typeof s.claimedLeakIds !== 'object') s.claimedLeakIds = {};
       if (!Array.isArray(s.customPastes)) s.customPastes = [];
       if (typeof s.delegateOverrideIdx !== 'number') s.delegateOverrideIdx = -1;
+      if (!s.dailyBtcSold || typeof s.dailyBtcSold !== 'object') {
+        s.dailyBtcSold = { dayKey: '', usd: 0 };
+      }
 
       return s;
     }
@@ -298,6 +301,158 @@
     getDirtyBalance() {
       this.ensureLoaded();
       return Math.max(0, +(Number(this.state.dirtyBalance || 0)).toFixed(2));
+    }
+
+    // Benefícios reais de CNPJ no mundo inteiro conforme o Porte da Empresa de Lavagem do jogador!
+    getCompanyCnpjPerks() {
+      this.ensureLoaded();
+      const tier = this.state.myCompany ? Number(this.state.myCompany.tier || 0) : 0;
+      return {
+        tier,
+        companyName: this.state.myCompany ? this.state.myCompany.name : null,
+        hwDiscountMult: tier >= 1 ? 0.90 : 1.0,                 // Porte 1+: -10% atacado CNPJ em Peças e Fontes PSU
+        netBillDiscountMult: tier >= 2 ? 0.80 : 1.0,            // Porte 2+: -20% na conta de Internet & VPS às 12:00
+        bonusFreeBounceHops: tier >= 2 ? 1 : 0,                 // Porte 2+: +1 salto corporativo gratuito na rota
+        exemptBankCustody2Pct: tier >= 3,                       // Porte 3: isento da taxa de 2% > $100K às 12:00
+        swissDepositFeeRate: tier >= 3 ? 0.015 : 0.04,          // Porte 3: taxa do Cofre Suíço cai de 4% p/ 1.5%
+        dailyCleanBtcCapUsd: tier >= 3 ? 15000 : (tier === 2 ? 8000 : (tier === 1 ? 5000 : 2000))
+      };
+    }
+
+    // Liquidação de BTC na Corretora (144.202.44.8): até o limite diário COAF entra Limpo; o excedente entra Sujo!
+    processBtcLiquidationSplit(grossUsdRaw) {
+      this.ensureLoaded();
+      const gross = Math.max(0, +(Number(grossUsdRaw || 0)).toFixed(2));
+      if (gross <= 0) return { cleanAdded: 0, dirtyAdded: 0, capUsd: 2000 };
+
+      const perks = this.getCompanyCnpjPerks();
+      const todayKey = new Date().toISOString().slice(0, 10);
+      if (this.state.dailyBtcSold.dayKey !== todayKey) {
+        this.state.dailyBtcSold = { dayKey: todayKey, usd: 0 };
+      }
+
+      const alreadyUsed = Number(this.state.dailyBtcSold.usd || 0);
+      const cleanRoomLeft = Math.max(0, +(perks.dailyCleanBtcCapUsd - alreadyUsed).toFixed(2));
+      const cleanPart = Math.min(gross, cleanRoomLeft);
+      const dirtyPart = Math.max(0, +(gross - cleanPart).toFixed(2));
+
+      this.state.dailyBtcSold.usd = +(alreadyUsed + gross).toFixed(2);
+      if (cleanPart > 0) {
+        runAuth(() => {
+          if (window.currentWallet) {
+            window.currentWallet.balance = +(Number(window.currentWallet.balance || 0) + cleanPart).toFixed(2);
+          }
+        });
+      }
+      if (dirtyPart > 0) {
+        this.addDirtyMoney(dirtyPart, 'Excedente Câmbio BTC s/ Lastro COAF');
+      } else {
+        this.save();
+      }
+      return { cleanAdded: cleanPart, dirtyAdded: dirtyPart, capUsd: perks.dailyCleanBtcCapUsd };
+    }
+
+    // Válvula Clandestina de Contrabando (+35% de ágio em Dinheiro Sujo no Blackmarket — apenas consumíveis ilegais!)
+    buyBlackmarketSmuggledConsumable(kind) {
+      this.ensureLoaded();
+      const catalog = {
+        smuggle_paste: { id: 'smuggle_paste', name: 'Pasta Térmica Prata Contrabandeada (-8°C)', baseClean: 450, dirtyCost: 610 },
+        smuggle_osint: { id: 'smuggle_osint', name: 'Lote 2x Dossiês OSINT Vazados', baseClean: 800, dirtyCost: 1080 },
+        smuggle_cve:   { id: 'smuggle_cve',   name: 'Exploit Descartável Zero-Day 24h', baseClean: 1500, dirtyCost: 2025 }
+      };
+      const item = catalog[kind];
+      if (!item) return { success: false, message: 'Item de contrabando inválido.' };
+
+      const dirtyAvail = this.getDirtyBalance();
+      if (dirtyAvail < item.dirtyCost) {
+        const msg = `Dinheiro Sujo insuficiente! Contrabando de "${item.name}" exige ${fmtMoney(item.dirtyCost)} em Notas Sujas (+35% ágio).`;
+        if (typeof window.showToast === 'function') window.showToast(msg);
+        return { success: false, code: 'INSUFFICIENT_DIRTY_SMUGGLE', message: msg };
+      }
+
+      this.state.dirtyBalance = Math.max(0, +(dirtyAvail - item.dirtyCost).toFixed(2));
+      if (kind === 'smuggle_paste') {
+        this.state.thermals.pasteAppliedAt = Date.now();
+      } else if (kind === 'smuggle_osint' && window.ecosystemHub) {
+        window.ecosystemHub.ensureLoaded();
+        window.ecosystemHub.state.osintDossiers = Number(window.ecosystemHub.state.osintDossiers || 0) + 2;
+        window.ecosystemHub.save();
+      } else if (kind === 'smuggle_cve' && window.ecosystemHub) {
+        window.ecosystemHub.ensureLoaded();
+        window.ecosystemHub.state.zeroDays.push({ id: 'cve_smug_' + Date.now(), label: 'CVE-Contrabando Ring-3', expiresAt: Date.now() + 24 * 3600 * 1000 });
+        window.ecosystemHub.save();
+      }
+
+      this.save();
+      if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+      if (window.internetEngine && window.winManager?.current === 'winBrowser') window.internetEngine.render();
+      const msg = `🕶️ CONTRABANDO ENTREGUE (-${fmtMoney(item.dirtyCost)} Sujos c/ +35% ágio): ${item.name} ativado sem precisar de Nota Fiscal!`;
+      if (typeof window.showToast === 'function') window.showToast(msg);
+      return { success: true, item, message: msg };
+    }
+
+    closeDirtyMoneyBridgeModal() {
+      const m = typeof document !== 'undefined' ? document.getElementById('hcDirtyBridgeModal') : null;
+      if (m) m.remove();
+    }
+
+    // Modal Universal de Ponte Fiscal: disparado sempre que faltar Dinheiro Limpo mas o jogador tiver Dinheiro Sujo parado!
+    openDirtyMoneyBridgeModal(itemLabel, requiredCleanRaw) {
+      this.ensureLoaded();
+      if (typeof document === 'undefined') return;
+      this.closeDirtyMoneyBridgeModal();
+
+      const clean = this.getCleanBalance();
+      const dirty = this.getDirtyBalance();
+      const req = Math.max(0, Math.round(Number(requiredCleanRaw || 0)));
+      const missing = Math.max(1, Math.round(req - clean));
+
+      const wrap = document.createElement('div');
+      wrap.id = 'hcDirtyBridgeModal';
+      wrap.style.cssText = 'position:fixed;inset:0;z-index:9996;background:rgba(4,8,14,0.86);display:grid;place-items:center;padding:16px;';
+      wrap.innerHTML = `
+        <div class="hc-card" style="max-width:560px;width:100%;padding:22px 24px;border-color:rgba(248,113,113,0.55);background:#0b1119;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
+            <span class="hc-badge danger">🛑 BLOQUEIO DE NOTA FISCAL · EXIGE DINHEIRO LIMPO</span>
+            <button type="button" class="hc-btn ghost sm" onclick="window.nineSystemsEngine.closeDirtyMoneyBridgeModal()">✕</button>
+          </div>
+          <h3 style="margin:0 0 6px;font-size:16.5px;color:var(--hc-text);">${esc(itemLabel)} exige ${fmtMoney(req)} Limpos</h3>
+          <p style="font-size:12.5px;color:var(--hc-text-2);margin:0 0 12px;line-height:1.5;">
+            Você tem apenas <strong style="color:#4ade80;">${fmtMoney(clean)} Limpos</strong> (faltam <strong>${fmtMoney(missing)}</strong>), mas carrega <strong style="color:#f87171;">🩸 ${fmtMoney(dirty)} em Dinheiro Sujo</strong> sem lastro fiscal! Escolha como resolver este gargalo:
+          </p>
+
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button type="button" id="btnBridgeGoLaunder" class="hc-btn primary" style="justify-content:space-between;"
+              onclick="window.nineSystemsEngine.closeDirtyMoneyBridgeModal(); navTo('winLaundering');">
+              <span>🧼 1. Lavar meu Dinheiro Sujo nas Empresas (17%+ · 15 min)</span>
+              <span class="mono" style="font-size:11px;">Recomendado →</span>
+            </button>
+
+            <button type="button" id="btnBridgeGoCleanLab" class="hc-btn ghost" style="justify-content:space-between;border-color:rgba(56,189,248,0.45);color:#7dd3fc;"
+              onclick="window.nineSystemsEngine.closeDirtyMoneyBridgeModal(); navTo('winVirusLab');">
+              <span>🧬 2. Fazer Encomenda Científica no Lab (+$ 18.000 Limpos na hora)</span>
+              <span class="mono" style="font-size:11px;">Capital Limpo →</span>
+            </button>
+
+            <button type="button" id="btnBridgeGoSmuggle" class="hc-btn ghost" style="justify-content:space-between;border-color:rgba(245,158,11,0.45);color:#fde68a;"
+              onclick="window.nineSystemsEngine.closeDirtyMoneyBridgeModal(); window.internetEngine.openIp('185.220.101.9');">
+              <span>🕶️ 3. Contrabando no Blackmarket (Gastar Sujo c/ +35% ágio em consumíveis)</span>
+              <span class="mono" style="font-size:11px;">185.220.101.9 →</span>
+            </button>
+
+            <button type="button" id="btnBridgeForceDirtyRisk" class="hc-btn ghost" style="justify-content:space-between;border-color:rgba(239,68,68,0.45);color:#fca5a5;"
+              onclick="window.nineSystemsEngine.closeDirtyMoneyBridgeModal(); window.nineSystemsEngine.attemptSpendDirtyMoney(${Math.min(dirty, missing)}, '${esc(itemLabel)}');">
+              <span>🚨 Tentar Forçar Notas Sujas no Balcão (Alto Risco: Safenet na cola / Prisão!)</span>
+              <span class="mono" style="font-size:11px;">Risco Policial</span>
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(wrap);
+    }
+
+    penalizeDirtySpendAttempt(itemLabel = 'Operação Oficial') {
+      return this.attemptSpendDirtyMoney(500, itemLabel);
     }
 
     // =========================================================================
@@ -598,6 +753,9 @@
 
       if (clean < costClean) {
         const hasDirty = this.getDirtyBalance() > 0;
+        if (hasDirty) {
+          this.openDirtyMoneyBridgeModal(`Abertura/Upgrade ${tDef.code}`, costClean);
+        }
         const msg = `BLOQUEADO PELA JUNTA COMERCIAL! Comprar/evoluir para ${tDef.code} exige ${fmtMoney(costClean)} 100% em DINHEIRO LIMPO (você tem ${fmtMoney(clean)} limpos${hasDirty ? ` — lave antes seus ${fmtMoney(this.getDirtyBalance())} sujos na vitrine!` : ''}).`;
         if (typeof window.showToast === 'function') window.showToast(msg);
         return { success: false, code: 'CLEAN_MONEY_REQUIRED', required: costClean, cleanBalance: clean, message: msg };
@@ -1603,6 +1761,27 @@
               </div>
             </div>
           `).join('')}
+
+          <div style="margin-top:12px;padding-top:10px;border-top:1px solid #1f2a38;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+              <strong style="font-size:13px;color:#fbbf24;">🕶️ Válvula Clandestina: Contrabando c/ Dinheiro Sujo (+35% Ágio · Sem Nota Fiscal)</strong>
+              <span class="mono" style="font-size:11.5px;color:#f87171;">Seu Bolso Sujo: ${fmtMoney(this.getDirtyBalance())}</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;">
+              <div style="padding:9px 11px;border-radius:8px;background:#090e16;border:1px solid #2b2318;display:flex;flex-direction:column;gap:6px;justify-content:space-between;">
+                <div style="font-size:12px;"><strong>Pasta Térmica Prata (-8°C)</strong><br><span style="color:var(--hc-text-3);font-size:11px;">Preço normal $ 450 → Contrabando $ 610 Sujos</span></div>
+                <button type="button" id="btnSmugglePaste" class="hc-btn sm" style="border-color:#f59e0b;color:#fde68a;" onclick="window.nineSystemsEngine.buyBlackmarketSmuggledConsumable('smuggle_paste')">Comprar c/ Sujo ($ 610)</button>
+              </div>
+              <div style="padding:9px 11px;border-radius:8px;background:#090e16;border:1px solid #2b2318;display:flex;flex-direction:column;gap:6px;justify-content:space-between;">
+                <div style="font-size:12px;"><strong>2x Dossiês OSINT Vazados</strong><br><span style="color:var(--hc-text-3);font-size:11px;">Preço normal $ 800 → Contrabando $ 1.080 Sujos</span></div>
+                <button type="button" id="btnSmuggleOsint" class="hc-btn sm" style="border-color:#f59e0b;color:#fde68a;" onclick="window.nineSystemsEngine.buyBlackmarketSmuggledConsumable('smuggle_osint')">Comprar c/ Sujo ($ 1.080)</button>
+              </div>
+              <div style="padding:9px 11px;border-radius:8px;background:#090e16;border:1px solid #2b2318;display:flex;flex-direction:column;gap:6px;justify-content:space-between;">
+                <div style="font-size:12px;"><strong>Exploit Zero-Day 24h</strong><br><span style="color:var(--hc-text-3);font-size:11px;">Preço normal $ 1.500 → Contrabando $ 2.025 Sujos</span></div>
+                <button type="button" id="btnSmuggleCve" class="hc-btn sm" style="border-color:#f59e0b;color:#fde68a;" onclick="window.nineSystemsEngine.buyBlackmarketSmuggledConsumable('smuggle_cve')">Comprar c/ Sujo ($ 2.025)</button>
+              </div>
+            </div>
+          </div>
         </div>
       `;
     }
@@ -1664,6 +1843,19 @@
                 <button type="button" id="btnLaunderOwnCompany" class="hc-btn primary sm" onclick="window.nineSystemsEngine.startLaunderingBatch('MY_OWN_COMPANY', document.getElementById('launderAmtInput')?.value)">Lavar na Minha Empresa</button>
               </div>
             ` : ''}
+
+            <div style="margin:8px 0;padding:10px 12px;border-radius:8px;background:#081119;border:1px solid rgba(56,189,248,0.32);font-size:11.8px;color:var(--hc-text-2);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+              <div>
+                <strong style="color:#7dd3fc;">🔗 Como seu CNPJ influencia o Jogo Inteiro:</strong>
+                Porte 1 ($ 50K) = <strong>-10% em Peças/Fontes + $ 5K/dia BTC Limpo</strong> ·
+                Porte 2 ($ 180K) = <strong>-20% Internet/VPS às 12h + 1 Salto Bounce Grátis</strong> ·
+                Porte 3 ($ 500K) = <strong>Isento Custódia 2% + Cofre Suíço 1.5% + $ 15K/dia BTC Limpo</strong>!
+              </div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button type="button" class="hc-btn ghost sm" onclick="navTo('winVirusLab')">🧬 Encomenda Lab (+$ 18K Limpos) →</button>
+                <button type="button" class="hc-btn ghost sm" onclick="navTo('winOpsHub');window.ecosystemHub.switchTab('stocks');">📉 Short CyberStock (Lucro Limpo) →</button>
+              </div>
+            </div>
 
             ${five.map((c, i) => `
               <div class="nds-row" style="border-color:${c.feePct <= 20 ? 'rgba(53,184,119,0.45)' : (c.feePct >= 45 ? 'rgba(229,83,75,0.4)' : '#1e2938')};">

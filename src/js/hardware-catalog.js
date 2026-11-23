@@ -566,10 +566,24 @@ class HardwareEngine {
     `;
   }
 
+  getDiscountedPartPrice(rawPrice) {
+    const base = Number(rawPrice || 0);
+    if (base <= 0) return 0;
+    const cnpjMult = (window.nineSystemsEngine && typeof window.nineSystemsEngine.getCompanyCnpjPerks === 'function')
+      ? Number(window.nineSystemsEngine.getCompanyCnpjPerks().hwDiscountMult || 1.0)
+      : 1.0;
+    return Math.round(base * cnpjMult);
+  }
+
   renderCatalogTableHtml(cat, targetMachine, currentBalance, esc, ic) {
     if (cat === 'network') {
       return this.renderNetworkPlansTableHtml(targetMachine, currentBalance, esc, ic);
     }
+
+    const cnpjPerks = (window.nineSystemsEngine && typeof window.nineSystemsEngine.getCompanyCnpjPerks === 'function')
+      ? window.nineSystemsEngine.getCompanyCnpjPerks()
+      : { tier: 0, hwDiscountMult: 1.0 };
+    const hasCnpjDiscount = cnpjPerks.hwDiscountMult < 1.0;
 
     const catMeta = {
       cpu: { label: 'Processador (CPU)', icon: 'cpu', glyph: 'attack', specFn: (i) => `${i.mhz.toLocaleString('pt-BR')} MHz` },
@@ -588,8 +602,9 @@ class HardwareEngine {
         ? this.current[cat] === item.id
         : itemVal === curVal;
       const isLower = !isCurrent && itemVal <= curVal;
-      const canBuy = !isCurrent && !isLower && currentBalance >= item.price;
-      const priceStr = item.price === 0 ? 'Inicial' : `$${item.price.toLocaleString('pt-BR')}`;
+      const effPrice = this.getDiscountedPartPrice(item.price);
+      const canBuy = !isCurrent && !isLower && currentBalance >= effPrice;
+      const priceStr = effPrice === 0 ? 'Inicial' : `$${effPrice.toLocaleString('pt-BR')}${hasCnpjDiscount ? ' (-10%)' : ''}`;
       const pwr = this.computePartEnergyImpact(targetMachine, cat, item);
 
       return `
@@ -631,11 +646,11 @@ class HardwareEngine {
                          data-tip-desc="Com esta peça instalada, ${esc(targetMachine.name)} passa a consumir ${pwr.simulatedPcWatts}W totais ($${pwr.totalPcMonthlyEnergy}/mês na conta de energia).">
                          ${ic('info')}
                        </button>
-                       <button type="button" class="soft-icon-act ic-run" ${!canBuy ? 'disabled' : ''} aria-label="Comprar ${esc(item.name)}"
-                         data-tip-title="${canBuy ? `Comprar e instalar em ${esc(targetMachine.name)}` : `Saldo insuficiente (faltam $${Math.ceil(item.price - currentBalance).toLocaleString('pt-BR')})`}"
+                       <button type="button" class="soft-icon-act ic-run" aria-label="Comprar ${esc(item.name)}"
+                         data-tip-title="${canBuy ? `Comprar e instalar em ${esc(targetMachine.name)}` : `Exige $${effPrice.toLocaleString('pt-BR')} Limpos (clique se quiser ver ponte de Lavagem)`}"
                          data-tip-meta="${esc(priceStr)}"
                          data-tip-desc="Potência: ${esc(m.specFn(item))} · Consumo: ${pwr.itemWatts}W · Custo de energia no seu PC: +$${pwr.partMonthlyEnergy}/mês."
-                         onclick="buyHardwareUpgrade('${cat}', '${item.id}', ${item.price}, '${esc(targetMachine.id)}')">
+                         onclick="buyHardwareUpgrade('${cat}', '${item.id}', ${effPrice}, '${esc(targetMachine.id)}')">
                          ${ic('shopping-cart')}
                        </button>
                      </div>`)}
@@ -1013,6 +1028,30 @@ class HardwareEngine {
         ? window.stealthXhdEngine.renderXhdAndStealthPanelHtml()
         : `<div style="padding:24px;color:var(--hc-text-3);">Módulo de HD Externo indisponível.</div>`;
     }
+    // 6. ABA DEDICADA & LIMPA: FONTE PSU, TERMODINÂMICA °C & CONTROLADORA RAID (Zero Poluição Visual!)
+    else if (this.activeTab === 'power_raid') {
+      mainColHtml = `
+        <div class="hw-overview-stack">
+          <div style="padding:10px 14px;border-radius:8px;background:#09121c;border:1px solid rgba(56,189,248,0.35);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--hc-text-2);">
+            <span>🔗 <strong>Pontes de Engenharia Física:</strong> Evoluir p/ <strong>Studio (-5°C) / Bunker (-12°C)</strong> resfria sua CPU; ter <strong>Empresa Porte 1+</strong> dá <strong>-10%</strong> em Fontes; e usar <strong>HD Externo (XHD)</strong> protege suas cepas se usar <strong>RAID-0</strong>!</span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button type="button" class="hc-btn ghost sm" onclick="navTo('winQuitinete')">🏢 Ver Base (-5°C/-12°C) →</button>
+              <button type="button" class="hc-btn ghost sm" onclick="window.hardwareEngine.setTab('xhd')">💾 Backup XHD →</button>
+            </div>
+          </div>
+          ${window.progressionLocksEngine && typeof window.progressionLocksEngine.renderHardwarePsuAndBottleneckHtml === 'function' ? window.progressionLocksEngine.renderHardwarePsuAndBottleneckHtml() : ''}
+          ${window.topTenMechanics && typeof window.topTenMechanics.renderHardwareRaidSectionHtml === 'function' ? window.topTenMechanics.renderHardwareRaidSectionHtml() : ''}
+          ${window.nineSystemsEngine && typeof window.nineSystemsEngine.renderHardwareThermalSectionHtml === 'function' ? window.nineSystemsEngine.renderHardwareThermalSectionHtml() : ''}
+        </div>
+      `;
+    }
+
+    const psuNow = window.progressionLocksEngine ? window.progressionLocksEngine.getCurrentPsu() : { name: '180W', maxWatts: 180 };
+    const thermNow = window.nineSystemsEngine ? window.nineSystemsEngine.getLiveThermalTelemetry() : { tempC: 38 };
+    const raidNow = window.topTenMechanics ? window.topTenMechanics.state.raidMode.toUpperCase() : 'NORMAL';
+    const cnpjPerksTop = window.nineSystemsEngine && typeof window.nineSystemsEngine.getCompanyCnpjPerks === 'function'
+      ? window.nineSystemsEngine.getCompanyCnpjPerks()
+      : { tier: 0 };
 
     // Donut Lateral: adapta ao escopo (Potencial Total vs Máquina Selecionada)
     const donutPct = scopedMachine ? scopedMachine.healthPct : healthPct;
@@ -1031,6 +1070,9 @@ class HardwareEngine {
             <button type="button" id="hwTabUpgrade" class="soft-tab-btn ${this.activeTab === 'upgrade' ? 'active' : ''}" onclick="window.hardwareEngine.setTab('upgrade')">
               ${ic('cpu')} <span>Melhorar Máquina</span>
             </button>
+            <button type="button" id="hwTabPowerRaid" class="soft-tab-btn ${this.activeTab === 'power_raid' ? 'active' : ''}" onclick="window.hardwareEngine.setTab('power_raid')">
+              ${ic('zap')} <span>Fonte, Térmica &amp; RAID</span>
+            </button>
             <button type="button" id="hwTabBuyVps" class="soft-tab-btn ${this.activeTab === 'buy_vps' ? 'active' : ''}" onclick="window.hardwareEngine.setTab('buy_vps')">
               ${ic('cloud')} <span>Comprar VPS</span>
             </button>
@@ -1041,7 +1083,10 @@ class HardwareEngine {
               ${ic('hard-drive')} <span>HD Externo</span>
             </button>
           </div>
-          <span class="mono" style="font-size:12px;color:var(--hc-accent-text);">Saldo: $ ${Number(currentBalance || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</span>
+          <span class="mono" style="font-size:12px;color:var(--hc-accent-text);">
+            ${cnpjPerksTop.tier >= 1 ? '<span class="hc-badge success" style="margin-right:6px;">🏷️ -10% CNPJ Ativo</span>' : ''}
+            Limpo: $ ${Number(currentBalance || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+          </span>
         </div>
 
         <div class="soft-explorer-shell">
@@ -1055,9 +1100,18 @@ class HardwareEngine {
               </div>
             ` : ''}
             ${mainColHtml}
-            ${window.progressionLocksEngine && typeof window.progressionLocksEngine.renderHardwarePsuAndBottleneckHtml === 'function' ? window.progressionLocksEngine.renderHardwarePsuAndBottleneckHtml() : ''}
-            ${window.topTenMechanics && typeof window.topTenMechanics.renderHardwareRaidSectionHtml === 'function' ? window.topTenMechanics.renderHardwareRaidSectionHtml() : ''}
-            ${window.nineSystemsEngine && typeof window.nineSystemsEngine.renderHardwareThermalSectionHtml === 'function' ? window.nineSystemsEngine.renderHardwareThermalSectionHtml() : ''}
+            ${this.activeTab === 'overview' ? `
+              <div class="hc-card" style="margin-top:10px;padding:10px 14px;background:#0a1018;border-color:#1f2c3d;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                  <span class="hc-badge info">⚡ Fonte: ${esc(psuNow.name)} (${activeMetrics.watts}W / ${psuNow.maxWatts}W)</span>
+                  <span class="hc-badge ${thermNow.tempC >= 80 ? 'danger' : 'success'}">🌡️ CPU: ${thermNow.tempC}°C</span>
+                  <span class="hc-badge">💿 Matriz: ${esc(raidNow)}</span>
+                </div>
+                <button type="button" class="hc-btn primary sm" onclick="window.hardwareEngine.setTab('power_raid')">
+                  Abrir Fonte, Térmica &amp; RAID →
+                </button>
+              </div>
+            ` : ''}
           </div>
 
           <aside class="soft-side-bar" id="hardwareHealthCard">

@@ -372,8 +372,12 @@ class QuitineteEngine {
       ? Number(window.nineSystemsEngine.getMyCompanyNoonPermitFee() || 0)
       : 0;
 
+    const cnpjNetMult = (typeof window !== 'undefined' && window.nineSystemsEngine && typeof window.nineSystemsEngine.getCompanyCnpjPerks === 'function')
+      ? Number(window.nineSystemsEngine.getCompanyCnpjPerks().netBillDiscountMult || 1.0)
+      : 1.0;
+
     this.bills.power.monthlyBase = Math.max(40, Math.round(pcEnergyMonthly * totalBillKeep));
-    this.bills.internet.monthlyBase = Math.max(20, Math.round((netAndVpsMonthly + companyPermitMonthly) * Math.max(0.65, 1 - (wmDiscPct + subBlackHatDisc) / 100)));
+    this.bills.internet.monthlyBase = Math.max(20, Math.round((netAndVpsMonthly + companyPermitMonthly) * Math.max(0.65, 1 - (wmDiscPct + subBlackHatDisc) / 100) * cnpjNetMult));
     if (typeof window !== 'undefined' && window.topTenMechanics && typeof window.topTenMechanics.getSafehouseNoonRent === 'function') {
       this.bills.rent.monthlyBase = window.topTenMechanics.getSafehouseNoonRent();
     }
