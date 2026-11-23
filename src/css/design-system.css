@@ -132,14 +132,15 @@ h1, h2, h3, h4 { font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; }
 .hc-card-title { font-size: 13px; font-weight: 600; color: var(--hc-text); display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
 .hc-eyebrow { font-family: var(--hc-font-mono); font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--hc-text-3); }
 
-/* ---- Botão ---- */
+/* ---- Botão (protegido contra vazamento de texto em qualquer largura!) ---- */
 .hc-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 36px; padding: 0 14px;
+  min-height: 36px; height: auto; padding: 6px 14px;
+  max-width: 100%; box-sizing: border-box;
   background: var(--hc-surface-2); color: var(--hc-text);
   border: 1px solid var(--hc-border-strong); border-radius: var(--hc-radius-sm);
-  font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none;
-  white-space: nowrap; flex-shrink: 0;
+  font-size: 13px; font-weight: 600; line-height: 1.3; cursor: pointer; text-decoration: none;
+  white-space: normal; overflow-wrap: anywhere; text-align: center; flex-shrink: 0;
   transition: background .12s, border-color .12s, transform .06s;
 }
 .hc-btn:hover { background: var(--hc-surface-3); }
@@ -150,8 +151,31 @@ h1, h2, h3, h4 { font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; }
 .hc-btn.danger { background: var(--hc-danger-bg); border-color: #5a2723; color: var(--hc-danger-text); }
 .hc-btn.ghost { background: transparent; border-color: transparent; color: var(--hc-text-2); }
 .hc-btn.ghost:hover { background: var(--hc-surface-2); color: var(--hc-text); }
-.hc-btn.sm { height: 28px; padding: 0 10px; font-size: 12px; }
-.hc-btn.block { width: 100%; }
+.hc-btn.sm { min-height: 28px; height: auto; padding: 4px 10px; font-size: 12px; }
+.hc-btn.block { width: 100%; flex-shrink: 1; }
+
+/* Cartão clicável de opção p/ Modais de Decisão (nunca espreme nem vaza texto!) */
+.hc-choice-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%; padding: 11px 14px; border-radius: 9px;
+  background: #101722; border: 1px solid var(--hc-border-strong);
+  color: var(--hc-text); text-align: left; cursor: pointer;
+  transition: background .12s, border-color .12s, transform .06s;
+}
+.hc-choice-row:hover { background: #162030; border-color: var(--hc-accent); }
+.hc-choice-row.recommended { background: rgba(53, 184, 119, 0.14); border-color: var(--hc-accent); }
+.hc-choice-row.info-opt { border-color: rgba(56, 189, 248, 0.45); }
+.hc-choice-row.warn-opt { border-color: rgba(245, 158, 11, 0.45); }
+.hc-choice-row.danger-opt { border-color: rgba(239, 68, 68, 0.45); }
+.hc-choice-main { flex: 1; min-width: 0; }
+.hc-choice-title { display: block; font-size: 13.5px; font-weight: 700; color: var(--hc-text); line-height: 1.3; }
+.hc-choice-desc { display: block; font-size: 11.8px; color: var(--hc-text-2); margin-top: 2px; line-height: 1.35; }
+.hc-choice-cta {
+  flex-shrink: 0; padding: 5px 10px; border-radius: 6px;
+  font-family: var(--hc-font-mono); font-size: 11.5px; font-weight: 700;
+  background: rgba(255,255,255,0.06); color: var(--hc-text);
+}
+.hc-choice-row.recommended .hc-choice-cta { background: var(--hc-accent); color: #04130b; }
 
 /* ---- Campo ---- */
 .hc-input, .form-input {
@@ -165,9 +189,10 @@ h1, h2, h3, h4 { font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; }
 /* ---- Badge / pílula ---- */
 .hc-badge {
   display: inline-flex; align-items: center; gap: 6px;
-  height: 22px; padding: 0 8px; border-radius: var(--hc-radius-full);
+  min-height: 22px; height: auto; padding: 2px 8px; border-radius: var(--hc-radius-full);
+  max-width: 100%; box-sizing: border-box;
   background: var(--hc-neutral-bg); color: var(--hc-neutral-text);
-  font-size: 11px; font-weight: 600; white-space: nowrap;
+  font-size: 11px; font-weight: 600; line-height: 1.25; white-space: normal;
 }
 .hc-badge.success { background: var(--hc-success-bg); color: var(--hc-success-text); }
 .hc-badge.warning { background: var(--hc-warning-bg); color: var(--hc-warning-text); }

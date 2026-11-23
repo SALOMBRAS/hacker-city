@@ -21,9 +21,10 @@
   background: var(--hc-inset);
   border: 1px solid var(--hc-border);
   border-radius: 8px;
-  width: 290px;
-  min-width: 180px;
-  max-width: 340px;
+  width: 100%;
+  min-width: 110px;
+  max-width: 280px;
+  box-sizing: border-box;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 

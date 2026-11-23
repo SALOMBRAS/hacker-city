@@ -835,34 +835,34 @@
         <div class="nds-card ${overloaded ? 'crimson' : 'amber'}" style="margin-top:12px;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
             <div>
-              <span class="hc-badge ${overloaded ? 'danger' : 'success'}">⚡ FONTE ATUAL: ${esc(psu.name)} (${watts}W / ${psu.maxWatts}W)</span>
-              <span class="hc-badge ${bottlenecked ? 'warn' : 'info'}" style="margin-left:6px;">🔒 Teto CPU p/ Programas: até v${cpuCap.toFixed(1)}</span>
+              <span class="hc-badge ${overloaded ? 'danger' : 'success'}">⚡ SUA FONTE: ${esc(psu.name)} (${watts}W usados de ${psu.maxWatts}W)</span>
+              <span class="hc-badge ${bottlenecked ? 'warn' : 'info'}" style="margin-left:6px;">🔒 Versão máx. dos Programas na sua CPU: até v${cpuCap.toFixed(1)}</span>
               <span class="hc-badge info" style="margin-left:6px;">${esc(stage.title)}</span>
             </div>
-            ${benchRemSec > 0 ? `<span class="hc-badge warn mono">🔧 Montando ${esc(this.state.benchPartLabel)}: ${Math.ceil(benchRemSec / 60)}m restantes</span>` : ''}
+            ${benchRemSec > 0 ? `<span class="hc-badge warn mono">🔧 Instalando ${esc(this.state.benchPartLabel)}: ${Math.ceil(benchRemSec / 60)}m restantes</span>` : ''}
           </div>
           ${overloaded ? `
             <div style="padding:8px 10px;background:#261015;border:1px solid #e5534b;border-radius:7px;font-size:12px;color:#fca5a5;">
-              🚨 <strong>SUBTENSÃO ATIVA (${watts}W &gt; ${psu.maxWatts}W)!</strong> Rodar 2+ tarefas derruba o disjuntor e sua CPU está travada em -50%! Instale uma Fonte maior abaixo:
+              🚨 <strong>FONTE FRACA (${watts}W &gt; ${psu.maxWatts}W)!</strong> Rodar 2 tarefas juntas desliga o PC e deixa sua velocidade pela metade (-50%)! Compre uma Fonte mais forte abaixo:
             </div>
           ` : ''}
           ${bottlenecked ? `
             <div style="padding:8px 10px;background:#241b0c;border:1px solid #f0a83a;border-radius:7px;font-size:12px;color:#fcd34d;">
-              ⚠️ <strong>GARGALO DE CPU ATIVO:</strong> Você possui programas acima de v${cpuCap.toFixed(1)} — eles estão limitados a v${cpuCap.toFixed(1)} e aquecendo +15°C até evoluir seu processador!
+              ⚠️ <strong>PROCESSADOR LIMITANDO SEUS PROGRAMAS:</strong> Seus programas acima de v${cpuCap.toFixed(1)} só rodam até v${cpuCap.toFixed(1)} e esquentam o PC em +15°C até você melhorar a CPU!
             </div>
           ` : ''}
           <div class="nds-grid-3">
             <div class="nds-row">
-              <div><strong>Fonte 180W Genérica</strong><div style="font-size:11px;color:var(--hc-text-2);">Padrão inicial</div></div>
-              <span class="hc-badge">${psu.id === 'psu_180w' ? 'Instalada' : 'Superada'}</span>
+              <div><strong>Fonte 180W Básica</strong><div style="font-size:11px;color:var(--hc-text-2);">Vem no PC inicial</div></div>
+              <span class="hc-badge">${psu.id === 'psu_180w' ? 'Instalada' : 'Trocada'}</span>
             </div>
             <div class="nds-row">
-              <div><strong>Fonte 400W Bronze</strong><div style="font-size:11px;color:var(--hc-text-2);">Suporta Xeon + Air Cooler</div></div>
-              <button type="button" id="btnBuyPsu400w" class="hc-btn ${psu.maxWatts >= 400 ? 'ghost' : 'primary'} sm" ${psu.maxWatts >= 400 ? 'disabled' : ''} onclick="window.progressionLocksEngine.buyPsuUpgrade('psu_400w')">${psu.maxWatts >= 400 ? '✓ OK' : '$ 1.800'}</button>
+              <div><strong>Fonte 400W Bronze</strong><div style="font-size:11px;color:var(--hc-text-2);">Aguenta Xeon + Air Cooler</div></div>
+              <button type="button" id="btnBuyPsu400w" class="hc-btn ${psu.maxWatts >= 400 ? 'ghost' : 'primary'} sm" ${psu.maxWatts >= 400 ? 'disabled' : ''} onclick="window.progressionLocksEngine.buyPsuUpgrade('psu_400w')">${psu.maxWatts >= 400 ? '✓ Instalada' : 'Comprar ($ 1.800)'}</button>
             </div>
             <div class="nds-row">
-              <div><strong style="color:#fcd34d;">Fonte 750W Gold</strong><div style="font-size:11px;color:var(--hc-text-2);">Suporta Quantum Core 16GHz</div></div>
-              <button type="button" id="btnBuyPsu750w" class="hc-btn ${psu.maxWatts >= 750 ? 'ghost' : 'primary'} sm" ${psu.maxWatts >= 750 ? 'disabled' : ''} onclick="window.progressionLocksEngine.buyPsuUpgrade('psu_750w')">${psu.maxWatts >= 750 ? '✓ OK' : '$ 6.500'}</button>
+              <div><strong style="color:#fcd34d;">Fonte 750W Gold</strong><div style="font-size:11px;color:var(--hc-text-2);">Aguenta o PC máximo</div></div>
+              <button type="button" id="btnBuyPsu750w" class="hc-btn ${psu.maxWatts >= 750 ? 'ghost' : 'primary'} sm" ${psu.maxWatts >= 750 ? 'disabled' : ''} onclick="window.progressionLocksEngine.buyPsuUpgrade('psu_750w')">${psu.maxWatts >= 750 ? '✓ Instalada' : 'Comprar ($ 6.500)'}</button>
             </div>
           </div>
         </div>
