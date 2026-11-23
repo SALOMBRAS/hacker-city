@@ -318,9 +318,33 @@
       return s;
     }
 
+    syncStocksFromGlobalMarket() {
+      if (!this.state || !this.state.stocks || !window.mmoGlobalMarket) return;
+      const gStocks = window.mmoGlobalMarket.getGlobalStocks();
+      Object.keys(gStocks).forEach((sym) => {
+        const gs = gStocks[sym];
+        if (!this.state.stocks[sym]) {
+          this.state.stocks[sym] = { ...gs };
+        } else {
+          this.state.stocks[sym].price = Number(gs.price);
+          this.state.stocks[sym].integrity = Number(gs.integrity);
+          this.state.stocks[sym].momentum = Number(gs.momentum || 0);
+          this.state.stocks[sym].circuitBreakerUntil = Number(gs.circuitBreakerUntil || 0);
+          this.state.stocks[sym].recentDropsCount = Number(gs.recentDropsCount || 0);
+          this.state.stocks[sym].lastActorTag = gs.lastActorTag || null;
+          if (Array.isArray(gs.history) && gs.history.length) {
+            this.state.stocks[sym].history = gs.history.slice();
+          }
+        }
+      });
+    }
+
     ensureLoaded() {
       const uid = (window.currentProfile && window.currentProfile.id) || 'guest';
-      if (this.userId === uid && this.state) return this.state;
+      if (this.userId === uid && this.state) {
+        this.syncStocksFromGlobalMarket();
+        return this.state;
+      }
       this.userId = uid;
       let parsed = null;
       try {
@@ -328,6 +352,7 @@
         if (raw) parsed = JSON.parse(raw);
       } catch (e) {}
       this.state = this.normalizeState(parsed);
+      this.syncStocksFromGlobalMarket();
       this.save(true);
       return this.state;
     }
@@ -351,6 +376,7 @@
       if (!snap || typeof snap !== 'object') return;
       this.userId = (window.currentProfile && window.currentProfile.id) || 'guest';
       this.state = this.normalizeState(snap);
+      this.syncStocksFromGlobalMarket();
       this.save(true);
     }
 
@@ -719,13 +745,36 @@
       else if (actionKind === 'ddos') baseDropPct = 0.16;
 
       const finalDropPct = Math.min(0.28, baseDropPct * Number(ev.stockImpactMult || 1) * cctvExtra);
-      const oldPrice = st.price;
-      st.integrity = Math.max(22, +(st.integrity - finalDropPct * 100).toFixed(1));
-      st.price = Math.max(4, +(st.price * (1 - finalDropPct)).toFixed(2));
-      st.momentum = +(st.price - oldPrice).toFixed(2);
-      st.lastSabotagedAt = Date.now();
-      st.history.push(st.price);
-      if (st.history.length > 14) st.history.shift();
+      let oldPrice = st.price;
+      let effectivePct = finalDropPct;
+
+      if (window.mmoGlobalMarket) {
+        const gRes = window.mmoGlobalMarket.applyGlobalStockImpact(corp.symbol, -finalDropPct, actionKind);
+        this.syncStocksFromGlobalMarket();
+        if (!gRes.ok) {
+          if (typeof window.showToast === 'function' && gRes.message) window.showToast(gRes.message);
+          this.save();
+          return {
+            symbol: corp.symbol,
+            oldPrice: gRes.oldPrice,
+            newPrice: gRes.newPrice,
+            dropPct: 0,
+            circuitBreaker: true,
+            code: gRes.code,
+            message: gRes.message
+          };
+        }
+        oldPrice = gRes.oldPrice;
+        effectivePct = Math.abs(gRes.effectiveDeltaPct);
+        st.lastSabotagedAt = Date.now();
+      } else {
+        st.integrity = Math.max(22, +(st.integrity - finalDropPct * 100).toFixed(1));
+        st.price = Math.max(4, +(st.price * (1 - finalDropPct)).toFixed(2));
+        st.momentum = +(st.price - oldPrice).toFixed(2);
+        st.lastSabotagedAt = Date.now();
+        st.history.push(st.price);
+        if (st.history.length > 14) st.history.shift();
+      }
 
       if (this.state.shortPositions[corp.symbol]) {
         this.state.shortPositions[corp.symbol].sabotagedWhileOpen = true;
@@ -780,11 +829,16 @@
       const ev = this.getCurrentGlobalEvent();
       const boostPct = 0.11 * Number(ev.stockImpactMult || 1);
       const oldPrice = st.price;
-      st.integrity = Math.min(125, +(st.integrity + 14).toFixed(1));
-      st.price = +(st.price * (1 + boostPct)).toFixed(2);
-      st.momentum = +(st.price - oldPrice).toFixed(2);
-      st.history.push(st.price);
-      if (st.history.length > 14) st.history.shift();
+      if (window.mmoGlobalMarket) {
+        window.mmoGlobalMarket.applyGlobalStockImpact(corp.symbol, boostPct, 'whitehat_restore');
+        this.syncStocksFromGlobalMarket();
+      } else {
+        st.integrity = Math.min(125, +(st.integrity + 14).toFixed(1));
+        st.price = +(st.price * (1 + boostPct)).toFixed(2);
+        st.momentum = +(st.price - oldPrice).toFixed(2);
+        st.history.push(st.price);
+        if (st.history.length > 14) st.history.shift();
+      }
 
       const resBonus = window.skillTreeEngine ? window.skillTreeEngine.getActiveResonanceBonus() : { contractCashMult: 1 };
       const feeEarned = Math.round(320 * Number(resBonus.contractCashMult || 1));

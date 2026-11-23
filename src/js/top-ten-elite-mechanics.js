@@ -526,22 +526,37 @@
       const idx = this.state.extortionProofs.findIndex((p) => p.id === proofId);
       if (idx < 0) return { success: false, message: 'Prova não encontrada no disco.' };
       const proof = this.state.extortionProofs[idx];
-      this.state.extortionProofs.splice(idx, 1);
 
       let oldPrice = 0;
       let newPrice = 0;
+      if (window.mmoGlobalMarket) {
+        const gRes = window.mmoGlobalMarket.applyGlobalStockImpact(proof.corpSymbol, -0.18, 'cctv_press_leak');
+        if (!gRes.ok) {
+          if (typeof window.showToast === 'function' && gRes.message) window.showToast(gRes.message);
+          return { success: false, code: gRes.code, message: gRes.message };
+        }
+        oldPrice = gRes.oldPrice;
+        newPrice = gRes.newPrice;
+      }
+
+      this.state.extortionProofs.splice(idx, 1);
       if (window.ecosystemHub) {
         window.ecosystemHub.ensureLoaded();
-        const st = window.ecosystemHub.state.stocks && window.ecosystemHub.state.stocks[proof.corpSymbol];
-        if (st) {
-          oldPrice = st.price;
-          st.prevClose = st.price;
-          st.price = Math.max(4, +(st.price * 0.82).toFixed(2)); // -18% queda imediata na CyberStock!
-          st.integrity = Math.max(20, st.integrity - 24);
-          st.history.push(st.price);
-          if (st.history.length > 16) st.history.shift();
-          newPrice = st.price;
+        if (window.mmoGlobalMarket) {
+          window.ecosystemHub.syncStocksFromGlobalMarket();
           window.ecosystemHub.save();
+        } else {
+          const st = window.ecosystemHub.state.stocks && window.ecosystemHub.state.stocks[proof.corpSymbol];
+          if (st) {
+            oldPrice = st.price;
+            st.prevClose = st.price;
+            st.price = Math.max(4, +(st.price * 0.82).toFixed(2));
+            st.integrity = Math.max(20, st.integrity - 24);
+            st.history.push(st.price);
+            if (st.history.length > 16) st.history.shift();
+            newPrice = st.price;
+            window.ecosystemHub.save();
+          }
         }
       }
 
