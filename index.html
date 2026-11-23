@@ -62,6 +62,7 @@
   <script src="src/js/nine-deep-systems-engine.js"></script>
   <script src="src/js/progression-locks-engine.js"></script>
   <script src="src/js/top-ten-elite-mechanics.js"></script>
+  <script src="src/js/progressive-unlock-engine.js"></script>
 </head>
 <body>
 
@@ -3442,19 +3443,23 @@
             <h1 class="home-title">Bem-vindo de volta, ${escapeHtml(currentProfile.hacker_tag)}</h1>
           </div>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button type="button" class="hc-btn primary" onclick="if(window.ecosystemHub) window.ecosystemHub.activeTab='stocks'; navTo('winOpsHub');">
-              ${HC.icon('trending-up')} Bolsa CyberStock &amp; .CCT
-            </button>
+            ${(!window.progressiveUnlockEngine || window.progressiveUnlockEngine.isUnlocked('winOpsHub')) ? `
+              <button type="button" class="hc-btn primary" onclick="if(window.ecosystemHub) window.ecosystemHub.activeTab='stocks'; navTo('winOpsHub');">
+                ${HC.icon('trending-up')} Bolsa de Empresas &amp; Desafios
+              </button>
+            ` : ''}
             <button type="button" id="btnHomeStartTour" class="hc-btn ghost" style="border-color: var(--hc-border);" onclick="if(window.spotlightTour) window.spotlightTour.start(true);">
               ${HC.icon('help-circle')} Tour Guiado
             </button>
-            <button type="button" class="hc-btn" onclick="navTo('winBrowser')">
+            <button type="button" class="hc-btn ${(!window.progressiveUnlockEngine || window.progressiveUnlockEngine.isUnlocked('winOpsHub')) ? '' : 'primary'}" onclick="navTo('winBrowser')">
               ${HC.icon('globe')} Abrir Internet
             </button>
           </div>
         </div>
 
-        ${window.ecosystemHub && typeof window.ecosystemHub.renderHomeStripHtml === 'function' ? window.ecosystemHub.renderHomeStripHtml() : ''}
+        ${window.progressiveUnlockEngine && !window.progressiveUnlockEngine.isUnlocked('winOpsHub')
+          ? window.progressiveUnlockEngine.renderBeginnerHomeGuideHtml()
+          : (window.ecosystemHub && typeof window.ecosystemHub.renderHomeStripHtml === 'function' ? window.ecosystemHub.renderHomeStripHtml() : '')}
 
         <!-- Faixa Unificada de 4 Métricas -->
         <div class="hc-stat-strip">
