@@ -738,6 +738,9 @@
           nextLabel: 'Concluir (+$ 500 Limpos) →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
+            if (window.internetEngine && typeof window.internetEngine.closeCrackerMiniPc === 'function') {
+              window.internetEngine.closeCrackerMiniPc();
+            }
             this.grantDirtyTourSampleOnce();
             if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
           },
@@ -806,6 +809,9 @@
       const root = document.getElementById('hcSpotlightRoot');
       if (root) root.classList.remove('active');
       this.ensureMobileDrawerIfNeeded(false);
+      if (window.internetEngine && typeof window.internetEngine.closeCrackerMiniPc === 'function') {
+        window.internetEngine.closeCrackerMiniPc();
+      }
 
       if (statusValue) {
         this.statusByUid[this.currentUid()] = statusValue;
@@ -1195,6 +1201,13 @@
           ring.style.height = hole.height + 'px';
           if (pill) {
             pill.classList.toggle('below', hole.top < 36);
+            if (hole.left > vw * 0.45) {
+              pill.style.left = 'auto';
+              pill.style.right = '0px';
+            } else {
+              pill.style.left = '0px';
+              pill.style.right = 'auto';
+            }
           }
         } else {
           ring.style.display = 'none';
@@ -1205,12 +1218,13 @@
         const cw = card.offsetWidth || 405;
         const ch = card.offsetHeight || 205;
         const gap = 16;
+        const bottomGap = hole.top < 36 ? 38 : gap;
         const topGap = 36;
         const margin = 12;
 
         const spaceRight = vw - hole.right - gap - margin;
         const spaceLeft = hole.left - gap - margin;
-        const spaceBottom = vh - hole.bottom - gap - margin;
+        const spaceBottom = vh - hole.bottom - bottomGap - margin;
         const spaceTop = hole.top - topGap - margin;
 
         let top = margin;
@@ -1223,7 +1237,7 @@
           left = hole.right + gap;
           top = hole.top;
         } else if (spaceBottom >= ch) {
-          top = hole.bottom + gap;
+          top = hole.bottom + bottomGap;
           left = hole.width > cw ? hole.right - cw : hole.left;
         } else if (spaceTop >= ch) {
           top = hole.top - ch - topGap;
