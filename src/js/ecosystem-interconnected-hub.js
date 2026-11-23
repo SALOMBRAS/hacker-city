@@ -2315,10 +2315,10 @@
             <div class="eco-card-head">
               <div>
                 <div class="eco-card-title">🎭 ${esc(h.title)}</div>
-                <div style="font-size:11.5px;color:var(--hc-text-3);">Alvo: <code>${h.targetIp}</code> (${h.corpSymbol}) · Recompensa base: <strong>$ ${h.cashReward} HC + ${h.catalystGrant} Catalisador</strong></div>
+                <div style="font-size:11.5px;color:var(--hc-text-3);">Alvo: <code>${h.targetIp}</code> (${h.corpSymbol}) · Paga: <strong style="color:#fca5a5;">🩸 $ ${h.cashReward} Sujos + ${h.catalystGrant} Catalisador</strong></div>
               </div>
               <button type="button" id="btnExecHeist_${h.id}" class="hc-btn ${chk.ready && cdRem === 0 ? 'primary' : 'ghost'} sm" ${cdRem > 0 ? 'disabled' : ''} onclick="window.ecosystemHub.executeCrewHeist('${h.id}')">
-                ${cdRem > 0 ? `Aguarde ${cdRem}s` : 'Executar Golpe 4x'}
+                ${cdRem > 0 ? `Aguarde ${cdRem}s` : 'Fazer Roubo 4x'}
               </button>
             </div>
             <div class="eco-card-sub">${esc(h.desc)}</div>
@@ -2333,16 +2333,16 @@
         <div class="eco-card warn">
           <div class="eco-card-head">
             <div>
-              <div class="eco-card-title">⚡ Flash Bounty Corporativo &amp; Plantão Blue-Team</div>
+              <div class="eco-card-title">⚡ Missão Relâmpago &amp; Ajuda de Defesa (Ganha Limpo)</div>
               <div class="eco-card-sub">
                 ${fbActive
-                  ? `Alvo Relâmpago Ativo: sabote <strong>${esc(fb.targetName)} (${fb.targetIp})</strong> em até ${Math.ceil((fb.expiresAt - Date.now()) / 60000)} min para ganhar bônus automático de <strong>+$ ${fb.rewardCash} HC</strong>!`
-                  : 'Alvo relâmpago concluído neste ciclo! Você também pode atender chamados defensivos Blue-Team abaixo para ganhar dinheiro limpo e reduzir seu Heat:'}
+                  ? `Missão Relâmpago: invada <strong>${esc(fb.targetName)} (${fb.targetIp})</strong> em até ${Math.ceil((fb.expiresAt - Date.now()) / 60000)} min para ganhar <strong>+$ ${fb.rewardCash} Limpos</strong> extras!`
+                  : 'Missão relâmpago concluída! Você também pode ajudar na Defesa abaixo usando seu Antivírus para ganhar Dinheiro Limpo na hora e baixar sua Procura:'}
               </div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               ${fbActive ? `<button type="button" class="hc-btn sm" onclick="window.internetEngine.openIp('${fb.targetIp}', 'invadir')">Ir Invadir ${fb.targetIp} →</button>` : ''}
-              <button type="button" id="btnBlueTeamIncident" class="hc-btn primary sm" onclick="window.ecosystemHub.executeBlueTeamIncident()">🧯 Atender Incidente Blue-Team (-Heat)</button>
+              <button type="button" id="btnBlueTeamIncident" class="hc-btn primary sm" onclick="window.ecosystemHub.executeBlueTeamIncident()">🧯 Ajudar na Defesa (+Limpo e -Procura)</button>
             </div>
           </div>
         </div>
@@ -2364,10 +2364,10 @@
             <div class="eco-card-head">
               <div>
                 <div class="eco-card-title">🤖 ${esc(d.name)}</div>
-                <div style="font-size:11.5px;color:var(--hc-text-3);">Requisito de Infraestrutura: ${d.reqVps} VPS (${meetsVps ? 'Disponível ✓' : `Você tem ${vpsCount}`})</div>
+                <div style="font-size:11.5px;color:var(--hc-text-3);">Precisa ter: ${d.reqVps} VPS (${meetsVps ? 'Liberado ✓' : `Você tem ${vpsCount}`})</div>
               </div>
               <button type="button" id="btnToggleCron_${d.id}" class="hc-btn ${active ? 'primary' : 'ghost'} sm" onclick="window.ecosystemHub.toggleCronDaemon('${d.id}')">
-                ${active ? 'Ativo na VPS ✓' : 'Ativar Daemon'}
+                ${active ? 'Ligado na VPS ✓' : 'Ligar Tarefa'}
               </button>
             </div>
             <div class="eco-card-sub">${esc(d.desc)}</div>
@@ -2392,8 +2392,8 @@
         <div class="eco-card accent">
           <div class="eco-card-head">
             <div>
-              <div class="eco-card-title">🖥️ Frota de Automação VPS (CronDaemons Legítimos)</div>
-              <div class="eco-card-sub">Servidores VPS detectados na sua conta: <strong>${vpsCount} VPS</strong>. Cada VPS comprada em <em>Peças do PC</em> ou <em>Servidores &amp; LAN</em> permite automatizar tarefas repetitivas de forma legítima!</div>
+              <div class="eco-card-title">🖥️ Tarefas Automáticas nas Suas VPS</div>
+              <div class="eco-card-sub">Suas VPS ativas hoje: <strong>${vpsCount} VPS</strong>. Quando você compra VPS em <em>Peças do PC</em>, pode ligar tarefas abaixo para colher vírus, apagar rastros e pagar contas sozinho!</div>
             </div>
             <button type="button" class="hc-btn ghost sm" onclick="navTo('winHardware')">Comprar / Ver VPS →</button>
           </div>
@@ -2402,7 +2402,7 @@
         <div class="eco-grid-2">${cronCards}</div>
 
         <div class="eco-card">
-          <div class="eco-card-title">🏆 24 Marcos Sinérgicos do Ecossistema (${unlockedCount}/${ECOSYSTEM_MILESTONES.length} concluídos · +${this.getBonusSkillPoints()} SP Bônus)</div>
+          <div class="eco-card-title">🏆 24 Conquistas do Jogo (${unlockedCount}/${ECOSYSTEM_MILESTONES.length} feitas · +${this.getBonusSkillPoints()} Pontos de Habilidade Bônus)</div>
           <div class="eco-grid-2">${msCards}</div>
         </div>
       `;
