@@ -110,16 +110,16 @@
       },
       pages: [
         {
-          heading: 'Módulo 1/3 — Varredura PortScan & Acesso Root sem Senha',
-          body: 'Rode o PortScan.scan na aba Invadir para mapear as portas 21 (FTP) e 22 (SSH). FTP_Exploit.exp >= Firewall libera arquivos; SSH_Exploit.exp >= Firewall libera comandos; combinar AMBOS concede acesso ROOT imediato sem precisar da senha!'
+          heading: 'Aula 1/3 — Exploits FTP+SSH, Rotas no Mapa-Múndi & Iscas PGP',
+          body: 'Rode o PortScan.scan e combine FTP_Exploit.exp + SSH_Exploit.exp >= Firewall para entrar como ROOT sem senha! Atenção: servidores Nível 3+ exigem ligar 2+ cidades de salto no Mapa-Múndi (atacar direto gera bloqueio 403 e +2 de Procura!). E no portal hc://vazamentos, sempre confira a assinatura PGP antes de usar um vazamento para não cair em isca policial.'
         },
         {
-          heading: 'Módulo 2/3 — Auditoria e Dreno de Contas Bancárias',
-          body: 'Em contratos financeiros, invada o servidor indicado para descobrir o número da conta e auditar saldos ou transferir valores entre os bancos internacionais da rede.'
+          heading: 'Aula 2/3 — Vitrine Global de Lavagem (5/1h) & Bolsa Unificada',
+          body: 'Na Vitrine Global aparecem 5 empresas por hora (empresas anunciadas por jogadores reais por $ 10.000 + Bots completando vagas; máx. 3 lavagens/dia na mesma dupla). Já na Bolsa CyberStock, os preços das 8 empresas são compartilhados entre todos os jogadores: aposte na queda (Short), apague as câmeras CFTV da empresa para derrubar a ação e lucre Dinheiro Limpo! (3 ataques em 10m ativam o Circuit Breaker de proteção).'
         },
         {
-          heading: 'Módulo 3/3 — Câmeras de Segurança CFTV Ao Vivo & Queima de DVR',
-          body: 'Ao invadir empresas corporativas, você pode acessar o circuito interno CFTV ao vivo para desativar todas as câmeras (ajudando operações de roubo) ou apagar gravações comprometedoras em /var/nvr/recordings!'
+          heading: 'Aula 3/3 — Mural de Serviços do Fórum (Reserva Exclusiva de 30 min)',
+          body: 'No Fórum você pode contratar outro jogador com pagamento garantido ($ 2.000 a $ 25.000 Limpos + 15% taxa) ou pegar serviços disponíveis com 30 minutos de exclusividade para ganhar Dinheiro Sujo (atrasar custa -35 REP). Contratos ainda abertos podem ser cancelados pelo criador, mas os 15% de taxa não voltam.'
         }
       ]
     },
