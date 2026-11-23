@@ -377,9 +377,9 @@
 
       const wrap = document.createElement('div');
       wrap.id = 'hcUnlockPreviewModal';
-      wrap.style.cssText = 'position:fixed;inset:0;z-index:9997;background:rgba(4,8,14,0.86);display:grid;place-items:center;padding:16px;';
+      wrap.style.cssText = 'position:fixed;inset:0;z-index:9997;background:rgba(4,8,14,0.86);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;';
       wrap.innerHTML = `
-        <div class="hc-card" style="max-width:500px;width:100%;padding:22px 24px;border-color:rgba(56,189,248,0.5);background:#0b1119;">
+        <div class="hc-card" style="max-width:500px;width:100%;margin:auto;padding:18px 18px;border-color:rgba(56,189,248,0.5);background:#0b1119;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
             <span class="hc-badge info">🔒 PRÓXIMA LIBERAÇÃO · DEGRAU ${meta.step}/4</span>
             <button type="button" class="hc-btn ghost sm" onclick="window.progressiveUnlockEngine.closeUnlockModal()">✕</button>

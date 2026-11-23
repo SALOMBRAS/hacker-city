@@ -2032,9 +2032,9 @@
 
       const wrap = document.createElement('div');
       wrap.id = 'hcBufferOverflowModal';
-      wrap.style.cssText = 'position:fixed;inset:0;z-index:9995;background:rgba(5,8,14,0.86);display:grid;place-items:center;padding:16px;';
+      wrap.style.cssText = 'position:fixed;inset:0;z-index:9995;background:rgba(5,8,14,0.86);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;';
       wrap.innerHTML = `
-        <div class="hc-card" style="max-width:540px;width:100%;padding:20px 22px;border-color:var(--hc-warning);background:#0c1118;">
+        <div class="hc-card" style="max-width:540px;width:100%;margin:auto;padding:18px 18px;border-color:var(--hc-warning);background:#0c1118;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
             <span class="hc-badge warn">🧨 VIRAR ROOT SEM SENHA (12 SEGUNDOS)</span>
             <strong id="boModalCountdown" class="mono" style="color:#f87171;font-size:16px;">${m.secondsLeft}s</strong>

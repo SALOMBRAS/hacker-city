@@ -250,6 +250,43 @@
           .hc-tour-footer button {
             white-space: nowrap;
           }
+          @media (max-width: 640px) {
+            #hcTourCard {
+              width: calc(100vw - 20px);
+              max-height: 46vh;
+              overflow-y: auto;
+              padding: 11px 13px;
+            }
+            #hcTourCardTitle {
+              font-size: 14.2px;
+              margin-bottom: 5px;
+            }
+            #hcTourCardDesc {
+              font-size: 12.1px;
+              line-height: 1.42;
+              margin-bottom: 7px;
+            }
+            #hcTourActionHint {
+              font-size: 11.5px;
+              padding: 6px 9px;
+              margin-bottom: 8px;
+            }
+            #hcTourPointerPill {
+              font-size: 10.5px;
+              padding: 2px 8px;
+              max-width: calc(100vw - 24px);
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+          }
+          @media (max-width: 420px) {
+            .hc-tour-dots {
+              display: none;
+            }
+            .hc-tour-footer {
+              justify-content: flex-end;
+            }
+          }
         `;
         document.head.appendChild(st);
       }
@@ -712,10 +749,13 @@
     }
 
     ensureMobileDrawerIfNeeded(wantSidebarOpen) {
-      const sb = document.querySelector('.sidebar');
-      if (!sb) return;
       if (window.innerWidth <= 860) {
-        sb.classList.toggle('mobile-open', !!wantSidebarOpen);
+        if (typeof window.toggleMobileSidebar === 'function') {
+          window.toggleMobileSidebar(!!wantSidebarOpen);
+        } else {
+          const sb = document.querySelector('.sidebar');
+          if (sb) sb.classList.toggle('mobile-open', !!wantSidebarOpen);
+        }
       }
     }
 
@@ -922,7 +962,7 @@
         const target = this.resolveTargetElement(step);
         if (target) {
           try {
-            target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            target.scrollIntoView({ block: window.innerWidth <= 860 ? 'center' : 'nearest', inline: 'center' });
           } catch (e) {}
           this.bindDirectTargetInteraction(step, target);
         }
@@ -932,8 +972,33 @@
 
     resolveTargetElement(step) {
       if (!step) return null;
-      if (step.id === 'choose_minipc_hash' && window.internetEngine && window.internetEngine.isCracking) {
-        return document.getElementById('cardAttackBruteforce') || document.querySelector(step.selector);
+      const isCompact = window.innerWidth <= 860;
+      if (step.id === 'choose_minipc_hash') {
+        if (window.internetEngine && window.internetEngine.isCracking) {
+          return document.getElementById('cardAttackBruteforce') || document.querySelector(step.selector);
+        }
+        if (isCompact) {
+          const bestBtn = document.getElementById('btnMiniPcUseBest') || document.querySelector('#miniPcCrackerWindow button[onclick*="confirmBruteforceWithHash"]');
+          if (bestBtn && bestBtn.offsetWidth > 0) return bestBtn;
+        }
+      }
+      if (isCompact) {
+        if (step.id === 'running_ram_cooldown') {
+          const compactRam = document.querySelector('#softwareExplorerMain .soft-tabs-bar') || document.getElementById('runningProgramsPanel');
+          if (compactRam && compactRam.offsetWidth > 0) return compactRam;
+        }
+        if (step.id === 'upload_virus_stage') {
+          const upBtn = document.getElementById('btnUploadVirusStage') || document.getElementById('btnDeployRemoteVirus');
+          if (upBtn && upBtn.offsetWidth > 0) return upBtn;
+        }
+        if (step.id === 'execute_staged_virus') {
+          const exBtn = document.getElementById('btnExecStagedVirus_vspam') || document.querySelector('[id^="btnExecStagedVirus_"]');
+          if (exBtn && exBtn.offsetWidth > 0) return exBtn;
+        }
+        if (step.id === 'wipe_log_and_taunt') {
+          const wipeBtn = document.getElementById('btnQuickWipeAndTaunt');
+          if (wipeBtn && wipeBtn.offsetWidth > 0) return wipeBtn;
+        }
       }
       let el = document.querySelector(step.selector);
       if ((!el || el.offsetWidth === 0) && step.fallbackSelector) {
@@ -1087,6 +1152,14 @@
       const ring = document.getElementById('hcTourRing');
       const pill = document.getElementById('hcTourPointerPill');
       const card = document.getElementById('hcTourCard');
+      if (vw <= 680 && hole.width > 0 && card) {
+        const chEst = card.offsetHeight || 220;
+        const maxHoleH = Math.max(96, vh - chEst - 44);
+        if (hole.height > maxHoleH) {
+          hole.height = maxHoleH;
+          hole.bottom = hole.top + hole.height;
+        }
+      }
 
       if (mTop) {
         mTop.style.top = '0px';
