@@ -939,7 +939,7 @@
               ? window.onlineEngine.findAnyPlayerByTag(b.targetTag)
               : null;
             return `
-              <div class="hc-card" style="padding:0.95rem 1.15rem;border-color:rgba(240,168,58,0.45);display:grid;grid-template-columns:minmax(190px,1.2fr) minmax(220px,1.6fr) minmax(135px,0.9fr) auto;gap:12px;align-items:center;">
+              <div class="hc-card hc-responsive-row-grid" style="padding:0.95rem 1.15rem;border-color:rgba(240,168,58,0.45);display:grid;grid-template-columns:minmax(190px,1.2fr) minmax(220px,1.6fr) minmax(135px,0.9fr) auto;gap:12px;align-items:center;">
                 <div>
                   <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                     <span class="hc-badge danger">ALVO PROCURADO</span>
@@ -985,7 +985,7 @@
         <div style="display:flex;flex-direction:column;gap:12px;">
           <div class="hc-card" style="padding:1.1rem 1.2rem;border-color:rgba(208,68,58,0.45);background:rgba(208,68,58,0.06);">
             <div class="hc-eyebrow" style="margin-bottom:6px;">💀 Publicar Contrato de Vingança por Nick (Quando o invasor apagou o IP e deixou só o Nome na Farpa!)</div>
-            <div style="display:grid;grid-template-columns:minmax(160px,1fr) 150px minmax(220px,1.6fr) auto;gap:8px;align-items:center;">
+            <div class="hc-responsive-row-grid" style="display:grid;grid-template-columns:minmax(160px,1fr) 150px minmax(220px,1.6fr) auto;gap:8px;align-items:center;">
               <input type="text" id="bountyTargetNickInput" class="form-input" placeholder="Nick do Alvo (ex: ShadowViper)">
               <input type="number" id="bountyRewardCashInput" class="form-input" min="300" step="50" value="500" style="font-family:var(--hc-font-mono);" placeholder="Prêmio ($ HC)">
               <input type="text" id="bountyReasonInput" class="form-input" placeholder="Motivo (ex: Apagou o IP e me xingou na log!)">
