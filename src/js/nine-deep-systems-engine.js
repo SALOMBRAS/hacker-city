@@ -526,14 +526,14 @@
         <div class="nds-card ${del.allowBribe ? 'amber' : 'crimson'}" style="margin-bottom:14px;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
             <div>
-              <span class="hc-badge ${del.badgeCls}">COMANDO EM EXERCÍCIO (ROTAÇÃO 6H)</span>
+              <span class="hc-badge ${del.badgeCls}">DELEGADO DE PLANTÃO (TROCA A CADA 6H)</span>
               <strong style="font-size:15px;margin-left:8px;color:#fff;">${esc(del.name)}</strong>
               <span class="hc-badge info" style="margin-left:6px;">${esc(del.archetype)}</span>
             </div>
             <button type="button" id="btnAttemptDelegateBribe" class="hc-btn ${del.allowBribe ? 'primary' : 'ghost'} sm"
               style="${!del.allowBribe ? 'border-color:var(--hc-danger);color:var(--hc-danger-text);' : ''}"
               onclick="window.nineSystemsEngine.attemptPoliceBribe()">
-              ${del.allowBribe ? `🕶️ Pagar Propina (${fmtMoney(del.bribeCostClean)} Limpos)` : `⚠️ Tentar Suborno (${fmtMoney(del.bribeCostClean)} · ALTO RISCO)`}
+              ${del.allowBribe ? `🕶️ Pagar Propina (${fmtMoney(del.bribeCostClean)} Limpos)` : `⚠️ Tentar Suborno (${fmtMoney(del.bribeCostClean)} · PERIGOSO!)`}
             </button>
           </div>
           <div class="nds-pros-cons">
@@ -541,13 +541,13 @@
             <div class="nds-pc-box con"><strong>⚠️ ${esc(del.conText)}</strong></div>
           </div>
           <details class="nds-rules-drawer">
-            <summary>📖 Regras de Funcionamento dos 4 Delegados FBI/Safenet (Rotação 6h Reais)</summary>
+            <summary>📖 Como funcionam os 4 Delegados da Polícia (Troca a cada 6h reais)</summary>
             <ol class="nds-rules-list">
-              <li><strong>Troca de Comando:</strong> A cada <strong>6 horas reais</strong> (00h, 06h, 12h, 18h) assume automaticamente 1 dos 4 delegados para todo o servidor.</li>
-              <li><strong>Comissário Vargas (Venal):</strong> Aceita propina por <strong>$ 270 Limpos</strong> (-2 níveis de Heat e limpa cola policial), porém cobra Fiança +40% mais cara (<strong>$ 910 Limpos</strong>) se você for preso.</li>
-              <li><strong>Diretora Kovács (Incorruptível):</strong> Paga <strong>+35% em dinheiro limpo</strong> em todas as capturas de Procurados do FBI, mas tentar suborná-la confisca seus <strong>$ 450 Limpos</strong> e joga seu Heat direto para <strong>5/5</strong>!</li>
-              <li><strong>Agente Sterling (Colarinho Branco):</strong> Paga +15% Bounties e aceita propina cara ($ 550), mas aplica <strong>Tolerância Zero</strong>: prende já na <strong>1ª tentativa</strong> de gastar Dinheiro Sujo (sem aviso prévio!).</li>
-              <li><strong>Inspetor Sato (Perito Forense):</strong> Paga +25% Bounties e dá -30% no Protocolo Fênix, mas rejeita suborno (confisca $ 500 + Heat 5/5) e faz as Sombras Magnéticas de logs durarem <strong>10 minutos reais</strong> (o dobro do padrão).</li>
+              <li><strong>Troca de Plantão:</strong> A cada <strong>6 horas da vida real</strong> (00h, 06h, 12h, 18h) muda o delegado no comando para todo o jogo.</li>
+              <li><strong>Comissário Vargas (Aceita Propina):</strong> Aceita <strong>$ 270 Limpos</strong> para baixar -2 níveis de procura e tirar a polícia da sua cola, mas cobra Fiança mais cara (<strong>$ 910 Limpos</strong>) se você for preso.</li>
+              <li><strong>Diretora Kovács (Honesta):</strong> Paga <strong>+35% em Dinheiro Limpo</strong> quando você captura Procurados, mas se tentar suborná-la você perde <strong>$ 450 Limpos</strong> e vira Procurado Nível 5 na hora!</li>
+              <li><strong>Agente Sterling (Rigoroso):</strong> Paga +15% nas capturas e aceita propina cara ($ 550), mas <strong>prende já na 1ª tentativa</strong> de gastar Dinheiro Sujo sem aviso!</li>
+              <li><strong>Inspetor Sato (Detetive):</strong> Paga +25% nas capturas, rejeita suborno (perde $ 500 + Nível 5) e faz os rastros apagados comuns ficarem visíveis no disco por <strong>10 minutos reais</strong> (o dobro do normal).</li>
             </ol>
           </details>
         </div>
@@ -1258,38 +1258,38 @@
         <div class="nds-card ${tel.throttling ? 'crimson' : 'emerald'}" style="margin-top:14px;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
             <div>
-              <span class="hc-badge ${badgeCls}">🌡️ TERMODINÂMICA DA CPU: ${tel.tempC}°C (${tel.throttling ? 'THROTTLING -20%' : 'IDEAL'})</span>
-              <strong style="margin-left:8px;">${esc(tel.cooler.name)} ${tel.pasteFresh ? '+ Pasta Prata Ativa' : '(Pasta Seca)'}</strong>
+              <span class="hc-badge ${badgeCls}">🌡️ TEMPERATURA DO PC: ${tel.tempC}°C (${tel.throttling ? 'MUITO QUENTE · -20% LENTO' : 'NORMAL'})</span>
+              <strong style="margin-left:8px;">${esc(tel.cooler.name)} ${tel.pasteFresh ? '+ Pasta Prata Nova' : '(Pasta Seca)'}</strong>
             </div>
             <button type="button" id="btnToggleColdOverclock" class="hc-btn ${tel.coldOverclockOn ? 'primary' : 'ghost'} sm" onclick="window.nineSystemsEngine.toggleColdOverclock()">
-              ❄️ ${tel.coldOverclockOn ? 'Overclock Frio ON (+22% CPU)' : 'Ativar Overclock Frio (+22%)'}
+              ❄️ ${tel.coldOverclockOn ? 'Turbo Frio LIGADO (+22% Vel.)' : 'Ligar Turbo Frio (+22% Vel.)'}
             </button>
           </div>
           <div class="nds-pros-cons">
-            <div class="nds-pc-box pro"><strong>✅ Lado Bom:</strong> Com Watercooler 360mm você ganha <strong>+22% velocidade real de CPU/Cracker</strong> sem subir 1 centavo na conta de Energia das 12:00!</div>
-            <div class="nds-pc-box con"><strong>⚠️ Lado Negativo:</strong> Empilhar 4+ tarefas sem refrigeração passa de 80°C aplicando <strong>-20% lentidão (Thermal Throttling)</strong>, e a pasta térmica resseca após 7h!</div>
+            <div class="nds-pc-box pro"><strong>✅ Lado Bom:</strong> Com o Watercooler 360mm você liga o <strong>Turbo Frio (+22% velocidade)</strong> sem aumentar sua conta de Luz das 12h!</div>
+            <div class="nds-pc-box con"><strong>⚠️ Lado Negativo:</strong> Rodar 4+ tarefas juntas sem cooler passa de 80°C e deixa seu PC <strong>-20% mais lento</strong> até esfriar, e a pasta seca após 7h!</div>
           </div>
           <div class="nds-grid-3">
             <div class="nds-row">
-              <div><strong>Pasta Térmica Prata</strong><div style="font-size:11px;color:var(--hc-text-2);">-9°C por 7h reais</div></div>
-              <button type="button" id="btnBuyPasteSilver" class="hc-btn sm" onclick="window.nineSystemsEngine.buyCoolingUpgrade('paste_silver')">$ 250</button>
+              <div><strong>Pasta Térmica Prata</strong><div style="font-size:11px;color:var(--hc-text-2);">Esfria -9°C por 7h reais</div></div>
+              <button type="button" id="btnBuyPasteSilver" class="hc-btn sm" onclick="window.nineSystemsEngine.buyCoolingUpgrade('paste_silver')">Comprar ($ 250)</button>
             </div>
             <div class="nds-row">
-              <div><strong>Air Cooler Duplo</strong><div style="font-size:11px;color:var(--hc-text-2);">-16°C (+12W fonte)</div></div>
-              <button type="button" id="btnBuyAirDual" class="hc-btn sm" onclick="window.nineSystemsEngine.buyCoolingUpgrade('air_dual')">$ 850</button>
+              <div><strong>Air Cooler Duplo</strong><div style="font-size:11px;color:var(--hc-text-2);">Esfria -16°C (+12W luz)</div></div>
+              <button type="button" id="btnBuyAirDual" class="hc-btn sm" onclick="window.nineSystemsEngine.buyCoolingUpgrade('air_dual')">Comprar ($ 850)</button>
             </div>
             <div class="nds-row" style="border-color:rgba(53,184,119,0.5);">
-              <div><strong style="color:#6ee7b7;">Watercooler 360mm</strong><div style="font-size:11px;color:var(--hc-text-2);">-28°C · Libera +22% Frio!</div></div>
-              <button type="button" id="btnBuyWater360" class="hc-btn primary sm" onclick="window.nineSystemsEngine.buyCoolingUpgrade('water_360')">$ 2.400</button>
+              <div><strong style="color:#6ee7b7;">Watercooler 360mm</strong><div style="font-size:11px;color:var(--hc-text-2);">Esfria -28°C · Libera +22% Vel.!</div></div>
+              <button type="button" id="btnBuyWater360" class="hc-btn primary sm" onclick="window.nineSystemsEngine.buyCoolingUpgrade('water_360')">Comprar ($ 2.400)</button>
             </div>
           </div>
           <details class="nds-rules-drawer">
-            <summary>📖 Regras de Funcionamento da Termodinâmica Física (°C, Pasta &amp; Coolers)</summary>
+            <summary>📖 Como funciona a Temperatura do PC, Pasta e Coolers</summary>
             <ol class="nds-rules-list">
-              <li><strong>Fórmula em Tempo Real:</strong> <code>38°C base + (12°C × processos ativos) + (3°C × vírus ativos, máx +9°C) + calor temporário EMP/Shred (+12°C) − redução do Cooler − redução da Pasta</code> (limitado entre 31°C e 98°C).</li>
-              <li><strong>Peças &amp; Duração (100% Dinheiro Limpo):</strong> Pasta Prata ($ 250) reduz <strong>-9°C por exatas 7 horas reais</strong> e depois seca; Air Cooler Duplo ($ 850) reduz <strong>-16°C</strong> fixos, mas adiciona <strong>+12 Watts</strong> na conta de Luz das 12:00; Watercooler 360mm ($ 2.400) reduz <strong>-28°C</strong> fixos com <strong>+0 Watts</strong> extras.</li>
-              <li><strong>Overclock Frio (+22%):</strong> Exclusivo para quem tem Watercooler 360mm instalado — acelera CPU/Cracker em <strong>1.22x</strong> sem cobrar +$ 0 de luz extra.</li>
-              <li><strong>Thermal Throttling (&ge; 80°C):</strong> Se bater 80°C ou mais, a CPU reduz automaticamente a velocidade para <strong>0.80x (-20%)</strong> até esfriar. Superaquecer <strong>jamais quebra ou apaga suas peças</strong>.</li>
+              <li><strong>O que esquenta o PC:</strong> Começa em 38°C e sobe +12°C para cada tarefa rodando ao mesmo tempo (mais +3°C por vírus ativo). Melhorar o Esconderijo (Studio -5°C / Bunker -12°C) e instalar coolers esfriam o PC.</li>
+              <li><strong>Peças de Resfriamento (Dinheiro Limpo):</strong> Pasta Prata ($ 250) esfria <strong>-9°C por 7 horas reais</strong>; Air Cooler ($ 850) esfria <strong>-16°C</strong> fixos (+12W de consumo); Watercooler 360mm ($ 2.400) esfria <strong>-28°C</strong> sem gastar energia extra.</li>
+              <li><strong>Turbo Frio (+22%):</strong> Liberado quando você instala o Watercooler 360mm — deixa seu PC <strong>+22% mais rápido</strong> sem subir a conta de luz.</li>
+              <li><strong>Passou de 80°C:</strong> O PC fica <strong>-20% mais lento</strong> para se proteger até a temperatura baixar (o calor nunca queima nem apaga suas peças!).</li>
             </ol>
           </details>
         </div>
