@@ -1,0 +1,207 @@
+const puppeteer = require('puppeteer');
+const assert = require('assert');
+
+(async () => {
+  const browser = await puppeteer.launch({
+    headless: 'new',
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--window-size=390,844']
+  });
+  const page = await browser.newPage();
+  page.on('dialog', async (d) => { try { await d.accept(); } catch (e) {} });
+
+  const BASE_URL = process.env.HC_BASE_URL || 'http://localhost:8080/hacker-city-web/index.html';
+
+  // 1. Auth Portal em 360x800 (Android compacto): Login, Cadastro, OTP e 1-Clique roláveis sem corte
+  await page.setViewport({ width: 360, height: 800, isMobile: true, hasTouch: true });
+  await page.goto(BASE_URL, { waitUntil: 'networkidle2' });
+  await new Promise((r) => setTimeout(r, 250));
+
+  for (const tab of ['login', 'register', 'verify']) {
+    const authRes = await page.evaluate((t) => {
+      if (t === 'verify') {
+        document.querySelectorAll('.auth-form').forEach((f) => f.classList.remove('active'));
+        document.getElementById('formVerify')?.classList.add('active');
+      } else if (typeof window.switchAuthTab === 'function') {
+        window.switchAuthTab(t);
+      }
+      const overlay = document.getElementById('authOverlay');
+      const card = document.querySelector('.auth-card');
+      const oSt = window.getComputedStyle(overlay);
+      const r = card.getBoundingClientRect();
+      return {
+        overflowY: oSt.overflowY,
+        top: Math.round(r.top),
+        right: Math.round(r.right),
+        vw: window.innerWidth
+      };
+    }, tab);
+    assert.ok(authRes.overflowY === 'auto' || authRes.overflowY === 'scroll', `Auth ${tab} deve permitir rolagem vertical`);
+    assert.ok(authRes.top >= 0 && authRes.right <= authRes.vw + 1, `Auth ${tab} não pode cortar topo/direita em 360x800`);
+  }
+
+  // Entrar no jogo e preparar estado completo (incluindo pior caso HC_SIDEBAR_COLLAPSED=1)
+  await page.evaluate(async () => {
+    window.DISABLE_AUTO_TOUR = true;
+    localStorage.setItem('HC_DISABLE_AUTO_TOUR', '1');
+    localStorage.setItem('HC_SIDEBAR_COLLAPSED', '1');
+    await window.enterInstantOperatorMode();
+    if (window.spotlightTour?.finishTour) window.spotlightTour.finishTour(true);
+    window.integrityGuard.runAuthorized(() => {
+      window.currentWallet.balance = 250000;
+      window.currentProfile.reputation = 1600;
+    });
+    window.progressiveUnlockEngine?.toggleVeteranShowAll(true);
+    window.nineSystemsEngine.addDirtyMoney(8500, 'MobileE2E');
+    if (!window.clanEngine.getMyClan()) window.clanEngine.createClan('MobileOps', 'MOB', 'Mobile Suite');
+    const host = window.internetEngine.resolveHost('203.17.88.40');
+    window.hackedDb.upsertHost({ ip: '203.17.88.40', hostname: 'Farofa Systems B2B', kind: 'empresa', sshUser: 'root', password: host.rootPassword, accessMethod: 'password' });
+  });
+  await new Promise((r) => setTimeout(r, 350));
+
+  // 2. Topbar, Gaveta c/ Backdrop, Busca Rápida de IP e Revelação de IP por Toque em 390x844
+  await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+  const shellRes = await page.evaluate(() => {
+    const topbar = document.querySelector('.topbar');
+    const btcVis = !!document.getElementById('hudBtcChip')?.offsetParent;
+    const repVis = !!document.getElementById('hudReputation')?.closest('.topbar-metric')?.offsetParent;
+
+    // Gaveta mobile abre, mantém rótulos visíveis e fecha pelo backdrop
+    document.getElementById('btnMobileNavToggle').click();
+    const sb = document.querySelector('.sidebar');
+    const opened = sb.classList.contains('mobile-open');
+    const labelVis = window.getComputedStyle(document.querySelector('#navBtnHome .nav-direct-label')).display !== 'none';
+    document.getElementById('hcMobileDrawerBackdrop').click();
+    const closedByBackdrop = !sb.classList.contains('mobile-open');
+
+    // Barra rápida de IP no celular
+    document.getElementById('btnMobileIpQuick').click();
+    const ipBarOpen = document.getElementById('hcMobileIpDrawerBar').classList.contains('open');
+    window.toggleMobileIpBar(false);
+
+    // 1º toque revela IP; 2º toque abre ISP 71.4.5.1
+    const ipChip = document.getElementById('hudMyIpChip');
+    ipChip.classList.remove('ip-revealed');
+    ipChip.click();
+    const firstTapRevealed = ipChip.classList.contains('ip-revealed');
+    ipChip.click();
+    const secondTapOpenedIsp = window.winManager.current === 'winBrowser' && window.internetEngine.currentIp === '71.4.5.1';
+
+    return {
+      topbarOverflow: topbar.scrollWidth > topbar.clientWidth + 1,
+      btcVis, repVis, opened, labelVis, closedByBackdrop, ipBarOpen, firstTapRevealed, secondTapOpenedIsp
+    };
+  });
+  assert.strictEqual(shellRes.topbarOverflow, false, 'Topbar não pode estourar horizontalmente no celular');
+  assert.ok(shellRes.btcVis && shellRes.repVis, 'Chips de Bitcoin e Reputação devem ficar acessíveis na faixa mobile');
+  assert.ok(shellRes.opened && shellRes.labelVis && shellRes.closedByBackdrop, 'Gaveta mobile deve abrir c/ rótulos e fechar pelo backdrop');
+  assert.ok(shellRes.ipBarOpen, 'Botão rápido de IP no celular deve abrir barra de endereço');
+  assert.ok(shellRes.firstTapRevealed && shellRes.secondTapOpenedIsp, '1º toque deve revelar IP e 2º toque abrir Provedor ISP');
+
+  // 3. Varredura de todas as 27 telas + abas + modais em 390x844, 360x800 e 768x1024
+  const screens = [
+    ['winHome', () => window.navTo('winHome')],
+    ['winBrowser:dir', () => { window.navTo('winBrowser'); window.internetEngine.goHome?.(); }],
+    ['winBrowser:invadir', () => window.internetEngine.openIp('203.17.88.40', 'invadir')],
+    ['winBrowser:minipc', () => { window.internetEngine.openIp('203.17.88.40', 'invadir'); window.internetEngine.openCrackerMiniPc('all'); }],
+    ['winBrowser:ssh', () => { window.internetEngine.closeCrackerMiniPc(); window.internetEngine.openIp('203.17.88.40', 'entrar'); }],
+    ['winBrowser:cctv', () => window.internetEngine.openCompanyCctv('203.17.88.40')],
+    ['winSoftware', () => window.navTo('winSoftware')],
+    ['winHardware:overview', () => { window.navTo('winHardware'); window.hardwareEngine.setTab('overview'); }],
+    ['winHardware:upgrade', () => { window.navTo('winHardware'); window.hardwareEngine.setTab('upgrade'); }],
+    ['winHardware:xhd', () => { window.navTo('winHardware'); window.hardwareEngine.setTab('xhd'); }],
+    ['winTaskManager', () => window.navTo('winTaskManager')],
+    ['winLogs', () => window.navTo('winLogs')],
+    ['winHackedDb', () => window.navTo('winHackedDb')],
+    ['winUniversity', () => window.navTo('winUniversity')],
+    ['winBank', () => window.navTo('winBank')],
+    ['winBitcoin', () => window.navTo('winBitcoin')],
+    ['winQuitinete', () => window.navTo('winQuitinete')],
+    ['winLaundering:vitrine', () => { window.navTo('winLaundering'); window.nineSystemsEngine.activeLaunderingTab = 'vitrine'; window.nineSystemsEngine.renderLaunderingHub(); }],
+    ['winLaundering:company', () => { window.navTo('winLaundering'); window.nineSystemsEngine.activeLaunderingTab = 'company'; window.nineSystemsEngine.renderLaunderingHub(); }],
+    ['winOpsHub:stocks', () => { window.navTo('winOpsHub'); window.ecosystemHub.switchTab('stocks'); }],
+    ['winOpsHub:minigames', () => { window.navTo('winOpsHub'); window.ecosystemHub.switchTab('minigames'); }],
+    ['winOpsHub:elite', () => { window.navTo('winOpsHub'); window.ecosystemHub.switchTab('elite'); }],
+    ['winSkillTree', () => window.navTo('winSkillTree')],
+    ['winVirusLab', () => window.navTo('winVirusLab')],
+    ['winWorldMap', () => window.navTo('winWorldMap')],
+    ['winLan', () => window.navTo('winLan')],
+    ['winConnManager', () => window.navTo('winConnManager')],
+    ['winOnline', () => window.navTo('winOnline')],
+    ['winMissions', () => window.navTo('winMissions')],
+    ['winFbi', () => window.navTo('winFbi')],
+    ['winClan', () => window.navTo('winClan')],
+    ['winForum', () => window.navTo('winForum')],
+    ['winNews', () => window.navTo('winNews')],
+    ['winRanking', () => window.navTo('winRanking')],
+    ['winMail', () => window.navTo('winMail')],
+    ['winIrc', () => window.navTo('winIrc')],
+    ['winTerminal', () => window.navTo('winTerminal')],
+    ['winArcade', () => window.navTo('winArcade')],
+    ['winPanic', () => window.navTo('winPanic')],
+    ['winProfile', () => window.navTo('winProfile')],
+    ['modal:dirtyBridge', () => window.nineSystemsEngine.openDirtyMoneyBridgeModal('Intel Pentium 4', 950)],
+    ['modal:bufferOverflow', () => { window.nineSystemsEngine.closeDirtyMoneyBridgeModal(); window.topTenMechanics.openBufferOverflowModal('58.40.12.9'); }],
+    ['modal:activeDefense', () => { document.getElementById('hcBufferOverflowModal')?.remove(); window.nineSystemsEngine.triggerActiveDefensePopover({ originIp: '91.134.72.19', originAlias: 'nyx_0day' }); }],
+    ['modal:unlockPreview', () => { window.nineSystemsEngine.activeDefenseAlert = null; window.nineSystemsEngine.renderDefensePopoverDom(); window.progressiveUnlockEngine.showUnlockHintModal('winOpsHub'); }]
+  ];
+
+  const layoutIssues = [];
+  for (const vp of [{ width: 390, height: 844 }, { width: 360, height: 800 }, { width: 768, height: 1024 }]) {
+    await page.setViewport({ width: vp.width, height: vp.height, isMobile: vp.width < 768, hasTouch: true });
+    await page.evaluate(() => {
+      window.nineSystemsEngine.closeDirtyMoneyBridgeModal();
+      document.getElementById('hcBufferOverflowModal')?.remove();
+      window.nineSystemsEngine.activeDefenseAlert = null;
+      window.nineSystemsEngine.renderDefensePopoverDom();
+      document.getElementById('hcUnlockPreviewModal')?.remove();
+    });
+    for (const [label, fn] of screens) {
+      await page.evaluate(fn);
+      await new Promise((r) => setTimeout(r, 65));
+      const errs = await page.evaluate((tag) => {
+        const out = [];
+        const vw = window.innerWidth;
+        if (document.documentElement.scrollWidth > vw + 2) out.push(`${tag}:docOverflow(${document.documentElement.scrollWidth}>${vw})`);
+        const activeWin = Array.from(document.querySelectorAll('.window-frame')).find((w) => w.offsetParent !== null);
+        const wb = activeWin?.querySelector('.window-body');
+        if (wb && wb.scrollWidth > wb.clientWidth + 4) out.push(`${tag}:winBodyOverflow(${wb.scrollWidth}>${wb.clientWidth})`);
+        return out;
+      }, `${vp.width}x${vp.height}:${label}`);
+      layoutIssues.push(...errs);
+    }
+  }
+  assert.deepStrictEqual(layoutIssues, [], `Encontrados estouros mobile/tablet: ${layoutIssues.join(', ')}`);
+
+  // 4. Todos os 14 passos do Spotlight Tour em 390x844 (0 sobreposição e 100% dentro da tela)
+  await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
+  await page.evaluate(() => {
+    document.getElementById('hcUnlockPreviewModal')?.remove();
+    window.DISABLE_AUTO_TOUR = false;
+    localStorage.removeItem('HC_DISABLE_AUTO_TOUR');
+    window.progressiveUnlockEngine.toggleVeteranShowAll(false);
+    window.integrityGuard.runAuthorized(() => { window.currentProfile.reputation = 0; });
+    window.spotlightTour.start(true);
+  });
+  await new Promise((r) => setTimeout(r, 250));
+
+  for (let i = 0; i < 14; i++) {
+    const stepState = await page.evaluate((idx) => {
+      window.spotlightTour.goToStep(idx);
+      return new Promise((resolve) => setTimeout(() => {
+        const cr = document.getElementById('hcTourCard').getBoundingClientRect();
+        const rr = document.getElementById('hcTourRing').getBoundingClientRect();
+        const overlap = !(cr.right < rr.left || cr.left > rr.right || cr.bottom < rr.top || cr.top > rr.bottom);
+        const out = cr.left < -2 || cr.right > window.innerWidth + 2 || cr.top < -2 || cr.bottom > window.innerHeight + 2;
+        resolve({ step: idx + 1, overlap, out });
+      }, 240));
+    }, i);
+    assert.strictEqual(stepState.overlap, false, `Tour Passo ${stepState.step} não pode sobrepor o botão destacado no celular`);
+    assert.strictEqual(stepState.out, false, `Tour Passo ${stepState.step} deve caber inteiro em 390x844`);
+  }
+
+  const strikes = await page.evaluate(() => window.integrityGuard ? window.integrityGuard.cheatStrikes : 0);
+  assert.strictEqual(strikes, 0, 'IntegrityGuard deve registrar 0 strikes durante toda a suíte mobile');
+
+  console.log('✅ SUÍTE MOBILE E2E APROVADA (360x800, 390x844, 768x1024 + 14 Passos do Tour + 0 Strikes)!');
+  await browser.close();
+})();
