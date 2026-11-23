@@ -318,8 +318,15 @@
       return s;
     }
 
-    syncStocksFromGlobalMarket() {
+    syncStocksFromGlobalMarket(force = false) {
       if (!this.state || !this.state.stocks || !window.mmoGlobalMarket) return;
+      const sharedTs = typeof window.mmoGlobalMarket.getSharedUpdatedAt === 'function'
+        ? window.mmoGlobalMarket.getSharedUpdatedAt()
+        : Date.now();
+      if (!force && this._lastGlobalStockSyncAt && sharedTs <= this._lastGlobalStockSyncAt) {
+        return;
+      }
+      this._lastGlobalStockSyncAt = sharedTs;
       const gStocks = window.mmoGlobalMarket.getGlobalStocks();
       Object.keys(gStocks).forEach((sym) => {
         const gs = gStocks[sym];
@@ -342,7 +349,7 @@
     ensureLoaded() {
       const uid = (window.currentProfile && window.currentProfile.id) || 'guest';
       if (this.userId === uid && this.state) {
-        this.syncStocksFromGlobalMarket();
+        this.syncStocksFromGlobalMarket(false);
         return this.state;
       }
       this.userId = uid;
@@ -352,7 +359,7 @@
         if (raw) parsed = JSON.parse(raw);
       } catch (e) {}
       this.state = this.normalizeState(parsed);
-      this.syncStocksFromGlobalMarket();
+      this.syncStocksFromGlobalMarket(true);
       this.save(true);
       return this.state;
     }
@@ -376,7 +383,7 @@
       if (!snap || typeof snap !== 'object') return;
       this.userId = (window.currentProfile && window.currentProfile.id) || 'guest';
       this.state = this.normalizeState(snap);
-      this.syncStocksFromGlobalMarket();
+      this.syncStocksFromGlobalMarket(true);
       this.save(true);
     }
 
@@ -517,6 +524,12 @@
 
     tickStockMarket() {
       this.ensureLoaded();
+      if (window.mmoGlobalMarket && typeof window.mmoGlobalMarket.tickGlobalStocksIfDue === 'function') {
+        window.mmoGlobalMarket.tickGlobalStocksIfDue();
+        this.syncStocksFromGlobalMarket(false);
+        this.save(true);
+        return;
+      }
       STOCK_CORPS.forEach((c) => {
         const st = this.state.stocks[c.symbol];
         if (!st) return;
@@ -750,7 +763,7 @@
 
       if (window.mmoGlobalMarket) {
         const gRes = window.mmoGlobalMarket.applyGlobalStockImpact(corp.symbol, -finalDropPct, actionKind);
-        this.syncStocksFromGlobalMarket();
+        this.syncStocksFromGlobalMarket(true);
         if (!gRes.ok) {
           if (typeof window.showToast === 'function' && gRes.message) window.showToast(gRes.message);
           this.save();
@@ -831,7 +844,7 @@
       const oldPrice = st.price;
       if (window.mmoGlobalMarket) {
         window.mmoGlobalMarket.applyGlobalStockImpact(corp.symbol, boostPct, 'whitehat_restore');
-        this.syncStocksFromGlobalMarket();
+        this.syncStocksFromGlobalMarket(true);
       } else {
         st.integrity = Math.min(125, +(st.integrity + 14).toFixed(1));
         st.price = +(st.price * (1 + boostPct)).toFixed(2);
@@ -2085,13 +2098,13 @@
             <table class="hc-table">
               <thead>
                 <tr>
-                  <th>Empresa</th>
-                  <th>IP p/ Invadir</th>
-                  <th>Preço Atual</th>
-                  <th>Histórico</th>
-                  <th>Saúde</th>
-                  <th>Sua Aposta</th>
-                  <th style="text-align:right;">Ações Rápidas</th>
+                  <th style="white-space:nowrap;">Empresa</th>
+                  <th style="white-space:nowrap;">IP p/ Invadir</th>
+                  <th style="white-space:nowrap;">Preço Atual</th>
+                  <th style="white-space:nowrap;">Histórico</th>
+                  <th style="white-space:nowrap;">Saúde</th>
+                  <th style="white-space:nowrap;">Sua Aposta</th>
+                  <th style="text-align:right;white-space:nowrap;">Ações Rápidas</th>
                 </tr>
               </thead>
               <tbody>${rows}</tbody>
