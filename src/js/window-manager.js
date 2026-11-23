@@ -155,6 +155,9 @@ class WindowManager {
     el.style.display = 'flex';
     el.classList.add('focused');
     this.current = winId;
+    if (window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.markSeen === 'function') {
+      window.progressiveUnlockEngine.markSeen(winId);
+    }
 
     // Dispara renderização sob demanda das páginas novas
     if (winId === 'winHome' && typeof window.renderHome === 'function') {
@@ -222,6 +225,9 @@ class WindowManager {
     document.querySelectorAll('details.nav-topic').forEach((topic) => {
       topic.classList.toggle('has-active-child', topic === activeTopic);
     });
+    if (window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.syncSidebarDom === 'function') {
+      window.progressiveUnlockEngine.syncSidebarDom();
+    }
   }
 }
 
