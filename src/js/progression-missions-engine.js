@@ -24,11 +24,13 @@
     {
       id: 1,
       code: 'CERT-101',
-      title: 'Fundamentos, Privacidade de IP & Ciclo de Contas',
+      title: 'Fundamentos: IP Protegido, Contas das 12h & Dinheiro Sujo vs. Limpo',
       cost: 0,
+      reqRep: 0,
+      studyLabel: 'Imediato',
       repReward: 100,
-      unlockBadge: 'Acesso à Rede & Tutorial',
-      bonusDesc: '+100 REP · Destrava o Curso #2 e a operação inicial da Numataka',
+      unlockBadge: 'Libera Trabalhos, Lavagem & Etapa 2',
+      bonusDesc: '+100 REP · Destrava Trabalhos & Missões, Lavagem de Dinheiro e Curso #2',
       exam: {
         question: 'O que acontece se você esquecer seu IP gravado no /var/log/syslog de uma máquina invadida?',
         options: [
@@ -40,23 +42,29 @@
       },
       pages: [
         {
-          heading: 'Módulo 1/2 — Seu IP Público & Blur Anti-Curiosos',
-          body: 'Cada operador possui um endereço IPv4 público único na rede. No topo da tela, os últimos 7 dígitos ficam desfocados automaticamente (só aparecem ao passar o mouse) para proteger você caso um amigo esteja jogando ao seu lado! Porém, dentro dos computadores que você invade, seu IP completo fica gravado em /var/log/syslog.'
+          heading: 'Aula 1/3 — Seu IP Protegido, Escudo Iniciante (< 200 REP) & Menu Progressivo',
+          body: 'Seu endereço IPv4 no topo da tela é a placa do seu PC na rede (os últimos 7 dígitos ficam borrados automaticamente para ninguém espiar — passe o mouse para ver). Enquanto você tiver menos de 200 REP, seu Escudo Iniciante bloqueia ataques surpresa na porta 22! E repare no menu lateral: novas telas abrem aos poucos conforme você evolui (com selo verde NOVO), sem poluir sua tela.'
         },
         {
-          heading: 'Módulo 2/2 — Troca Semanal no ISP (71.4.5.1) & Relógio de Contas às 12:00',
-          body: 'Você tem direito a 1 troca gratuita de IP por semana no ISP (71.4.5.1). Já no relógio do mundo, 1 hora real equivale a 1 dia no jogo e 24h reais equivalem a 1 Mês: todo dia às 12:00 chega a fatura mensal de Luz do PC, Internet/VPS, Aluguel e Água (acumulando no máximo 3 meses antes de pausar caso você fique offline).'
+          heading: 'Aula 2/3 — Troca Grátis no Provedor ISP (71.4.5.1) & Contas das 12:00',
+          body: 'Esqueceu seu IP num servidor invadido? Você tem 1 troca gratuita de IP por semana no Provedor ISP (71.4.5.1). No relógio do jogo, 1 hora real = 1 dia e 24h reais = 1 mês: às 12:00 fecham as contas de Luz, Internet e Aluguel do seu Esconderijo (acumulam no máximo 3 meses e pausam sozinhas se você ficar offline!).'
+        },
+        {
+          heading: 'Aula 3/3 — Regra de Ouro: Dinheiro Limpo vs. Dinheiro Sujo (Lavagem)',
+          body: 'No Hacker City existem duas carteiras: Dinheiro Limpo (ganho em cursos, trabalhos legais e Bolsa — aceito para comprar Peças, Cursos e Imóveis) e Dinheiro Sujo (ganho em invasões, saques e vírus). Nunca tente forçar Dinheiro Sujo na loja sem lavar antes, senão a polícia cola em você e prende! Basta lavar na Vitrine Global de Lavagem (15 min reais) para transformá-lo em Dinheiro Limpo.'
         }
       ]
     },
     {
       id: 2,
       code: 'CERT-102',
-      title: 'Hacking 101: Mini-PC de Hashes, Daemons vs Sob Demanda & Logs',
+      title: 'Invasão 101: Força de Programas, Peças/Fonte & Rastros 7-Passos',
       cost: 0,
+      reqRep: 100,
+      studyLabel: '10 min',
       repReward: 100,
-      unlockBadge: '+20% Velocidade CPU em Quebras',
-      bonusDesc: '+100 REP · +20% velocidade de tempo no Cracker · Libera Invasão Tutorial',
+      unlockBadge: '+20% Vel. Quebra + Fórum & BTC',
+      bonusDesc: '+100 REP · +20% velocidade no Quebrador · Destrava Fórum, Notícias, Bitcoin e Placar',
       exam: {
         question: 'Qual é a regra obrigatória para quebrar a senha de um servidor alvo?',
         options: [
@@ -68,27 +76,29 @@
       },
       pages: [
         {
-          heading: 'Módulo 1/3 — Daemons em Memória vs Ferramentas Sob Demanda',
-          body: 'Programas de proteção contínua (Firewall.fwl, Hasher.hash, Collector.vcol e Torrent.torrent) ficam rodando na sua Memória RAM (1 de cada tipo por vez, com tempo de carência ao trocar). Já o Cracker.crc, PortScan.scan e Antivirus.av funcionam SOB DEMANDA direto do seu HD, SSD ou NVMe (unidades NVMe dão até +25% de velocidade!).'
+          heading: 'Aula 1/3 — Programas na Memória RAM vs. Sob Demanda & Regra de Versão',
+          body: 'Defesas contínuas (Firewall.fwl, Hasher.hash, Collector.vcol e Torrent.torrent) rodam na sua Memória RAM (1 de cada tipo por vez, com tempo de troca). Já o Cracker.crc, PortScan.scan e Antivirus.av rodam sob demanda direto do seu HD, SSD ou NVMe. Para quebrar uma senha, seu Cracker.crc precisa ter versão maior ou igual ao Firewall E ao Hasher da vítima!'
         },
         {
-          heading: 'Módulo 2/3 — Regra Estrita de Versão no Mini-PC',
-          body: 'Para quebrar uma senha, o Cracker.crc selecionado no Mini-PC precisa ter versão >= Firewall.fwl E >= Hasher.hash da vítima! Uma CPU mais potente reduz os segundos de espera, mas nunca substitui a versão do software.'
+          heading: 'Aula 2/3 — Peças sem Pular Geração, Gargalo de CPU & Fonte de Energia (PSU)',
+          body: 'Você evolui o PC degrau por degrau (Geração 1 → 2 → 3 → 4 → 5, pagando sempre com Dinheiro Limpo). Fique atento a duas regras físicas: (1) cada CPU tem um limite máximo de versão de programa (rodar acima disso limita a força e esquenta +15°C!), e (2) se suas peças passarem da potência da sua Fonte PSU (180W → 400W → 750W), o disjuntor cai derrubando seus processos!'
         },
         {
-          heading: 'Módulo 3/3 — Regra de Ouro: Limpe a Log Por Último!',
-          body: 'Tanto entrar quanto subir ou executar um vírus gravam novas linhas com seu IP em /var/log/syslog! Sempre volte à aba Logs da vítima como último passo, apague seu IP (ou deixe uma farpa anônima) antes de sair.'
+          heading: 'Aula 3/3 — Limpe Seu Rastro por Último (Sombra Magnética & 7-Passos)',
+          body: 'Entrar no alvo, subir um vírus e executá-lo gravam seu IP na aba Logs (/var/log/syslog) da vítima! Sempre limpe seu IP como último passo antes de sair. Contra rivais avançados, apagar simples ainda deixa uma Sombra Magnética parcial por 5 min — use o Triturador 7-Passos quando quiser destruir 100% da prova física!'
         }
       ]
     },
     {
       id: 3,
       code: 'CERT-201',
-      title: 'Exploits FTP/SSH, Bancos & Invasão de Câmeras CFTV/DVR',
-      cost: 250,
+      title: 'Mercado Global MMO: Lavagem 5/1h, Bolsa Unificada, Rotas & Fórum 30m',
+      cost: 1500,
+      reqRep: 250,
+      studyLabel: '45 min',
       repReward: 120,
-      unlockBadge: 'Domínio FTP/SSH, Bank & CFTV',
-      bonusDesc: '+120 REP · Destrava táticas avançadas de Exploit Dual (FTP+SSH), Contas Bancárias e Operações CFTV',
+      unlockBadge: 'Libera Bolsa, Mapa-Múndi & Clãs',
+      bonusDesc: '+120 REP · Destrava Bolsa de Empresas, Mapa-Múndi, Exploits FTP+SSH, Câmeras e Clãs',
       exam: {
         question: 'Como obter acesso ROOT sem precisar quebrar a senha do servidor?',
         options: [
@@ -116,11 +126,13 @@
     {
       id: 4,
       code: 'CERT-301',
-      title: 'Laboratório de Vírus (1+2+1), Escala 3.00x & Rede Zumbi DDoS',
-      cost: 800,
+      title: 'Engenharia de Vírus: Lab (1+2+1), Aluguel P2P, Encomendas & Leilão 2h',
+      cost: 6000,
+      reqRep: 600,
+      studyLabel: '2 horas',
       repReward: 150,
-      unlockBadge: 'Libera Ataques DDoS & +15% Coletor',
-      bonusDesc: '+150 REP · Destrava Canhão DDoS (com DDoS_Breaker.vbrk) · +15% no Collector.vcol',
+      unlockBadge: 'Libera Lab, VPS & Canhão DDoS',
+      bonusDesc: '+150 REP · Destrava Laboratório de Vírus, Servidores VPS, Ataques DDoS e +15% no Coletor',
       exam: {
         question: 'Qual é o multiplicador máximo do vírus mais forte (v10.0) e a regra de uso do Laboratório?',
         options: [
@@ -148,11 +160,13 @@
     {
       id: 5,
       code: 'CERT-401',
-      title: 'Defesa Cibernética, Mitigação DDoS & Contra-Espionagem',
-      cost: 2000,
+      title: 'Mestrado MIT-HC: Defesa 15s (VPS), Cofre Suíço, RAID & Patrocínio Clã',
+      cost: 18000,
+      reqRep: 1500,
+      studyLabel: '6 horas',
       repReward: 200,
-      unlockBadge: 'Mitigação DDoS via Firewall.fwl',
-      bonusDesc: '+200 REP · Medalha [GRADUADO MIT-HC] · Seu Firewall.fwl passa a mitigar/anular ataques DDoS!',
+      unlockBadge: 'Escudo DDoS + Acesso Tier 5',
+      bonusDesc: '+200 REP · Medalha [GRADUADO MIT-HC] · Firewall mitiga ataques DDoS e libera Mainframes Tier 5!',
       exam: {
         question: 'Se um invasor apagar o próprio IP da sua log e deixar apenas uma farpa com o nick dele, como reagir?',
         options: [
@@ -495,7 +509,8 @@
       const courseRows = CERT_COURSES.map((c) => {
         const done = this.hasCert(c.id);
         const unlocked = c.id === 1 || this.hasCert(c.id - 1);
-        const costStr = c.cost === 0 ? 'Grátis' : `$ ${c.cost.toLocaleString('pt-BR')}`;
+        const costStr = c.cost === 0 ? 'Grátis' : `$ ${c.cost.toLocaleString('pt-BR')} Limpos`;
+        const loadStr = `${c.studyLabel || (c.pages.length + ' aulas')}${c.reqRep > 0 ? ` · ${c.reqRep} REP` : ''}`;
         const glyph = done ? 'defense' : (unlocked ? 'attack' : 'text');
 
         return `
@@ -517,8 +532,8 @@
                 <span style="font-family:var(--hc-font-sans);font-weight:500;">${esc(c.title)}</span>
               </span>
             </td>
-            <td class="soft-col-ver">${c.pages.length} aulas</td>
-            <td class="soft-col-size" style="width:110px;color:${c.cost === 0 ? 'var(--hc-accent-text)' : 'var(--hc-warning-text)'};">${esc(costStr)}</td>
+            <td class="soft-col-ver" style="white-space:nowrap;">${esc(loadStr)}</td>
+            <td class="soft-col-size" style="width:128px;white-space:nowrap;color:${c.cost === 0 ? 'var(--hc-accent-text)' : 'var(--hc-warning-text)'};">${esc(costStr)}</td>
             <td class="soft-col-acts">
               <div class="soft-icon-actions">
                 ${done ? `
