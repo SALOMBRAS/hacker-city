@@ -206,6 +206,7 @@
       }
       if (!Array.isArray(s.adQueue)) s.adQueue = [];
       if (!Array.isArray(s.washingJobs)) s.washingJobs = [];
+      if (typeof s.tutorialExpressWashUsed !== 'boolean') s.tutorialExpressWashUsed = false;
 
       // Mercado P2P de Licenças do Lab
       if (!Array.isArray(s.myListedLicenses)) s.myListedLicenses = [];
@@ -1059,7 +1060,12 @@
       const ownerCut = +(grossDirty * (effectiveFeePct / 100)).toFixed(2);
       const netClean = +(grossDirty - ownerCut).toFixed(2);
       const now = Date.now();
-      const waitMs = 15 * 60 * 1000; // EXATOS 15 MINUTOS DA VIDA REAL!
+      const isTutStep = !!(window.tutorialEngine && typeof window.tutorialEngine.isReadyForTutorialWash === 'function' && window.tutorialEngine.isReadyForTutorialWash());
+      const useTutorialExpress = isTutStep && !this.state.tutorialExpressWashUsed && grossDirty <= 1000;
+      if (useTutorialExpress) {
+        this.state.tutorialExpressWashUsed = true;
+      }
+      const waitMs = useTutorialExpress ? (8 * 1000) : (15 * 60 * 1000); // 8s bônus único no Treino Inicial; depois SEMPRE 15 MINUTOS REAIS!
 
       this.state.dirtyBalance = Math.max(0, +(dirtyAvail - grossDirty).toFixed(2));
       const job = {
@@ -1073,9 +1079,14 @@
         netClean,
         startedAt: now,
         completesAt: now + waitMs,
+        tutorialExpress: useTutorialExpress,
         claimed: false
       };
       this.state.washingJobs.unshift(job);
+
+      if (window.tutorialEngine && typeof window.tutorialEngine.onFirstWashStarted === 'function') {
+        window.tutorialEngine.onFirstWashStarted(grossDirty, useTutorialExpress);
+      }
 
       // Envia comissão em Dinheiro Limpo direto para a Caixa de Recebimentos (Inbox) do dono real!
       if (!targetCo.isBot && !targetCo.isMine && targetCo.ownerId && window.mmoGlobalMarket) {
@@ -1091,7 +1102,8 @@
 
       this.save();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
-      const msg = `🧼 Remessa de ${fmtMoney(grossDirty)} enviada para "${targetCo.name}" (Taxa ${effectiveFeePct}%)! Ficará limpa (${fmtMoney(netClean)}) em 15 minutos da vida real.`;
+      const timeLabel = useTutorialExpress ? '8 segundos (Bônus Único de 1º Treino!)' : '15 minutos da vida real';
+      const msg = `🧼 Remessa de ${fmtMoney(grossDirty)} enviada para "${targetCo.name}" (Taxa ${effectiveFeePct}%)! Ficará limpa (${fmtMoney(netClean)}) em ${timeLabel}.`;
       if (typeof window.showToast === 'function') window.showToast(msg);
       this.renderLaunderingHub();
       return { success: true, job, message: msg };
