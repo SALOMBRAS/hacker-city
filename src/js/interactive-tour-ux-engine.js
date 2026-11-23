@@ -687,6 +687,26 @@
             this.grantDirtyTourSampleOnce();
             this.goToStepById('dirty_vs_clean_economy');
           }
+        },
+        // PASSO 14 — DINHEIRO SUJO vs. DINHEIRO LIMPO & VITRINE DE LAVAGEM!
+        {
+          id: 'dirty_vs_clean_economy',
+          selector: '#hudDirtyCashBadge',
+          fallbackSelector: '#hudWalletMoney',
+          pointerLabel: '🩸 Dinheiro Sujo Destravou Lavagem!',
+          requiresDirectClick: false,
+          title: '14. Regra de Ouro: Dinheiro Sujo vs. Dinheiro Limpo!',
+          desc: 'Olhe no topo: entraram <strong>🩸 $ 600 Sujos</strong>! Dinheiro de invasão e vírus vem <strong>Sujo</strong> — se tentar forçar notas sujas para comprar Peças ou Cursos, a polícia prende você! Por isso o menu <strong>Dinheiro & Vida → Lavar Dinheiro</strong> acabou de abrir com o selo <strong>NOVO</strong>.',
+          hint: '🧼 Clique em <strong>Concluir (+$ 500 Limpos)</strong> para receber seu bônus legalizado e depois lave seus $ 600 Sujos na <strong>Vitrine Global de Lavagem</strong>!',
+          nextLabel: 'Concluir (+$ 500 Limpos) →',
+          onEnter: () => {
+            this.ensureMobileDrawerIfNeeded(false);
+            this.grantDirtyTourSampleOnce();
+            if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+          },
+          triggerAction: () => {
+            this.finishWithReward();
+          }
         }
       ];
     }
@@ -815,6 +835,11 @@
 
       if (step.id === 'wipe_log_and_taunt') {
         if (step.triggerAction) step.triggerAction();
+        return;
+      }
+
+      if (step.id === 'dirty_vs_clean_economy') {
+        this.finishWithReward();
         return;
       }
 
@@ -1014,7 +1039,8 @@
           const clickedBtn = ev.target && ev.target.closest ? ev.target.closest('button') : null;
           if (clickedBtn && (clickedBtn.id === 'btnQuickWipeAndTaunt' || clickedBtn.id === 'btnSaveRemoteSyslog' || clickedBtn.id === 'btnWipeAllRemoteLogs')) {
             setTimeout(() => {
-              if (this.isActive) this.finishWithReward();
+              this.grantDirtyTourSampleOnce();
+              if (this.isActive) this.goToStepById('dirty_vs_clean_economy');
             }, 180);
           }
         }
