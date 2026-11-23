@@ -25,6 +25,9 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
 }
 
 .nds-wallet-box.clean {
@@ -96,6 +99,9 @@
   line-height: 1.45;
   background: #0b1017;
   border: 1px solid #1e2a3a;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
 }
 
 .nds-pc-box.pro {
@@ -116,11 +122,18 @@
   border-radius: 9px;
   background: #0c1118;
   border: 1px solid #1e2938;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.nds-row > div:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .nds-grid-3 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   gap: 10px;
 }
 
@@ -129,12 +142,15 @@
   position: fixed;
   top: 66px;
   right: 18px;
-  width: min(390px, calc(100vw - 32px));
+  width: min(440px, calc(100vw - 28px));
+  max-height: calc(100vh - 84px);
+  overflow-y: auto;
+  box-sizing: border-box;
   z-index: 9500;
   background: linear-gradient(150deg, #1d1014 0%, #10151e 100%);
   border: 1px solid #e5534b;
   border-radius: 12px;
-  padding: 14px 15px;
+  padding: 14px 16px;
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.65);
   display: none;
   flex-direction: column;
