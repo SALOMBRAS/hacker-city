@@ -247,8 +247,8 @@
         if (isVisible('winVirusLab') && window.nineSystemsEngine && typeof window.renderVirusLab === 'function') {
           window.renderVirusLab();
         }
-        if (isVisible('winForum') && typeof window.renderDarknetForum === 'function') {
-          window.renderDarknetForum();
+        if (isVisible('winForum') && window.darknetSocialEngine && typeof window.darknetSocialEngine.renderForumUI === 'function') {
+          window.darknetSocialEngine.renderForumUI();
         }
       } catch (e) {}
     }
@@ -1013,11 +1013,16 @@
       const entry = {
         id: contractObj.id,
         issuerId: contractObj.issuerId || me.id,
-        issuerTag: contractObj.issuerTag || me.tag,
+        issuerTag: contractObj.hirerTag || contractObj.issuerTag || me.tag,
+        hirerTag: contractObj.hirerTag || contractObj.issuerTag || me.tag,
         targetIp: contractObj.targetIp,
-        objective: contractObj.objective,
+        targetLabel: contractObj.targetLabel || contractObj.targetIp,
+        objective: contractObj.objectiveKind || contractObj.objective || 'crack_root',
+        objectiveKind: contractObj.objectiveKind || contractObj.objective || 'crack_root',
+        objectiveLabel: contractObj.objectiveLabel || contractObj.objective || 'Quebrar Acesso Root Verificado',
         rewardDirty: Number(contractObj.rewardDirty || 0),
-        feePaid: Number(contractObj.feePaid || 0),
+        feePaid: Number(contractObj.notaryFeeBurned || contractObj.feePaid || 0),
+        notaryFeeBurned: Number(contractObj.notaryFeeBurned || contractObj.feePaid || 0),
         status: 'open',
         reservedById: null,
         reservedByTag: null,
@@ -1050,7 +1055,12 @@
         .filter((c) => c && c.status !== 'cancelled')
         .map((c) => ({
           ...c,
+          hirerTag: c.hirerTag || c.issuerTag,
+          objectiveKind: c.objectiveKind || c.objective,
+          objectiveLabel: c.objectiveLabel || c.objective,
+          notaryFeeBurned: Number(c.notaryFeeBurned || c.feePaid || 0),
           isMine: (c.issuerId === me.id) || (c.issuerTag && c.issuerTag.toLowerCase() === me.tag.toLowerCase()),
+          reservedByMe: (c.status === 'reserved') && ((c.reservedById === me.id) || (c.reservedByTag && c.reservedByTag.toLowerCase() === me.tag.toLowerCase())),
           isBot: false
         }));
     }

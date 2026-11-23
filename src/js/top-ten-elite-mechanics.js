@@ -2140,9 +2140,11 @@
         ddos_wanted: 'Derrubar Alvo via Sobrecarga DDoS'
       };
       const host = window.internetEngine ? window.internetEngine.resolveHost(targetIp) : null;
+      const actor = window.mmoGlobalMarket ? window.mmoGlobalMarket.getActorIdentity() : { id: 'me', tag: (window.currentProfile && window.currentProfile.hacker_tag) || 'Operador' };
       const contract = {
-        id: 'escrow_usr_' + Date.now(),
-        hirerTag: (window.currentProfile && window.currentProfile.hacker_tag) || 'Operador',
+        id: 'escrow_usr_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        issuerId: actor.id,
+        hirerTag: actor.tag,
         objectiveKind: labels[objectiveKind] ? objectiveKind : 'crack_root',
         objectiveLabel: labels[objectiveKind] || labels.crack_root,
         targetIp,
@@ -2155,20 +2157,89 @@
         reservedUntil: 0
       };
       this.state.escrowContracts.unshift(contract);
+      if (window.mmoGlobalMarket) {
+        window.mmoGlobalMarket.publishGlobalEscrowContract(contract);
+      }
       this.save();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       if (window.darknetSocialEngine) window.darknetSocialEngine.renderForumUI();
-      const msg = `📜 Contrato Escrow publicado! ${fmtMoney(reward)} travados em custódia + ${fmtMoney(notaryFee)} (15% taxa não-reembolsável do Cartório Darknet).`;
+      const msg = `📜 Contrato publicado no Mural Global MMO! ${fmtMoney(reward)} travados em custódia + ${fmtMoney(notaryFee)} (15% taxa não-reembolsável do Cartório).`;
       if (typeof window.showToast === 'function') window.showToast(msg);
       return { success: true, contract, totalDebitClean, notaryFee, message: msg };
     }
 
+    getMergedEscrowContracts() {
+      this.ensureLoaded();
+      const localList = this.state.escrowContracts || [];
+      if (!window.mmoGlobalMarket) return localList;
+      const globalList = window.mmoGlobalMarket.getGlobalEscrowContracts();
+      const globalIds = new Set(globalList.map((g) => g.id));
+      const seedsOnly = localList.filter((l) => l && !String(l.id || '').startsWith('escrow_usr_') && !globalIds.has(l.id));
+      return [...globalList, ...seedsOnly];
+    }
+
+    cancelMercenaryEscrowContract(contractId) {
+      this.ensureLoaded();
+      if (window.mmoGlobalMarket) {
+        const gCancel = window.mmoGlobalMarket.cancelMyOpenEscrow(contractId);
+        if (!gCancel.ok && gCancel.code !== 'NOT_FOUND') {
+          if (typeof window.showToast === 'function' && gCancel.message) window.showToast(gCancel.message);
+          return { success: false, code: gCancel.code, message: gCancel.message };
+        }
+        if (gCancel.ok) {
+          this.state.escrowContracts = (this.state.escrowContracts || []).filter((x) => x.id !== contractId);
+          runAuth(() => {
+            if (window.currentWallet) {
+              window.currentWallet.balance = +(Number(window.currentWallet.balance || 0) + gCancel.refundClean).toFixed(2);
+            }
+          });
+          this.save();
+          if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+          if (window.darknetSocialEngine) window.darknetSocialEngine.renderForumUI();
+          const msg = `↩️ Contrato aberto cancelado: +${fmtMoney(gCancel.refundClean)} Limpos estornados (taxa de 15% de ${fmtMoney(gCancel.burnedFee)} retida pelo Cartório).`;
+          if (typeof window.showToast === 'function') window.showToast(msg);
+          return { success: true, refundClean: gCancel.refundClean, burnedFee: gCancel.burnedFee, message: msg };
+        }
+      }
+
+      const idx = (this.state.escrowContracts || []).findIndex((x) => x.id === contractId);
+      if (idx < 0) return { success: false, code: 'NOT_FOUND', message: 'Contrato não encontrado.' };
+      const c = this.state.escrowContracts[idx];
+      if (!c.isMine) return { success: false, code: 'NOT_OWNER', message: 'Apenas quem criou pode cancelar.' };
+      if (c.status !== 'open') return { success: false, code: 'LOCKED_IN_EXECUTION', message: 'Contrato já reservado ou concluído!' };
+      this.state.escrowContracts.splice(idx, 1);
+      runAuth(() => {
+        if (window.currentWallet) {
+          window.currentWallet.balance = +(Number(window.currentWallet.balance || 0) + c.rewardDirty).toFixed(2);
+        }
+      });
+      this.save();
+      if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+      if (window.darknetSocialEngine) window.darknetSocialEngine.renderForumUI();
+      return { success: true, refundClean: c.rewardDirty, burnedFee: c.notaryFeeBurned };
+    }
+
     acceptMercenaryContract(contractId) {
       this.ensureLoaded();
+      if (window.mmoGlobalMarket && String(contractId || '').startsWith('escrow_usr_')) {
+        const rRes = window.mmoGlobalMarket.reserveGlobalEscrow30m({ contractId });
+        if (!rRes.ok && rRes.code !== 'NOT_GLOBAL_CONTRACT') {
+          if (typeof window.showToast === 'function' && rRes.message) window.showToast(rRes.message);
+          return { success: false, code: rRes.code, message: rRes.message };
+        }
+        if (rRes.ok) {
+          if (window.darknetSocialEngine) window.darknetSocialEngine.renderForumUI();
+          const gc = rRes.contract;
+          const msg = `🎯 Contrato Global reservado com exclusividade por 30 MINUTOS (${gc.targetLabel})! Cumpra e clique em Comprovar p/ sacar +${fmtMoney(gc.rewardDirty)} Sujos!`;
+          if (typeof window.showToast === 'function') window.showToast(msg);
+          return { success: true, contract: gc, message: msg };
+        }
+      }
+
       const c = this.state.escrowContracts.find((x) => x.id === contractId);
       if (!c) return { success: false, message: 'Contrato não encontrado.' };
-      if (c.isMine) return { success: false, message: 'Você é o contratante deste Escrow — outro mercenário deve executá-lo!' };
-      if (c.status !== 'open') return { success: false, message: 'Contrato já reservado ou concluído.' };
+      if (c.isMine) return { success: false, code: 'SELF_CONTRACT_BLOCKED', message: 'Você é o contratante deste Escrow — outro mercenário deve executá-lo!' };
+      if (c.status !== 'open') return { success: false, code: 'RESERVED_BY_OTHER', message: 'Contrato já reservado ou concluído.' };
 
       c.status = 'reserved';
       c.reservedByMe = true;
@@ -2207,10 +2278,13 @@
 
     verifyAndClaimMercenaryContract(contractId) {
       this.ensureLoaded();
-      const c = this.state.escrowContracts.find((x) => x.id === contractId);
+      const merged = this.getMergedEscrowContracts();
+      let c = merged.find((x) => x.id === contractId);
       if (!c || c.status === 'completed') return { success: false, message: 'Contrato inválido ou já pago.' };
       if (!c.reservedByMe) {
-        this.acceptMercenaryContract(contractId);
+        const acc = this.acceptMercenaryContract(contractId);
+        if (!acc.success) return acc;
+        c = this.getMergedEscrowContracts().find((x) => x.id === contractId) || c;
       }
 
       let verified = false;
@@ -2230,8 +2304,14 @@
         return { success: false, code: 'OBJECTIVE_NOT_VERIFIED', message: msg };
       }
 
-      c.status = 'completed';
-      c.reservedByMe = false;
+      const localC = this.state.escrowContracts.find((x) => x.id === contractId);
+      if (localC) {
+        localC.status = 'completed';
+        localC.reservedByMe = false;
+      }
+      if (window.mmoGlobalMarket && String(contractId || '').startsWith('escrow_usr_')) {
+        window.mmoGlobalMarket.completeGlobalEscrow({ contractId });
+      }
       if (window.nineSystemsEngine) {
         window.nineSystemsEngine.addDirtyMoney(c.rewardDirty, `Escrow Mercenário P2P (@${c.hirerTag})`);
       }
@@ -2250,30 +2330,35 @@
 
     renderForumMercenaryEscrowSectionHtml() {
       this.ensureLoaded();
-      const rows = (this.state.escrowContracts || []).slice(0, 6).map((c) => {
+      const rows = this.getMergedEscrowContracts().slice(0, 7).map((c) => {
         const remMin = c.reservedUntil > Date.now() ? Math.ceil((c.reservedUntil - Date.now()) / 60000) : 0;
         return `
           <div style="padding:10px 12px;border-radius:8px;background:#0c1118;border:1px solid #1f2a38;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
             <div>
               <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                 <span class="hc-badge ${c.status === 'completed' ? 'success' : (c.status === 'reserved' ? 'warn' : 'info')}">
-                  ${c.status === 'completed' ? 'PAGO ✓' : (c.status === 'reserved' ? `PEGOU (${remMin}m)` : 'ABERTO')}
+                  ${c.status === 'completed' ? 'PAGO ✓' : (c.status === 'reserved' ? `RESERVADO (${remMin}m)` : 'ABERTO')}
                 </span>
                 <strong style="font-size:13px;color:var(--hc-text);">${esc(c.objectiveLabel)} — <code>${esc(c.targetIp)}</code></strong>
               </div>
               <div style="font-size:11.5px;color:var(--hc-text-3);margin-top:2px;">
-                Quem pediu: <strong style="color:var(--hc-accent-text);">@${esc(c.hirerTag)}</strong> · Prêmio guardado: <strong style="color:#fbbf24;">${fmtMoney(c.rewardDirty)} (recebe em Dinheiro Sujo)</strong> · Taxa de garantia: ${fmtMoney(c.notaryFeeBurned)}
+                Quem pediu: <strong style="color:var(--hc-accent-text);">@${esc(c.hirerTag)}</strong>${c.reservedByTag ? ` · Em execução por <strong>@${esc(c.reservedByTag)}</strong>` : ''} · Prêmio: <strong style="color:#fbbf24;">${fmtMoney(c.rewardDirty)} (Sujo)</strong> · Taxa 15%: ${fmtMoney(c.notaryFeeBurned)}
               </div>
             </div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
               ${c.status === 'completed'
                 ? `<span class="hc-badge success">Concluído</span>`
                 : (c.isMine
-                    ? `<span class="hc-badge">Esperando alguém pegar</span>`
+                    ? (c.status === 'open'
+                        ? `<span class="hc-badge">Aguardando mercenário</span>
+                           <button type="button" id="btnCancelEscrow_${esc(c.id)}" class="hc-btn ghost sm" onclick="window.topTenMechanics.cancelMercenaryEscrowContract('${esc(c.id)}')">Cancelar (perde 15%)</button>`
+                        : `<span class="hc-badge warn">Em execução (${remMin}m)</span>`)
                     : (c.reservedByMe
                         ? `<button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(c.targetIp)}', 'invadir')">Ir ao Alvo →</button>
                            <button type="button" id="btnVerifyEscrow_${esc(c.id)}" class="hc-btn primary sm" onclick="window.topTenMechanics.verifyAndClaimMercenaryContract('${esc(c.id)}')">✓ Comprovar &amp; Receber</button>`
-                        : `<button type="button" id="btnAcceptEscrow_${esc(c.id)}" class="hc-btn primary sm" onclick="window.topTenMechanics.acceptMercenaryContract('${esc(c.id)}')">🎯 Pegar Serviço (30m)</button>`))}
+                        : (c.status === 'reserved'
+                            ? `<span class="hc-badge warn">Reservado @${esc(c.reservedByTag || 'Operador')}</span>`
+                            : `<button type="button" id="btnAcceptEscrow_${esc(c.id)}" class="hc-btn primary sm" onclick="window.topTenMechanics.acceptMercenaryContract('${esc(c.id)}')">🎯 Pegar Serviço (30m)</button>`)))}
             </div>
           </div>
         `;
