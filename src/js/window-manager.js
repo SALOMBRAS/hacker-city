@@ -126,6 +126,19 @@ class WindowManager {
     const next = typeof open === 'boolean' ? open : !(sb && sb.classList.contains('mobile-open'));
     if (sb) sb.classList.toggle('mobile-open', next);
     if (bd) bd.classList.toggle('active', next);
+    if (next) this.setMobileIpBarOpen(false);
+    return next;
+  }
+
+  setMobileIpBarOpen(open) {
+    const bar = document.getElementById('hcMobileIpDrawerBar');
+    if (!bar) return false;
+    const next = typeof open === 'boolean' ? open : !bar.classList.contains('open');
+    bar.classList.toggle('open', next);
+    if (next) {
+      const inp = document.getElementById('mobileQuickIpInput');
+      if (inp) setTimeout(() => inp.focus(), 40);
+    }
     return next;
   }
 
@@ -243,3 +256,4 @@ class WindowManager {
 window.winManager = new WindowManager();
 window.toggleSidebarCollapse = () => window.winManager.toggleSidebarCollapse();
 window.toggleMobileSidebar = (force) => window.winManager.setMobileSidebarOpen(force);
+window.toggleMobileIpBar = (force) => window.winManager.setMobileIpBarOpen(force);

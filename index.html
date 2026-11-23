@@ -479,6 +479,7 @@
     <header class="topbar">
       <div class="topbar-left">
         <button type="button" id="btnMobileNavToggle" onclick="window.toggleMobileSidebar()" aria-label="Menu"><i data-icon="menu"></i></button>
+        <button type="button" id="btnMobileIpQuick" onclick="window.toggleMobileIpBar()" title="Ir para endereço IP" aria-label="Ir para IP"><i data-icon="globe"></i></button>
         <div class="topbar-title" id="pageTitle">Início</div>
         <div class="topbar-ip-omnibox" title="Ir para qualquer endereço IP (Ctrl+K)">
           <i data-icon="globe"></i>
@@ -533,6 +534,14 @@
         </div>
       </div>
     </header>
+
+    <!-- Barra rápida expansível de IP no Celular (abre sob demanda pelo botão 🌐 do topo) -->
+    <div id="hcMobileIpDrawerBar" class="hc-mobile-ip-bar" aria-label="Ir rápido para endereço IP">
+      <input type="text" id="mobileQuickIpInput" class="hc-input" placeholder="Digite o IP alvo (ex: 198.51.100.42)" autocomplete="off" inputmode="decimal"
+        onkeydown="if(event.key==='Enter' && this.value.trim()){ window.internetEngine.openIp(this.value.trim()); this.value=''; window.toggleMobileIpBar(false); }">
+      <button type="button" class="hc-btn primary sm" onclick="const inp=document.getElementById('mobileQuickIpInput'); if(inp && inp.value.trim()){ window.internetEngine.openIp(inp.value.trim()); inp.value=''; window.toggleMobileIpBar(false); } else { navTo('winBrowser'); window.toggleMobileIpBar(false); }">Ir →</button>
+      <button type="button" class="hc-btn ghost sm" onclick="window.toggleMobileIpBar(false)" aria-label="Fechar busca de IP">✕</button>
+    </div>
 
 
     <!-- PÁGINA: HOME (PAINEL DE OPERAÇÕES) -->
