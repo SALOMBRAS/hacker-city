@@ -8,9 +8,13 @@ NODE_PATH=../pague-on-old/node_modules node tests/verify-new-onboarding-training
 
 # 2. Mercado Global MMO Multi-Aba (Alpha + Bravo + Charlie) & Desbloqueio Progressivo
 NODE_PATH=../pague-on-old/node_modules node tests/verify-mmo-global-and-unlocks.js
+
+# 3. Responsividade Mobile, Tablet & Toque (360x800, 390x844, 768x1024 + 27 Telas + Tour 14 Passos)
+NODE_PATH=../pague-on-old/node_modules node tests/verify-mobile-responsiveness-e2e.js
 ```
 
 Critérios obrigatórios em todas as execuções:
 - `0` violações no `IntegrityGuard` (`cheatStrikes === 0`)
-- `0` estouros horizontais ou colisões de texto na Topbar e nas 64 telas/modais
+- `0` estouros horizontais ou colisões de texto na Topbar e nas telas/modais tanto em Desktop (`1366x860` / `1200x800`) quanto em Celular/Tablet (`360x800`, `390x844`, `768x1024`)
+- `0` sobreposições entre `#hcTourCard` e `#hcTourRing` nos 14 passos do Tour Guiado
 - Preservação integral da regra de `15 minutos` (`900.000ms`) após o bônus único do 1º lote de treino (`8.000ms`).
