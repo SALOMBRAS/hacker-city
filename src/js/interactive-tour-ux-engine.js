@@ -438,12 +438,12 @@
         {
           id: 'compare_defenses',
           selector: '#inetHostDefenseCompareBox',
-          pointerLabel: '👀 Compare os Programas!',
+          pointerLabel: '👀 Compare a Força!',
           requiresDirectClick: false,
-          title: '7. Regra Vital: Os Programas Dele São Melhores que os Seus?',
-          desc: '<strong>Sempre olhe este quadro antes de atacar!</strong> Só é possível invadir se o <strong>Firewall</strong> e o <strong>Hasher</strong> da vítima forem menores ou iguais ao seu <strong>Quebrador de Senhas</strong>!',
-          hint: '✅ Seu melhor Hash no PC é <code>v1.0</code> e a defesa dele também é <code>v1.0</code> — por isso aparece <strong>Alcance compatível</strong>!',
-          nextLabel: 'Boa! Abrir Quebrador →',
+          title: '7. Regra nº 1: Seu Quebrador Alcança a Defesa Dele?',
+          desc: '<strong>Sempre confira este quadro antes de atacar!</strong> Você só quebra a senha se o seu <strong>Quebrador (Cracker)</strong> tiver versão maior ou igual ao <strong>Firewall</strong> e ao <strong>Hasher</strong> da vítima.',
+          hint: '✅ Seu Quebrador é <code>v1.0</code> e a defesa dele também é <code>v1.0</code> — alcance 100% liberado!',
+          nextLabel: 'Boa! Quebrar Senha →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
             if (window.internetEngine) {
@@ -460,10 +460,10 @@
           fallbackSelector: '#cardAttackBruteforce',
           pointerLabel: '👆 Clique em Quebrar senha!',
           requiresDirectClick: true,
-          title: '8. Abrir seu Mini-PC de Quebrar Senha',
-          desc: `Como o quebrador funciona em <strong>segundo plano</strong>, você não precisou ativá-lo antes: basta clicar em <strong>Quebrar senha</strong> para abrir a lista de hashes do seu PC!`,
-          hint: '🔑 <strong>Clique em "Quebrar senha"</strong> para escolher qual programa do seu HD, SSD ou NVMe usar!',
-          nextLabel: 'Abrir Mini-PC →',
+          title: '8. Iniciar Quebra de Senha',
+          desc: 'Não precisa abrir o Quebrador antes na memória: basta clicar em <strong>Quebrar senha</strong> para escolher qual versão do seu disco você quer usar!',
+          hint: '🔑 <strong>Clique em "Quebrar senha"</strong> na área iluminada!',
+          nextLabel: 'Abrir Quebrador →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
             if (window.internetEngine) {
@@ -485,16 +485,16 @@
             }
           }
         },
-        // PASSO 9 — ESCOLHER QUAL HASH USAR NO MINI-PC (HD / SSD / NVMe)!
+        // PASSO 9 — ESCOLHER QUAL QUEBRADOR USAR NO MINI-PC!
         {
           id: 'choose_minipc_hash',
           selector: '#miniPcCrackerWindow',
           fallbackSelector: '#btnMiniPcUseBest',
           pointerLabel: '👆 Escolha o Cracker v1.0!',
           requiresDirectClick: true,
-          title: '9. Mini-PC: Escolha Qual Hash Usar (HD / SSD / NVMe)',
-          desc: 'Aqui aparecem todos os hashes guardados nas unidades <strong>HD, SSD e NVMe</strong> do seu computador! Repare que o <code>v0.5</code> é fraco p/ este alvo, enquanto o <code>Cracker.crc v1.0</code> alcança a defesa.',
-          hint: '👆 <strong>Clique em "Usar este"</strong> no <code>Cracker.crc v1.0</code> e aguarde a quebra chegar em 100%!',
+          title: '9. Escolha o Quebrador Mais Forte (v1.0)',
+          desc: 'Veja as versões guardadas no seu PC: o <code>v0.5</code> não alcança a defesa, mas o <code>Cracker.crc v1.0</code> quebra fácil! Processadores melhores diminuem os segundos de espera.',
+          hint: '👆 <strong>Clique em "Usar este"</strong> no <code>Cracker.crc v1.0</code> e aguarde chegar em 100%!',
           nextLabel: 'Usar Cracker v1.0 →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
@@ -533,9 +533,9 @@
           fallbackSelector: '#btnUploadVirusStage',
           pointerLabel: '👆 Clique em 1️⃣ Subir pro PC da Vítima!',
           requiresDirectClick: true,
-          title: '10. Subindo o Vírus pro Disco da Vítima (1ª Etapa)',
-          desc: 'Você entrou no PC dele! Veja abaixo a lista de programas instalados na máquina da vítima (com botão de <strong>Download</strong>!). Agora vamos subir sua 1ª amostra <code>Spam.vspam (v1.0)</code> pro disco dele.',
-          hint: '📤 <strong>Clique em "1️⃣ Subir pro PC da Vítima"</strong> para enviar o arquivo pela sua internet!',
+          title: '10. Enviar Seu Vírus pro Disco da Vítima (1ª Parte)',
+          desc: 'Entramos como <strong>root</strong>! Você pode roubar programas melhores da vítima clicando em <strong>Baixar</strong> ou plantar vírus para gerar renda passiva (que entra como <strong>🩸 Dinheiro Sujo</strong>).',
+          hint: '📤 <strong>Clique em "1️⃣ Subir pro PC da Vítima"</strong> para enviar sua amostra <code>Spam.vspam (v1.0)</code>!',
           nextLabel: '1️⃣ Subir Vírus Agora →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
@@ -622,9 +622,9 @@
           selector: '#btnSshSubTabLogs',
           pointerLabel: '👆 Volte p/ Logs da Vítima!',
           requiresDirectClick: true,
-          title: '12. Atenção: Subir e Executar Gravaram Seu IP de Novo!',
-          desc: 'Seu vírus já está rodando e gerando lucro! <strong>MAS CUIDADO:</strong> tanto entrar quanto subir o arquivo e executar o vírus deixaram seu IP anotado na log da vítima!',
-          hint: '⚠️ <strong>Nunca saia sem limpar a log por último!</strong> Clique agora em <strong>"Logs (/var/log/syslog) ⚠️"</strong>!',
+          title: '12. Cuidado: Entrar, Subir e Rodar Gravaram Seu IP!',
+          desc: 'Seu vírus já está ativo! <strong>MAS ATENÇÃO:</strong> cada passo dentro do PC alheio anota seu IP na aba Logs — se esquecer lá, a polícia ou rivais contra-atacam você!',
+          hint: '⚠️ <strong>Sempre limpe a log por último!</strong> Clique em <strong>"Logs (/var/log/syslog) ⚠️"</strong>!',
           nextLabel: 'Abrir Logs da Vítima →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
