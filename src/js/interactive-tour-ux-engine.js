@@ -42,6 +42,24 @@
       return `HC_SPOTLIGHT_TOUR_REWARDED_${uid || 'guest'}`;
     }
 
+    dirtySampleKey(uid) {
+      return `HC_SPOTLIGHT_DIRTY_SAMPLE_${uid || 'guest'}`;
+    }
+
+    grantDirtyTourSampleOnce() {
+      const uid = this.currentUid();
+      try {
+        if (localStorage.getItem(this.dirtySampleKey(uid)) === '1') return;
+        localStorage.setItem(this.dirtySampleKey(uid), '1');
+      } catch (e) {}
+      if (window.nineSystemsEngine && typeof window.nineSystemsEngine.addDirtyMoney === 'function') {
+        window.nineSystemsEngine.addDirtyMoney(600, '1º Saque de Treino (198.51.100.42)');
+      }
+      if (window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.syncSidebarDom === 'function') {
+        window.progressiveUnlockEngine.syncSidebarDom();
+      }
+    }
+
     currentUid() {
       return (window.currentProfile && window.currentProfile.id) || 'guest';
     }
@@ -642,17 +660,17 @@
             }
           }
         },
-        // PASSO 13 — APAGAR RASTROS + DEIXAR FARPA + RECOMPENSA!
+        // PASSO 13 — APAGAR RASTROS + DEIXAR FARPA + RECEBER 1º DINHEIRO SUJO!
         {
           id: 'wipe_log_and_taunt',
           selector: '#remoteTauntQuickBar',
           fallbackSelector: '#remoteLogEditorBox',
           pointerLabel: '👆 Apague seu IP & Deixe Farpa!',
           requiresDirectClick: true,
-          title: '13. Apague Todos os Seus Rastros & Tire Onda!',
-          desc: 'Olhe na caixa abaixo: lá estão seus <strong>3 rastros</strong> (entrada, upload e execução do vírus) com seu IP! Jogadores espertos apagam o próprio IP e ainda deixam uma farpa provocando a vítima!',
-          hint: '🔥 <strong>Clique em "Apagar Meu IP & Deixar Farpa"</strong> para ficar invisível com o vírus lucrando lá dentro e ganhar <strong>+$ 500 HC + 100 REP</strong>!',
-          nextLabel: 'Concluir (+$500) →',
+          title: '13. Apague Todos os Seus Rastros & Saqueie!',
+          desc: 'Olhe na caixa abaixo: lá estão seus <strong>3 rastros</strong> com seu IP! Contra rivais fortes você também usará o <strong>Triturador 7-Passos</strong> para apagar até a sombra magnética do disco.',
+          hint: '🔥 <strong>Clique em "Apagar Meu IP & Deixar Farpa"</strong> para limpar seu rastro e receber <strong>+$ 600 em 🩸 Dinheiro Sujo</strong> da invasão!',
+          nextLabel: 'Limpar IP & Saquear →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
             this.ensureConnectedRootOnTrainingHost();
@@ -666,7 +684,8 @@
             if (window.internetEngine && typeof window.internetEngine.applyQuickTauntToRemoteLog === 'function') {
               window.internetEngine.applyQuickTauntToRemoteLog();
             }
-            this.finishWithReward();
+            this.grantDirtyTourSampleOnce();
+            this.goToStepById('dirty_vs_clean_economy');
           }
         }
       ];
