@@ -81,3 +81,268 @@ CREATE POLICY "Own wallet inbox read" ON public.hc_wallet_inbox
 DROP POLICY IF EXISTS "Public read global cyberstock" ON public.global_cyberstock_tickers;
 CREATE POLICY "Public read global cyberstock" ON public.global_cyberstock_tickers
   FOR SELECT USING (true);
+
+-- =============================================================================
+-- 7. STORED PROCEDURES ATÔMICAS (RELÓGIO DO SERVIDOR + ANTI-RACE-CONDITION)
+-- =============================================================================
+
+-- 7.1 Resgatar todos os cheques pendentes da Caixa de Recebimentos (hc_wallet_inbox)
+CREATE OR REPLACE FUNCTION public.rpc_claim_wallet_inbox()
+RETURNS JSONB AS $$
+DECLARE
+  v_clean_sum NUMERIC(14,2) := 0;
+  v_dirty_sum NUMERIC(14,2) := 0;
+  v_items JSONB := '[]'::jsonb;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RETURN jsonb_build_object('success', false, 'message', 'Não autenticado.');
+  END IF;
+
+  WITH claimed_rows AS (
+    UPDATE public.hc_wallet_inbox
+    SET claimed = TRUE
+    WHERE recipient_id = auth.uid() AND claimed = FALSE
+    RETURNING id, sender_tag, kind, amount_clean, amount_dirty, note, created_at
+  )
+  SELECT
+    COALESCE(SUM(amount_clean), 0),
+    COALESCE(SUM(amount_dirty), 0),
+    COALESCE(jsonb_agg(row_to_json(claimed_rows)), '[]'::jsonb)
+  INTO v_clean_sum, v_dirty_sum, v_items
+  FROM claimed_rows;
+
+  IF v_clean_sum > 0 THEN
+    UPDATE public.wallets
+    SET balance = balance + v_clean_sum
+    WHERE user_id = auth.uid();
+  END IF;
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'clean_added', v_clean_sum,
+    'dirty_added', v_dirty_sum,
+    'items', v_items,
+    'server_now', NOW()
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+-- 7.2 Aplicar Impacto Global na Bolsa CyberStock c/ Circuit Breaker (Piso 30%, Teto 220%, 10m Cooldown)
+CREATE OR REPLACE FUNCTION public.rpc_apply_global_stock_impact(
+  p_symbol TEXT,
+  p_delta_pct NUMERIC, -- ex: -0.18 para queda de 18%, +0.11 para defesa White-Hat
+  p_actor_tag TEXT DEFAULT 'Operador'
+) RETURNS JSONB AS $$
+DECLARE
+  v_row public.global_cyberstock_tickers%ROWTYPE;
+  v_eff_delta NUMERIC;
+  v_new_price NUMERIC(12,2);
+  v_new_integrity NUMERIC(6,1);
+  v_hist JSONB;
+BEGIN
+  SELECT * INTO v_row FROM public.global_cyberstock_tickers WHERE symbol = UPPER(p_symbol) FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'message', 'Empresa inválida.');
+  END IF;
+
+  v_eff_delta := p_delta_pct;
+  IF p_delta_pct < 0 THEN
+    IF v_row.circuit_breaker_until IS NOT NULL AND v_row.circuit_breaker_until > NOW() THEN
+      RETURN jsonb_build_object(
+        'success', false,
+        'code', 'CIRCUIT_BREAKER_ACTIVE',
+        'price', v_row.price,
+        'integrity', v_row.integrity,
+        'message', 'Circuit Breaker ativo: negociação protegida temporariamente após quedas bruscas!'
+      );
+    END IF;
+
+    IF v_row.last_drop_window_at IS NULL OR v_row.last_drop_window_at < (NOW() - INTERVAL '10 minutes') THEN
+      v_row.recent_drops_count := 1;
+      v_row.last_drop_window_at := NOW();
+    ELSE
+      v_row.recent_drops_count := v_row.recent_drops_count + 1;
+      IF v_row.recent_drops_count = 2 THEN
+        v_eff_delta := p_delta_pct * 0.50; -- 2ª queda em 10m amortecida em 50%!
+      ELSIF v_row.recent_drops_count >= 3 THEN
+        UPDATE public.global_cyberstock_tickers
+        SET circuit_breaker_until = NOW() + INTERVAL '10 minutes',
+            recent_drops_count = v_row.recent_drops_count
+        WHERE symbol = v_row.symbol;
+        RETURN jsonb_build_object(
+          'success', false,
+          'code', 'CIRCUIT_BREAKER_TRIGGERED',
+          'price', v_row.price,
+          'integrity', v_row.integrity,
+          'message', '3º ataque seguido em 10 min disparou o Circuit Breaker da Bolsa!'
+        );
+      END IF;
+    END IF;
+  END IF;
+
+  v_new_price := ROUND(GREATEST(v_row.base_price * 0.30, LEAST(v_row.base_price * 2.20, v_row.price * (1 + v_eff_delta))), 2);
+  v_new_integrity := ROUND(GREATEST(20.0, LEAST(125.0, v_row.integrity + (v_eff_delta * 100))), 1);
+  v_hist := (COALESCE(v_row.history_json, '[]'::jsonb) || to_jsonb(v_new_price));
+
+  UPDATE public.global_cyberstock_tickers
+  SET price = v_new_price,
+      integrity = v_new_integrity,
+      history_json = v_hist,
+      recent_drops_count = v_row.recent_drops_count,
+      last_drop_window_at = v_row.last_drop_window_at,
+      last_actor_tag = p_actor_tag,
+      updated_at = NOW()
+  WHERE symbol = v_row.symbol;
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'symbol', v_row.symbol,
+    'old_price', v_row.price,
+    'new_price', v_new_price,
+    'integrity', v_new_integrity
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+-- 7.3 Dar Lance Atômico no Leilão de 2h c/ Estorno Instantâneo + Anti-Sniping (+30s, máx 5x)
+CREATE OR REPLACE FUNCTION public.rpc_place_global_auction_bid(
+  p_lot_bucket BIGINT,
+  p_lot_code TEXT,
+  p_origin TEXT,
+  p_bid_clean NUMERIC,
+  p_bidder_tag TEXT,
+  p_tx_id TEXT
+) RETURNS JSONB AS $$
+DECLARE
+  v_lot public.hc_seized_server_auctions%ROWTYPE;
+  v_wallet_bal NUMERIC(14,2);
+  v_prev_bidder UUID;
+  v_prev_amount NUMERIC(14,2);
+  v_snipe_added BOOLEAN := FALSE;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RETURN jsonb_build_object('success', false, 'message', 'Não autenticado.');
+  END IF;
+
+  INSERT INTO public.hc_processed_tx_ids (tx_id, user_id) VALUES (p_tx_id, auth.uid())
+  ON CONFLICT (tx_id) DO NOTHING;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'code', 'DUPLICATE_TX', 'message', 'Clique já processado.');
+  END IF;
+
+  INSERT INTO public.hc_seized_server_auctions (lot_bucket, lot_code, seized_origin, highest_bid_clean, highest_bidder_tag, expires_at)
+  VALUES (p_lot_bucket, p_lot_code, p_origin, 8000, 'kr0n0s_apt', to_timestamp((p_lot_bucket + 1) * 7200))
+  ON CONFLICT (lot_bucket) DO NOTHING;
+
+  SELECT * INTO v_lot FROM public.hc_seized_server_auctions WHERE lot_bucket = p_lot_bucket FOR UPDATE;
+  IF v_lot.resolved OR v_lot.expires_at <= NOW() THEN
+    RETURN jsonb_build_object('success', false, 'code', 'AUCTION_CLOSED', 'message', 'Este leilão já encerrou!');
+  END IF;
+  IF v_lot.highest_bidder_id = auth.uid() THEN
+    RETURN jsonb_build_object('success', false, 'code', 'SELF_OUTBID_BLOCKED', 'message', 'Você já detém o maior lance atual!');
+  END IF;
+  IF p_bid_clean < v_lot.highest_bid_clean + 1500 THEN
+    RETURN jsonb_build_object('success', false, 'code', 'BID_TOO_LOW', 'min_required', v_lot.highest_bid_clean + 1500);
+  END IF;
+
+  SELECT balance INTO v_wallet_bal FROM public.wallets WHERE user_id = auth.uid() FOR UPDATE;
+  IF v_wallet_bal < p_bid_clean THEN
+    RETURN jsonb_build_object('success', false, 'code', 'INSUFFICIENT_CLEAN_FUNDS');
+  END IF;
+
+  UPDATE public.wallets SET balance = balance - p_bid_clean WHERE user_id = auth.uid();
+
+  v_prev_bidder := v_lot.highest_bidder_id;
+  v_prev_amount := v_lot.highest_bid_clean;
+  IF v_prev_bidder IS NOT NULL THEN
+    INSERT INTO public.hc_wallet_inbox (recipient_id, sender_id, sender_tag, kind, amount_clean, note)
+    VALUES (
+      v_prev_bidder,
+      auth.uid(),
+      p_bidder_tag,
+      'AUCTION_OUTBID_REFUND',
+      v_prev_amount,
+      format('Seu lance no lote %s foi coberto por @%s — estorno integral!', v_lot.lot_code, p_bidder_tag)
+    );
+  END IF;
+
+  -- Regra Anti-Sniping: faltando < 30s, prorroga +30s (máx 5 vezes)!
+  IF v_lot.expires_at - NOW() < INTERVAL '30 seconds' AND v_lot.snipe_extensions < 5 THEN
+    v_lot.expires_at := v_lot.expires_at + INTERVAL '30 seconds';
+    v_lot.snipe_extensions := v_lot.snipe_extensions + 1;
+    v_snipe_added := TRUE;
+  END IF;
+
+  UPDATE public.hc_seized_server_auctions
+  SET highest_bid_clean = p_bid_clean,
+      highest_bidder_id = auth.uid(),
+      highest_bidder_tag = p_bidder_tag,
+      expires_at = v_lot.expires_at,
+      snipe_extensions = v_lot.snipe_extensions
+  WHERE lot_bucket = p_lot_bucket;
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'highest_bid_clean', p_bid_clean,
+    'expires_at', v_lot.expires_at,
+    'snipe_extended', v_snipe_added
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+-- 7.4 Compra Atômica de Licença de Vírus P2P (Zero Clonagem + Crédito via Inbox ao Criador)
+CREATE OR REPLACE FUNCTION public.rpc_buy_p2p_license_atomic(
+  p_license_id UUID,
+  p_buyer_tag TEXT,
+  p_tx_id TEXT
+) RETURNS JSONB AS $$
+DECLARE
+  v_lic public.p2p_strain_licenses%ROWTYPE;
+  v_bal NUMERIC(14,2);
+  v_net_seller NUMERIC(14,2);
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RETURN jsonb_build_object('success', false, 'message', 'Não autenticado.');
+  END IF;
+
+  INSERT INTO public.hc_processed_tx_ids (tx_id, user_id) VALUES (p_tx_id, auth.uid())
+  ON CONFLICT (tx_id) DO NOTHING;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'code', 'DUPLICATE_TX');
+  END IF;
+
+  SELECT * INTO v_lic FROM public.p2p_strain_licenses WHERE id = p_license_id FOR UPDATE;
+  IF NOT FOUND OR v_lic.sold_to_id IS NOT NULL THEN
+    RETURN jsonb_build_object('success', false, 'code', 'ALREADY_SOLD', 'message', 'Outro jogador alugou este vírus 1 segundo antes — nada foi cobrado de você!');
+  END IF;
+  IF v_lic.seller_id = auth.uid() THEN
+    RETURN jsonb_build_object('success', false, 'code', 'SELF_BUY_BLOCKED', 'message', 'Você não pode alugar seu próprio anúncio!');
+  END IF;
+
+  SELECT balance INTO v_bal FROM public.wallets WHERE user_id = auth.uid() FOR UPDATE;
+  IF v_bal < v_lic.price_clean_usd THEN
+    RETURN jsonb_build_object('success', false, 'code', 'INSUFFICIENT_CLEAN_FUNDS');
+  END IF;
+
+  UPDATE public.wallets SET balance = balance - v_lic.price_clean_usd WHERE user_id = auth.uid();
+
+  UPDATE public.p2p_strain_licenses
+  SET sold_to_id = auth.uid(),
+      sold_at = NOW(),
+      expires_at = NOW() + make_interval(hours => v_lic.duration_hours)
+  WHERE id = p_license_id;
+
+  v_net_seller := ROUND(v_lic.price_clean_usd * (1 - (v_lic.burn_tax_pct / 100.0)), 2);
+  INSERT INTO public.hc_wallet_inbox (recipient_id, sender_id, sender_tag, kind, amount_clean, note)
+  VALUES (
+    v_lic.seller_id,
+    auth.uid(),
+    p_buyer_tag,
+    'P2P_VIRUS_SALE',
+    v_net_seller,
+    format('@%s alugou seu vírus "%s" (%sh)!', p_buyer_tag, v_lic.strain_name, v_lic.duration_hours)
+  );
+
+  RETURN jsonb_build_object('success', true, 'license', row_to_json(v_lic), 'net_seller', v_net_seller);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
