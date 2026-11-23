@@ -42,6 +42,24 @@
       return `HC_SPOTLIGHT_TOUR_REWARDED_${uid || 'guest'}`;
     }
 
+    dirtySampleKey(uid) {
+      return `HC_SPOTLIGHT_DIRTY_SAMPLE_${uid || 'guest'}`;
+    }
+
+    grantDirtyTourSampleOnce() {
+      const uid = this.currentUid();
+      try {
+        if (localStorage.getItem(this.dirtySampleKey(uid)) === '1') return;
+        localStorage.setItem(this.dirtySampleKey(uid), '1');
+      } catch (e) {}
+      if (window.nineSystemsEngine && typeof window.nineSystemsEngine.addDirtyMoney === 'function') {
+        window.nineSystemsEngine.addDirtyMoney(600, '1º Saque de Treino (198.51.100.42)');
+      }
+      if (window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.syncSidebarDom === 'function') {
+        window.progressiveUnlockEngine.syncSidebarDom();
+      }
+    }
+
     currentUid() {
       return (window.currentProfile && window.currentProfile.id) || 'guest';
     }
@@ -642,17 +660,17 @@
             }
           }
         },
-        // PASSO 13 — APAGAR RASTROS + DEIXAR FARPA + RECOMPENSA!
+        // PASSO 13 — APAGAR RASTROS + DEIXAR FARPA + RECEBER 1º DINHEIRO SUJO!
         {
           id: 'wipe_log_and_taunt',
           selector: '#remoteTauntQuickBar',
           fallbackSelector: '#remoteLogEditorBox',
           pointerLabel: '👆 Apague seu IP & Deixe Farpa!',
           requiresDirectClick: true,
-          title: '13. Apague Todos os Seus Rastros & Tire Onda!',
-          desc: 'Olhe na caixa abaixo: lá estão seus <strong>3 rastros</strong> (entrada, upload e execução do vírus) com seu IP! Jogadores espertos apagam o próprio IP e ainda deixam uma farpa provocando a vítima!',
-          hint: '🔥 <strong>Clique em "Apagar Meu IP & Deixar Farpa"</strong> para ficar invisível com o vírus lucrando lá dentro e ganhar <strong>+$ 500 HC + 100 REP</strong>!',
-          nextLabel: 'Concluir (+$500) →',
+          title: '13. Apague Todos os Seus Rastros & Saqueie!',
+          desc: 'Olhe na caixa abaixo: lá estão seus <strong>3 rastros</strong> com seu IP! Contra rivais fortes você também usará o <strong>Triturador 7-Passos</strong> para apagar até a sombra magnética do disco.',
+          hint: '🔥 <strong>Clique em "Apagar Meu IP & Deixar Farpa"</strong> para limpar seu rastro e receber <strong>+$ 600 em 🩸 Dinheiro Sujo</strong> da invasão!',
+          nextLabel: 'Limpar IP & Saquear →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
             this.ensureConnectedRootOnTrainingHost();
@@ -666,6 +684,27 @@
             if (window.internetEngine && typeof window.internetEngine.applyQuickTauntToRemoteLog === 'function') {
               window.internetEngine.applyQuickTauntToRemoteLog();
             }
+            this.grantDirtyTourSampleOnce();
+            this.goToStepById('dirty_vs_clean_economy');
+          }
+        },
+        // PASSO 14 — DINHEIRO SUJO vs. DINHEIRO LIMPO & VITRINE DE LAVAGEM!
+        {
+          id: 'dirty_vs_clean_economy',
+          selector: '#hudDirtyCashBadge',
+          fallbackSelector: '#hudWalletMoney',
+          pointerLabel: '🩸 Dinheiro Sujo Destravou Lavagem!',
+          requiresDirectClick: false,
+          title: '14. Regra de Ouro: Dinheiro Sujo vs. Dinheiro Limpo!',
+          desc: 'Olhe no topo: entraram <strong>🩸 $ 600 Sujos</strong>! Dinheiro de invasão e vírus vem <strong>Sujo</strong> — se tentar forçar notas sujas para comprar Peças ou Cursos, a polícia prende você! Por isso o menu <strong>Dinheiro & Vida → Lavar Dinheiro</strong> acabou de abrir com o selo <strong>NOVO</strong>.',
+          hint: '🧼 Clique em <strong>Concluir (+$ 500 Limpos)</strong> para receber seu bônus legalizado e depois lave seus $ 600 Sujos na <strong>Vitrine Global de Lavagem</strong>!',
+          nextLabel: 'Concluir (+$ 500 Limpos) →',
+          onEnter: () => {
+            this.ensureMobileDrawerIfNeeded(false);
+            this.grantDirtyTourSampleOnce();
+            if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+          },
+          triggerAction: () => {
             this.finishWithReward();
           }
         }
@@ -796,6 +835,11 @@
 
       if (step.id === 'wipe_log_and_taunt') {
         if (step.triggerAction) step.triggerAction();
+        return;
+      }
+
+      if (step.id === 'dirty_vs_clean_economy') {
+        this.finishWithReward();
         return;
       }
 
@@ -995,7 +1039,8 @@
           const clickedBtn = ev.target && ev.target.closest ? ev.target.closest('button') : null;
           if (clickedBtn && (clickedBtn.id === 'btnQuickWipeAndTaunt' || clickedBtn.id === 'btnSaveRemoteSyslog' || clickedBtn.id === 'btnWipeAllRemoteLogs')) {
             setTimeout(() => {
-              if (this.isActive) this.finishWithReward();
+              this.grantDirtyTourSampleOnce();
+              if (this.isActive) this.goToStepById('dirty_vs_clean_economy');
             }, 180);
           }
         }
@@ -1157,18 +1202,27 @@
         }
         if (window.tutorialEngine && typeof window.tutorialEngine.ensureLoaded === 'function') {
           const ts = window.tutorialEngine.ensureLoaded();
-          ts.completed = true;
-          ts.step = 5;
-          window.tutorialEngine.save();
+          if (!ts.completed) {
+            ts.fileExtracted = true;
+            ts.virusPlanted = true;
+            ts.logsCleaned = true;
+            if (ts.step >= 2 && ts.step < 5) {
+              ts.step = 5;
+            }
+            window.tutorialEngine.save();
+          }
+        }
+        if (typeof window.renderHome === 'function' && window.winManager?.current === 'winHome') {
+          window.renderHome();
         }
         if (typeof window.addLocalLog === 'function') {
-          window.addLocalLog('TOUR-CONCLUIDO', `Tour Completo de Invasão concluído! Recompensa: +$ ${TOUR_REWARD_CASH} HC e +${TOUR_REWARD_REP} REP`, 'success');
+          window.addLocalLog('TOUR-CONCLUIDO', `Tour Completo concluído! Recebido +$ ${TOUR_REWARD_CASH} Limpos e +${TOUR_REWARD_REP} REP.`, 'success');
         }
         if (window.hackerAudio) window.hackerAudio.playCashChime();
         if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
         if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
         if (typeof window.showToast === 'function') {
-          window.showToast(`🎉 Invasão Completa! Seu vírus ficou lucrando e seu rastro foi apagado (+$ ${TOUR_REWARD_CASH} HC + ${TOUR_REWARD_REP} REP)!`);
+          window.showToast(`🎉 Tour concluído (+$ ${TOUR_REWARD_CASH} Limpos + ${TOUR_REWARD_REP} REP)! Agora conclua o Curso #1 e lave seus $ 600 Sujos na Vitrine!`);
         }
       } else if (typeof window.showToast === 'function') {
         window.showToast('🎉 Tour Guiado concluído! Bom jogo!');
