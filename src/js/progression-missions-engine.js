@@ -178,12 +178,16 @@
       },
       pages: [
         {
-          heading: 'Módulo 1/2 — Blindagem Ativa, Reparo Físico & Backup em HD Externo',
-          body: 'Mantenha Firewall.fwl e Hasher.hash evoluídos rodando na RAM, guarde cópias seguras no HD Externo e verifique a Saúde Física das peças caso sofra sobrecarga DDoS.'
+          heading: 'Aula 1/3 — Defesa Ativa de 15s (Sacrifício de VPS) & Modo do Disco (RAID)',
+          body: 'Quando alguém invade sua porta 22, abre o alerta de 15 segundos (23s no Bunker): você pode Cortar o Cabo (pausa rede 15s), disparar Pulso EMP (+12°C na CPU) ou Desviar p/ VPS (salva seu PC e captura o IP do invasor, MAS destrói aquela VPS para sempre!). No disco de 1 GB+, escolha entre RAID-0 (+25% rápido, mas perde 1 programa se o PC cair <40% em DDoS) ou RAID-1 (100% seguro, metade do espaço).'
         },
         {
-          heading: 'Módulo 2/2 — Mitigação DDoS Automática & Quadro de Vingança',
-          body: 'Com este diploma máximo (MIT-HC), seu Firewall.fwl mitiga automaticamente ataques DDoS proporcionalmente à versão dele — e você domina a contra-inteligência via Nmap.nmap, Conexões ao Vivo e Recompensas por Nick!'
+          heading: 'Aula 2/3 — Cofre na Suíça vs. Bloqueio Judicial & Patrocínio do Clã',
+          body: 'Se sua Procura chegar ao Nível 5, a justiça congela 30% da sua conta comum (77.3.9.21), enquanto o Cofre na Suíça ($ 25.000 Limpos) é 100% imune e rende +1,5% às 12h! Nos Clãs, assine Patrocínio de Empresa ($ 30.000 de garantia) para ganhar $ 8.500/dia às 12h — mas defenda a empresa na Bolsa, pois se a saúde dela cair abaixo de 35% você perde os $ 30.000!'
+        },
+        {
+          heading: 'Aula 3/3 — Escudo DDoS Automático & Rotas Globais Tier 5 (6 Saltos)',
+          body: 'Com o Mestrado MIT-HC (CERT-401), seu Firewall.fwl passa a amortecer ataques DDoS automaticamente e você destrava invasões aos Mainframes Globais Tier 5 (exigindo 6+ saltos em pelo menos 3 continentes no Mapa-Múndi)!'
         }
       ]
     }
