@@ -909,12 +909,15 @@
         strainId: offerObj.strainId || null,
         sellerId: offerObj.sellerId || me.id,
         sellerTag: offerObj.sellerTag || me.tag,
-        name: offerObj.name,
-        family: offerObj.family || 'warez',
-        durationHours: Number(offerObj.durationHours || 4),
+        name: offerObj.strainName || offerObj.name || 'Strain-P2P',
+        strainName: offerObj.strainName || offerObj.name || 'Strain-P2P',
+        family: offerObj.family || 'vwarez',
+        versionInt: Number(offerObj.versionInt || 50),
+        fitGrade: offerObj.fitGrade || 'A',
+        durationHours: Number(offerObj.durationHours || 48),
         powerBonus: Number(offerObj.powerBonus || 0.25),
         priceClean: Math.round(Number(offerObj.priceClean || 2500)),
-        burnTaxPct: 20,
+        burnTaxPct: Number(offerObj.burnTaxPct || 15),
         soldToId: null,
         soldToTag: null,
         soldAt: 0,
@@ -928,10 +931,17 @@
 
     getGlobalOpenP2pLicenses() {
       const ledger = this.readShared();
+      const me = this.getActorIdentity();
       const cutoff = Date.now() - (12 * 60 * 60 * 1000);
       return ledger.p2pOffers
         .filter((o) => o && !o.soldToId && o.createdAt >= cutoff)
-        .map((o) => ({ ...o, isBot: false, isPlayerOffer: true }));
+        .map((o) => ({
+          ...o,
+          strainName: o.strainName || o.name,
+          isBot: false,
+          isPlayerOffer: true,
+          isMine: (o.sellerId === me.id) || (o.sellerTag && o.sellerTag.toLowerCase() === me.tag.toLowerCase())
+        }));
     }
 
     buyGlobalP2pLicenseAtomic(opts) {
@@ -974,7 +984,8 @@
       offer.soldAt = Date.now();
       this.writeShared(ledger, 'p2p_offers_updated', { offerId, soldToTag: buyerTag });
 
-      const netSeller = Math.round(offer.priceClean * 0.80);
+      const taxPct = Number(offer.burnTaxPct || 15);
+      const netSeller = Math.round(offer.priceClean * (1 - taxPct / 100));
       this.enqueueInboxPayout({
         recipientId: offer.sellerId,
         recipientTag: offer.sellerTag,
@@ -983,7 +994,7 @@
         kind: 'P2P_VIRUS_SALE',
         amountClean: netSeller,
         amountDirty: 0,
-        note: `@${buyerTag} alugou sua licença "${offer.name}" (${offer.durationHours}h, -20% taxa da rede)`
+        note: `@${buyerTag} alugou sua licença "${offer.strainName || offer.name}" (${offer.durationHours}h, -${taxPct}% taxa da rede)`
       });
 
       return {
