@@ -42,12 +42,16 @@
       },
       pages: [
         {
-          heading: 'Módulo 1/2 — Seu IP Público & Blur Anti-Curiosos',
-          body: 'Cada operador possui um endereço IPv4 público único na rede. No topo da tela, os últimos 7 dígitos ficam desfocados automaticamente (só aparecem ao passar o mouse) para proteger você caso um amigo esteja jogando ao seu lado! Porém, dentro dos computadores que você invade, seu IP completo fica gravado em /var/log/syslog.'
+          heading: 'Aula 1/3 — Seu IP Protegido, Escudo Iniciante (< 200 REP) & Menu Progressivo',
+          body: 'Seu endereço IPv4 no topo da tela é a placa do seu PC na rede (os últimos 7 dígitos ficam borrados automaticamente para ninguém espiar — passe o mouse para ver). Enquanto você tiver menos de 200 REP, seu Escudo Iniciante bloqueia ataques surpresa na porta 22! E repare no menu lateral: novas telas abrem aos poucos conforme você evolui (com selo verde NOVO), sem poluir sua tela.'
         },
         {
-          heading: 'Módulo 2/2 — Troca Semanal no ISP (71.4.5.1) & Relógio de Contas às 12:00',
-          body: 'Você tem direito a 1 troca gratuita de IP por semana no ISP (71.4.5.1). Já no relógio do mundo, 1 hora real equivale a 1 dia no jogo e 24h reais equivalem a 1 Mês: todo dia às 12:00 chega a fatura mensal de Luz do PC, Internet/VPS, Aluguel e Água (acumulando no máximo 3 meses antes de pausar caso você fique offline).'
+          heading: 'Aula 2/3 — Troca Grátis no Provedor ISP (71.4.5.1) & Contas das 12:00',
+          body: 'Esqueceu seu IP num servidor invadido? Você tem 1 troca gratuita de IP por semana no Provedor ISP (71.4.5.1). No relógio do jogo, 1 hora real = 1 dia e 24h reais = 1 mês: às 12:00 fecham as contas de Luz, Internet e Aluguel do seu Esconderijo (acumulam no máximo 3 meses e pausam sozinhas se você ficar offline!).'
+        },
+        {
+          heading: 'Aula 3/3 — Regra de Ouro: Dinheiro Limpo vs. Dinheiro Sujo (Lavagem)',
+          body: 'No Hacker City existem duas carteiras: Dinheiro Limpo (ganho em cursos, trabalhos legais e Bolsa — aceito para comprar Peças, Cursos e Imóveis) e Dinheiro Sujo (ganho em invasões, saques e vírus). Nunca tente forçar Dinheiro Sujo na loja sem lavar antes, senão a polícia cola em você e prende! Basta lavar na Vitrine Global de Lavagem (15 min reais) para transformá-lo em Dinheiro Limpo.'
         }
       ]
     },
