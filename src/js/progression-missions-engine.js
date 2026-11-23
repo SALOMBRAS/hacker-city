@@ -110,16 +110,16 @@
       },
       pages: [
         {
-          heading: 'Módulo 1/3 — Varredura PortScan & Acesso Root sem Senha',
-          body: 'Rode o PortScan.scan na aba Invadir para mapear as portas 21 (FTP) e 22 (SSH). FTP_Exploit.exp >= Firewall libera arquivos; SSH_Exploit.exp >= Firewall libera comandos; combinar AMBOS concede acesso ROOT imediato sem precisar da senha!'
+          heading: 'Aula 1/3 — Exploits FTP+SSH, Rotas no Mapa-Múndi & Iscas PGP',
+          body: 'Rode o PortScan.scan e combine FTP_Exploit.exp + SSH_Exploit.exp >= Firewall para entrar como ROOT sem senha! Atenção: servidores Nível 3+ exigem ligar 2+ cidades de salto no Mapa-Múndi (atacar direto gera bloqueio 403 e +2 de Procura!). E no portal hc://vazamentos, sempre confira a assinatura PGP antes de usar um vazamento para não cair em isca policial.'
         },
         {
-          heading: 'Módulo 2/3 — Auditoria e Dreno de Contas Bancárias',
-          body: 'Em contratos financeiros, invada o servidor indicado para descobrir o número da conta e auditar saldos ou transferir valores entre os bancos internacionais da rede.'
+          heading: 'Aula 2/3 — Vitrine Global de Lavagem (5/1h) & Bolsa Unificada',
+          body: 'Na Vitrine Global aparecem 5 empresas por hora (empresas anunciadas por jogadores reais por $ 10.000 + Bots completando vagas; máx. 3 lavagens/dia na mesma dupla). Já na Bolsa CyberStock, os preços das 8 empresas são compartilhados entre todos os jogadores: aposte na queda (Short), apague as câmeras CFTV da empresa para derrubar a ação e lucre Dinheiro Limpo! (3 ataques em 10m ativam o Circuit Breaker de proteção).'
         },
         {
-          heading: 'Módulo 3/3 — Câmeras de Segurança CFTV Ao Vivo & Queima de DVR',
-          body: 'Ao invadir empresas corporativas, você pode acessar o circuito interno CFTV ao vivo para desativar todas as câmeras (ajudando operações de roubo) ou apagar gravações comprometedoras em /var/nvr/recordings!'
+          heading: 'Aula 3/3 — Mural de Serviços do Fórum (Reserva Exclusiva de 30 min)',
+          body: 'No Fórum você pode contratar outro jogador com pagamento garantido ($ 2.000 a $ 25.000 Limpos + 15% taxa) ou pegar serviços disponíveis com 30 minutos de exclusividade para ganhar Dinheiro Sujo (atrasar custa -35 REP). Contratos ainda abertos podem ser cancelados pelo criador, mas os 15% de taxa não voltam.'
         }
       ]
     },
@@ -144,16 +144,16 @@
       },
       pages: [
         {
-          heading: 'Módulo 1/3 — As 5 Famílias de Vírus & Escala Regressiva (v10.0 = 3.00x)',
-          body: 'Spam.vspam ($/CPU), Warez.vwarez ($/Banda — exige Torrent.torrent rodando no seu PC!), Miner.vminer (BTC/CPU), BankTrojan.vbank ($ bancário) e DDoS_Node.vddos (Gbps). A versão máxima atual é v10.0 com multiplicador de 3.00x, regredindo proporcionalmente até v1.0 (1.00x) e protótipos abaixo disso.'
+          heading: 'Aula 1/3 — As 5 Famílias, Limite do Coletor & Esconder Vírus (Hider)',
+          body: 'Spam.vspam, Warez.vwarez (exige Torrent na RAM), Miner.vminer, BankTrojan.vbank e DDoS_Node.vddos chegam até v10.0 (3.00x). A versão do seu Collector.vcol define de quantos servidores você consegue colher ao mesmo tempo, e usar Hider.hid compatível evita que a varredura de 4h do Antivírus apague seus vírus!'
         },
         {
-          heading: 'Módulo 2/3 — Laboratório de Vírus ($ 1.000 · 1x por Mês/Dia)',
-          body: 'Em Meu Computador > Laboratório de Vírus, por $ 1.000 (1 vez por Mês / 24h reais), você monta seu próprio vírus em 3 rounds aleatórios (escolher 1 -> escolher 2 -> escolher 1 bloco de código) entre 54 conjuntos! Se cair um vírus que você já tem, o sistema preserva sua versão mais forte e lapida +v0.1/+v0.2 sem entupir seu HD.'
+          heading: 'Aula 2/3 — Laboratório (1+2+1), Blocos Secretos & Encomenda de $ 18.000',
+          body: 'No Laboratório ($ 1.000 · 1x a cada 24h reais) você monta vírus em 3 rodadas (1+2+1). Com Seeker v3.0+ em servidores de elite você acha Blocos Secretos (mas se tirar nota menor que B com eles, o vírus queima e sua CPU sobe +18°C!). Você também pode entregar um vírus pronto na Encomenda Oficial para ganhar $ 18.000 Limpos na hora (cedendo a posse do vírus).'
         },
         {
-          heading: 'Módulo 3/3 — Antivírus, Coletor e Ataques DDoS',
-          body: 'Ative o Collector.vcol para recolher dólares e Bitcoins dos vírus espalhados, e use o DDoS_Breaker.vbrk para disparar sobrecargas DDoS que derrubam alvos do FBI e danificam o hardware de rivais!'
+          heading: 'Aula 3/3 — Aluguel Global de Vírus P2P & Leilão Global de 2h',
+          body: 'Cada vírus criado pode emitir até 2 licenças no Aluguel Global P2P (quem aluga usa por 24h–72h com +20% de RAM, e você recebe na Caixa MMO). Já no Leilão Global de 2h, use Analyzer v4.0+ ($ 1.000) para sondar se o servidor é tesouro ou bomba; se outro jogador cobrir seu lance, seu dinheiro volta 100% na hora e lances nos últimos 30s prorrogam +30s!'
         }
       ]
     },
@@ -178,12 +178,16 @@
       },
       pages: [
         {
-          heading: 'Módulo 1/2 — Blindagem Ativa, Reparo Físico & Backup em HD Externo',
-          body: 'Mantenha Firewall.fwl e Hasher.hash evoluídos rodando na RAM, guarde cópias seguras no HD Externo e verifique a Saúde Física das peças caso sofra sobrecarga DDoS.'
+          heading: 'Aula 1/3 — Defesa Ativa de 15s (Sacrifício de VPS) & Modo do Disco (RAID)',
+          body: 'Quando alguém invade sua porta 22, abre o alerta de 15 segundos (23s no Bunker): você pode Cortar o Cabo (pausa rede 15s), disparar Pulso EMP (+12°C na CPU) ou Desviar p/ VPS (salva seu PC e captura o IP do invasor, MAS destrói aquela VPS para sempre!). No disco de 1 GB+, escolha entre RAID-0 (+25% rápido, mas perde 1 programa se o PC cair <40% em DDoS) ou RAID-1 (100% seguro, metade do espaço).'
         },
         {
-          heading: 'Módulo 2/2 — Mitigação DDoS Automática & Quadro de Vingança',
-          body: 'Com este diploma máximo (MIT-HC), seu Firewall.fwl mitiga automaticamente ataques DDoS proporcionalmente à versão dele — e você domina a contra-inteligência via Nmap.nmap, Conexões ao Vivo e Recompensas por Nick!'
+          heading: 'Aula 2/3 — Cofre na Suíça vs. Bloqueio Judicial & Patrocínio do Clã',
+          body: 'Se sua Procura chegar ao Nível 5, a justiça congela 30% da sua conta comum (77.3.9.21), enquanto o Cofre na Suíça ($ 25.000 Limpos) é 100% imune e rende +1,5% às 12h! Nos Clãs, assine Patrocínio de Empresa ($ 30.000 de garantia) para ganhar $ 8.500/dia às 12h — mas defenda a empresa na Bolsa, pois se a saúde dela cair abaixo de 35% você perde os $ 30.000!'
+        },
+        {
+          heading: 'Aula 3/3 — Escudo DDoS Automático & Rotas Globais Tier 5 (6 Saltos)',
+          body: 'Com o Mestrado MIT-HC (CERT-401), seu Firewall.fwl passa a amortecer ataques DDoS automaticamente e você destrava invasões aos Mainframes Globais Tier 5 (exigindo 6+ saltos em pelo menos 3 continentes no Mapa-Múndi)!'
         }
       ]
     }
