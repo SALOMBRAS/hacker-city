@@ -2040,24 +2040,48 @@
         return;
       }
       const remMs = Math.max(0, a.expiresAt - Date.now());
-      const pct = Math.round((remMs / 15000) * 100);
+      const maxMs = Math.max(1000, Number(a.windowSeconds || 15) * 1000);
+      const pct = Math.min(100, Math.round((remMs / maxMs) * 100));
       const sacVps = (window.lanServersEngine && typeof window.lanServersEngine.getSacrificeableVps === 'function')
         ? window.lanServersEngine.getSacrificeableVps()
         : null;
       pop.classList.add('open');
       pop.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <strong style="color:#fca5a5;font-size:13px;">🚨 INTRUSÃO AO VIVO NA PORTA 22!</strong>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+          <strong style="color:#fca5a5;font-size:13.5px;">🚨 ALGUÉM ESTÁ INVADINDO SEU PC!</strong>
           <span class="mono hc-badge danger">${(remMs / 1000).toFixed(1)}s</span>
         </div>
         <div style="font-size:12px;color:#e2e8f0;">
-          Atacante: <code class="mono">${esc(a.attackerIp)}</code> (${esc(a.alias)}) · Escolha sua contra-medida:
+          Invasor: <code class="mono">${esc(a.attackerIp)}</code> (${esc(a.alias)}) · Escolha rápido o que fazer:
         </div>
         <div class="hc-def-bar-track"><div class="hc-def-bar-fill" style="width:${pct}%;"></div></div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
-          <button type="button" id="btnDefCutCable" class="hc-btn sm" style="border-color:#e5534b;color:#fca5a5;" title="Grátis, mas pausa sua rede 15s" onclick="window.nineSystemsEngine.respondActiveDefense('cut_cable')">✂️ Cortar</button>
-          <button type="button" id="btnDefHoneypot" class="hc-btn ${sacVps ? 'primary' : 'ghost'} sm" ${!sacVps ? 'style="opacity:0.55;border-color:#4b5563;"' : 'style="background:#d97706;border-color:#f59e0b;color:#090d12;"'} title="${sacVps ? `ATENÇÃO: Salva seu PC e captura o IP do invasor, MAS DESTRÓI PERMANENTEMENTE sua ${sacVps.label} (sem reformatação — terá que comprar e montar outra!)` : 'Bloqueado: compre uma VPS ($ 2.500+) para poder sacrificar em desvios'}" onclick="window.nineSystemsEngine.respondActiveDefense('honeypot')">${sacVps ? '🔥 Desviar (Perde VPS!)' : '🔒 Sem VPS'}</button>
-          <button type="button" id="btnDefEmp" class="hc-btn ghost sm" title="Frita invasor, mas sobe +12°C na sua CPU" onclick="window.nineSystemsEngine.respondActiveDefense('emp_pulse')">⚡ Pulso EMP</button>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <button type="button" id="btnDefCutCable" class="hc-choice-row danger-opt" style="padding:8px 11px;"
+            onclick="window.nineSystemsEngine.respondActiveDefense('cut_cable')">
+            <span class="hc-choice-main">
+              <span class="hc-choice-title" style="color:#fca5a5;">✂️ 1. Cortar Cabo de Rede (Grátis)</span>
+              <span class="hc-choice-desc">Expulsa o invasor na hora, mas pausa sua internet por 15s.</span>
+            </span>
+            <span class="hc-choice-cta" style="color:#fca5a5;">Cortar</span>
+          </button>
+
+          <button type="button" id="btnDefHoneypot" class="hc-choice-row warn-opt" style="padding:8px 11px;${!sacVps ? 'opacity:0.6;' : ''}"
+            onclick="window.nineSystemsEngine.respondActiveDefense('honeypot')">
+            <span class="hc-choice-main">
+              <span class="hc-choice-title" style="color:#fde68a;">${sacVps ? `🔥 2. Jogar Ataque p/ ${esc(sacVps.label)} (Perde a VPS!)` : '🔒 2. Jogar Ataque p/ VPS (Compre 1 VPS antes)'}</span>
+              <span class="hc-choice-desc">${sacVps ? 'Salva seu PC e descobre o IP dele, MAS destrói essa VPS de vez!' : 'Exige ter uma VPS ($ 2.500+) para sacrificar no desvio.'}</span>
+            </span>
+            <span class="hc-choice-cta" style="color:#fde68a;">${sacVps ? 'Desviar' : 'Sem VPS'}</span>
+          </button>
+
+          <button type="button" id="btnDefEmp" class="hc-choice-row info-opt" style="padding:8px 11px;"
+            onclick="window.nineSystemsEngine.respondActiveDefense('emp_pulse')">
+            <span class="hc-choice-main">
+              <span class="hc-choice-title" style="color:#7dd3fc;">⚡ 3. Dar Choque Reverso (+12°C no PC)</span>
+              <span class="hc-choice-desc">Derruba a conexão dele na hora, mas esquenta seu PC por 1 min.</span>
+            </span>
+            <span class="hc-choice-cta" style="color:#7dd3fc;">Choque</span>
+          </button>
         </div>
       `;
     }
@@ -2084,17 +2108,17 @@
       jail.classList.add('active');
       jail.innerHTML = `
         <div class="hc-jail-card">
-          <span class="hc-badge danger" style="align-self:flex-start;">🚔 MANDADO DE PRISÃO FEDERAL EXECUTADO</span>
-          <h2 style="font-size:20px;color:#fff;">Você Foi Preso por Gastar Dinheiro Sujo!</h2>
-          <p style="font-size:13px;color:#e2e8f0;">${esc(js.reason)}</p>
+          <span class="hc-badge danger" style="align-self:flex-start;">🚔 PRESO PELA POLÍCIA FEDERAL</span>
+          <h2 style="font-size:20px;color:#fff;margin:0;">Você Foi Preso por Gastar Dinheiro Sujo!</h2>
+          <p style="font-size:13px;color:#e2e8f0;margin:0;">${esc(js.reason)}</p>
           <div style="padding:10px 12px;background:#1f1418;border:1px solid #4a232b;border-radius:8px;font-size:12.5px;color:#fca5a5;">
-            • Dinheiro Sujo confiscado na batida: <strong>${fmtMoney(js.confiscatedUsd)}</strong><br>
-            • Penalidade na Temporada Mensal: <strong>-15% pts</strong> (Conta Vitalícia 100% preservada!)<br>
-            • Liberação automática em: <strong class="mono">${remS}s</strong>
+            • Dinheiro Sujo tomado pela polícia: <strong>${fmtMoney(js.confiscatedUsd)}</strong><br>
+            • Perda nos pontos do mês: <strong>-15%</strong> (sua conta e peças continuam 100% salvas!)<br>
+            • Solto automaticamente em: <strong class="mono">${remS}s</strong>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
             <button type="button" id="btnPayCleanBail" class="hc-btn primary" onclick="window.nineSystemsEngine.payCleanBail()">
-              💵 Pagar Fiança Imediata (${fmtMoney(del.bailCostClean)} Limpos)
+              💵 Pagar Fiança e Sair Agora (${fmtMoney(del.bailCostClean)} Limpos)
             </button>
           </div>
         </div>
