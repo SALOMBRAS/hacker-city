@@ -1202,18 +1202,27 @@
         }
         if (window.tutorialEngine && typeof window.tutorialEngine.ensureLoaded === 'function') {
           const ts = window.tutorialEngine.ensureLoaded();
-          ts.completed = true;
-          ts.step = 5;
-          window.tutorialEngine.save();
+          if (!ts.completed) {
+            ts.fileExtracted = true;
+            ts.virusPlanted = true;
+            ts.logsCleaned = true;
+            if (ts.step >= 2 && ts.step < 5) {
+              ts.step = 5;
+            }
+            window.tutorialEngine.save();
+          }
+        }
+        if (typeof window.renderHome === 'function' && window.winManager?.current === 'winHome') {
+          window.renderHome();
         }
         if (typeof window.addLocalLog === 'function') {
-          window.addLocalLog('TOUR-CONCLUIDO', `Tour Completo de Invasão concluído! Recompensa: +$ ${TOUR_REWARD_CASH} HC e +${TOUR_REWARD_REP} REP`, 'success');
+          window.addLocalLog('TOUR-CONCLUIDO', `Tour Completo concluído! Recebido +$ ${TOUR_REWARD_CASH} Limpos e +${TOUR_REWARD_REP} REP.`, 'success');
         }
         if (window.hackerAudio) window.hackerAudio.playCashChime();
         if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
         if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
         if (typeof window.showToast === 'function') {
-          window.showToast(`🎉 Invasão Completa! Seu vírus ficou lucrando e seu rastro foi apagado (+$ ${TOUR_REWARD_CASH} HC + ${TOUR_REWARD_REP} REP)!`);
+          window.showToast(`🎉 Tour concluído (+$ ${TOUR_REWARD_CASH} Limpos + ${TOUR_REWARD_REP} REP)! Agora conclua o Curso #1 e lave seus $ 600 Sujos na Vitrine!`);
         }
       } else if (typeof window.showToast === 'function') {
         window.showToast('🎉 Tour Guiado concluído! Bom jogo!');
