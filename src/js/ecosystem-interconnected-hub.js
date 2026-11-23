@@ -2021,6 +2021,7 @@
             <td>${this.renderSparkline(st.history)}</td>
             <td>
               <span class="hc-badge ${st.integrity < 80 ? 'danger' : 'success'}">${st.integrity}%</span>
+              ${st.circuitBreakerUntil && st.circuitBreakerUntil > Date.now() ? `<div style="margin-top:3px;"><span class="hc-badge warn">⏸️ Protegida 10m</span></div>` : ''}
               ${has4s ? `<div style="font-size:10.5px;color:var(--hc-accent-text);margin-top:2px;">Dica: ${forecast}</div>` : ''}
             </td>
             <td style="font-size:11.5px;">
@@ -2042,6 +2043,10 @@
       }).join('');
 
       return `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;padding:7px 11px;border-radius:8px;background:rgba(16,185,129,0.08);border:1px solid rgba(52,211,153,0.28);font-size:12px;">
+          <span><strong style="color:#6ee7b7;">🌐 Bolsa Global Unificada:</strong> Preços compartilhados ao vivo entre todos os jogadores (Piso 30% · Teto 220%).</span>
+          <span class="hc-badge info">Circuit Breaker: trava no 3º ataque em 10 min</span>
+        </div>
         <div class="hc-stat-strip">
           <div class="hc-stat-cell">
             <div class="hc-stat-label">Seu Patrimônio Total</div>

@@ -1918,8 +1918,11 @@
           <div class="nds-card emerald">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
               <div>
-                <strong style="font-size:14.5px;">🧼 Empresas Abertas Nesta Hora (5 Opções · Troca em ${minsLeftHour}m)</strong>
-                <div style="font-size:12px;color:var(--hc-text-2);">Escolha onde lavar seu Dinheiro Sujo! Taxa mínima de <strong>17%</strong> (sem limite máximo). Cada empresa tem limite por vez e leva <strong>15 min da vida real</strong>.</div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <strong style="font-size:14.5px;">🧼 Empresas Abertas Nesta Hora (5 Opções · Troca em ${minsLeftHour}m)</strong>
+                  <span class="hc-badge success">🌐 Vitrine Global MMO</span>
+                </div>
+                <div style="font-size:12px;color:var(--hc-text-2);">Empresas anunciadas por jogadores reais aparecem primeiro (+ Bots completando as 5 vagas). Taxa mínima <strong>17%</strong> · <strong>15 min reais</strong>.</div>
               </div>
               <div style="display:flex;align-items:center;gap:6px;">
                 <label style="font-size:12px;">Valor p/ Lavar:</label>
@@ -1971,10 +1974,17 @@
           </div>
         `;
       } else if (this.activeLaunderingTab === 'ads') {
-        const hCounts = [0, 1, 2].map((off) => q.filter((a) => a.hourBucket === curBucket + off).length);
+        const gSummary = window.mmoGlobalMarket ? window.mmoGlobalMarket.getGlobalAdQueueSummary() : null;
+        const hCounts = [0, 1, 2].map((off) => {
+          if (window.mmoGlobalMarket) {
+            return window.mmoGlobalMarket.getGlobalHourAds(curBucket + off).length;
+          }
+          return q.filter((a) => a.hourBucket === curBucket + off).length;
+        });
+        const totalUsed15 = gSummary ? gSummary.totalQueuedNext3h : q.length;
         tabBody = `
           <div class="nds-card amber">
-            <strong style="font-size:14.5px;">📢 Fila Oficial de Anúncios Empresariais (15 Vagas = 3 Horas Reais · $ 10.000 Limpos)</strong>
+            <strong style="font-size:14.5px;">📢 Fila Global de Anúncios Empresariais (15 Vagas = 3 Horas Reais · $ 10.000 Limpos)</strong>
             <div class="nds-pros-cons">
               <div class="nds-pc-box pro"><strong>✅ Lado Bom:</strong> Coloca sua empresa entre as 5 exibidas da hora para todos os jogadores lavarem com você pagando a taxa que você definir (&ge; 17%)!</div>
               <div class="nds-pc-box con"><strong>⚠️ Lado Negativo:</strong> Se você cobrar uma taxa abusiva (ex.: 65%) e ninguém lavar com você naquela 1h, você <strong>perde os $ 10.000 do anúncio no prejuízo</strong>!</div>
@@ -1982,7 +1992,7 @@
             <div class="nds-grid-3">
               <div class="nds-pc-box"><strong>Hora 1 (Agora):</strong> ${hCounts[0]}/5 anúncios de jogadores (+${5 - hCounts[0]} Bots)</div>
               <div class="nds-pc-box"><strong>Hora 2 (+1h..+2h):</strong> ${hCounts[1]}/5 vagas reservadas</div>
-              <div class="nds-pc-box"><strong>Hora 3 (+2h..+3h):</strong> ${hCounts[2]}/5 vagas reservadas (Total Fila: ${q.length}/15)</div>
+              <div class="nds-pc-box"><strong>Hora 3 (+2h..+3h):</strong> ${hCounts[2]}/5 vagas reservadas (Total Fila: ${totalUsed15}/15)</div>
             </div>
             <div class="nds-row">
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
