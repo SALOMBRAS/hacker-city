@@ -250,6 +250,43 @@
           .hc-tour-footer button {
             white-space: nowrap;
           }
+          @media (max-width: 640px) {
+            #hcTourCard {
+              width: calc(100vw - 20px);
+              max-height: 46vh;
+              overflow-y: auto;
+              padding: 11px 13px;
+            }
+            #hcTourCardTitle {
+              font-size: 14.2px;
+              margin-bottom: 5px;
+            }
+            #hcTourCardDesc {
+              font-size: 12.1px;
+              line-height: 1.42;
+              margin-bottom: 7px;
+            }
+            #hcTourActionHint {
+              font-size: 11.5px;
+              padding: 6px 9px;
+              margin-bottom: 8px;
+            }
+            #hcTourPointerPill {
+              font-size: 10.5px;
+              padding: 2px 8px;
+              max-width: calc(100vw - 24px);
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+          }
+          @media (max-width: 420px) {
+            .hc-tour-dots {
+              display: none;
+            }
+            .hc-tour-footer {
+              justify-content: flex-end;
+            }
+          }
         `;
         document.head.appendChild(st);
       }
@@ -1115,6 +1152,14 @@
       const ring = document.getElementById('hcTourRing');
       const pill = document.getElementById('hcTourPointerPill');
       const card = document.getElementById('hcTourCard');
+      if (vw <= 680 && hole.width > 0 && card) {
+        const chEst = card.offsetHeight || 220;
+        const maxHoleH = Math.max(96, vh - chEst - 44);
+        if (hole.height > maxHoleH) {
+          hole.height = maxHoleH;
+          hole.bottom = hole.top + hole.height;
+        }
+      }
 
       if (mTop) {
         mTop.style.top = '0px';
