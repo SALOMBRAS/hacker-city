@@ -200,6 +200,9 @@
 .hc-jail-card {
   max-width: 540px;
   width: 100%;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  box-sizing: border-box;
   background: #141014;
   border: 2px solid #e5534b;
   border-radius: 14px;
@@ -271,6 +274,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
   user-select: none;
   background: rgba(56, 189, 248, 0.08);
 }
@@ -284,6 +289,7 @@
   font-family: var(--hc-font-mono);
   font-size: 11px;
   color: #93c5fd;
+  flex-shrink: 0;
 }
 
 .nds-rules-drawer[open] > summary::after {
