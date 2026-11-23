@@ -3965,7 +3965,7 @@
                 : (v.virusKey === 'vddos' ? 'Ativo no Enxame' : fmtUsd(v.accumulatedCash));
 
               return `
-                <div class="hc-card" style="padding:12px 14px;display:grid;grid-template-columns:minmax(180px,1.2fr) minmax(180px,1.2fr) minmax(120px,0.8fr) auto;gap:12px;align-items:center;">
+                <div class="hc-card hc-responsive-row-grid" style="padding:12px 14px;display:grid;grid-template-columns:minmax(180px,1.2fr) minmax(180px,1.2fr) minmax(120px,0.8fr) auto;gap:12px;align-items:center;">
                   <div>
                     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                       <strong class="mono" style="color:var(--hc-accent-text);">${esc(v.targetIp)}</strong>
@@ -3982,7 +3982,7 @@
                     <div style="font-size:10.5px;color:var(--hc-text-3);text-transform:uppercase;">Acumulado</div>
                     <strong class="mono" style="color:var(--hc-warning-text);">${accStr}</strong>
                   </div>
-                  <div style="display:flex;gap:6px;justify-content:flex-end;">
+                  <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">
                     ${window.stealthXhdEngine
                       ? `<button type="button" class="soft-act-btn" onclick="window.stealthXhdEngine.hideRemoteVirusWithHider(${v.id})" title="Esconder vírus no alvo">${HC.icon('eye-off')} Esconder</button>`
                       : ''}

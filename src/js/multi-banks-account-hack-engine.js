@@ -591,23 +591,23 @@
           ` : ''}
 
           <!-- Grid: Login em Conta de Terceiros vs Quebrar Senha de #Conta (BANK_HACK) -->
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:14px;">
             <div class="hc-card" style="padding:1.1rem;">
               <div class="hc-eyebrow" style="margin-bottom:6px;">Quebrar Senha de Conta (BANK_HACK)</div>
               <p style="font-size:0.78rem;color:var(--hc-text-2);margin:0 0 10px;">
                 Descobriu um número <code>#conta</code> no <code>/var/log/syslog</code> de uma empresa ou bot? Quebre o PIN aqui (exige <code>Cracker.crc &gt;= v${bank.accHasherVer.toFixed(1)}</code>):
               </p>
-              <div style="display:flex;gap:8px;">
-                <input type="text" id="bankCrackAccInput" class="form-input" style="font-family:var(--hc-font-mono);" placeholder="Nº da Conta (ex: 40918204)" value="${esc(prefillAcc)}">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <input type="text" id="bankCrackAccInput" class="form-input" style="flex:1 1 150px;font-family:var(--hc-font-mono);" placeholder="Nº da Conta (ex: 40918204)" value="${esc(prefillAcc)}">
                 <button type="button" id="btnCrackBankAcc" class="hc-btn primary" onclick="window.handleCrackBankAccount('${esc(bank.ip)}')">Quebrar PIN</button>
               </div>
             </div>
 
             <div class="hc-card" style="padding:1.1rem;">
               <div class="hc-eyebrow" style="margin-bottom:6px;">Acessar Conta por #Número + PIN</div>
-              <div style="display:flex;gap:8px;margin-bottom:8px;">
-                <input type="text" id="bankLoginAccInput" class="form-input" style="font-family:var(--hc-font-mono);" placeholder="#Conta" value="${esc(prefillAcc)}">
-                <input type="text" id="bankLoginPinInput" class="form-input" style="font-family:var(--hc-font-mono);max-width:130px;" placeholder="PIN" value="${esc(prefillPin)}">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+                <input type="text" id="bankLoginAccInput" class="form-input" style="flex:1 1 140px;font-family:var(--hc-font-mono);" placeholder="#Conta" value="${esc(prefillAcc)}">
+                <input type="text" id="bankLoginPinInput" class="form-input" style="flex:1 1 95px;font-family:var(--hc-font-mono);" placeholder="PIN" value="${esc(prefillPin)}">
               </div>
               <button type="button" id="btnLoginBankAcc" class="hc-btn sm" style="width:100%;justify-content:center;" onclick="window.handleLoginBankAccount('${esc(bank.ip)}')">Entrar na Conta</button>
             </div>
@@ -648,7 +648,7 @@
             const live = this.resolveTargetAccount(a.bankIp, a.accNumber);
             const curBal = live ? live.balance : a.lastBalance;
             return `
-              <div class="hc-card" style="padding:0.9rem 1.1rem;display:grid;grid-template-columns:minmax(200px,1.2fr) minmax(170px,1fr) minmax(140px,0.9fr) auto;gap:12px;align-items:center;">
+              <div class="hc-card hc-responsive-row-grid" style="padding:0.9rem 1.1rem;display:grid;grid-template-columns:minmax(200px,1.2fr) minmax(170px,1fr) minmax(140px,0.9fr) auto;gap:12px;align-items:center;">
                 <div>
                   <strong style="font-family:var(--hc-font-mono);font-size:0.95rem;color:var(--hc-accent-text);">#${esc(a.accNumber)}</strong>
                   <span class="hc-badge info" style="margin-left:6px;">${esc(a.bankName)}</span>
