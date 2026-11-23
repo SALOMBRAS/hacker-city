@@ -220,9 +220,9 @@
     }
 
     notifyIfMySponsoredCompanyAttacked(payload) {
-      if (!window.topTenMechanics || !window.topTenMechanics.state || !window.topTenMechanics.state.clanSponsor) return;
-      const sp = window.topTenMechanics.state.clanSponsor;
-      if (sp.active && sp.corpSymbol === payload.symbol) {
+      if (!window.topTenMechanics || !window.topTenMechanics.state) return;
+      const sp = window.topTenMechanics.state.clanSponsorship || window.topTenMechanics.state.clanSponsor;
+      if (sp && (sp.status === 'active' || sp.active) && sp.corpSymbol === payload.symbol) {
         const me = this.getActorIdentity();
         if (payload.actorTag && payload.actorTag === me.tag) return;
         if (typeof window.showToast === 'function') {
@@ -877,6 +877,24 @@
         refundedAmount,
         snipeExtended
       };
+    }
+
+    markGlobalAuctionClaimed(bucket, winnerId) {
+      const bKey = String(bucket);
+      const ledger = this.readShared();
+      const lot = ledger.auctions[bKey];
+      if (!lot) return { ok: false, code: 'LOT_NOT_FOUND' };
+      if (lot.claimed) return { ok: false, code: 'ALREADY_CLAIMED', message: 'Este servidor já foi aberto pelo vencedor!' };
+      if (lot.isBotLeader || lot.highestBidderId !== winnerId) {
+        return { ok: false, code: 'NOT_WINNER', message: 'Apenas o jogador com o maior lance vencedor pode abrir o servidor.' };
+      }
+      if (lot.expiresAt > Date.now()) {
+        return { ok: false, code: 'STILL_RUNNING', message: 'Aguarde o cronômetro do leilão encerrar para abrir o servidor.' };
+      }
+      lot.claimed = true;
+      lot.claimedAt = Date.now();
+      this.writeShared(ledger, 'auction_updated', { bucket, claimed: true });
+      return { ok: true, lot: JSON.parse(JSON.stringify(lot)) };
     }
 
     // =========================================================================

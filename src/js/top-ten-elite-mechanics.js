@@ -927,8 +927,22 @@
         { code: `LOT-SAF-${400 + (b % 500)}`, origin: 'Cluster Forense — Datacenter Fantasma Panamá', botTag: 'm4riposa', botBid: 8000 }
       ];
       const meta = origins[b % origins.length];
-      const nextTwoHourMs = (b + 1) * 2 * 60 * 60 * 1000;
-      const remMin = Math.max(1, Math.ceil((nextTwoHourMs - Date.now()) / 60000));
+      const gLot = window.mmoGlobalMarket
+        ? window.mmoGlobalMarket.getGlobalAuctionState(b, {
+            lotCode: meta.code,
+            origin: meta.origin,
+            botLeaderTag: meta.botTag,
+            botCurrentBid: meta.botBid
+          })
+        : null;
+      const me = window.mmoGlobalMarket ? window.mmoGlobalMarket.getActorIdentity() : { id: 'me', tag: 'Operador' };
+      const expiresAt = gLot ? Number(gLot.expiresAt) : ((b + 1) * 2 * 60 * 60 * 1000);
+      const remSec = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
+      const remMin = Math.max(0, Math.ceil(remSec / 60));
+      const highestBid = gLot ? Number(gLot.highestBid || meta.botBid) : meta.botBid;
+      const leaderTag = gLot ? gLot.highestBidderTag : meta.botTag;
+      const isBotLeader = gLot ? !!gLot.isBotLeader : true;
+      const isMyHighestBid = !isBotLeader && gLot && (gLot.highestBidderId === me.id || (gLot.highestBidderTag && gLot.highestBidderTag.toLowerCase() === me.tag.toLowerCase()));
       // Semente determinística p/ a Sonda bater de verdade com o lote (65% tesouro vs 35% bomba)
       const isTreasure = ((b * 2654435761) >>> 0) % 100 < 65;
 
@@ -936,13 +950,20 @@
         bucket: b,
         lotCode: meta.code,
         origin: meta.origin,
-        botBidder: meta.botTag,
-        currentMinBid: Math.max(8000, meta.botBid + 1500),
-        remMin,
+        botBidder: leaderTag,
+        leaderTag,
+        isBotLeader,
+        isMyHighestBid,
+        highestBid,
+        currentMinBid: Math.max(8000, highestBid + 1500),
+        expiresAt,
+        remSec,
+        remMin: Math.max(1, remMin),
+        snipeExtensions: gLot ? Number(gLot.snipeExtensions || 0) : 0,
         isTreasure,
         probed: this.state.auctionState.probedBucket === b,
         probeHint: this.state.auctionState.probedBucket === b ? this.state.auctionState.probeHint : null,
-        resolved: this.state.auctionState.resolvedBucket === b,
+        resolved: (this.state.auctionState.resolvedBucket === b) || !!(gLot && gLot.claimed && isMyHighestBid),
         lastOutcome: this.state.auctionState.resolvedBucket === b ? this.state.auctionState.lastOutcome : null
       };
     }
@@ -985,15 +1006,99 @@
       return { success: true, hint };
     }
 
+    placeCompetitiveGlobalBid(bidCleanRaw) {
+      this.ensureLoaded();
+      const lot = this.getCurrentAuctionLot();
+      const bid = Math.max(8000, Math.round(Number(bidCleanRaw || lot.currentMinBid)));
+
+      if (!window.mmoGlobalMarket) {
+        return this.placeBidAndResolveAuction(bid, 'buyout');
+      }
+      if (lot.isMyHighestBid) {
+        const msg = 'Você já detém o maior lance global neste lote!';
+        if (typeof window.showToast === 'function') window.showToast(msg);
+        return { success: false, code: 'SELF_OUTBID_BLOCKED', message: msg };
+      }
+      if (bid < lot.currentMinBid) {
+        const msg = `Lance mínimo para cobrir @${lot.leaderTag}: ${fmtMoney(lot.currentMinBid)} Limpos (+$ 1.500).`;
+        if (typeof window.showToast === 'function') window.showToast(msg);
+        return { success: false, code: 'BID_TOO_LOW', message: msg };
+      }
+
+      const cleanBal = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
+      if (cleanBal < bid) {
+        if (window.nineSystemsEngine && window.nineSystemsEngine.getDirtyBalance() > 0) {
+          window.nineSystemsEngine.openDirtyMoneyBridgeModal(`Lance Global Leilão (${lot.lotCode})`, bid);
+        }
+        const msg = `Saldo Limpo insuficiente para o lance de ${fmtMoney(bid)}!`;
+        if (typeof window.showToast === 'function') window.showToast(msg);
+        return { success: false, code: 'INSUFFICIENT_CLEAN_BID', message: msg };
+      }
+
+      const gRes = window.mmoGlobalMarket.placeGlobalAuctionBid({
+        bucket: lot.bucket,
+        defaultLot: {
+          lotCode: lot.lotCode,
+          origin: lot.origin,
+          botLeaderTag: lot.leaderTag,
+          botCurrentBid: lot.highestBid
+        },
+        bidClean: bid
+      });
+
+      if (!gRes.ok) {
+        if (typeof window.showToast === 'function' && gRes.message) window.showToast(gRes.message);
+        return { success: false, code: gRes.code, message: gRes.message };
+      }
+
+      runAuth(() => {
+        window.currentWallet.balance = Math.max(0, +(cleanBal - bid).toFixed(2));
+      });
+      this.state.auctionState.myBidClean = bid;
+      this.save();
+      if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+      if (window.ecosystemHub && window.winManager?.current === 'winOpsHub') window.ecosystemHub.renderUI();
+
+      const snipeNote = gRes.snipeExtended ? ' ⏱️ Anti-Sniping: +30s adicionados ao relógio!' : '';
+      const refundNote = gRes.refundedPrevTag ? ` (Estorno automático enviado p/ @${gRes.refundedPrevTag})` : '';
+      const msg = `🔨 Lance Global registrado: ${fmtMoney(bid)} Limpos em ${lot.lotCode}! Você assumiu a liderança!${snipeNote}${refundNote}`;
+      if (typeof window.showToast === 'function') window.showToast(msg);
+      return {
+        success: true,
+        bid,
+        snipeExtended: !!gRes.snipeExtended,
+        refundedPrevTag: gRes.refundedPrevTag || null,
+        refundedAmount: gRes.refundedAmount || 0,
+        lot: gRes.lot,
+        message: msg
+      };
+    }
+
+    claimWonGlobalAuction() {
+      this.ensureLoaded();
+      const lot = this.getCurrentAuctionLot();
+      if (!window.mmoGlobalMarket) return { success: false, message: 'Mercado global indisponível.' };
+      const me = window.mmoGlobalMarket.getActorIdentity();
+      const check = window.mmoGlobalMarket.markGlobalAuctionClaimed(lot.bucket, me.id);
+      if (!check.ok) {
+        if (typeof window.showToast === 'function' && check.message) window.showToast(check.message);
+        return { success: false, code: check.code, message: check.message };
+      }
+      return this._resolveAuctionOutcomeInternal(lot, lot.highestBid, null);
+    }
+
     placeBidAndResolveAuction(bidCleanRaw, forceMode = null) {
       this.ensureLoaded();
+      if (!forceMode && window.mmoGlobalMarket) {
+        return this.placeCompetitiveGlobalBid(bidCleanRaw);
+      }
       const lot = this.getCurrentAuctionLot();
       if (lot.resolved && !forceMode) {
         return { success: false, code: 'LOT_ALREADY_RESOLVED', message: 'Este lote já foi encerrado! Aguarde a próxima rotação de 2h.' };
       }
 
       const bid = Math.max(8000, Math.round(Number(bidCleanRaw || lot.currentMinBid)));
-      if (bid < lot.currentMinBid) {
+      if (bid < lot.currentMinBid && !forceMode) {
         return { success: false, message: `Lance mínimo para cobrir ${lot.botBidder}: ${fmtMoney(lot.currentMinBid)} Limpos (passo +$ 1.500).` };
       }
 
@@ -1011,6 +1116,10 @@
         window.currentWallet.balance = Math.max(0, +(cleanBal - bid).toFixed(2));
       });
 
+      return this._resolveAuctionOutcomeInternal(lot, bid, forceMode);
+    }
+
+    _resolveAuctionOutcomeInternal(lot, bid, forceMode = null) {
       const winTreasure = forceMode === 'treasure'
         ? true
         : (forceMode === 'bomb' ? false : lot.isTreasure);
@@ -2382,12 +2491,17 @@
             <div class="eco-card-head">
               <div>
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
-                  <span class="hc-badge warn">📦 LEILÃO DE SERVIDOR CONFISCADO (NOVO A CADA 2H)</span>
-                  <span class="mono" style="font-size:11.5px;color:#fde68a;">Lote: ${esc(lot.lotCode)} · Fecha em ${lot.remMin} min</span>
+                  <span class="hc-badge warn">📦 LEILÃO GLOBAL DE SERVIDOR (NOVO A CADA 2H)</span>
+                  <span class="mono" style="font-size:11.5px;color:#fde68a;">Lote: ${esc(lot.lotCode)} · ${lot.remSec > 0 ? `Fecha em ${lot.remSec < 90 ? lot.remSec + 's' : lot.remMin + ' min'}` : 'Tempo encerrado!'}</span>
+                  ${lot.snipeExtensions > 0 ? `<span class="hc-badge info">⏱️ Anti-Sniping +${lot.snipeExtensions * 30}s</span>` : ''}
                 </div>
                 <div class="eco-card-title">📦 ${esc(lot.origin)}</div>
                 <div class="eco-card-sub">
-                  Maior lance atual de Bot (<strong>@${esc(lot.botBidder)}</strong>): <strong>${fmtMoney(lot.currentMinBid - 1500)}</strong> · Seu lance mínimo: <strong style="color:#4ade80;">${fmtMoney(lot.currentMinBid)} Limpos</strong>.
+                  Maior lance atual (${lot.isBotLeader ? 'Bot' : 'Jogador'} <strong>@${esc(lot.leaderTag)}</strong>): <strong>${fmtMoney(lot.highestBid)}</strong> · Próximo lance mínimo: <strong style="color:#4ade80;">${fmtMoney(lot.currentMinBid)} Limpos</strong>.
+                  ${lot.isMyHighestBid ? `<span class="hc-badge success" style="margin-left:6px;">👑 Seu lance lidera!</span>` : ''}
+                </div>
+                <div style="font-size:11.5px;color:var(--hc-text-3);margin-top:3px;">
+                  🛡️ <strong>Estorno Automático:</strong> Se outro jogador cobrir seu lance, 100% do seu dinheiro volta na hora para sua Caixa MMO! Lances nos últimos 30s prorrogam +30s (máx 5x).
                 </div>
                 ${lot.probed ? `<div style="margin-top:6px;padding:7px 10px;border-radius:6px;background:#09131e;border:1px solid #2b4c6f;font-size:12px;color:#7dd3fc;">🔬 <strong>Resultado da Análise:</strong> ${esc(lot.probeHint)}</div>` : ''}
                 ${lot.resolved && lot.lastOutcome ? `
@@ -2397,15 +2511,28 @@
                   </div>
                 ` : ''}
               </div>
-              <div style="display:flex;flex-direction:column;gap:8px;min-width:220px;">
+              <div style="display:flex;flex-direction:column;gap:8px;min-width:225px;">
                 <button type="button" id="btnProbeAuctionLot" class="hc-btn ghost sm" ${lot.probed || lot.resolved ? 'disabled' : ''}
                   onclick="window.topTenMechanics.probeAuctionWithAnalyzer()">
                   ${lot.probed ? '✓ Disco Analisado' : '🔬 Analisar Disco ($ 1.000 · Analyzer v4.0+)'}
                 </button>
-                <button type="button" id="btnPlaceAuctionBid" class="hc-btn primary sm" ${lot.resolved ? 'disabled' : ''}
-                  onclick="window.topTenMechanics.placeBidAndResolveAuction(${lot.currentMinBid})">
-                  ${lot.resolved ? '✓ Lote Já Comprado' : `🔨 Dar Lance (${fmtMoney(lot.currentMinBid)} Limpos)`}
-                </button>
+                ${lot.isMyHighestBid && lot.remSec <= 0 && !lot.resolved ? `
+                  <button type="button" id="btnClaimWonAuction" class="hc-btn primary sm"
+                    onclick="window.topTenMechanics.claimWonGlobalAuction()">
+                    📦 Abrir Servidor Vencido!
+                  </button>
+                ` : `
+                  <button type="button" id="btnPlaceAuctionBid" class="hc-btn primary sm" ${lot.resolved || lot.isMyHighestBid ? 'disabled' : ''}
+                    onclick="window.topTenMechanics.placeBidAndResolveAuction(${lot.currentMinBid})">
+                    ${lot.resolved ? '✓ Lote Já Resgatado' : (lot.isMyHighestBid ? '👑 Você Lidera o Lote' : `🔨 Dar Lance Global (${fmtMoney(lot.currentMinBid)})`)}
+                  </button>
+                `}
+                ${lot.isBotLeader && !lot.resolved ? `
+                  <button type="button" id="btnInstantBuyoutAuction" class="hc-btn ghost sm"
+                    onclick="window.topTenMechanics.placeBidAndResolveAuction(${Math.round(lot.currentMinBid * 1.2)}, 'buyout')">
+                    ⚡ Arremate Direto (${fmtMoney(Math.round(lot.currentMinBid * 1.2))})
+                  </button>
+                ` : ''}
               </div>
             </div>
             ${this.renderInlineRulesDrawerHtml(
