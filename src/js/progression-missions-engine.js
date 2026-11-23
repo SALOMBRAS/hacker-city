@@ -144,16 +144,16 @@
       },
       pages: [
         {
-          heading: 'Módulo 1/3 — As 5 Famílias de Vírus & Escala Regressiva (v10.0 = 3.00x)',
-          body: 'Spam.vspam ($/CPU), Warez.vwarez ($/Banda — exige Torrent.torrent rodando no seu PC!), Miner.vminer (BTC/CPU), BankTrojan.vbank ($ bancário) e DDoS_Node.vddos (Gbps). A versão máxima atual é v10.0 com multiplicador de 3.00x, regredindo proporcionalmente até v1.0 (1.00x) e protótipos abaixo disso.'
+          heading: 'Aula 1/3 — As 5 Famílias, Limite do Coletor & Esconder Vírus (Hider)',
+          body: 'Spam.vspam, Warez.vwarez (exige Torrent na RAM), Miner.vminer, BankTrojan.vbank e DDoS_Node.vddos chegam até v10.0 (3.00x). A versão do seu Collector.vcol define de quantos servidores você consegue colher ao mesmo tempo, e usar Hider.hid compatível evita que a varredura de 4h do Antivírus apague seus vírus!'
         },
         {
-          heading: 'Módulo 2/3 — Laboratório de Vírus ($ 1.000 · 1x por Mês/Dia)',
-          body: 'Em Meu Computador > Laboratório de Vírus, por $ 1.000 (1 vez por Mês / 24h reais), você monta seu próprio vírus em 3 rounds aleatórios (escolher 1 -> escolher 2 -> escolher 1 bloco de código) entre 54 conjuntos! Se cair um vírus que você já tem, o sistema preserva sua versão mais forte e lapida +v0.1/+v0.2 sem entupir seu HD.'
+          heading: 'Aula 2/3 — Laboratório (1+2+1), Blocos Secretos & Encomenda de $ 18.000',
+          body: 'No Laboratório ($ 1.000 · 1x a cada 24h reais) você monta vírus em 3 rodadas (1+2+1). Com Seeker v3.0+ em servidores de elite você acha Blocos Secretos (mas se tirar nota menor que B com eles, o vírus queima e sua CPU sobe +18°C!). Você também pode entregar um vírus pronto na Encomenda Oficial para ganhar $ 18.000 Limpos na hora (cedendo a posse do vírus).'
         },
         {
-          heading: 'Módulo 3/3 — Antivírus, Coletor e Ataques DDoS',
-          body: 'Ative o Collector.vcol para recolher dólares e Bitcoins dos vírus espalhados, e use o DDoS_Breaker.vbrk para disparar sobrecargas DDoS que derrubam alvos do FBI e danificam o hardware de rivais!'
+          heading: 'Aula 3/3 — Aluguel Global de Vírus P2P & Leilão Global de 2h',
+          body: 'Cada vírus criado pode emitir até 2 licenças no Aluguel Global P2P (quem aluga usa por 24h–72h com +20% de RAM, e você recebe na Caixa MMO). Já no Leilão Global de 2h, use Analyzer v4.0+ ($ 1.000) para sondar se o servidor é tesouro ou bomba; se outro jogador cobrir seu lance, seu dinheiro volta 100% na hora e lances nos últimos 30s prorrogam +30s!'
         }
       ]
     },
