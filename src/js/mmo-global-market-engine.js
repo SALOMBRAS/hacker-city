@@ -220,9 +220,9 @@
     }
 
     notifyIfMySponsoredCompanyAttacked(payload) {
-      if (!window.topTenMechanics || !window.topTenMechanics.state || !window.topTenMechanics.state.clanSponsor) return;
-      const sp = window.topTenMechanics.state.clanSponsor;
-      if (sp.active && sp.corpSymbol === payload.symbol) {
+      if (!window.topTenMechanics || !window.topTenMechanics.state) return;
+      const sp = window.topTenMechanics.state.clanSponsorship || window.topTenMechanics.state.clanSponsor;
+      if (sp && (sp.status === 'active' || sp.active) && sp.corpSymbol === payload.symbol) {
         const me = this.getActorIdentity();
         if (payload.actorTag && payload.actorTag === me.tag) return;
         if (typeof window.showToast === 'function') {
@@ -247,8 +247,8 @@
         if (isVisible('winVirusLab') && window.nineSystemsEngine && typeof window.renderVirusLab === 'function') {
           window.renderVirusLab();
         }
-        if (isVisible('winForum') && typeof window.renderDarknetForum === 'function') {
-          window.renderDarknetForum();
+        if (isVisible('winForum') && window.darknetSocialEngine && typeof window.darknetSocialEngine.renderForumUI === 'function') {
+          window.darknetSocialEngine.renderForumUI();
         }
       } catch (e) {}
     }
@@ -879,6 +879,24 @@
       };
     }
 
+    markGlobalAuctionClaimed(bucket, winnerId) {
+      const bKey = String(bucket);
+      const ledger = this.readShared();
+      const lot = ledger.auctions[bKey];
+      if (!lot) return { ok: false, code: 'LOT_NOT_FOUND' };
+      if (lot.claimed) return { ok: false, code: 'ALREADY_CLAIMED', message: 'Este servidor já foi aberto pelo vencedor!' };
+      if (lot.isBotLeader || lot.highestBidderId !== winnerId) {
+        return { ok: false, code: 'NOT_WINNER', message: 'Apenas o jogador com o maior lance vencedor pode abrir o servidor.' };
+      }
+      if (lot.expiresAt > Date.now()) {
+        return { ok: false, code: 'STILL_RUNNING', message: 'Aguarde o cronômetro do leilão encerrar para abrir o servidor.' };
+      }
+      lot.claimed = true;
+      lot.claimedAt = Date.now();
+      this.writeShared(ledger, 'auction_updated', { bucket, claimed: true });
+      return { ok: true, lot: JSON.parse(JSON.stringify(lot)) };
+    }
+
     // =========================================================================
     // 6. ALUGUEL ATÔMICO DE VÍRUS P2P (ZERO CLONAGEM + PAGAMENTO VIA INBOX)
     // =========================================================================
@@ -891,12 +909,15 @@
         strainId: offerObj.strainId || null,
         sellerId: offerObj.sellerId || me.id,
         sellerTag: offerObj.sellerTag || me.tag,
-        name: offerObj.name,
-        family: offerObj.family || 'warez',
-        durationHours: Number(offerObj.durationHours || 4),
+        name: offerObj.strainName || offerObj.name || 'Strain-P2P',
+        strainName: offerObj.strainName || offerObj.name || 'Strain-P2P',
+        family: offerObj.family || 'vwarez',
+        versionInt: Number(offerObj.versionInt || 50),
+        fitGrade: offerObj.fitGrade || 'A',
+        durationHours: Number(offerObj.durationHours || 48),
         powerBonus: Number(offerObj.powerBonus || 0.25),
         priceClean: Math.round(Number(offerObj.priceClean || 2500)),
-        burnTaxPct: 20,
+        burnTaxPct: Number(offerObj.burnTaxPct || 15),
         soldToId: null,
         soldToTag: null,
         soldAt: 0,
@@ -910,10 +931,17 @@
 
     getGlobalOpenP2pLicenses() {
       const ledger = this.readShared();
+      const me = this.getActorIdentity();
       const cutoff = Date.now() - (12 * 60 * 60 * 1000);
       return ledger.p2pOffers
         .filter((o) => o && !o.soldToId && o.createdAt >= cutoff)
-        .map((o) => ({ ...o, isBot: false, isPlayerOffer: true }));
+        .map((o) => ({
+          ...o,
+          strainName: o.strainName || o.name,
+          isBot: false,
+          isPlayerOffer: true,
+          isMine: (o.sellerId === me.id) || (o.sellerTag && o.sellerTag.toLowerCase() === me.tag.toLowerCase())
+        }));
     }
 
     buyGlobalP2pLicenseAtomic(opts) {
@@ -956,7 +984,8 @@
       offer.soldAt = Date.now();
       this.writeShared(ledger, 'p2p_offers_updated', { offerId, soldToTag: buyerTag });
 
-      const netSeller = Math.round(offer.priceClean * 0.80);
+      const taxPct = Number(offer.burnTaxPct || 15);
+      const netSeller = Math.round(offer.priceClean * (1 - taxPct / 100));
       this.enqueueInboxPayout({
         recipientId: offer.sellerId,
         recipientTag: offer.sellerTag,
@@ -965,7 +994,7 @@
         kind: 'P2P_VIRUS_SALE',
         amountClean: netSeller,
         amountDirty: 0,
-        note: `@${buyerTag} alugou sua licença "${offer.name}" (${offer.durationHours}h, -20% taxa da rede)`
+        note: `@${buyerTag} alugou sua licença "${offer.strainName || offer.name}" (${offer.durationHours}h, -${taxPct}% taxa da rede)`
       });
 
       return {
@@ -984,11 +1013,16 @@
       const entry = {
         id: contractObj.id,
         issuerId: contractObj.issuerId || me.id,
-        issuerTag: contractObj.issuerTag || me.tag,
+        issuerTag: contractObj.hirerTag || contractObj.issuerTag || me.tag,
+        hirerTag: contractObj.hirerTag || contractObj.issuerTag || me.tag,
         targetIp: contractObj.targetIp,
-        objective: contractObj.objective,
+        targetLabel: contractObj.targetLabel || contractObj.targetIp,
+        objective: contractObj.objectiveKind || contractObj.objective || 'crack_root',
+        objectiveKind: contractObj.objectiveKind || contractObj.objective || 'crack_root',
+        objectiveLabel: contractObj.objectiveLabel || contractObj.objective || 'Quebrar Acesso Root Verificado',
         rewardDirty: Number(contractObj.rewardDirty || 0),
-        feePaid: Number(contractObj.feePaid || 0),
+        feePaid: Number(contractObj.notaryFeeBurned || contractObj.feePaid || 0),
+        notaryFeeBurned: Number(contractObj.notaryFeeBurned || contractObj.feePaid || 0),
         status: 'open',
         reservedById: null,
         reservedByTag: null,
@@ -1021,7 +1055,12 @@
         .filter((c) => c && c.status !== 'cancelled')
         .map((c) => ({
           ...c,
+          hirerTag: c.hirerTag || c.issuerTag,
+          objectiveKind: c.objectiveKind || c.objective,
+          objectiveLabel: c.objectiveLabel || c.objective,
+          notaryFeeBurned: Number(c.notaryFeeBurned || c.feePaid || 0),
           isMine: (c.issuerId === me.id) || (c.issuerTag && c.issuerTag.toLowerCase() === me.tag.toLowerCase()),
+          reservedByMe: (c.status === 'reserved') && ((c.reservedById === me.id) || (c.reservedByTag && c.reservedByTag.toLowerCase() === me.tag.toLowerCase())),
           isBot: false
         }));
     }

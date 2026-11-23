@@ -927,8 +927,22 @@
         { code: `LOT-SAF-${400 + (b % 500)}`, origin: 'Cluster Forense — Datacenter Fantasma Panamá', botTag: 'm4riposa', botBid: 8000 }
       ];
       const meta = origins[b % origins.length];
-      const nextTwoHourMs = (b + 1) * 2 * 60 * 60 * 1000;
-      const remMin = Math.max(1, Math.ceil((nextTwoHourMs - Date.now()) / 60000));
+      const gLot = window.mmoGlobalMarket
+        ? window.mmoGlobalMarket.getGlobalAuctionState(b, {
+            lotCode: meta.code,
+            origin: meta.origin,
+            botLeaderTag: meta.botTag,
+            botCurrentBid: meta.botBid
+          })
+        : null;
+      const me = window.mmoGlobalMarket ? window.mmoGlobalMarket.getActorIdentity() : { id: 'me', tag: 'Operador' };
+      const expiresAt = gLot ? Number(gLot.expiresAt) : ((b + 1) * 2 * 60 * 60 * 1000);
+      const remSec = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
+      const remMin = Math.max(0, Math.ceil(remSec / 60));
+      const highestBid = gLot ? Number(gLot.highestBid || meta.botBid) : meta.botBid;
+      const leaderTag = gLot ? gLot.highestBidderTag : meta.botTag;
+      const isBotLeader = gLot ? !!gLot.isBotLeader : true;
+      const isMyHighestBid = !isBotLeader && gLot && (gLot.highestBidderId === me.id || (gLot.highestBidderTag && gLot.highestBidderTag.toLowerCase() === me.tag.toLowerCase()));
       // Semente determinística p/ a Sonda bater de verdade com o lote (65% tesouro vs 35% bomba)
       const isTreasure = ((b * 2654435761) >>> 0) % 100 < 65;
 
@@ -936,13 +950,20 @@
         bucket: b,
         lotCode: meta.code,
         origin: meta.origin,
-        botBidder: meta.botTag,
-        currentMinBid: Math.max(8000, meta.botBid + 1500),
-        remMin,
+        botBidder: leaderTag,
+        leaderTag,
+        isBotLeader,
+        isMyHighestBid,
+        highestBid,
+        currentMinBid: Math.max(8000, highestBid + 1500),
+        expiresAt,
+        remSec,
+        remMin: Math.max(1, remMin),
+        snipeExtensions: gLot ? Number(gLot.snipeExtensions || 0) : 0,
         isTreasure,
         probed: this.state.auctionState.probedBucket === b,
         probeHint: this.state.auctionState.probedBucket === b ? this.state.auctionState.probeHint : null,
-        resolved: this.state.auctionState.resolvedBucket === b,
+        resolved: (this.state.auctionState.resolvedBucket === b) || !!(gLot && gLot.claimed && isMyHighestBid),
         lastOutcome: this.state.auctionState.resolvedBucket === b ? this.state.auctionState.lastOutcome : null
       };
     }
@@ -985,15 +1006,99 @@
       return { success: true, hint };
     }
 
+    placeCompetitiveGlobalBid(bidCleanRaw) {
+      this.ensureLoaded();
+      const lot = this.getCurrentAuctionLot();
+      const bid = Math.max(8000, Math.round(Number(bidCleanRaw || lot.currentMinBid)));
+
+      if (!window.mmoGlobalMarket) {
+        return this.placeBidAndResolveAuction(bid, 'buyout');
+      }
+      if (lot.isMyHighestBid) {
+        const msg = 'Você já detém o maior lance global neste lote!';
+        if (typeof window.showToast === 'function') window.showToast(msg);
+        return { success: false, code: 'SELF_OUTBID_BLOCKED', message: msg };
+      }
+      if (bid < lot.currentMinBid) {
+        const msg = `Lance mínimo para cobrir @${lot.leaderTag}: ${fmtMoney(lot.currentMinBid)} Limpos (+$ 1.500).`;
+        if (typeof window.showToast === 'function') window.showToast(msg);
+        return { success: false, code: 'BID_TOO_LOW', message: msg };
+      }
+
+      const cleanBal = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
+      if (cleanBal < bid) {
+        if (window.nineSystemsEngine && window.nineSystemsEngine.getDirtyBalance() > 0) {
+          window.nineSystemsEngine.openDirtyMoneyBridgeModal(`Lance Global Leilão (${lot.lotCode})`, bid);
+        }
+        const msg = `Saldo Limpo insuficiente para o lance de ${fmtMoney(bid)}!`;
+        if (typeof window.showToast === 'function') window.showToast(msg);
+        return { success: false, code: 'INSUFFICIENT_CLEAN_BID', message: msg };
+      }
+
+      const gRes = window.mmoGlobalMarket.placeGlobalAuctionBid({
+        bucket: lot.bucket,
+        defaultLot: {
+          lotCode: lot.lotCode,
+          origin: lot.origin,
+          botLeaderTag: lot.leaderTag,
+          botCurrentBid: lot.highestBid
+        },
+        bidClean: bid
+      });
+
+      if (!gRes.ok) {
+        if (typeof window.showToast === 'function' && gRes.message) window.showToast(gRes.message);
+        return { success: false, code: gRes.code, message: gRes.message };
+      }
+
+      runAuth(() => {
+        window.currentWallet.balance = Math.max(0, +(cleanBal - bid).toFixed(2));
+      });
+      this.state.auctionState.myBidClean = bid;
+      this.save();
+      if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+      if (window.ecosystemHub && window.winManager?.current === 'winOpsHub') window.ecosystemHub.renderUI();
+
+      const snipeNote = gRes.snipeExtended ? ' ⏱️ Anti-Sniping: +30s adicionados ao relógio!' : '';
+      const refundNote = gRes.refundedPrevTag ? ` (Estorno automático enviado p/ @${gRes.refundedPrevTag})` : '';
+      const msg = `🔨 Lance Global registrado: ${fmtMoney(bid)} Limpos em ${lot.lotCode}! Você assumiu a liderança!${snipeNote}${refundNote}`;
+      if (typeof window.showToast === 'function') window.showToast(msg);
+      return {
+        success: true,
+        bid,
+        snipeExtended: !!gRes.snipeExtended,
+        refundedPrevTag: gRes.refundedPrevTag || null,
+        refundedAmount: gRes.refundedAmount || 0,
+        lot: gRes.lot,
+        message: msg
+      };
+    }
+
+    claimWonGlobalAuction() {
+      this.ensureLoaded();
+      const lot = this.getCurrentAuctionLot();
+      if (!window.mmoGlobalMarket) return { success: false, message: 'Mercado global indisponível.' };
+      const me = window.mmoGlobalMarket.getActorIdentity();
+      const check = window.mmoGlobalMarket.markGlobalAuctionClaimed(lot.bucket, me.id);
+      if (!check.ok) {
+        if (typeof window.showToast === 'function' && check.message) window.showToast(check.message);
+        return { success: false, code: check.code, message: check.message };
+      }
+      return this._resolveAuctionOutcomeInternal(lot, lot.highestBid, null);
+    }
+
     placeBidAndResolveAuction(bidCleanRaw, forceMode = null) {
       this.ensureLoaded();
+      if (!forceMode && window.mmoGlobalMarket) {
+        return this.placeCompetitiveGlobalBid(bidCleanRaw);
+      }
       const lot = this.getCurrentAuctionLot();
       if (lot.resolved && !forceMode) {
         return { success: false, code: 'LOT_ALREADY_RESOLVED', message: 'Este lote já foi encerrado! Aguarde a próxima rotação de 2h.' };
       }
 
       const bid = Math.max(8000, Math.round(Number(bidCleanRaw || lot.currentMinBid)));
-      if (bid < lot.currentMinBid) {
+      if (bid < lot.currentMinBid && !forceMode) {
         return { success: false, message: `Lance mínimo para cobrir ${lot.botBidder}: ${fmtMoney(lot.currentMinBid)} Limpos (passo +$ 1.500).` };
       }
 
@@ -1011,6 +1116,10 @@
         window.currentWallet.balance = Math.max(0, +(cleanBal - bid).toFixed(2));
       });
 
+      return this._resolveAuctionOutcomeInternal(lot, bid, forceMode);
+    }
+
+    _resolveAuctionOutcomeInternal(lot, bid, forceMode = null) {
       const winTreasure = forceMode === 'treasure'
         ? true
         : (forceMode === 'bomb' ? false : lot.isTreasure);
@@ -2031,9 +2140,11 @@
         ddos_wanted: 'Derrubar Alvo via Sobrecarga DDoS'
       };
       const host = window.internetEngine ? window.internetEngine.resolveHost(targetIp) : null;
+      const actor = window.mmoGlobalMarket ? window.mmoGlobalMarket.getActorIdentity() : { id: 'me', tag: (window.currentProfile && window.currentProfile.hacker_tag) || 'Operador' };
       const contract = {
-        id: 'escrow_usr_' + Date.now(),
-        hirerTag: (window.currentProfile && window.currentProfile.hacker_tag) || 'Operador',
+        id: 'escrow_usr_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        issuerId: actor.id,
+        hirerTag: actor.tag,
         objectiveKind: labels[objectiveKind] ? objectiveKind : 'crack_root',
         objectiveLabel: labels[objectiveKind] || labels.crack_root,
         targetIp,
@@ -2046,20 +2157,89 @@
         reservedUntil: 0
       };
       this.state.escrowContracts.unshift(contract);
+      if (window.mmoGlobalMarket) {
+        window.mmoGlobalMarket.publishGlobalEscrowContract(contract);
+      }
       this.save();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       if (window.darknetSocialEngine) window.darknetSocialEngine.renderForumUI();
-      const msg = `📜 Contrato Escrow publicado! ${fmtMoney(reward)} travados em custódia + ${fmtMoney(notaryFee)} (15% taxa não-reembolsável do Cartório Darknet).`;
+      const msg = `📜 Contrato publicado no Mural Global MMO! ${fmtMoney(reward)} travados em custódia + ${fmtMoney(notaryFee)} (15% taxa não-reembolsável do Cartório).`;
       if (typeof window.showToast === 'function') window.showToast(msg);
       return { success: true, contract, totalDebitClean, notaryFee, message: msg };
     }
 
+    getMergedEscrowContracts() {
+      this.ensureLoaded();
+      const localList = this.state.escrowContracts || [];
+      if (!window.mmoGlobalMarket) return localList;
+      const globalList = window.mmoGlobalMarket.getGlobalEscrowContracts();
+      const globalIds = new Set(globalList.map((g) => g.id));
+      const seedsOnly = localList.filter((l) => l && !String(l.id || '').startsWith('escrow_usr_') && !globalIds.has(l.id));
+      return [...globalList, ...seedsOnly];
+    }
+
+    cancelMercenaryEscrowContract(contractId) {
+      this.ensureLoaded();
+      if (window.mmoGlobalMarket) {
+        const gCancel = window.mmoGlobalMarket.cancelMyOpenEscrow(contractId);
+        if (!gCancel.ok && gCancel.code !== 'NOT_FOUND') {
+          if (typeof window.showToast === 'function' && gCancel.message) window.showToast(gCancel.message);
+          return { success: false, code: gCancel.code, message: gCancel.message };
+        }
+        if (gCancel.ok) {
+          this.state.escrowContracts = (this.state.escrowContracts || []).filter((x) => x.id !== contractId);
+          runAuth(() => {
+            if (window.currentWallet) {
+              window.currentWallet.balance = +(Number(window.currentWallet.balance || 0) + gCancel.refundClean).toFixed(2);
+            }
+          });
+          this.save();
+          if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+          if (window.darknetSocialEngine) window.darknetSocialEngine.renderForumUI();
+          const msg = `↩️ Contrato aberto cancelado: +${fmtMoney(gCancel.refundClean)} Limpos estornados (taxa de 15% de ${fmtMoney(gCancel.burnedFee)} retida pelo Cartório).`;
+          if (typeof window.showToast === 'function') window.showToast(msg);
+          return { success: true, refundClean: gCancel.refundClean, burnedFee: gCancel.burnedFee, message: msg };
+        }
+      }
+
+      const idx = (this.state.escrowContracts || []).findIndex((x) => x.id === contractId);
+      if (idx < 0) return { success: false, code: 'NOT_FOUND', message: 'Contrato não encontrado.' };
+      const c = this.state.escrowContracts[idx];
+      if (!c.isMine) return { success: false, code: 'NOT_OWNER', message: 'Apenas quem criou pode cancelar.' };
+      if (c.status !== 'open') return { success: false, code: 'LOCKED_IN_EXECUTION', message: 'Contrato já reservado ou concluído!' };
+      this.state.escrowContracts.splice(idx, 1);
+      runAuth(() => {
+        if (window.currentWallet) {
+          window.currentWallet.balance = +(Number(window.currentWallet.balance || 0) + c.rewardDirty).toFixed(2);
+        }
+      });
+      this.save();
+      if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+      if (window.darknetSocialEngine) window.darknetSocialEngine.renderForumUI();
+      return { success: true, refundClean: c.rewardDirty, burnedFee: c.notaryFeeBurned };
+    }
+
     acceptMercenaryContract(contractId) {
       this.ensureLoaded();
+      if (window.mmoGlobalMarket && String(contractId || '').startsWith('escrow_usr_')) {
+        const rRes = window.mmoGlobalMarket.reserveGlobalEscrow30m({ contractId });
+        if (!rRes.ok && rRes.code !== 'NOT_GLOBAL_CONTRACT') {
+          if (typeof window.showToast === 'function' && rRes.message) window.showToast(rRes.message);
+          return { success: false, code: rRes.code, message: rRes.message };
+        }
+        if (rRes.ok) {
+          if (window.darknetSocialEngine) window.darknetSocialEngine.renderForumUI();
+          const gc = rRes.contract;
+          const msg = `🎯 Contrato Global reservado com exclusividade por 30 MINUTOS (${gc.targetLabel})! Cumpra e clique em Comprovar p/ sacar +${fmtMoney(gc.rewardDirty)} Sujos!`;
+          if (typeof window.showToast === 'function') window.showToast(msg);
+          return { success: true, contract: gc, message: msg };
+        }
+      }
+
       const c = this.state.escrowContracts.find((x) => x.id === contractId);
       if (!c) return { success: false, message: 'Contrato não encontrado.' };
-      if (c.isMine) return { success: false, message: 'Você é o contratante deste Escrow — outro mercenário deve executá-lo!' };
-      if (c.status !== 'open') return { success: false, message: 'Contrato já reservado ou concluído.' };
+      if (c.isMine) return { success: false, code: 'SELF_CONTRACT_BLOCKED', message: 'Você é o contratante deste Escrow — outro mercenário deve executá-lo!' };
+      if (c.status !== 'open') return { success: false, code: 'RESERVED_BY_OTHER', message: 'Contrato já reservado ou concluído.' };
 
       c.status = 'reserved';
       c.reservedByMe = true;
@@ -2098,10 +2278,13 @@
 
     verifyAndClaimMercenaryContract(contractId) {
       this.ensureLoaded();
-      const c = this.state.escrowContracts.find((x) => x.id === contractId);
+      const merged = this.getMergedEscrowContracts();
+      let c = merged.find((x) => x.id === contractId);
       if (!c || c.status === 'completed') return { success: false, message: 'Contrato inválido ou já pago.' };
       if (!c.reservedByMe) {
-        this.acceptMercenaryContract(contractId);
+        const acc = this.acceptMercenaryContract(contractId);
+        if (!acc.success) return acc;
+        c = this.getMergedEscrowContracts().find((x) => x.id === contractId) || c;
       }
 
       let verified = false;
@@ -2121,8 +2304,14 @@
         return { success: false, code: 'OBJECTIVE_NOT_VERIFIED', message: msg };
       }
 
-      c.status = 'completed';
-      c.reservedByMe = false;
+      const localC = this.state.escrowContracts.find((x) => x.id === contractId);
+      if (localC) {
+        localC.status = 'completed';
+        localC.reservedByMe = false;
+      }
+      if (window.mmoGlobalMarket && String(contractId || '').startsWith('escrow_usr_')) {
+        window.mmoGlobalMarket.completeGlobalEscrow({ contractId });
+      }
       if (window.nineSystemsEngine) {
         window.nineSystemsEngine.addDirtyMoney(c.rewardDirty, `Escrow Mercenário P2P (@${c.hirerTag})`);
       }
@@ -2141,30 +2330,35 @@
 
     renderForumMercenaryEscrowSectionHtml() {
       this.ensureLoaded();
-      const rows = (this.state.escrowContracts || []).slice(0, 6).map((c) => {
+      const rows = this.getMergedEscrowContracts().slice(0, 7).map((c) => {
         const remMin = c.reservedUntil > Date.now() ? Math.ceil((c.reservedUntil - Date.now()) / 60000) : 0;
         return `
           <div style="padding:10px 12px;border-radius:8px;background:#0c1118;border:1px solid #1f2a38;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
             <div>
               <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                 <span class="hc-badge ${c.status === 'completed' ? 'success' : (c.status === 'reserved' ? 'warn' : 'info')}">
-                  ${c.status === 'completed' ? 'PAGO ✓' : (c.status === 'reserved' ? `PEGOU (${remMin}m)` : 'ABERTO')}
+                  ${c.status === 'completed' ? 'PAGO ✓' : (c.status === 'reserved' ? `RESERVADO (${remMin}m)` : 'ABERTO')}
                 </span>
                 <strong style="font-size:13px;color:var(--hc-text);">${esc(c.objectiveLabel)} — <code>${esc(c.targetIp)}</code></strong>
               </div>
               <div style="font-size:11.5px;color:var(--hc-text-3);margin-top:2px;">
-                Quem pediu: <strong style="color:var(--hc-accent-text);">@${esc(c.hirerTag)}</strong> · Prêmio guardado: <strong style="color:#fbbf24;">${fmtMoney(c.rewardDirty)} (recebe em Dinheiro Sujo)</strong> · Taxa de garantia: ${fmtMoney(c.notaryFeeBurned)}
+                Quem pediu: <strong style="color:var(--hc-accent-text);">@${esc(c.hirerTag)}</strong>${c.reservedByTag ? ` · Em execução por <strong>@${esc(c.reservedByTag)}</strong>` : ''} · Prêmio: <strong style="color:#fbbf24;">${fmtMoney(c.rewardDirty)} (Sujo)</strong> · Taxa 15%: ${fmtMoney(c.notaryFeeBurned)}
               </div>
             </div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
               ${c.status === 'completed'
                 ? `<span class="hc-badge success">Concluído</span>`
                 : (c.isMine
-                    ? `<span class="hc-badge">Esperando alguém pegar</span>`
+                    ? (c.status === 'open'
+                        ? `<span class="hc-badge">Aguardando mercenário</span>
+                           <button type="button" id="btnCancelEscrow_${esc(c.id)}" class="hc-btn ghost sm" onclick="window.topTenMechanics.cancelMercenaryEscrowContract('${esc(c.id)}')">Cancelar (perde 15%)</button>`
+                        : `<span class="hc-badge warn">Em execução (${remMin}m)</span>`)
                     : (c.reservedByMe
                         ? `<button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(c.targetIp)}', 'invadir')">Ir ao Alvo →</button>
                            <button type="button" id="btnVerifyEscrow_${esc(c.id)}" class="hc-btn primary sm" onclick="window.topTenMechanics.verifyAndClaimMercenaryContract('${esc(c.id)}')">✓ Comprovar &amp; Receber</button>`
-                        : `<button type="button" id="btnAcceptEscrow_${esc(c.id)}" class="hc-btn primary sm" onclick="window.topTenMechanics.acceptMercenaryContract('${esc(c.id)}')">🎯 Pegar Serviço (30m)</button>`))}
+                        : (c.status === 'reserved'
+                            ? `<span class="hc-badge warn">Reservado @${esc(c.reservedByTag || 'Operador')}</span>`
+                            : `<button type="button" id="btnAcceptEscrow_${esc(c.id)}" class="hc-btn primary sm" onclick="window.topTenMechanics.acceptMercenaryContract('${esc(c.id)}')">🎯 Pegar Serviço (30m)</button>`)))}
             </div>
           </div>
         `;
@@ -2382,12 +2576,17 @@
             <div class="eco-card-head">
               <div>
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
-                  <span class="hc-badge warn">📦 LEILÃO DE SERVIDOR CONFISCADO (NOVO A CADA 2H)</span>
-                  <span class="mono" style="font-size:11.5px;color:#fde68a;">Lote: ${esc(lot.lotCode)} · Fecha em ${lot.remMin} min</span>
+                  <span class="hc-badge warn">📦 LEILÃO GLOBAL DE SERVIDOR (NOVO A CADA 2H)</span>
+                  <span class="mono" style="font-size:11.5px;color:#fde68a;">Lote: ${esc(lot.lotCode)} · ${lot.remSec > 0 ? `Fecha em ${lot.remSec < 90 ? lot.remSec + 's' : lot.remMin + ' min'}` : 'Tempo encerrado!'}</span>
+                  ${lot.snipeExtensions > 0 ? `<span class="hc-badge info">⏱️ Anti-Sniping +${lot.snipeExtensions * 30}s</span>` : ''}
                 </div>
                 <div class="eco-card-title">📦 ${esc(lot.origin)}</div>
                 <div class="eco-card-sub">
-                  Maior lance atual de Bot (<strong>@${esc(lot.botBidder)}</strong>): <strong>${fmtMoney(lot.currentMinBid - 1500)}</strong> · Seu lance mínimo: <strong style="color:#4ade80;">${fmtMoney(lot.currentMinBid)} Limpos</strong>.
+                  Maior lance atual (${lot.isBotLeader ? 'Bot' : 'Jogador'} <strong>@${esc(lot.leaderTag)}</strong>): <strong>${fmtMoney(lot.highestBid)}</strong> · Próximo lance mínimo: <strong style="color:#4ade80;">${fmtMoney(lot.currentMinBid)} Limpos</strong>.
+                  ${lot.isMyHighestBid ? `<span class="hc-badge success" style="margin-left:6px;">👑 Seu lance lidera!</span>` : ''}
+                </div>
+                <div style="font-size:11.5px;color:var(--hc-text-3);margin-top:3px;">
+                  🛡️ <strong>Estorno Automático:</strong> Se outro jogador cobrir seu lance, 100% do seu dinheiro volta na hora para sua Caixa MMO! Lances nos últimos 30s prorrogam +30s (máx 5x).
                 </div>
                 ${lot.probed ? `<div style="margin-top:6px;padding:7px 10px;border-radius:6px;background:#09131e;border:1px solid #2b4c6f;font-size:12px;color:#7dd3fc;">🔬 <strong>Resultado da Análise:</strong> ${esc(lot.probeHint)}</div>` : ''}
                 ${lot.resolved && lot.lastOutcome ? `
@@ -2397,15 +2596,28 @@
                   </div>
                 ` : ''}
               </div>
-              <div style="display:flex;flex-direction:column;gap:8px;min-width:220px;">
+              <div style="display:flex;flex-direction:column;gap:8px;min-width:225px;">
                 <button type="button" id="btnProbeAuctionLot" class="hc-btn ghost sm" ${lot.probed || lot.resolved ? 'disabled' : ''}
                   onclick="window.topTenMechanics.probeAuctionWithAnalyzer()">
                   ${lot.probed ? '✓ Disco Analisado' : '🔬 Analisar Disco ($ 1.000 · Analyzer v4.0+)'}
                 </button>
-                <button type="button" id="btnPlaceAuctionBid" class="hc-btn primary sm" ${lot.resolved ? 'disabled' : ''}
-                  onclick="window.topTenMechanics.placeBidAndResolveAuction(${lot.currentMinBid})">
-                  ${lot.resolved ? '✓ Lote Já Comprado' : `🔨 Dar Lance (${fmtMoney(lot.currentMinBid)} Limpos)`}
-                </button>
+                ${lot.isMyHighestBid && lot.remSec <= 0 && !lot.resolved ? `
+                  <button type="button" id="btnClaimWonAuction" class="hc-btn primary sm"
+                    onclick="window.topTenMechanics.claimWonGlobalAuction()">
+                    📦 Abrir Servidor Vencido!
+                  </button>
+                ` : `
+                  <button type="button" id="btnPlaceAuctionBid" class="hc-btn primary sm" ${lot.resolved || lot.isMyHighestBid ? 'disabled' : ''}
+                    onclick="window.topTenMechanics.placeBidAndResolveAuction(${lot.currentMinBid})">
+                    ${lot.resolved ? '✓ Lote Já Resgatado' : (lot.isMyHighestBid ? '👑 Você Lidera o Lote' : `🔨 Dar Lance Global (${fmtMoney(lot.currentMinBid)})`)}
+                  </button>
+                `}
+                ${lot.isBotLeader && !lot.resolved ? `
+                  <button type="button" id="btnInstantBuyoutAuction" class="hc-btn ghost sm"
+                    onclick="window.topTenMechanics.placeBidAndResolveAuction(${Math.round(lot.currentMinBid * 1.2)}, 'buyout')">
+                    ⚡ Arremate Direto (${fmtMoney(Math.round(lot.currentMinBid * 1.2))})
+                  </button>
+                ` : ''}
               </div>
             </div>
             ${this.renderInlineRulesDrawerHtml(

@@ -1135,6 +1135,10 @@
         { offerId: `p2p_bot_${b}_3`, sellerTag: 'ZeroDay_Valkyrie', strainName: 'Swarm-ZeroCopy', family: 'vwarez', versionInt: 82, fitGrade: 'S+', durationHours: 72, priceClean: 3900, burnTaxPct: 20, isBot: true },
         { offerId: `p2p_bot_${b}_4`, sellerTag: 'Kuro_Phantom', strainName: 'Vault-Hook', family: 'vbank', versionInt: 64, fitGrade: 'A', durationHours: 48, priceClean: 2250, burnTaxPct: 15, isBot: true }
       ];
+      if (window.mmoGlobalMarket) {
+        const globalOpen = window.mmoGlobalMarket.getGlobalOpenP2pLicenses();
+        return [...globalOpen, ...botPool];
+      }
       return [...(this.state.myListedLicenses || []), ...botPool];
     }
 
@@ -1172,9 +1176,12 @@
 
       this.state.licensesIssuedByStrain[strain.id] = issued + 1;
       const netSeller = Math.round(price * (1 - burnTaxPct / 100));
+      const actor = window.mmoGlobalMarket ? window.mmoGlobalMarket.getActorIdentity() : { id: 'me', tag: (window.currentProfile && window.currentProfile.hacker_tag) || 'Operador' };
       const offer = {
-        offerId: 'p2p_plr_' + Date.now(),
-        sellerTag: (window.currentProfile && window.currentProfile.hacker_tag) || 'Operador',
+        offerId: 'p2p_plr_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        strainId: strain.id,
+        sellerId: actor.id,
+        sellerTag: actor.tag,
         strainName: strain.strainName,
         family: strain.family,
         versionInt: strain.versionInt,
@@ -1186,30 +1193,52 @@
       };
       this.state.myListedLicenses.unshift(offer);
 
-      // Liquidez MMO imediata se dentro do preço competitivo!
-      runAuth(() => {
-        if (window.currentWallet) {
-          window.currentWallet.balance = +(Number(window.currentWallet.balance || 0) + netSeller).toFixed(2);
-        }
-      });
+      if (window.mmoGlobalMarket) {
+        window.mmoGlobalMarket.publishGlobalP2pLicense(offer);
+      } else {
+        runAuth(() => {
+          if (window.currentWallet) {
+            window.currentWallet.balance = +(Number(window.currentWallet.balance || 0) + netSeller).toFixed(2);
+          }
+        });
+      }
       this.save();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
-      const msg = `🧬 Licença ${dur}h de "${strain.strainName}" vendida no P2P! Recebeu +${fmtMoney(netSeller)} Limpos (Taxa queimada: ${burnTaxPct}%).`;
+      const msg = window.mmoGlobalMarket
+        ? `🧬 Licença ${dur}h de "${strain.strainName}" anunciada na Vitrine Global MMO por ${fmtMoney(price)} Limpos! Quando outro jogador alugar, você recebe +${fmtMoney(netSeller)} Limpos na Caixa MMO.`
+        : `🧬 Licença ${dur}h de "${strain.strainName}" vendida no P2P! Recebeu +${fmtMoney(netSeller)} Limpos (Taxa queimada: ${burnTaxPct}%).`;
       if (typeof window.showToast === 'function') window.showToast(msg);
       return { success: true, netSeller, offer, message: msg };
     }
 
     buyP2pLicense(offerId) {
       this.ensureLoaded();
-      const offer = this.getHourlyP2pOffers().find((o) => o.offerId === offerId);
-      if (!offer) return { success: false, message: 'Oferta expirada.' };
-      if (offer.isMine) return { success: false, message: 'Você não pode comprar sua própria licença!' };
-
       const clean = this.getCleanBalance();
-      if (clean < offer.priceClean) {
-        const msg = `Comprar licença P2P exige ${fmtMoney(offer.priceClean)} em DINHEIRO LIMPO!`;
-        if (typeof window.showToast === 'function') window.showToast(msg);
-        return { success: false, code: 'CLEAN_MONEY_REQUIRED', message: msg };
+      let offer = null;
+
+      if (window.mmoGlobalMarket) {
+        const atomicRes = window.mmoGlobalMarket.buyGlobalP2pLicenseAtomic({
+          offerId,
+          buyerCleanBalance: clean
+        });
+        if (atomicRes.ok) {
+          offer = atomicRes.offer;
+        } else if (atomicRes.code !== 'NOT_GLOBAL_OFFER') {
+          const mappedCode = atomicRes.code === 'NEED_CLEAN_MONEY' ? 'CLEAN_MONEY_REQUIRED' : atomicRes.code;
+          if (typeof window.showToast === 'function' && atomicRes.message) window.showToast(atomicRes.message);
+          return { success: false, code: mappedCode, message: atomicRes.message };
+        }
+      }
+
+      if (!offer) {
+        offer = this.getHourlyP2pOffers().find((o) => o.offerId === offerId);
+        if (!offer) return { success: false, code: 'ALREADY_SOLD', message: 'Oferta expirada ou já alugada por outro jogador!' };
+        if (offer.isMine) return { success: false, code: 'SELF_BUY_BLOCKED', message: 'Você não pode comprar sua própria licença!' };
+        if (clean < offer.priceClean) {
+          const msg = `Comprar licença P2P exige ${fmtMoney(offer.priceClean)} em DINHEIRO LIMPO!`;
+          if (typeof window.showToast === 'function') window.showToast(msg);
+          return { success: false, code: 'CLEAN_MONEY_REQUIRED', message: msg };
+        }
       }
 
       runAuth(() => {
