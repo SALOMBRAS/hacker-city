@@ -405,23 +405,30 @@
       if (psu.maxWatts <= cur.maxWatts) {
         return { success: false, message: 'Você já possui uma Fonte igual ou superior instalada!' };
       }
+      const cnpjMult = (window.nineSystemsEngine && typeof window.nineSystemsEngine.getCompanyCnpjPerks === 'function')
+        ? Number(window.nineSystemsEngine.getCompanyCnpjPerks().hwDiscountMult || 1.0)
+        : 1.0;
+      const effCost = Math.round(psu.priceClean * cnpjMult);
       const clean = this.getCleanBalance();
-      if (clean < psu.priceClean) {
-        const msg = `Comprar ${psu.name} exige ${fmtMoney(psu.priceClean)} em Dinheiro Limpo!`;
+      if (clean < effCost) {
+        if (window.nineSystemsEngine && window.nineSystemsEngine.getDirtyBalance() > 0) {
+          window.nineSystemsEngine.openDirtyMoneyBridgeModal(psu.name, effCost);
+        }
+        const msg = `Comprar ${psu.name} exige ${fmtMoney(effCost)} em Dinheiro Limpo!`;
         if (typeof window.showToast === 'function') window.showToast(msg);
-        return { success: false, code: 'CLEAN_MONEY_REQUIRED', message: msg };
+        return { success: false, code: 'CLEAN_MONEY_REQUIRED', required: effCost, message: msg };
       }
       runAuth(() => {
-        window.currentWallet.balance = Math.max(0, +(clean - psu.priceClean).toFixed(2));
+        window.currentWallet.balance = Math.max(0, +(clean - effCost).toFixed(2));
       });
       this.state.psuId = psu.id;
       this.state.brownoutActive = false;
       this.save();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       if (typeof window.updateHardwareDisplay === 'function') window.updateHardwareDisplay();
-      const msg = `⚡ ${psu.name} (${psu.maxWatts}W) instalada! Subtensão eliminada.`;
+      const msg = `⚡ ${psu.name} (${psu.maxWatts}W) instalada (-${fmtMoney(effCost)} Limpos${cnpjMult < 1 ? ' · -10% CNPJ!' : ''})! Subtensão eliminada.`;
       if (typeof window.showToast === 'function') window.showToast(msg);
-      return { success: true, psu, message: msg };
+      return { success: true, psu, paidClean: effCost, message: msg };
     }
 
     validateHardwareStepLadder(category, itemId, targetMachineId = 'pc_main') {
@@ -587,7 +594,11 @@
           if (c && c.region) continents.add(c.region);
         });
       }
-      return { hops: nodes.length, continentsCount: Math.max(continents.size, Math.min(3, Math.floor(nodes.length / 2))) };
+      const cnpjFreeHops = (window.nineSystemsEngine && typeof window.nineSystemsEngine.getCompanyCnpjPerks === 'function')
+        ? Number(window.nineSystemsEngine.getCompanyCnpjPerks().bonusFreeBounceHops || 0)
+        : 0;
+      const totalHops = nodes.length + cnpjFreeHops;
+      return { hops: totalHops, continentsCount: Math.max(continents.size, Math.min(3, Math.floor(totalHops / 2))) };
     }
 
     validateTargetBounceGate(host) {

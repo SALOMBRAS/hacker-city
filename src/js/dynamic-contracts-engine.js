@@ -271,11 +271,15 @@
       this.activeContracts.splice(idx, 1);
       this.saveToStorage();
 
-      // Credita Saldo em Dólares
+      // Credita em Dinheiro Sujo (contratos clandestinos da Darknet)
       if (!window.currentWallet) {
         window.currentWallet = { balance: 0 };
       }
-      window.currentWallet.balance = +(parseFloat(window.currentWallet.balance || 0) + c.rewardCash).toFixed(2);
+      if (window.nineSystemsEngine && typeof window.nineSystemsEngine.addDirtyMoney === 'function') {
+        window.nineSystemsEngine.addDirtyMoney(c.rewardCash, `Contrato Dinâmico (${c.title || 'Darknet'})`);
+      } else {
+        window.currentWallet.balance = +(parseFloat(window.currentWallet.balance || 0) + c.rewardCash).toFixed(2);
+      }
 
       if (window.currentProfile) {
         window.currentProfile.wallet_balance = (window.currentProfile.wallet_balance || 0) + c.rewardCash;

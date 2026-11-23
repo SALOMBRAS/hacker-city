@@ -219,20 +219,26 @@
 
       const usdReceived = +((satsToSell / SATS_PER_BTC) * this.priceUsd).toFixed(2);
       this.state.balanceSats = this.getBalanceSats() - satsToSell;
-      if (window.currentWallet) {
+      let splitInfo = { cleanAdded: usdReceived, dirtyAdded: 0, capUsd: 2000 };
+      if (window.nineSystemsEngine && typeof window.nineSystemsEngine.processBtcLiquidationSplit === 'function') {
+        splitInfo = window.nineSystemsEngine.processBtcLiquidationSplit(usdReceived);
+      } else if (window.currentWallet) {
         window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + usdReceived).toFixed(2);
       }
 
-      this.addLedger('VENDA', -satsToSell, `Venda de ${fmtSatsToBtc(satsToSell)} BTC por +${fmtUsd(usdReceived)} (@ $${this.priceUsd.toLocaleString('pt-BR')})`);
+      this.addLedger('VENDA', -satsToSell, `Venda de ${fmtSatsToBtc(satsToSell)} BTC -> +${fmtUsd(splitInfo.cleanAdded)} Limpos${splitInfo.dirtyAdded > 0 ? ` + ${fmtUsd(splitInfo.dirtyAdded)} Sujos (acima da isenção COAF de $${splitInfo.capUsd}/dia)` : ''}`);
       this.save();
 
       if (typeof window.addLocalLog === 'function') {
-        window.addLocalLog('BTC-EXCHANGE', `Liquidação BTC: -${fmtSatsToBtc(satsToSell)} BTC -> +${fmtUsd(usdReceived)}`, 'success');
+        window.addLocalLog('BTC-EXCHANGE', `Liquidação BTC: -${fmtSatsToBtc(satsToSell)} BTC -> +${fmtUsd(splitInfo.cleanAdded)} Limpos / +${fmtUsd(splitInfo.dirtyAdded)} Sujos`, 'success');
       }
       if (window.hackerAudio) window.hackerAudio.playMoneyCollect();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       this.renderUI();
-      return { success: true, usdReceived, message: `Vendido ${fmtSatsToBtc(satsToSell)} BTC por ${fmtUsd(usdReceived)}!` };
+      const splitMsg = splitInfo.dirtyAdded > 0
+        ? `Vendido ${fmtSatsToBtc(satsToSell)} BTC: +${fmtUsd(splitInfo.cleanAdded)} Limpos (cota isenta COAF) e +${fmtUsd(splitInfo.dirtyAdded)} em 🩸 Dinheiro Sujo (lave ou abra Empresa de Fachada p/ subir sua isenção)!`
+        : `Vendido ${fmtSatsToBtc(satsToSell)} BTC por +${fmtUsd(splitInfo.cleanAdded)} Limpos (dentro da isenção diária COAF de $${splitInfo.capUsd.toLocaleString('pt-BR')})!`;
+      return { success: true, usdReceived, splitInfo, message: splitMsg };
     }
 
     transferBtc(targetAddrRaw, btcAmountRaw) {
@@ -2945,10 +2951,20 @@
       });
       this.save();
 
-      const applyHarvestRewards = () => {
-        if (summary.cashReady > 0 && window.currentWallet) {
+      if (summary.cashReady > 0 && window.nineSystemsEngine && typeof window.nineSystemsEngine.addDirtyMoney === 'function') {
+        window.nineSystemsEngine.addDirtyMoney(summary.cashReady, 'Coleta Botnet (.vbank/.vspam/.vwarez)');
+      } else if (summary.cashReady > 0 && window.currentWallet) {
+        const creditFallback = () => {
           window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + summary.cashReady).toFixed(2);
+        };
+        if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+          window.integrityGuard.runAuthorized(creditFallback);
+        } else {
+          creditFallback();
         }
+      }
+
+      const applyHarvestRewards = () => {
         const repGain = Math.min(60, 5 + Math.floor(summary.cashReady * 0.12) + Math.floor(summary.satsReady / 1500));
         if (window.currentProfile) {
           window.currentProfile.reputation = (window.currentProfile.reputation || 0) + repGain;

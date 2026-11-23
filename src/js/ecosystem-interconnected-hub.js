@@ -527,9 +527,12 @@
       const totalCost = +(amountUsd * (1 + feeRate)).toFixed(2);
       const curBal = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
       if (curBal < totalCost) {
-        const msg = `Saldo insuficiente! Ordem + corretagem custa $ ${totalCost.toFixed(2)} HC.`;
+        if (window.nineSystemsEngine && window.nineSystemsEngine.getDirtyBalance() > 0) {
+          window.nineSystemsEngine.openDirtyMoneyBridgeModal(`Ordem Long CyberStock (${corp.symbol})`, totalCost);
+        }
+        const msg = `Saldo Limpo insuficiente! Ordem + corretagem exige $ ${totalCost.toFixed(2)} Limpos.`;
         if (typeof window.showToast === 'function') window.showToast(msg);
-        return { success: false, message: msg };
+        return { success: false, code: 'CLEAN_MONEY_REQUIRED', message: msg };
       }
 
       const shares = +(amountUsd / st.price).toFixed(4);
@@ -600,9 +603,12 @@
 
       const curBal = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
       if (curBal < collateral) {
-        const msg = `Saldo insuficiente para margem Short ($ ${collateral.toFixed(2)} HC).`;
+        if (window.nineSystemsEngine && window.nineSystemsEngine.getDirtyBalance() > 0) {
+          window.nineSystemsEngine.openDirtyMoneyBridgeModal(`Margem Short CyberStock (${corp.symbol})`, collateral);
+        }
+        const msg = `Saldo Limpo insuficiente para margem Short ($ ${collateral.toFixed(2)} Limpos).`;
         if (typeof window.showToast === 'function') window.showToast(msg);
-        return { success: false, message: msg };
+        return { success: false, code: 'CLEAN_MONEY_REQUIRED', message: msg };
       }
 
       runAuth(() => {
@@ -1745,8 +1751,14 @@
       this.onCorporateHostSabotaged(heist.targetIp, 'crew_heist');
       this.unlockMilestone('ms_crew_heist');
 
+      if (window.nineSystemsEngine && typeof window.nineSystemsEngine.addDirtyMoney === 'function') {
+        window.nineSystemsEngine.addDirtyMoney(payout, `Golpe Coordenado 4x (${heist.title})`);
+      } else {
+        runAuth(() => {
+          if (window.currentWallet) window.currentWallet.balance = +(Number(window.currentWallet.balance || 0) + payout).toFixed(2);
+        });
+      }
       runAuth(() => {
-        if (window.currentWallet) window.currentWallet.balance = +(Number(window.currentWallet.balance || 0) + payout).toFixed(2);
         if (window.currentProfile) window.currentProfile.reputation = Number(window.currentProfile.reputation || 100) + heist.repReward;
       });
 
@@ -1754,7 +1766,7 @@
       this.checkNetWorthMilestone();
       if (window.hackerAudio && typeof window.hackerAudio.playCashChime === 'function') window.hackerAudio.playCashChime();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
-      const msg = `🎭 Golpe "${heist.title}" concluído! +$ ${payout} HC, +${heist.repReward} REP, +${heist.catalystGrant} Catalisador(es) e queda em ${heist.corpSymbol}!`;
+      const msg = `🎭 Golpe "${heist.title}" concluído! +$ ${payout} em 🩸 Dinheiro Sujo, +${heist.repReward} REP, +${heist.catalystGrant} Catalisador(es) e queda em ${heist.corpSymbol}!`;
       if (typeof window.showToast === 'function') window.showToast(msg);
       this.renderUI();
       return { success: true, payout, message: msg };
