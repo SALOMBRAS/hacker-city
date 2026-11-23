@@ -712,10 +712,13 @@
     }
 
     ensureMobileDrawerIfNeeded(wantSidebarOpen) {
-      const sb = document.querySelector('.sidebar');
-      if (!sb) return;
       if (window.innerWidth <= 860) {
-        sb.classList.toggle('mobile-open', !!wantSidebarOpen);
+        if (typeof window.toggleMobileSidebar === 'function') {
+          window.toggleMobileSidebar(!!wantSidebarOpen);
+        } else {
+          const sb = document.querySelector('.sidebar');
+          if (sb) sb.classList.toggle('mobile-open', !!wantSidebarOpen);
+        }
       }
     }
 
@@ -922,7 +925,7 @@
         const target = this.resolveTargetElement(step);
         if (target) {
           try {
-            target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            target.scrollIntoView({ block: window.innerWidth <= 860 ? 'center' : 'nearest', inline: 'center' });
           } catch (e) {}
           this.bindDirectTargetInteraction(step, target);
         }
@@ -932,8 +935,33 @@
 
     resolveTargetElement(step) {
       if (!step) return null;
-      if (step.id === 'choose_minipc_hash' && window.internetEngine && window.internetEngine.isCracking) {
-        return document.getElementById('cardAttackBruteforce') || document.querySelector(step.selector);
+      const isCompact = window.innerWidth <= 860;
+      if (step.id === 'choose_minipc_hash') {
+        if (window.internetEngine && window.internetEngine.isCracking) {
+          return document.getElementById('cardAttackBruteforce') || document.querySelector(step.selector);
+        }
+        if (isCompact) {
+          const bestBtn = document.getElementById('btnMiniPcUseBest') || document.querySelector('#miniPcCrackerWindow button[onclick*="confirmBruteforceWithHash"]');
+          if (bestBtn && bestBtn.offsetWidth > 0) return bestBtn;
+        }
+      }
+      if (isCompact) {
+        if (step.id === 'running_ram_cooldown') {
+          const compactRam = document.querySelector('#softwareExplorerMain .soft-tabs-bar') || document.getElementById('runningProgramsPanel');
+          if (compactRam && compactRam.offsetWidth > 0) return compactRam;
+        }
+        if (step.id === 'upload_virus_stage') {
+          const upBtn = document.getElementById('btnUploadVirusStage') || document.getElementById('btnDeployRemoteVirus');
+          if (upBtn && upBtn.offsetWidth > 0) return upBtn;
+        }
+        if (step.id === 'execute_staged_virus') {
+          const exBtn = document.getElementById('btnExecStagedVirus_vspam') || document.querySelector('[id^="btnExecStagedVirus_"]');
+          if (exBtn && exBtn.offsetWidth > 0) return exBtn;
+        }
+        if (step.id === 'wipe_log_and_taunt') {
+          const wipeBtn = document.getElementById('btnQuickWipeAndTaunt');
+          if (wipeBtn && wipeBtn.offsetWidth > 0) return wipeBtn;
+        }
       }
       let el = document.querySelector(step.selector);
       if ((!el || el.offsetWidth === 0) && step.fallbackSelector) {
