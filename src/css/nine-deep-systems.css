@@ -311,3 +311,19 @@
   gap: 5px;
   border-top: 1px solid #1e2d42;
 }
+
+@media (max-width: 600px) {
+  .hc-defense-popover {
+    left: 10px;
+    right: 10px;
+    top: 62px;
+    width: auto;
+    padding: 12px 13px;
+  }
+  .hc-jail-overlay {
+    padding: 12px;
+  }
+  .hc-jail-card {
+    padding: 16px 16px;
+  }
+}

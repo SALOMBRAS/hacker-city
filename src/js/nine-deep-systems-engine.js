@@ -410,9 +410,9 @@
 
       const wrap = document.createElement('div');
       wrap.id = 'hcDirtyBridgeModal';
-      wrap.style.cssText = 'position:fixed;inset:0;z-index:9996;background:rgba(4,8,14,0.86);display:grid;place-items:center;padding:16px;';
+      wrap.style.cssText = 'position:fixed;inset:0;z-index:9996;background:rgba(4,8,14,0.86);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;';
       wrap.innerHTML = `
-        <div class="hc-card" style="max-width:560px;width:100%;padding:22px 24px;border-color:rgba(248,113,113,0.55);background:#0b1119;">
+        <div class="hc-card" style="max-width:560px;width:100%;margin:auto;padding:18px 18px;border-color:rgba(248,113,113,0.55);background:#0b1119;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
             <span class="hc-badge danger">🛑 PRECISA DE DINHEIRO LIMPO</span>
             <button type="button" class="hc-btn ghost sm" onclick="window.nineSystemsEngine.closeDirtyMoneyBridgeModal()">✕</button>
