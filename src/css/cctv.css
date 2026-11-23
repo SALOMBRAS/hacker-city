@@ -479,6 +479,13 @@
   gap: 10px;
 }
 
+@media (max-width: 640px) {
+  .cctv-ptz-btn {
+    padding: 9px 10px;
+    font-size: 12px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cctv-rec-dot,
   .cctv-motion-box {
