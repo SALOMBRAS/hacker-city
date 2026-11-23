@@ -651,58 +651,58 @@
           <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
             <div>
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                <span class="hc-badge warn">TOP #01 · CHANTAGEM CFTV (${esc(corp.symbol)})</span>
-                <span class="mono" style="font-size:11.5px;color:var(--hc-text-3);">Peso real no HD: 120 MB · Cooldown: 1x a cada 4h</span>
-                ${fwBoost.extortionFw > 0 ? `<span class="hc-badge danger">DIRETORIA EM ALERTA (+${fwBoost.extortionFw.toFixed(1)} FW)</span>` : ''}
+                <span class="hc-badge warn">📹 CHANTAGEM POR CÂMERA (${esc(corp.symbol)})</span>
+                <span class="mono" style="font-size:11.5px;color:var(--hc-text-3);">Ocupa 120 MB no disco · 1 vez a cada 4h</span>
+                ${fwBoost.extortionFw > 0 ? `<span class="hc-badge danger">EMPRESA EM ALERTA (+${fwBoost.extortionFw.toFixed(1)} Firewall)</span>` : ''}
               </div>
               <div style="font-size:12.5px;color:var(--hc-text-2);margin-top:4px;">
                 ${myProof
-                  ? `📹 Arquivo bruto salvo no seu PC (<strong>120 MB</strong> ocupados). Escolha o destino da gravação de <strong>${esc(corp.name)}</strong>:`
-                  : `Extraia um flagrante executivo de <strong>120 MB</strong> desta empresa para derrubar <strong>${esc(corp.symbol)}</strong> em <strong>-18%</strong> na Bolsa ou extorquir a diretoria em Bitcoin!`}
+                  ? `📹 Vídeo salvo no seu PC (<strong>120 MB</strong> ocupados). Escolha o que fazer com a gravação de <strong>${esc(corp.name)}</strong>:`
+                  : `Grave um vídeo secreto de <strong>120 MB</strong> desta empresa para derrubar <strong>${esc(corp.symbol)}</strong> em <strong>-18%</strong> na Bolsa ou cobrar resgate em Bitcoin!`}
               </div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               ${!myProof ? `
                 <button type="button" id="btnCaptureExtortionProof" class="hc-btn primary sm" ${cdRemMin > 0 ? 'disabled' : ''}
                   onclick="window.topTenMechanics.captureExtortionProof('${esc(host.ip)}')">
-                  ${cdRemMin > 0 ? `⏳ Cooldown (${cdRemMin}m)` : '📹 Extrair Prova Executiva (120 MB)'}
+                  ${cdRemMin > 0 ? `⏳ Aguarde (${cdRemMin}m)` : '📹 Gravar Prova (120 MB)'}
                 </button>
               ` : `
                 <button type="button" id="btnLeakProofPress" class="hc-btn sm" style="border-color:#38bdf8;color:#7dd3fc;"
                   onclick="window.topTenMechanics.leakProofToPress('${esc(myProof.id)}')">
-                  📰 Vazar p/ Imprensa (-18% ${esc(corp.symbol)} · +40 REP)
+                  📰 Vazar na Imprensa (-18% ${esc(corp.symbol)})
                 </button>
                 <button type="button" id="btnExtortBtcLow" class="hc-btn primary sm"
                   onclick="window.topTenMechanics.extortBoardInBtc('${esc(myProof.id)}', 'low')">
-                  ₿ Extorquir $ 3K BTC (85%)
+                  ₿ Cobrar $ 3 mil BTC (85%)
                 </button>
                 <button type="button" id="btnExtortBtcMid" class="hc-btn sm" style="border-color:var(--hc-warning);color:#fde68a;"
                   onclick="window.topTenMechanics.extortBoardInBtc('${esc(myProof.id)}', 'mid')">
-                  ₿ Extorquir $ 9K BTC (55%)
+                  ₿ Cobrar $ 9 mil BTC (55%)
                 </button>
                 <button type="button" id="btnExtortBtcHigh" class="hc-btn sm" style="border-color:var(--hc-danger);color:#fca5a5;"
                   onclick="window.topTenMechanics.extortBoardInBtc('${esc(myProof.id)}', 'high')">
-                  ₿ Extorquir $ 22K BTC (25%)
+                  ₿ Cobrar $ 22 mil BTC (25%)
                 </button>
               `}
             </div>
           </div>
           <div style="margin-top:8px;padding:8px 11px;border-radius:7px;background:#08111a;border:1px solid rgba(56,189,248,0.3);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:11.8px;">
             <span style="color:var(--hc-text-2);">
-              📈 <strong>Ponte Direta c/ Bolsa CyberStock:</strong> Cotação atual de <strong>${esc(corp.symbol)}</strong> =
+              📉 <strong>Dica para ganhar Dinheiro Limpo:</strong> Ação <strong>${esc(corp.symbol)}</strong> está em
               <strong style="color:#4ade80;">$ ${(window.ecosystemHub && window.ecosystemHub.ensureLoaded().stocks[corp.symbol] ? window.ecosystemHub.state.stocks[corp.symbol].price : 50).toFixed(2)}</strong>
-              (abra posição <strong>Short</strong> antes de vazar p/ transformar a queda de -18% em <strong>Dinheiro Limpo legalizado</strong>!)
+              — aposte na queda (Short) na Bolsa antes de vazar o vídeo e lucre Limpo!
             </span>
             <button type="button" id="btnBridgeCctvToShort" class="hc-btn ghost sm" onclick="navTo('winOpsHub');window.ecosystemHub.switchTab('stocks');">
-              📉 Abrir Short em ${esc(corp.symbol)} na Bolsa →
+              📉 Apostar na Queda de ${esc(corp.symbol)} →
             </button>
           </div>
           ${this.renderInlineRulesDrawerHtml(
             'top01_cctv',
-            'Chantagem Corporativa CFTV vs. Vazamento de Imprensa',
-            'Vazar p/ Imprensa garante -18% imediato na ação TIX (perfeito c/ Short Selling na CyberStock!) + 40 REP sem risco policial; Extorquir em BTC paga até $ 22.000 direto em satoshis.',
-            'O vídeo bruto ocupa 120 MB reais do seu HD/SSD (máx. 1 captura a cada 4h por empresa). Se o Diretor recusar seu blefe de extorsão, você ganha $ 0, entra em Heat 5/5 (FBI Wanted) e a empresa sobe +2.0 Firewall por 2h!',
-            '• <strong>Moderado ($ 3.000 BTC):</strong> 85% de chance de pagamento · <strong>Agressivo ($ 9.000 BTC):</strong> 55% · <strong>Implacável ($ 22.000 BTC):</strong> 25%.'
+            'Como funciona a Chantagem por Câmera',
+            'Vazar na Imprensa derruba a ação em -18% na hora (ótimo para lucrar Limpo apostando na queda na Bolsa!) e dá +40 REP sem risco policial. Cobrar resgate paga até $ 22.000 em Bitcoin.',
+            'O vídeo ocupa 120 MB reais do seu disco (1 gravação a cada 4h por empresa). Se a empresa recusar pagar o resgate, você recebe $ 0, vira Procurado Nível 5 (FBI) e o Firewall dela sobe +2.0 por 2h!',
+            '• <strong>Chances de pagarem:</strong> $ 3.000 BTC = 85% · $ 9.000 BTC = 55% · $ 22.000 BTC = 25%.'
           )}
         </div>
       `;
@@ -841,14 +841,14 @@
               </div>
             </div>
             ${isCurrent
-              ? `<span class="hc-badge success" style="align-self:flex-start;">✓ Operando Aqui (${vpsNow}/${t.maxVps} VPS)</span>`
+              ? `<span class="hc-badge success" style="align-self:flex-start;">✓ Morando Aqui (${vpsNow}/${t.maxVps} VPS)</span>`
               : (isNext
                   ? `<button type="button" id="btnUpgradeSafehouse_${esc(t.id)}" class="hc-btn ${cleanBal >= t.buyClean ? 'primary' : 'ghost'} sm block"
                        onclick="window.topTenMechanics.upgradeSafehouseTier('${esc(t.id)}')">
-                       Comprar Escritura (${fmtMoney(t.buyClean)} Limpos)
+                       Mudar p/ cá (${fmtMoney(t.buyClean)} Limpos)
                      </button>`
                   : `<button type="button" class="hc-btn ghost sm block" disabled>
-                       ${isOwnedLower ? 'Imóvel Anterior' : 'Exige Studio Blindado Antes'}
+                       ${isOwnedLower ? 'Imóvel Anterior' : 'Compre o Studio Antes'}
                      </button>`)}
           </div>
         `;
@@ -858,20 +858,20 @@
         <div class="hc-card" id="safehouseEvolutionCard" style="margin-top:14px;padding:14px 16px;border-color:rgba(53,184,119,0.35);">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
             <div>
-              <span class="hc-badge success">TOP #02 · EVOLUÇÃO DE BASE FÍSICA (3 PORTES)</span>
-              <strong style="font-size:13.5px;margin-left:6px;">Imóvel Atual: ${esc(cur.name)} (Aluguel às 12:00: ${fmtMoney(cur.noonRent)} · Limite ${cur.maxVps} VPS)</strong>
+              <span class="hc-badge success">🏢 MELHORAR ESCONDERIJO (3 TAMANHOS)</span>
+              <strong style="font-size:13.5px;margin-left:6px;">Local Atual: ${esc(cur.name)} (Aluguel às 12h: ${fmtMoney(cur.noonRent)} · Cabe até ${cur.maxVps} VPS)</strong>
             </div>
-            <span class="mono" style="font-size:11.5px;color:var(--hc-text-3);">100% Dinheiro Limpo · Exige 0 faturas em atraso</span>
+            <span class="mono" style="font-size:11.5px;color:var(--hc-text-3);">Pago c/ Dinheiro Limpo · Sem contas atrasadas</span>
           </div>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:10px;">
             ${cards}
           </div>
           ${this.renderInlineRulesDrawerHtml(
             'top02_safehouse',
-            'Evolução de Base Física (Quitinete → Studio → Bunker)',
-            'Reduz permanentemente a temperatura da CPU em -5°C (Studio) e -12°C (Bunker), amplia o limite de VPS de 2 → 5 → 10 e concede +8s extras no Popover de Defesa Ativa (23s totais no Bunker!).',
-            'Exige 100% Dinheiro Limpo e 0 contas atrasadas. O aluguel às 12:00 sobe de $ 280 para $ 950 (Studio) e $ 2.800 (Bunker). Se bater 3/3 meses sem pagar, você sofre DESPEJO e volta para a Quitinete perdendo o imóvel sem reembolso!',
-            '• Progressão obrigatória em escada: Quitinete → Studio Blindado ($ 85.000) → Bunker Subterrâneo ($ 320.000).'
+            'Como funciona a Mudança de Esconderijo',
+            'Deixa seu PC mais frio (-5°C no Studio e -12°C no Bunker), libera espaço para mais servidores VPS (2 → 5 → 10) e dá +8 segundos extras para reagir a invasões no Bunker (23s no total!).',
+            'Precisa de Dinheiro Limpo e contas em dia. O aluguel das 12h sobe de $ 280 para $ 950 (Studio) e $ 2.800 (Bunker). Se atrasar 3 meses de aluguel, você sofre DESPEJO e volta para a Quitinete sem receber o dinheiro de volta!',
+            '• Ordem obrigatória: Quitinete → Studio Blindado ($ 85.000) → Bunker Subterrâneo ($ 320.000).'
           )}
         </div>
       `;
@@ -1233,28 +1233,28 @@
           <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
             <div>
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                <span class="hc-badge info">TOP #04 · RELÍQUIAS RING-0 (${unlockedCount}/12 DESBLOQUEADAS)</span>
+                <span class="hc-badge info">🧬 BLOCOS SECRETOS (${unlockedCount}/12 ENCONTRADOS)</span>
                 ${comm && !comm.completed
-                  ? `<span class="hc-badge warn">ENCOMENDA ATIVA: .${esc(comm.reqFamily)} &gt;= v${(comm.reqMinVerInt / 10).toFixed(1)} → ${fmtMoney(comm.rewardClean)} Limpos + ${comm.rewardCatalysts} Catalisadores</span>`
-                  : `<span class="hc-badge success">✓ Encomenda de Facção Entregue</span>`}
+                  ? `<span class="hc-badge warn">ENCOMENDA: faça um .${esc(comm.reqFamily)} &gt;= v${(comm.reqMinVerInt / 10).toFixed(1)} → ganha ${fmtMoney(comm.rewardClean)} Limpos + ${comm.rewardCatalysts} Catalisadores</span>`
+                  : `<span class="hc-badge success">✓ Encomenda Entregue</span>`}
               </div>
               <div style="font-size:12px;color:var(--hc-text-2);margin-top:4px;">
-                Extraia blocos Ring-0 invadindo <code>209.141.55.10</code> (EvilCorp), <code>161.89.2.1</code> (NSA), <code>77.3.13.99</code> (Quantum) ou <code>161.89.1.1</code> (FBI) com <code>Seeker.skr &gt;= v3.0</code>!
+                Ache blocos secretos invadindo <code>209.141.55.10</code> (EvilCorp), <code>161.89.2.1</code> (NSA), <code>77.3.13.99</code> (Quantum) ou <code>161.89.1.1</code> (FBI) com <code>Seeker.skr &gt;= v3.0</code>!
               </div>
             </div>
             ${comm && !comm.completed ? `
               <button type="button" id="btnDeliverLabCommission" class="hc-btn primary sm"
                 onclick="window.topTenMechanics.deliverCompiledStrainToCommission()">
-                🤝 Entregar Cepa .${esc(comm.reqFamily)} c/ Cessão Exclusiva (+${fmtMoney(comm.rewardClean)})
+                🤝 Entregar Vírus .${esc(comm.reqFamily)} (+${fmtMoney(comm.rewardClean)} Limpos)
               </button>
             ` : ''}
           </div>
           ${this.renderInlineRulesDrawerHtml(
             'top04_relics',
-            '12 Blocos Relíquia Ring-0 & Encomendas Exclusivas de Facção',
-            'Blocos Relíquia entram no sorteio dos 3 Rounds com potência máxima Camada V, e Encomendas pagam $ 18.000 Limpos + 2 Catalisadores na hora.',
-            'CESSÃO EXCLUSIVA: ao entregar uma cepa para a Facção, você perde o binário do seu PC/Criações (gastando seu turno de 24h do Lab!). E se usar um Bloco Relíquia tirando nota < B (C, D ou F), ocorre KERNEL PANIC: o vírus queima em v0.0 e sua CPU aquece +18°C!',
-            '• Desbloqueados atualmente: <strong>' + (unlockedCount > 0 ? this.state.unlockedRelicIds.join(', ') : 'Nenhum — use Seeker v3.0+ em hosts Tier 4-5 ou vença Leilões!') + '</strong>.'
+            'Como funcionam os Blocos Secretos e a Encomenda de $ 18.000',
+            'Blocos Secretos aparecem no sorteio das 3 rodadas com poder máximo, e entregar a Encomenda paga $ 18.000 em Dinheiro Limpo + 2 Catalisadores na hora.',
+            'Ao entregar o vírus da Encomenda, a facção fica com ele (ele sai da sua lista de criações!). E se usar um Bloco Secreto e tirar nota menor que B (C, D ou F), o vírus queima (v0.0) e seu PC esquenta +18°C!',
+            '• Encontrados até agora: <strong>' + (unlockedCount > 0 ? this.state.unlockedRelicIds.join(', ') : 'Nenhum — use Seeker v3.0+ em servidores fortes ou ganhe no Leilão!') + '</strong>.'
           )}
         </div>
       `;
@@ -1428,49 +1428,52 @@
     renderBankBacenjudAndSwissCardHtml() {
       this.ensureLoaded();
       const pendingReps = (this.state.swissRepatriations || []).filter((r) => !r.claimed);
+      const swissFeePct = (window.nineSystemsEngine && typeof window.nineSystemsEngine.getCompanyCnpjPerks === 'function')
+        ? (Number(window.nineSystemsEngine.getCompanyCnpjPerks().swissDepositFeeRate || 0.04) * 100)
+        : 4;
       return `
         <div class="hc-card" id="bankBacenjudSwissCard" style="margin-top:12px;padding:13px 15px;border-color:${this.state.bacenjudActive ? 'var(--hc-danger)' : 'rgba(56,189,248,0.4)'};background:#0b1119;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
             <div>
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                <span class="hc-badge info">TOP #05 · BACENJUD vs. COFRE FÍSICO SUÍÇO (77.3.12.15)</span>
+                <span class="hc-badge info">🇨🇭 PROTEÇÃO DO BANCO &amp; COFRE NA SUÍÇA</span>
                 ${this.state.bacenjudActive
-                  ? `<span class="hc-badge danger">⚖️ BLOQUEIO JUDICIAL ATIVO: ${fmtMoney(this.state.frozenCleanCash)} RETIDOS (HEAT 5/5)</span>`
-                  : `<span class="hc-badge success">Conta Comum Sem Bloqueio Judicial (Custódia 2% &gt; $ 100K)</span>`}
+                  ? `<span class="hc-badge danger">🚨 BLOQUEIO POLICIAL: ${fmtMoney(this.state.frozenCleanCash)} PRESOS (NÍVEL 5 PROCURADO)</span>`
+                  : `<span class="hc-badge success">Conta Liberada (cobra 2% ao dia acima de $ 100 mil)</span>`}
               </div>
               <div style="font-size:12px;color:var(--hc-text-2);margin-top:5px;">
                 ${this.state.swissVaultOpened
-                  ? `🇨🇭 <strong>Cofre Físico Numerado Ativo:</strong> Saldo Blindado <strong style="color:#4ade80;">${fmtMoney(this.state.swissVaultBalance)}</strong> (Rende +1.5% às 12:00 · Taxa entrada 4% · Saque c/ Lockup SWIFT de 30 min).`
-                  : `Abra seu Cofre Físico Suíço por <strong>$ 25.000 Limpos</strong> para proteger reservas contra o congelamento de 30% do FBI em Heat 5/5 e fugir da taxa de 2% acima de $ 100K!`}
+                  ? `🇨🇭 <strong>Seu Cofre na Suíça:</strong> Guardado <strong style="color:#4ade80;">${fmtMoney(this.state.swissVaultBalance)}</strong> (Rende +1,5% às 12h · Taxa p/ guardar ${swissFeePct}% · Saque demora 30 min).`
+                  : `Abra um Cofre na Suíça por <strong>$ 25.000 Limpos</strong>: a polícia nunca consegue bloquear esse dinheiro e você foge da taxa de 2% acima de $ 100 mil!`}
               </div>
               ${pendingReps.length > 0 ? `
                 <div style="margin-top:6px;font-size:11.5px;color:#fde68a;">
-                  ⏳ Em trânsito SWIFT (Lockup 30m): ${pendingReps.map((r) => `${fmtMoney(r.amountClean)} (libera em ${Math.max(1, Math.ceil((r.availableAt - Date.now()) / 60000))}m)`).join(' · ')}
+                  ⏳ Saque vindo da Suíça (30 min): ${pendingReps.map((r) => `${fmtMoney(r.amountClean)} (cai em ${Math.max(1, Math.ceil((r.availableAt - Date.now()) / 60000))}m)`).join(' · ')}
                 </div>
               ` : ''}
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
               ${!this.state.swissVaultOpened ? `
                 <button type="button" id="btnOpenSwissPhysicalVault" class="hc-btn primary sm" onclick="window.topTenMechanics.openSwissPhysicalVault()">
-                  🇨🇭 Abrir Cofre Físico Suíço ($ 25.000 Limpos)
+                  🇨🇭 Abrir Cofre na Suíça ($ 25.000)
                 </button>
               ` : `
                 <input type="number" id="swissDepositAmtInput" class="form-input mono" style="width:120px;height:32px;font-size:12px;" value="5000" min="500" step="500">
                 <button type="button" id="btnDepositSwissVault" class="hc-btn primary sm" onclick="window.topTenMechanics.depositToSwissVault(document.getElementById('swissDepositAmtInput')?.value)">
-                  Blindar (4% taxa)
+                  Guardar no Cofre (${swissFeePct}%)
                 </button>
                 <button type="button" id="btnWithdrawSwissVault" class="hc-btn ghost sm" ${this.state.swissVaultBalance <= 0 ? 'disabled' : ''} onclick="window.topTenMechanics.requestSwissVaultWithdrawal(${Math.min(5000, this.state.swissVaultBalance || 0)})">
-                  Repatriar (Lockup 30m)
+                  Sacar (demora 30m)
                 </button>
               `}
             </div>
           </div>
           ${this.renderInlineRulesDrawerHtml(
             'top05_swiss',
-            'Bloqueio Judicial BACENJUD vs. Cofre Físico Suíço',
-            'O Cofre Físico Suíço é 100% imune ao congelamento judicial de 30% em Heat 5/5 e às batidas policiais, além de render +1.5% ao dia às 12:00 (teto $ 5.000/dia).',
-            'Exige $ 25.000 Limpos de abertura + 4% de taxa em cada remessa, e qualquer saque sofre LOCKUP DE 30 MINUTOS reais (se faltar dinheiro urgente p/ pagar luz ou fiança agora, o dinheiro suíço não chega na hora!). Já na conta comum 77.3.9.21, saldos > $ 100K pagam 2% às 12:00 e 30% são bloqueados em Heat 5/5!',
-            '• Para destravar valores retidos pelo BACENJUD na conta comum, baixe seu Heat Policial para Nível <= 2 sem ser preso.'
+            'Como funciona o Bloqueio Policial e o Cofre na Suíça',
+            'Dinheiro no Cofre da Suíça nunca é bloqueado pela polícia e ainda rende +1,5% todo dia às 12h (até $ 5.000/dia).',
+            'Custa $ 25.000 Limpos para abrir + taxa para guardar (4%, ou 1,5% com Empresa Porte 3), e quando você pede saque ele demora 30 MINUTOS reais para cair na conta! Já na conta comum, saldos acima de $ 100 mil pagam 2% às 12h e 30% ficam bloqueados se você virar Procurado Nível 5!',
+            '• Para liberar o dinheiro bloqueado na conta comum, baixe seu Nível de Procura para 2 ou menos.'
           )}
         </div>
       `;
@@ -1580,29 +1583,29 @@
           <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
             <div>
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                <span class="hc-badge info">TOP #06 · CONTROLADORA FÍSICA DE DISCOS (RAID)</span>
+                <span class="hc-badge info">💿 MODO DO DISCO (VELOCIDADE vs. SEGURANÇA)</span>
                 <span class="hc-badge ${this.state.raidMode === 'raid0' ? 'warn' : (this.state.raidMode === 'raid1' ? 'success' : '')}">
-                  Modo: ${this.state.raidMode.toUpperCase()} (${effHddMb} MB úteis de ${rawHddMb} MB brutos)
+                  Atual: ${this.state.raidMode === 'normal' ? 'NORMAL' : this.state.raidMode.toUpperCase()} (${effHddMb} MB livres de ${rawHddMb} MB)
                 </span>
-                ${rebuildRemMin > 0 ? `<span class="hc-badge warn">⏳ Rebuild Array: ${rebuildRemMin}m (0.85x)</span>` : ''}
+                ${rebuildRemMin > 0 ? `<span class="hc-badge warn">⏳ Ajustando Disco: ${rebuildRemMin}m (0.85x)</span>` : ''}
               </div>
               <div style="font-size:12px;color:var(--hc-text-2);margin-top:4px;">
-                Exige disco &gt;= 1.024 MB. <strong>RAID-0:</strong> +25% velocidade de quebra/I/O, mas DDoS &lt; 40% saúde destrói 1 software! <strong>RAID-1:</strong> 100% blindado contra corrupção, mas corta -50% do espaço útil!
-                ${this.state.lastCorruptedSoft ? `<br><span style="color:#fca5a5;">⚠️ Última perda em RAID-0: ${esc(this.state.lastCorruptedSoft)}</span>` : ''}
+                Precisa de disco de 1 GB+. <strong>Modo Rápido (RAID-0):</strong> fica +25% mais rápido, mas se um ataque DDoS baixar seu PC p/ menos de 40% você perde 1 programa! <strong>Modo Seguro (RAID-1):</strong> nunca perde programas, mas usa metade (-50%) do espaço!
+                ${this.state.lastCorruptedSoft ? `<br><span style="color:#fca5a5;">⚠️ Último programa perdido: ${esc(this.state.lastCorruptedSoft)}</span>` : ''}
               </div>
             </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              <button type="button" id="btnRaidNormal" class="hc-btn ${this.state.raidMode === 'normal' ? 'primary' : 'ghost'} sm" onclick="window.topTenMechanics.setDiskRaidMode('normal')">AHCI Padrão</button>
-              <button type="button" id="btnRaid0" class="hc-btn ${this.state.raidMode === 'raid0' ? 'primary' : 'ghost'} sm" onclick="window.topTenMechanics.setDiskRaidMode('raid0')">⚡ RAID-0 (+25% Vel.)</button>
-              <button type="button" id="btnRaid1" class="hc-btn ${this.state.raidMode === 'raid1' ? 'primary' : 'ghost'} sm" onclick="window.topTenMechanics.setDiskRaidMode('raid1')">🛡️ RAID-1 (-50% MB)</button>
+              <button type="button" id="btnRaidNormal" class="hc-btn ${this.state.raidMode === 'normal' ? 'primary' : 'ghost'} sm" onclick="window.topTenMechanics.setDiskRaidMode('normal')">Normal</button>
+              <button type="button" id="btnRaid0" class="hc-btn ${this.state.raidMode === 'raid0' ? 'primary' : 'ghost'} sm" onclick="window.topTenMechanics.setDiskRaidMode('raid0')">⚡ Rápido RAID-0 (+25%)</button>
+              <button type="button" id="btnRaid1" class="hc-btn ${this.state.raidMode === 'raid1' ? 'primary' : 'ghost'} sm" onclick="window.topTenMechanics.setDiskRaidMode('raid1')">🛡️ Seguro RAID-1 (-50% espaço)</button>
             </div>
           </div>
           ${this.renderInlineRulesDrawerHtml(
             'top06_raid',
-            'Matriz Física de Discos (RAID-0 Striping vs. RAID-1 Mirroring)',
-            'RAID-0 acelera operações em +25% (após 10m de rebuild) mantendo 100% do disco; RAID-1 impede qualquer perda de software sob bombardeio DDoS pesado.',
-            'Em RAID-0, se um ataque DDoS derrubar a saúde do seu PC abaixo de 40%, a quebra de paridade corrompe e apaga 1 software/vírus instalado! Em RAID-1, você perde metade (-50%) de todo o armazenamento em MB!',
-            '• Dica: combine RAID-0 com backups regulares no seu HD Externo (aba HD Externo / XHD) ou Seguro de Hardware.'
+            'Como escolher o Modo do Disco (Normal, Rápido ou Seguro)',
+            'O Modo Rápido (RAID-0) acelera suas quebras e cópias em +25% (depois de 10 min ajustando). O Modo Seguro (RAID-1) protege seus programas mesmo sob ataque DDoS pesado.',
+            'No Modo Rápido (RAID-0), se um ataque DDoS derrubar a saúde do seu PC abaixo de 40%, um programa instalado é corrompido e apagado! No Modo Seguro (RAID-1), você fica com metade (-50%) do espaço em MB.',
+            '• Dica: se usar o Modo Rápido (RAID-0), guarde cópia dos seus programas importantes na aba HD Externo!'
           )}
         </div>
       `;
@@ -1733,20 +1736,20 @@
         <div class="hc-card" id="clanSponsorship3FrontsCard" style="padding:14px 16px;border-color:rgba(245,158,11,0.4);background:#0c1118;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
             <div>
-              <span class="hc-badge warn">TOP #07 · PATROCÍNIO CORPORATIVO SLA &amp; GUERRA EM 3 FRENTES</span>
+              <span class="hc-badge warn">🤝 PATROCÍNIO DE EMPRESA &amp; GUERRA EM 3 FRENTES</span>
               <div style="font-size:12.5px;color:var(--hc-text-2);margin-top:5px;">
                 ${sp && sp.status === 'active'
-                  ? `🤝 Patrocinador Oficial: <strong>${esc(sp.corpSymbol)}</strong> · Integridade atual: <strong style="color:${curIntegrity >= 70 ? '#4ade80' : (curIntegrity < 35 ? '#f87171' : '#fbbf24')};">${curIntegrity}%</strong> (Caução travada: $ 30.000 Limpos · Paga $ 8.500 às 12:00 se &gt;= 70%).`
+                  ? `🤝 Empresa Patrocinadora: <strong>${esc(sp.corpSymbol)}</strong> · Saúde atual: <strong style="color:${curIntegrity >= 70 ? '#4ade80' : (curIntegrity < 35 ? '#f87171' : '#fbbf24')};">${curIntegrity}%</strong> (Garantia presa: $ 30.000 Limpos · Paga $ 8.500 às 12h se ficar &gt;= 70%).`
                   : (sp && sp.status === 'breached_forfeited'
-                      ? `🚨 <span style="color:#fca5a5;">Contrato anterior com ${esc(sp.corpSymbol)} rescindido (&lt; 35% integridade — $ 30.000 confiscados!).</span> Você pode firmar nova caução:`
-                      : `Trave <strong>$ 30.000 Limpos</strong> de caução para proteger uma corporação da CyberStock e receber <strong>$ 8.500/dia às 12:00</strong>:`)}
+                      ? `🚨 <span style="color:#fca5a5;">Contrato anterior com ${esc(sp.corpSymbol)} cancelado (saúde caiu &lt; 35% — você perdeu os $ 30.000 de garantia!).</span> Pode assinar outro:`
+                      : `Deixe <strong>$ 30.000 Limpos</strong> de garantia para proteger uma empresa da Bolsa e ganhar <strong>$ 8.500/dia às 12h</strong>:`)}
               </div>
               <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">
-                <span class="hc-badge ${wf.ddos > 0 ? 'success' : ''}">Frente #1 DDoS: ${wf.ddos}</span>
-                <span class="hc-badge ${wf.cctv > 0 ? 'success' : ''}">Frente #2 CFTV: ${wf.cctv}</span>
-                <span class="hc-badge ${wf.blueteam > 0 ? 'success' : ''}">Frente #3 Blue-Team: ${wf.blueteam}</span>
-                <button type="button" id="btnScoreWarCctvFront" class="hc-btn ghost sm" onclick="window.topTenMechanics.recordClanWarFrontAction('cctv')">📹 Pontuar Sabotagem CFTV</button>
-                <button type="button" id="btnScoreWarBlueFront" class="hc-btn ghost sm" onclick="window.topTenMechanics.recordClanWarFrontAction('blueteam')">🧯 Pontuar Defesa Blue-Team</button>
+                <span class="hc-badge ${wf.ddos > 0 ? 'success' : ''}">Frente 1 DDoS: ${wf.ddos}</span>
+                <span class="hc-badge ${wf.cctv > 0 ? 'success' : ''}">Frente 2 Câmeras: ${wf.cctv}</span>
+                <span class="hc-badge ${wf.blueteam > 0 ? 'success' : ''}">Frente 3 Defesa: ${wf.blueteam}</span>
+                <button type="button" id="btnScoreWarCctvFront" class="hc-btn ghost sm" onclick="window.topTenMechanics.recordClanWarFrontAction('cctv')">📹 Pontuar Câmeras</button>
+                <button type="button" id="btnScoreWarBlueFront" class="hc-btn ghost sm" onclick="window.topTenMechanics.recordClanWarFrontAction('blueteam')">🧯 Pontuar Defesa</button>
               </div>
             </div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
@@ -1756,19 +1759,19 @@
                 </select>
                 <button type="button" id="btnSignClanSponsorship" class="hc-btn primary sm"
                   onclick="window.topTenMechanics.signClanCorpSponsorship(document.getElementById('clanSponsorSymbolSelect')?.value)">
-                  🤝 Assinar Caução ($ 30K Limpos)
+                  🤝 Assinar Patrocínio ($ 30 mil)
                 </button>
               ` : `
-                <button type="button" class="hc-btn ghost sm" onclick="navTo('winOpsHub');window.ecosystemHub.switchTab('stocks');">Defender ${esc(sp.corpSymbol)} (White-Hat) →</button>
+                <button type="button" class="hc-btn ghost sm" onclick="navTo('winOpsHub');window.ecosystemHub.switchTab('stocks');">Defender ${esc(sp.corpSymbol)} na Bolsa →</button>
               `}
             </div>
           </div>
           ${this.renderInlineRulesDrawerHtml(
             'top07_clan_sla',
-            'Patrocínio Corporativo ($ 30.000 Caução) & Guerra em 3 Frentes',
-            'Se a empresa patrocinada fechar as 12:00 com integridade >= 70%, paga $ 8.500 Limpos/dia ($ 5.500 p/ tesouraria do clã + $ 3.000 direto p/ você). E pontuar nas 3 Frentes de Guerra eleva o Bounty Pool em +35%!',
-            'QUEBRA DE SLA: se clãs rivais sabotarem sua corporação patrocinada derrubando a integridade abaixo de 35%, o contrato é rescindido na hora e você PERDE OS $ 30.000 DE CAUÇÃO!',
-            '• Use Contratos White-Hat na Bolsa CyberStock para restaurar a integridade da sua corporação patrocinada.'
+            'Como funciona o Patrocínio de Empresa e a Guerra em 3 Frentes',
+            'Se a empresa patrocinada chegar às 12h com saúde >= 70%, paga $ 8.500 Limpos/dia ($ 5.500 pro caixa do clã + $ 3.000 pra você). E pontuar nas 3 Frentes de Guerra aumenta o prêmio em +35%!',
+            'CUIDADO: se outros jogadores sabotarem sua empresa e a saúde dela cair abaixo de 35%, o contrato é cancelado na hora e você PERDE OS $ 30.000 DE GARANTIA!',
+            '• Você pode recuperar a saúde da sua empresa fazendo missões de Defesa (White-Hat) na Bolsa CyberStock.'
           )}
         </div>
       `;
@@ -1892,20 +1895,23 @@
       wrap.style.cssText = 'position:fixed;inset:0;z-index:9995;background:rgba(5,8,14,0.86);display:grid;place-items:center;padding:16px;';
       wrap.innerHTML = `
         <div class="hc-card" style="max-width:540px;width:100%;padding:20px 22px;border-color:var(--hc-warning);background:#0c1118;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <span class="hc-badge warn">TOP #08 · BUFFER OVERFLOW STACK (FTP/SSH → ROOT)</span>
-            <strong id="boModalCountdown" class="mono" style="color:#f87171;font-size:15px;">${m.secondsLeft}s</strong>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
+            <span class="hc-badge warn">🧨 VIRAR ROOT SEM SENHA (12 SEGUNDOS)</span>
+            <strong id="boModalCountdown" class="mono" style="color:#f87171;font-size:16px;">${m.secondsLeft}s</strong>
           </div>
-          <h3 style="margin:0 0 6px;font-size:16px;">Alinhar Ponteiro RIP para <code>${esc(m.targetOffset)}</code> em ${esc(m.ip)}</h3>
-          <p style="font-size:12px;color:var(--hc-text-2);margin:0 0 12px;">
-            Acerte o endereço exato do NOP-Sled para virar <strong>ROOT</strong> na hora. <strong>Risco de Segfault:</strong> errar ou estourar os 12s expulsa sua sessão, <strong>tranca as portas 21/22 por 20 minutos</strong>, grava seu IP e soma <strong>+1 Heat</strong>!
+          <h3 style="margin:0 0 6px;font-size:16.5px;">Clique no código exato: <code style="color:#4ade80;">${esc(m.targetOffset)}</code></h3>
+          <p style="font-size:12.5px;color:var(--hc-text-2);margin:0 0 12px;line-height:1.45;">
+            Acerte o código acima para virar <strong>ROOT</strong> na hora em <code>${esc(m.ip)}</code>. <strong>Cuidado:</strong> se errar ou o tempo acabar, você é expulso, <strong>as portas 21/22 trancam por 20 minutos</strong>, seu IP fica gravado e seu Nível de Procura sobe +1!
           </p>
           <div style="display:flex;flex-direction:column;gap:8px;">
             ${m.options.map((opt, idx) => `
-              <button type="button" id="btnBoOption_${idx}" class="hc-btn ghost" style="justify-content:space-between;font-family:var(--hc-font-mono);font-size:12px;"
+              <button type="button" id="btnBoOption_${idx}" class="hc-choice-row"
                 onclick="window.topTenMechanics.submitBufferOverflowAttempt('${esc(m.ip)}', '${esc(opt.code)}')">
-                <strong>${esc(opt.code)}</strong>
-                <span style="font-size:11px;color:var(--hc-text-3);">${idx === 1 ? 'Offset Alinhado [RSP+0x48]' : `Offset Desalinhado #${idx + 1}`}</span>
+                <span class="hc-choice-main">
+                  <span class="hc-choice-title mono">${esc(opt.code)}</span>
+                  <span class="hc-choice-desc">${idx === 1 ? 'Endereço alinhado da memória' : `Endereço instável #${idx + 1}`}</span>
+                </span>
+                <span class="hc-choice-cta">Injetar →</span>
               </button>
             `).join('')}
           </div>
@@ -2111,23 +2117,23 @@
             <div>
               <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                 <span class="hc-badge ${c.status === 'completed' ? 'success' : (c.status === 'reserved' ? 'warn' : 'info')}">
-                  ${c.status === 'completed' ? 'PAGO ✓' : (c.status === 'reserved' ? `RESERVADO (${remMin}m)` : 'ABERTO')}
+                  ${c.status === 'completed' ? 'PAGO ✓' : (c.status === 'reserved' ? `PEGOU (${remMin}m)` : 'ABERTO')}
                 </span>
                 <strong style="font-size:13px;color:var(--hc-text);">${esc(c.objectiveLabel)} — <code>${esc(c.targetIp)}</code></strong>
               </div>
               <div style="font-size:11.5px;color:var(--hc-text-3);margin-top:2px;">
-                Contratante: <strong style="color:var(--hc-accent-text);">@${esc(c.hirerTag)}</strong> · Custódia: <strong style="color:#fbbf24;">${fmtMoney(c.rewardDirty)} (paga em Dinheiro Sujo)</strong> · Taxa Cartório queimada: ${fmtMoney(c.notaryFeeBurned)}
+                Quem pediu: <strong style="color:var(--hc-accent-text);">@${esc(c.hirerTag)}</strong> · Prêmio guardado: <strong style="color:#fbbf24;">${fmtMoney(c.rewardDirty)} (recebe em Dinheiro Sujo)</strong> · Taxa de garantia: ${fmtMoney(c.notaryFeeBurned)}
               </div>
             </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
               ${c.status === 'completed'
-                ? `<span class="hc-badge success">Liquidado</span>`
+                ? `<span class="hc-badge success">Concluído</span>`
                 : (c.isMine
-                    ? `<span class="hc-badge">Aguardando Mercenário</span>`
+                    ? `<span class="hc-badge">Esperando alguém pegar</span>`
                     : (c.reservedByMe
                         ? `<button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(c.targetIp)}', 'invadir')">Ir ao Alvo →</button>
-                           <button type="button" id="btnVerifyEscrow_${esc(c.id)}" class="hc-btn primary sm" onclick="window.topTenMechanics.verifyAndClaimMercenaryContract('${esc(c.id)}')">✓ Verificar &amp; Sacar</button>`
-                        : `<button type="button" id="btnAcceptEscrow_${esc(c.id)}" class="hc-btn primary sm" onclick="window.topTenMechanics.acceptMercenaryContract('${esc(c.id)}')">🎯 Aceitar Contrato (30m)</button>`))}
+                           <button type="button" id="btnVerifyEscrow_${esc(c.id)}" class="hc-btn primary sm" onclick="window.topTenMechanics.verifyAndClaimMercenaryContract('${esc(c.id)}')">✓ Comprovar &amp; Receber</button>`
+                        : `<button type="button" id="btnAcceptEscrow_${esc(c.id)}" class="hc-btn primary sm" onclick="window.topTenMechanics.acceptMercenaryContract('${esc(c.id)}')">🎯 Pegar Serviço (30m)</button>`))}
             </div>
           </div>
         `;
@@ -2137,32 +2143,32 @@
         <div class="hc-card" id="forumMercenaryEscrowCard" style="margin-bottom:16px;padding:14px 16px;border-color:rgba(245,158,11,0.4);background:#090d14;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
             <div>
-              <span class="hc-badge warn">TOP #09 · CARTÓRIO DE CONTRATOS MERCENÁRIOS P2P (ESCROW AUTOMÁTICO)</span>
+              <span class="hc-badge warn">🎯 MURAL DE SERVIÇOS ENTRE JOGADORES (PAGAMENTO GARANTIDO)</span>
               <div style="font-size:12px;color:var(--hc-text-2);margin-top:3px;">
-                Trave de <strong>$ 2.000 a $ 25.000 Limpos</strong> (+15% taxa não-reembolsável) para terceirizar invasões verificadas, ou cumpra contratos em até 30m p/ receber em Dinheiro Sujo!
+                Contrate outro jogador por <strong>$ 2.000 a $ 25.000 Limpos</strong> (+15% taxa) para invadir um alvo por você, ou pegue um serviço em até 30 min para ganhar Dinheiro Sujo!
               </div>
             </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
               <input type="text" id="escrowTargetIpInput" class="form-input mono" style="width:125px;height:32px;padding:0 8px;font-size:12px;" value="203.17.88.40" placeholder="IP Alvo">
               <select id="escrowObjSelect" class="form-input" style="width:165px;height:32px;padding:0 8px;font-size:12px;">
                 <option value="crack_root">Quebrar Root</option>
-                <option value="disable_cctv">Apagar CFTV</option>
+                <option value="disable_cctv">Apagar Câmeras</option>
                 <option value="ddos_wanted">Derrubar DDoS</option>
               </select>
               <input type="number" id="escrowRewardInput" class="form-input mono" style="width:100px;height:32px;padding:0 8px;font-size:12px;" value="3000" min="2000" max="25000" step="500">
               <button type="button" id="btnCreateMercenaryEscrow" class="hc-btn primary sm"
                 onclick="window.topTenMechanics.createMercenaryEscrowContract(document.getElementById('escrowTargetIpInput')?.value, document.getElementById('escrowObjSelect')?.value, document.getElementById('escrowRewardInput')?.value)">
-                + Publicar Escrow (+15%)
+                + Criar Contrato (+15%)
               </button>
             </div>
           </div>
           <div style="display:flex;flex-direction:column;gap:8px;">${rows}</div>
           ${this.renderInlineRulesDrawerHtml(
             'top09_escrow',
-            'Contratos Mercenários P2P com Custódia Automática (Escrow)',
-            'Zero golpe no acordo: o valor fica travado em custódia e é liberado na hora assim que o sistema comprova Root ou apagão CFTV no IP alvo.',
-            'O contratante paga 15% de taxa não-reembolsável ao Cartório Darknet na abertura; o mercenário recebe 100% em DINHEIRO SUJO (precisa lavar!) e se deixar os 30m expirarem sem concluir perde -35 REP!',
-            '• Alvos aceitos: Quebrar Senha Root (verificado no Hacked Database), Apagar Câmeras CFTV ou Sobrecarga DDoS.'
+            'Como funcionam os Serviços com Pagamento Garantido',
+            'Sem risco de calote: o dinheiro fica guardado pelo Fórum e cai na hora assim que o sistema confirma o Root ou o apagão das câmeras no IP pedido.',
+            'Quem contrata paga +15% de taxa ao publicar; quem faz o serviço recebe em DINHEIRO SUJO (precisa lavar depois!) e, se pegar o serviço e não entregar em 30 min, perde -35 REP!',
+            '• Serviços aceitos: Quebrar Senha Root, Apagar Câmeras da Empresa ou Derrubar via DDoS.'
           )}
         </div>
       `;
@@ -2310,17 +2316,17 @@
         <div class="hc-card" id="invadirEliteTacticalCard" style="padding:11px 14px;border-color:rgba(56,189,248,0.38);background:#0b1018;display:flex;flex-direction:column;gap:8px;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-              <span class="hc-badge info">TÁTICA AVANÇADA (#08 &amp; #10)</span>
-              ${mods.isNemesis ? `<span class="hc-badge danger">⚔️ SEU NÊMESIS (+1.5 DEFESA · 3x SAQUE!)</span>` : ''}
-              ${mods.isDefconOrange ? `<span class="hc-badge warn">🟠 DEFCON LARANJA (+1.5 FW · +60% CAIXA!)</span>` : ''}
-              ${portLock.locked ? `<span class="hc-badge danger">🔒 PORTAS 21/22 TRANCADAS POR SEGFAULT (${portLock.remMin}m)</span>` : ''}
-              ${stealthArmed ? `<span class="hc-badge success">🕵️ BYPASS IPTABLES ARMADO (0 SAFENET)</span>` : ''}
-              ${isHighTierRelicHost ? `<span class="hc-badge info">🧬 HOST CONTÉM RELÍQUIA RING-0 (SEEKER v3.0+)</span>` : ''}
+              <span class="hc-badge info">🕵️ OPÇÕES TÁTICAS DO ALVO</span>
+              ${mods.isNemesis ? `<span class="hc-badge danger">⚔️ SEU RIVAL NÊMESIS (+1.5 DEFESA · PAGA 3x MAIS!)</span>` : ''}
+              ${mods.isDefconOrange ? `<span class="hc-badge warn">🟠 ALERTA LARANJA (+1.5 FW · +60% DINHEIRO!)</span>` : ''}
+              ${portLock.locked ? `<span class="hc-badge danger">🔒 PORTAS 21/22 TRANCADAS (${portLock.remMin}m)</span>` : ''}
+              ${stealthArmed ? `<span class="hc-badge success">🕵️ ATAQUE SILENCIOSO ATIVO (SEM ALERTA POLICIAL)</span>` : ''}
+              ${isHighTierRelicHost ? `<span class="hc-badge info">🧬 TEM BLOCO SECRETO (USE SEEKER v3.0+)</span>` : ''}
             </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
               <button type="button" id="btnIptablesBypass" class="hc-btn ${stealthArmed ? 'ghost' : 'primary'} sm" ${stealthArmed ? 'disabled' : ''}
                 onclick="window.topTenMechanics.executeIptablesSilentBypass('${esc(host.ip)}', 'TTL64_ACK_FRAG08')">
-                ${stealthArmed ? '✓ IPTables Silencioso Ativo' : '🕵️ Forjar Bypass IPTables (0 Safenet)'}
+                ${stealthArmed ? '✓ Ataque Silencioso Ativo' : '🕵️ Ataque Silencioso (Sem alerta Safenet)'}
               </button>
             </div>
           </div>
@@ -2340,19 +2346,19 @@
 
       return `
         <div style="display:flex;flex-direction:column;gap:14px;">
-          <!-- DESTAQUE CENTRAL: TOP #03 LEILÃO CLANDESTINO DE SERVIDORES APREENDIDOS ("STORAGE WARS") -->
+          <!-- DESTAQUE CENTRAL: TOP #03 LEILÃO DE SERVIDORES CONFISCADOS -->
           <div class="eco-card warn" id="seizedServerAuctionCard">
             <div class="eco-card-head">
               <div>
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
-                  <span class="hc-badge warn">TOP #03 · LEILÃO DE SERVIDORES APREENDIDOS (1 LOTE A CADA 2H)</span>
-                  <span class="mono" style="font-size:11.5px;color:#fde68a;">Código: ${esc(lot.lotCode)} · Fecha em ${lot.remMin} min</span>
+                  <span class="hc-badge warn">📦 LEILÃO DE SERVIDOR CONFISCADO (NOVO A CADA 2H)</span>
+                  <span class="mono" style="font-size:11.5px;color:#fde68a;">Lote: ${esc(lot.lotCode)} · Fecha em ${lot.remMin} min</span>
                 </div>
                 <div class="eco-card-title">📦 ${esc(lot.origin)}</div>
                 <div class="eco-card-sub">
-                  Maior lance atual de Bot (<strong>@${esc(lot.botBidder)}</strong>): <strong>${fmtMoney(lot.currentMinBid - 1500)}</strong> · Seu lance mínimo p/ cobrir: <strong style="color:#4ade80;">${fmtMoney(lot.currentMinBid)} Limpos</strong>.
+                  Maior lance atual de Bot (<strong>@${esc(lot.botBidder)}</strong>): <strong>${fmtMoney(lot.currentMinBid - 1500)}</strong> · Seu lance mínimo: <strong style="color:#4ade80;">${fmtMoney(lot.currentMinBid)} Limpos</strong>.
                 </div>
-                ${lot.probed ? `<div style="margin-top:6px;padding:7px 10px;border-radius:6px;background:#09131e;border:1px solid #2b4c6f;font-size:12px;color:#7dd3fc;">🔬 <strong>Relatório Analyzer v4.0+:</strong> ${esc(lot.probeHint)}</div>` : ''}
+                ${lot.probed ? `<div style="margin-top:6px;padding:7px 10px;border-radius:6px;background:#09131e;border:1px solid #2b4c6f;font-size:12px;color:#7dd3fc;">🔬 <strong>Resultado da Análise:</strong> ${esc(lot.probeHint)}</div>` : ''}
                 ${lot.resolved && lot.lastOutcome ? `
                   <div style="margin-top:8px;padding:10px 12px;border-radius:7px;background:${lot.lastOutcome.treasure ? 'rgba(53,184,119,0.12)' : 'rgba(229,83,75,0.14)'};border:1px solid ${lot.lastOutcome.treasure ? 'var(--hc-accent)' : 'var(--hc-danger)'};font-size:12.5px;">
                     <strong>${esc(lot.lastOutcome.title)}</strong><br>
@@ -2363,70 +2369,70 @@
               <div style="display:flex;flex-direction:column;gap:8px;min-width:220px;">
                 <button type="button" id="btnProbeAuctionLot" class="hc-btn ghost sm" ${lot.probed || lot.resolved ? 'disabled' : ''}
                   onclick="window.topTenMechanics.probeAuctionWithAnalyzer()">
-                  ${lot.probed ? '✓ Setores Sondados' : '🔬 Sondar Setores ($ 1.000 · Analyzer v4.0+)'}
+                  ${lot.probed ? '✓ Disco Analisado' : '🔬 Analisar Disco ($ 1.000 · Analyzer v4.0+)'}
                 </button>
                 <button type="button" id="btnPlaceAuctionBid" class="hc-btn primary sm" ${lot.resolved ? 'disabled' : ''}
                   onclick="window.topTenMechanics.placeBidAndResolveAuction(${lot.currentMinBid})">
-                  ${lot.resolved ? '✓ Lote Arrematado neste Ciclo' : `🔨 Cobrir Lance (${fmtMoney(lot.currentMinBid)} Limpos)`}
+                  ${lot.resolved ? '✓ Lote Já Comprado' : `🔨 Dar Lance (${fmtMoney(lot.currentMinBid)} Limpos)`}
                 </button>
               </div>
             </div>
             ${this.renderInlineRulesDrawerHtml(
               'top03_auction',
-              'Leilão Clandestino de Servidores Apreendidos ("Storage Wars Hacker")',
-              '65% dos lotes escondem carteiras wallet.dat dormentes (~$ 16.500 em BTC), binários v6.8 licenciados ou 2 Catalisadores + Bloco Relíquia Ring-0 por uma fração do preço.',
-              '35% são LOTES-BOMBA: você perde 100% do lance em Dinheiro Limpo e, se seu Antivírus ativo for < v3.0, um Malware Judicial Safenet infecta sua RAM/HD na hora!',
-              '• Use a Sonda de $ 1.000 Limpos (requer Analyzer.ana >= v4.0) antes de dar lance para descobrir se a partição está íntegra ou corrompida.'
+              'Como funciona o Leilão de Servidor Confiscado',
+              '65% dos servidores trazem prêmios raros: carteiras com ~$ 16.500 em Bitcoin, programas v6.8 prontos ou 2 Catalisadores + Bloco Secreto do Lab.',
+              '35% são SERVIDORES ESTRAGADOS: você perde o valor do lance e, se seu Antivírus estiver abaixo de v3.0, um vírus policial infecta seu PC!',
+              '• Dica: pague $ 1.000 Limpos para Analisar o Disco antes (precisa ter Analyzer.ana >= v4.0) e descubra se vale a pena dar o lance!'
             )}
           </div>
 
-          <!-- PAINEL DE ATALHOS & STATUS DAS DEMAIS TOP 10 MECÂNICAS -->
+          <!-- PAINEL DE ATALHOS SIMPLES -->
           <div class="eco-grid-2">
             <div class="eco-card">
-              <div class="eco-card-title">📹 #01 Chantagem CFTV &amp; 🏢 #02 Base Física</div>
+              <div class="eco-card-title">📹 Chantagem por Câmera &amp; 🏢 Esconderijo</div>
               <div class="eco-card-sub">
-                Provas CFTV no disco: <strong>${this.state.extortionProofs.length} (${this.getExtortionProofsDiskMb()} MB ocupados)</strong> ·
-                Imóvel atual: <strong>${esc(baseMeta.name)}</strong> (-${baseMeta.thermalBonusC}°C · máx ${baseMeta.maxVps} VPS).
+                Vídeos salvos no disco: <strong>${this.state.extortionProofs.length} (${this.getExtortionProofsDiskMb()} MB ocupados)</strong> ·
+                Local atual: <strong>${esc(baseMeta.name)}</strong> (-${baseMeta.thermalBonusC}°C · cabe até ${baseMeta.maxVps} VPS).
               </div>
               <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-                <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('203.17.88.40', 'cctv')">Abrir CFTV Corporativo →</button>
-                <button type="button" class="hc-btn primary sm" onclick="navTo('winQuitinete')">Evoluir Base Física →</button>
+                <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('203.17.88.40', 'cctv')">Abrir Câmeras →</button>
+                <button type="button" class="hc-btn primary sm" onclick="navTo('winQuitinete')">Melhorar Esconderijo →</button>
               </div>
             </div>
 
             <div class="eco-card">
-              <div class="eco-card-title">🧬 #04 Relíquias Ring-0 &amp; 🇨🇭 #05 Cofre Suíço</div>
+              <div class="eco-card-title">🧬 Blocos Secretos &amp; 🇨🇭 Cofre na Suíça</div>
               <div class="eco-card-sub">
-                Relíquias Ring-0 extraídas: <strong>${this.state.unlockedRelicIds.length}/12</strong> ·
-                Cofre Físico Suíço: <strong>${this.state.swissVaultOpened ? fmtMoney(this.state.swissVaultBalance) : 'Fechado ($ 25K)'}</strong>.
+                Blocos Secretos encontrados: <strong>${this.state.unlockedRelicIds.length}/12</strong> ·
+                Cofre na Suíça: <strong>${this.state.swissVaultOpened ? fmtMoney(this.state.swissVaultBalance) : 'Fechado ($ 25 mil)'}</strong>.
               </div>
               <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-                <button type="button" class="hc-btn ghost sm" onclick="navTo('winVirusLab')">Laboratório &amp; Encomendas →</button>
-                <button type="button" class="hc-btn primary sm" onclick="navTo('winBank')">Banco &amp; Cofre Suíço →</button>
+                <button type="button" class="hc-btn ghost sm" onclick="navTo('winVirusLab')">Abrir Laboratório →</button>
+                <button type="button" class="hc-btn primary sm" onclick="navTo('winBank')">Abrir Banco &amp; Cofre →</button>
               </div>
             </div>
 
             <div class="eco-card">
-              <div class="eco-card-title">💿 #06 Matriz RAID &amp; 🤝 #07 Patrocínio SLA</div>
+              <div class="eco-card-title">💿 Modo do Disco &amp; 🤝 Patrocínio do Clã</div>
               <div class="eco-card-sub">
-                Arranjo de Disco: <strong>${this.state.raidMode.toUpperCase()} (${this.getRaidSpeedMultiplier().toFixed(2)}x)</strong> ·
-                Patrocínio Clã: <strong>${this.state.clanSponsorship ? this.state.clanSponsorship.corpSymbol + ' (' + this.state.clanSponsorship.status + ')' : 'Nenhum'}</strong>.
+                Modo do Disco: <strong>${this.state.raidMode.toUpperCase()} (${this.getRaidSpeedMultiplier().toFixed(2)}x)</strong> ·
+                Patrocínio: <strong>${this.state.clanSponsorship ? this.state.clanSponsorship.corpSymbol + ' (' + (this.state.clanSponsorship.status === 'active' ? 'Ativo' : 'Cancelado') + ')' : 'Nenhum'}</strong>.
               </div>
               <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-                <button type="button" class="hc-btn ghost sm" onclick="navTo('winHardware')">Controladora RAID →</button>
-                <button type="button" class="hc-btn primary sm" onclick="navTo('winClan')">Patrocínio &amp; 3 Frentes →</button>
+                <button type="button" class="hc-btn ghost sm" onclick="window.hardwareEngine.setTab('power_raid');navTo('winHardware');">Ver Fonte &amp; Disco →</button>
+                <button type="button" class="hc-btn primary sm" onclick="navTo('winClan')">Abrir Clã →</button>
               </div>
             </div>
 
             <div class="eco-card">
-              <div class="eco-card-title">📜 #09 Escrow P2P &amp; ⚔️ #10 Nêmesis / DEFCON</div>
+              <div class="eco-card-title">🎯 Serviços no Fórum &amp; ⚔️ Rival Nêmesis</div>
               <div class="eco-card-sub">
-                Contratos Mercenários Abertos: <strong>${(this.state.escrowContracts || []).filter((c) => c.status !== 'completed').length}</strong> ·
-                Nêmesis Atual: <strong>${nemesisEntry ? `@${esc(nemesisEntry.handle)} (${esc(nemesisIp)})` : 'Nenhum (invada o mesmo Bot 3x)'}</strong>.
+                Serviços abertos entre jogadores: <strong>${(this.state.escrowContracts || []).filter((c) => c.status !== 'completed').length}</strong> ·
+                Seu Rival Nêmesis: <strong>${nemesisEntry ? `@${esc(nemesisEntry.handle)} (${esc(nemesisIp)})` : 'Nenhum (invada o mesmo Bot 3x)'}</strong>.
               </div>
               <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
-                <button type="button" class="hc-btn ghost sm" onclick="navTo('winForum')">Cartório Escrow no Fórum →</button>
-                <button type="button" class="hc-btn primary sm" onclick="navTo('winBrowser')">Invadir Hosts (#08/#10) →</button>
+                <button type="button" class="hc-btn ghost sm" onclick="navTo('winForum')">Mural de Serviços →</button>
+                <button type="button" class="hc-btn primary sm" onclick="navTo('winBrowser')">Invadir Servidores →</button>
               </div>
             </div>
           </div>

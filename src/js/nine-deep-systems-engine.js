@@ -365,7 +365,7 @@
 
       const dirtyAvail = this.getDirtyBalance();
       if (dirtyAvail < item.dirtyCost) {
-        const msg = `Dinheiro Sujo insuficiente! Contrabando de "${item.name}" exige ${fmtMoney(item.dirtyCost)} em Notas Sujas (+35% ágio).`;
+        const msg = `Dinheiro Sujo insuficiente! "${item.name}" custa ${fmtMoney(item.dirtyCost)} em Dinheiro Sujo (+35% mais caro).`;
         if (typeof window.showToast === 'function') window.showToast(msg);
         return { success: false, code: 'INSUFFICIENT_DIRTY_SMUGGLE', message: msg };
       }
@@ -386,7 +386,7 @@
       this.save();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       if (window.internetEngine && window.winManager?.current === 'winBrowser') window.internetEngine.render();
-      const msg = `🕶️ CONTRABANDO ENTREGUE (-${fmtMoney(item.dirtyCost)} Sujos c/ +35% ágio): ${item.name} ativado sem precisar de Nota Fiscal!`;
+      const msg = `🕶️ COMPRA FEITA (-${fmtMoney(item.dirtyCost)} em Dinheiro Sujo): ${item.name} ativado na hora!`;
       if (typeof window.showToast === 'function') window.showToast(msg);
       return { success: true, item, message: msg };
     }
@@ -396,7 +396,7 @@
       if (m) m.remove();
     }
 
-    // Modal Universal de Ponte Fiscal: disparado sempre que faltar Dinheiro Limpo mas o jogador tiver Dinheiro Sujo parado!
+    // Modal simples e direto sempre que faltar Dinheiro Limpo mas o jogador tiver Dinheiro Sujo guardado!
     openDirtyMoneyBridgeModal(itemLabel, requiredCleanRaw) {
       this.ensureLoaded();
       if (typeof document === 'undefined') return;
@@ -413,37 +413,49 @@
       wrap.innerHTML = `
         <div class="hc-card" style="max-width:560px;width:100%;padding:22px 24px;border-color:rgba(248,113,113,0.55);background:#0b1119;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
-            <span class="hc-badge danger">🛑 BLOQUEIO DE NOTA FISCAL · EXIGE DINHEIRO LIMPO</span>
+            <span class="hc-badge danger">🛑 PRECISA DE DINHEIRO LIMPO</span>
             <button type="button" class="hc-btn ghost sm" onclick="window.nineSystemsEngine.closeDirtyMoneyBridgeModal()">✕</button>
           </div>
-          <h3 style="margin:0 0 6px;font-size:16.5px;color:var(--hc-text);">${esc(itemLabel)} exige ${fmtMoney(req)} Limpos</h3>
-          <p style="font-size:12.5px;color:var(--hc-text-2);margin:0 0 12px;line-height:1.5;">
-            Você tem apenas <strong style="color:#4ade80;">${fmtMoney(clean)} Limpos</strong> (faltam <strong>${fmtMoney(missing)}</strong>), mas carrega <strong style="color:#f87171;">🩸 ${fmtMoney(dirty)} em Dinheiro Sujo</strong> sem lastro fiscal! Escolha como resolver este gargalo:
+          <h3 style="margin:0 0 6px;font-size:17px;color:var(--hc-text);">Faltam ${fmtMoney(missing)} em Dinheiro Limpo</h3>
+          <p style="font-size:13px;color:var(--hc-text-2);margin:0 0 14px;line-height:1.5;">
+            Para pagar <strong>${esc(itemLabel)}</strong> (${fmtMoney(req)}) você precisa de Dinheiro Limpo. Você tem <strong style="color:#4ade80;">${fmtMoney(clean)} Limpos</strong> na conta e <strong style="color:#f87171;">🩸 ${fmtMoney(dirty)} de Dinheiro Sujo</strong> guardado. Escolha o que fazer:
           </p>
 
-          <div style="display:flex;flex-direction:column;gap:8px;">
-            <button type="button" id="btnBridgeGoLaunder" class="hc-btn primary" style="justify-content:space-between;"
+          <div style="display:flex;flex-direction:column;gap:9px;">
+            <button type="button" id="btnBridgeGoLaunder" class="hc-choice-row recommended"
               onclick="window.nineSystemsEngine.closeDirtyMoneyBridgeModal(); navTo('winLaundering');">
-              <span>🧼 1. Lavar meu Dinheiro Sujo nas Empresas (17%+ · 15 min)</span>
-              <span class="mono" style="font-size:11px;">Recomendado →</span>
+              <span class="hc-choice-main">
+                <span class="hc-choice-title">🧼 1. Lavar meu Dinheiro Sujo</span>
+                <span class="hc-choice-desc">Demora 15 min da vida real e desconta a taxa da empresa (mín. 17%).</span>
+              </span>
+              <span class="hc-choice-cta">Ir Lavar →</span>
             </button>
 
-            <button type="button" id="btnBridgeGoCleanLab" class="hc-btn ghost" style="justify-content:space-between;border-color:rgba(56,189,248,0.45);color:#7dd3fc;"
+            <button type="button" id="btnBridgeGoCleanLab" class="hc-choice-row info-opt"
               onclick="window.nineSystemsEngine.closeDirtyMoneyBridgeModal(); navTo('winVirusLab');">
-              <span>🧬 2. Fazer Encomenda Científica no Lab (+$ 18.000 Limpos na hora)</span>
-              <span class="mono" style="font-size:11px;">Capital Limpo →</span>
+              <span class="hc-choice-main">
+                <span class="hc-choice-title" style="color:#7dd3fc;">🧬 2. Ganhar $ 18.000 Limpos no Laboratório</span>
+                <span class="hc-choice-desc">Entregue o vírus pedido pela facção e receba Dinheiro Limpo na hora.</span>
+              </span>
+              <span class="hc-choice-cta" style="color:#7dd3fc;">Abrir Lab →</span>
             </button>
 
-            <button type="button" id="btnBridgeGoSmuggle" class="hc-btn ghost" style="justify-content:space-between;border-color:rgba(245,158,11,0.45);color:#fde68a;"
+            <button type="button" id="btnBridgeGoSmuggle" class="hc-choice-row warn-opt"
               onclick="window.nineSystemsEngine.closeDirtyMoneyBridgeModal(); window.internetEngine.openIp('185.220.101.9');">
-              <span>🕶️ 3. Contrabando no Blackmarket (Gastar Sujo c/ +35% ágio em consumíveis)</span>
-              <span class="mono" style="font-size:11px;">185.220.101.9 →</span>
+              <span class="hc-choice-main">
+                <span class="hc-choice-title" style="color:#fde68a;">🕶️ 3. Gastar Sujo no Mercado Clandestino</span>
+                <span class="hc-choice-desc">Compra itens rápidos direto com Dinheiro Sujo (paga +35% mais caro).</span>
+              </span>
+              <span class="hc-choice-cta" style="color:#fde68a;">Ir à Loja →</span>
             </button>
 
-            <button type="button" id="btnBridgeForceDirtyRisk" class="hc-btn ghost" style="justify-content:space-between;border-color:rgba(239,68,68,0.45);color:#fca5a5;"
+            <button type="button" id="btnBridgeForceDirtyRisk" class="hc-choice-row danger-opt"
               onclick="window.nineSystemsEngine.closeDirtyMoneyBridgeModal(); window.nineSystemsEngine.attemptSpendDirtyMoney(${Math.min(dirty, missing)}, '${esc(itemLabel)}');">
-              <span>🚨 Tentar Forçar Notas Sujas no Balcão (Alto Risco: Safenet na cola / Prisão!)</span>
-              <span class="mono" style="font-size:11px;">Risco Policial</span>
+              <span class="hc-choice-main">
+                <span class="hc-choice-title" style="color:#fca5a5;">🚨 Tentar pagar com Dinheiro Sujo mesmo assim</span>
+                <span class="hc-choice-desc">Perigo: a loja avisa a polícia (1ª vez = procurado · 2ª vez = preso!).</span>
+              </span>
+              <span class="hc-choice-cta" style="color:#fca5a5;">Arriscar</span>
             </button>
           </div>
         </div>
@@ -1764,21 +1776,21 @@
 
           <div style="margin-top:12px;padding-top:10px;border-top:1px solid #1f2a38;">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-              <strong style="font-size:13px;color:#fbbf24;">🕶️ Válvula Clandestina: Contrabando c/ Dinheiro Sujo (+35% Ágio · Sem Nota Fiscal)</strong>
-              <span class="mono" style="font-size:11.5px;color:#f87171;">Seu Bolso Sujo: ${fmtMoney(this.getDirtyBalance())}</span>
+              <strong style="font-size:13px;color:#fbbf24;">🕶️ Comprar Direto com Dinheiro Sujo (+35% mais caro · Sem polícia)</strong>
+              <span class="mono" style="font-size:11.5px;color:#f87171;">Dinheiro Sujo disponível: ${fmtMoney(this.getDirtyBalance())}</span>
             </div>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;">
               <div style="padding:9px 11px;border-radius:8px;background:#090e16;border:1px solid #2b2318;display:flex;flex-direction:column;gap:6px;justify-content:space-between;">
-                <div style="font-size:12px;"><strong>Pasta Térmica Prata (-8°C)</strong><br><span style="color:var(--hc-text-3);font-size:11px;">Preço normal $ 450 → Contrabando $ 610 Sujos</span></div>
-                <button type="button" id="btnSmugglePaste" class="hc-btn sm" style="border-color:#f59e0b;color:#fde68a;" onclick="window.nineSystemsEngine.buyBlackmarketSmuggledConsumable('smuggle_paste')">Comprar c/ Sujo ($ 610)</button>
+                <div style="font-size:12px;"><strong>Pasta Térmica Prata (-8°C)</strong><br><span style="color:var(--hc-text-3);font-size:11px;">Normal $ 450 Limpos → Aqui $ 610 Sujos</span></div>
+                <button type="button" id="btnSmugglePaste" class="hc-btn sm" style="border-color:#f59e0b;color:#fde68a;" onclick="window.nineSystemsEngine.buyBlackmarketSmuggledConsumable('smuggle_paste')">Pagar c/ Sujo ($ 610)</button>
               </div>
               <div style="padding:9px 11px;border-radius:8px;background:#090e16;border:1px solid #2b2318;display:flex;flex-direction:column;gap:6px;justify-content:space-between;">
-                <div style="font-size:12px;"><strong>2x Dossiês OSINT Vazados</strong><br><span style="color:var(--hc-text-3);font-size:11px;">Preço normal $ 800 → Contrabando $ 1.080 Sujos</span></div>
-                <button type="button" id="btnSmuggleOsint" class="hc-btn sm" style="border-color:#f59e0b;color:#fde68a;" onclick="window.nineSystemsEngine.buyBlackmarketSmuggledConsumable('smuggle_osint')">Comprar c/ Sujo ($ 1.080)</button>
+                <div style="font-size:12px;"><strong>2x Dossiês OSINT Vazados</strong><br><span style="color:var(--hc-text-3);font-size:11px;">Normal $ 800 Limpos → Aqui $ 1.080 Sujos</span></div>
+                <button type="button" id="btnSmuggleOsint" class="hc-btn sm" style="border-color:#f59e0b;color:#fde68a;" onclick="window.nineSystemsEngine.buyBlackmarketSmuggledConsumable('smuggle_osint')">Pagar c/ Sujo ($ 1.080)</button>
               </div>
               <div style="padding:9px 11px;border-radius:8px;background:#090e16;border:1px solid #2b2318;display:flex;flex-direction:column;gap:6px;justify-content:space-between;">
-                <div style="font-size:12px;"><strong>Exploit Zero-Day 24h</strong><br><span style="color:var(--hc-text-3);font-size:11px;">Preço normal $ 1.500 → Contrabando $ 2.025 Sujos</span></div>
-                <button type="button" id="btnSmuggleCve" class="hc-btn sm" style="border-color:#f59e0b;color:#fde68a;" onclick="window.nineSystemsEngine.buyBlackmarketSmuggledConsumable('smuggle_cve')">Comprar c/ Sujo ($ 2.025)</button>
+                <div style="font-size:12px;"><strong>Exploit Zero-Day 24h</strong><br><span style="color:var(--hc-text-3);font-size:11px;">Normal $ 1.500 Limpos → Aqui $ 2.025 Sujos</span></div>
+                <button type="button" id="btnSmuggleCve" class="hc-btn sm" style="border-color:#f59e0b;color:#fde68a;" onclick="window.nineSystemsEngine.buyBlackmarketSmuggledConsumable('smuggle_cve')">Pagar c/ Sujo ($ 2.025)</button>
               </div>
             </div>
           </div>
@@ -1805,7 +1817,7 @@
         tabBody = `
           ${pendingJobs.length > 0 ? `
             <div class="nds-card amber">
-              <strong style="font-size:13px;color:#fbbf24;">⏳ Remessas em Lavagem Agora (Ciclo de 15 Minutos da Vida Real):</strong>
+              <strong style="font-size:13px;color:#fbbf24;">⏳ Dinheiro Lavando Agora (15 Minutos da Vida Real):</strong>
               ${pendingJobs.map((j) => {
                 const remSec = Math.max(0, Math.ceil((j.completesAt - Date.now()) / 1000));
                 const mm = Math.floor(remSec / 60);
@@ -1813,9 +1825,9 @@
                 return `
                   <div class="nds-row">
                     <div>
-                      <strong>${esc(j.companyName)}</strong> · Bruto: ${fmtMoney(j.grossDirty)} (Taxa ${j.feePct}%) → Líquido: <strong style="color:#6ee7b7;">${fmtMoney(j.netClean)} Limpos</strong>
+                      <strong>${esc(j.companyName)}</strong> · Enviado: ${fmtMoney(j.grossDirty)} (Taxa ${j.feePct}%) → Vai cair: <strong style="color:#6ee7b7;">${fmtMoney(j.netClean)} Limpos</strong>
                     </div>
-                    <span class="mono hc-badge warn">Libera em ${mm}m ${ss}s</span>
+                    <span class="mono hc-badge warn">Cai em ${mm}m ${ss}s</span>
                   </div>
                 `;
               }).join('')}
@@ -1825,8 +1837,8 @@
           <div class="nds-card emerald">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
               <div>
-                <strong style="font-size:14.5px;">🧼 Vitrine Rotativa da Hora (5 Empresas Diferentes · Gira em ${minsLeftHour}m)</strong>
-                <div style="font-size:12px;color:var(--hc-text-2);">Escolha com quem lavar! Taxa mínima obrigatória de <strong>17%</strong> e <strong>sem teto máximo</strong>. Cada porte tem limite por vez + espera de <strong>15 min reais</strong>.</div>
+                <strong style="font-size:14.5px;">🧼 Empresas Abertas Nesta Hora (5 Opções · Troca em ${minsLeftHour}m)</strong>
+                <div style="font-size:12px;color:var(--hc-text-2);">Escolha onde lavar seu Dinheiro Sujo! Taxa mínima de <strong>17%</strong> (sem limite máximo). Cada empresa tem limite por vez e leva <strong>15 min da vida real</strong>.</div>
               </div>
               <div style="display:flex;align-items:center;gap:6px;">
                 <label style="font-size:12px;">Valor p/ Lavar:</label>
@@ -1837,8 +1849,8 @@
             ${this.state.myCompany ? `
               <div class="nds-row" style="border-color:#35b877;background:rgba(53,184,119,0.08);">
                 <div>
-                  <strong style="color:#6ee7b7;">🏢 ${esc(this.state.myCompany.name)} (Sua Própria Empresa · Porte ${this.state.myCompany.tier})</strong>
-                  <div style="font-size:11.5px;color:var(--hc-text-2);">Custo contábil interno: apenas ${LAUNDERING_TIERS[this.state.myCompany.tier].selfTaxPct}% · Limite: ${fmtMoney(LAUNDERING_TIERS[this.state.myCompany.tier].maxBatchUsd)}/vez · 15 min reais</div>
+                  <strong style="color:#6ee7b7;">🏢 ${esc(this.state.myCompany.name)} (Sua Empresa · Porte ${this.state.myCompany.tier})</strong>
+                  <div style="font-size:11.5px;color:var(--hc-text-2);">Sua taxa interna: só ${LAUNDERING_TIERS[this.state.myCompany.tier].selfTaxPct}% · Limite: ${fmtMoney(LAUNDERING_TIERS[this.state.myCompany.tier].maxBatchUsd)}/vez · 15 min reais</div>
                 </div>
                 <button type="button" id="btnLaunderOwnCompany" class="hc-btn primary sm" onclick="window.nineSystemsEngine.startLaunderingBatch('MY_OWN_COMPANY', document.getElementById('launderAmtInput')?.value)">Lavar na Minha Empresa</button>
               </div>
@@ -1846,14 +1858,14 @@
 
             <div style="margin:8px 0;padding:10px 12px;border-radius:8px;background:#081119;border:1px solid rgba(56,189,248,0.32);font-size:11.8px;color:var(--hc-text-2);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
               <div>
-                <strong style="color:#7dd3fc;">🔗 Como seu CNPJ influencia o Jogo Inteiro:</strong>
-                Porte 1 ($ 50K) = <strong>-10% em Peças/Fontes + $ 5K/dia BTC Limpo</strong> ·
-                Porte 2 ($ 180K) = <strong>-20% Internet/VPS às 12h + 1 Salto Bounce Grátis</strong> ·
-                Porte 3 ($ 500K) = <strong>Isento Custódia 2% + Cofre Suíço 1.5% + $ 15K/dia BTC Limpo</strong>!
+                <strong style="color:#7dd3fc;">🎁 Vantagens Extras de Ter Sua Empresa:</strong>
+                Porte 1 ($ 50 mil) = <strong>10% desconto em Peças/Fontes + vende até $ 5 mil/dia de BTC Limpo</strong> ·
+                Porte 2 ($ 150 mil) = <strong>20% desconto na Internet/VPS + 1 salto grátis na rota</strong> ·
+                Porte 3 ($ 400 mil) = <strong>sem taxa de 2% no Banco + Cofre Suíço a 1,5% + $ 15 mil/dia BTC Limpo</strong>!
               </div>
               <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button type="button" class="hc-btn ghost sm" onclick="navTo('winVirusLab')">🧬 Encomenda Lab (+$ 18K Limpos) →</button>
-                <button type="button" class="hc-btn ghost sm" onclick="navTo('winOpsHub');window.ecosystemHub.switchTab('stocks');">📉 Short CyberStock (Lucro Limpo) →</button>
+                <button type="button" class="hc-btn ghost sm" onclick="navTo('winVirusLab')">🧬 Ganhar $ 18 mil no Lab →</button>
+                <button type="button" class="hc-btn ghost sm" onclick="navTo('winOpsHub');window.ecosystemHub.switchTab('stocks');">📉 Lucrar Limpo na Bolsa →</button>
               </div>
             </div>
 

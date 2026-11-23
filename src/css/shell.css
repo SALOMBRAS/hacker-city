@@ -438,8 +438,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 0 22px;
+  gap: 12px;
+  padding: 0 18px;
   background: var(--hc-canvas);
   border-bottom: 1px solid var(--hc-border-subtle);
   height: var(--hc-topbar-h);
@@ -453,7 +453,7 @@
 .topbar-stats {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 12px;
   min-width: 0;
   flex-shrink: 0;
 }
@@ -729,9 +729,19 @@
 /* ---------- Responsividade Mobile & Telas Médias ---------- */
 #btnMobileNavToggle { display: none; }
 
-@media (max-width: 1180px) {
+@media (max-width: 1460px) {
+  .topbar-stats { gap: 8px; }
+  .topbar-metric { padding: 4px 6px; gap: 6px; }
+  .topbar-kbd { display: none; }
+}
+
+@media (max-width: 1320px) {
   .topbar-metric.hide-md { display: none; }
-  .topbar-stats { gap: 10px; }
+  .topbar-stats { gap: 8px; }
+}
+
+@media (max-width: 1260px) {
+  .topbar-metric.hide-sm { display: none; }
 }
 
 @media (max-width: 860px) {

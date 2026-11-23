@@ -1033,10 +1033,10 @@ class HardwareEngine {
       mainColHtml = `
         <div class="hw-overview-stack">
           <div style="padding:10px 14px;border-radius:8px;background:#09121c;border:1px solid rgba(56,189,248,0.35);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--hc-text-2);">
-            <span>🔗 <strong>Pontes de Engenharia Física:</strong> Evoluir p/ <strong>Studio (-5°C) / Bunker (-12°C)</strong> resfria sua CPU; ter <strong>Empresa Porte 1+</strong> dá <strong>-10%</strong> em Fontes; e usar <strong>HD Externo (XHD)</strong> protege suas cepas se usar <strong>RAID-0</strong>!</span>
+            <span>💡 <strong>Dicas Rápidas:</strong> Mudar p/ <strong>Studio (-5°C) ou Bunker (-12°C)</strong> esfria seu PC; ter <strong>Empresa Porte 1+</strong> dá <strong>10% de desconto</strong> em peças e fontes; e guardar cópias no <strong>HD Externo</strong> protege seus programas!</span>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              <button type="button" class="hc-btn ghost sm" onclick="navTo('winQuitinete')">🏢 Ver Base (-5°C/-12°C) →</button>
-              <button type="button" class="hc-btn ghost sm" onclick="window.hardwareEngine.setTab('xhd')">💾 Backup XHD →</button>
+              <button type="button" class="hc-btn ghost sm" onclick="navTo('winQuitinete')">🏢 Ver Esconderijo →</button>
+              <button type="button" class="hc-btn ghost sm" onclick="window.hardwareEngine.setTab('xhd')">💾 Abrir HD Externo →</button>
             </div>
           </div>
           ${window.progressionLocksEngine && typeof window.progressionLocksEngine.renderHardwarePsuAndBottleneckHtml === 'function' ? window.progressionLocksEngine.renderHardwarePsuAndBottleneckHtml() : ''}
