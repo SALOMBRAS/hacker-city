@@ -6,7 +6,10 @@
   "license": "MIT",
   "scripts": {
     "start": "python3 -m http.server 8080",
-    "deploy": "vercel --prod"
+    "deploy": "vercel --prod",
+    "test:mobile": "NODE_PATH=../pague-on-old/node_modules node tests/verify-mobile-responsiveness-e2e.js",
+    "test:onboarding": "NODE_PATH=../pague-on-old/node_modules node tests/verify-new-onboarding-training.js",
+    "test:mmo": "NODE_PATH=../pague-on-old/node_modules node tests/verify-mmo-global-and-unlocks.js"
   },
   "keywords": [
     "cyberpunk",
