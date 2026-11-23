@@ -12,6 +12,13 @@
   flex: 1;
 }
 
+@media (max-width: 860px) {
+  .topbar-left {
+    flex: 0 0 auto !important;
+    gap: 6px !important;
+  }
+}
+
 .topbar-ip-omnibox {
   display: flex;
   align-items: center;
