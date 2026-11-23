@@ -238,7 +238,7 @@
       };
       try {
         if (isVisible('winLaundering') && window.nineSystemsEngine) {
-          window.nineSystemsEngine.renderLaunderingWindow();
+          window.nineSystemsEngine.renderLaunderingHub();
         }
         if (isVisible('winOpsHub') && window.ecosystemHub) {
           window.ecosystemHub.syncStocksFromGlobalMarket();
