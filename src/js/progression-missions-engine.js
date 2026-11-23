@@ -76,16 +76,16 @@
       },
       pages: [
         {
-          heading: 'Módulo 1/3 — Daemons em Memória vs Ferramentas Sob Demanda',
-          body: 'Programas de proteção contínua (Firewall.fwl, Hasher.hash, Collector.vcol e Torrent.torrent) ficam rodando na sua Memória RAM (1 de cada tipo por vez, com tempo de carência ao trocar). Já o Cracker.crc, PortScan.scan e Antivirus.av funcionam SOB DEMANDA direto do seu HD, SSD ou NVMe (unidades NVMe dão até +25% de velocidade!).'
+          heading: 'Aula 1/3 — Programas na Memória RAM vs. Sob Demanda & Regra de Versão',
+          body: 'Defesas contínuas (Firewall.fwl, Hasher.hash, Collector.vcol e Torrent.torrent) rodam na sua Memória RAM (1 de cada tipo por vez, com tempo de troca). Já o Cracker.crc, PortScan.scan e Antivirus.av rodam sob demanda direto do seu HD, SSD ou NVMe. Para quebrar uma senha, seu Cracker.crc precisa ter versão maior ou igual ao Firewall E ao Hasher da vítima!'
         },
         {
-          heading: 'Módulo 2/3 — Regra Estrita de Versão no Mini-PC',
-          body: 'Para quebrar uma senha, o Cracker.crc selecionado no Mini-PC precisa ter versão >= Firewall.fwl E >= Hasher.hash da vítima! Uma CPU mais potente reduz os segundos de espera, mas nunca substitui a versão do software.'
+          heading: 'Aula 2/3 — Peças sem Pular Geração, Gargalo de CPU & Fonte de Energia (PSU)',
+          body: 'Você evolui o PC degrau por degrau (Geração 1 → 2 → 3 → 4 → 5, pagando sempre com Dinheiro Limpo). Fique atento a duas regras físicas: (1) cada CPU tem um limite máximo de versão de programa (rodar acima disso limita a força e esquenta +15°C!), e (2) se suas peças passarem da potência da sua Fonte PSU (180W → 400W → 750W), o disjuntor cai derrubando seus processos!'
         },
         {
-          heading: 'Módulo 3/3 — Regra de Ouro: Limpe a Log Por Último!',
-          body: 'Tanto entrar quanto subir ou executar um vírus gravam novas linhas com seu IP em /var/log/syslog! Sempre volte à aba Logs da vítima como último passo, apague seu IP (ou deixe uma farpa anônima) antes de sair.'
+          heading: 'Aula 3/3 — Limpe Seu Rastro por Último (Sombra Magnética & 7-Passos)',
+          body: 'Entrar no alvo, subir um vírus e executá-lo gravam seu IP na aba Logs (/var/log/syslog) da vítima! Sempre limpe seu IP como último passo antes de sair. Contra rivais avançados, apagar simples ainda deixa uma Sombra Magnética parcial por 5 min — use o Triturador 7-Passos quando quiser destruir 100% da prova física!'
         }
       ]
     },
