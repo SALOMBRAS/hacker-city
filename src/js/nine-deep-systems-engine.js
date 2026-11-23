@@ -1680,14 +1680,14 @@
               <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
                 <span class="hc-badge ${p.badgeCls}">${esc(p.badge)}</span>
                 <strong style="font-size:13px;">${esc(p.title)}</strong>
-                ${verified ? `<span class="hc-badge ${p.isFbiHoneyTrap ? 'danger' : 'success'}">${p.isFbiHoneyTrap ? '⚠️ ISCA SAFENET!' : '✓ PGP AUTÊNTICO'}</span>` : ''}
+                ${verified ? `<span class="hc-badge ${p.isFbiHoneyTrap ? 'danger' : 'success'}">${p.isFbiHoneyTrap ? '⚠️ ARMADILHA POLICIAL!' : '✓ VAZAMENTO VERDADEIRO'}</span>` : ''}
               </div>
               <div style="font-size:12px;color:var(--hc-text-2);margin-top:4px;">${esc(p.body)}</div>
             </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              ${!verified ? `<button type="button" id="btnVerifyPgp_${p.id}" class="hc-btn ghost sm" onclick="window.nineSystemsEngine.verifyZeroBinPgp('${p.id}')">🔍 Verificar PGP</button>` : ''}
-              ${p.kind === 'cred' && !claimed ? `<button type="button" id="btnExploitLeak_${p.id}" class="hc-btn primary sm" onclick="window.nineSystemsEngine.exploitZeroBinPaste('${p.id}')">Usar Vazamento ↗</button>` : ''}
-              ${claimed ? `<span class="hc-badge">Processado</span>` : ''}
+              ${!verified ? `<button type="button" id="btnVerifyPgp_${p.id}" class="hc-btn ghost sm" onclick="window.nineSystemsEngine.verifyZeroBinPgp('${p.id}')">🔍 Checar se é Verdadeiro</button>` : ''}
+              ${p.kind === 'cred' && !claimed ? `<button type="button" id="btnExploitLeak_${p.id}" class="hc-btn primary sm" onclick="window.nineSystemsEngine.exploitZeroBinPaste('${p.id}')">Pegar Senha Vazada ↗</button>` : ''}
+              ${claimed ? `<span class="hc-badge">Já Usado</span>` : ''}
             </div>
           </div>
         `;
@@ -1698,20 +1698,20 @@
           <div class="nds-card emerald">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
               <div>
-                <span class="hc-badge success">hc://vazamentos · ZeroBin Underground (185.220.101.77)</span>
+                <span class="hc-badge success">hc://vazamentos · Mural Anônimo de Senhas (185.220.101.77)</span>
                 <div style="font-size:12px;color:var(--hc-text-2);margin-top:3px;">
-                  Renova a cada <strong>1 hora real (1 dia no jogo)</strong>! <strong>⚠️ Cuidado (Lado Negativo):</strong> agentes da Safenet plantam 1 Isca Falsa por hora — sempre clique em <em>Verificar PGP</em> antes de explorar!
+                  Troca a cada <strong>1 hora real</strong>! <strong>⚠️ Cuidado:</strong> a polícia coloca 1 armadilha falsa por hora — sempre clique em <em>Checar se é Verdadeiro</em> antes de pegar a senha!
                 </div>
               </div>
             </div>
             ${rows}
             <details class="nds-rules-drawer">
-              <summary>📖 Regras de Funcionamento do Portal hc://vazamentos (185.220.101.77)</summary>
+              <summary>📖 Como funciona o Mural de Vazamentos (185.220.101.77)</summary>
               <ol class="nds-rules-list">
-                <li><strong>Rotação de 1 Hora Real:</strong> A cada 1 hora da vida real entram exatamente <strong>4 itens</strong>: 1 Credencial Corporativa verdadeira, 1 Isca Falsa da Safenet (<em>Honey-Paste</em>), 1 Rumor da Bolsa CyberStock (TIX) e 1 Dica de Sinergia do Laboratório. Cada credencial só pode ser resgatada 1 vez por hora.</li>
-                <li><strong>Verificação PGP (Grátis) vs. Emboscada:</strong> Clicar em <strong>🔍 Verificar PGP</strong> testa a assinatura digital. Se for verdadeira, libera o uso seguro (+$ 420 Sujos + senha root salva em Senhas Descobertas). Se revelar a Isca da Safenet, você ganha <strong>+25 REP e +25 pts na Temporada</strong>!</li>
-                <li><strong>Punição por Pular o PGP:</strong> Se você clicar direto em <em>Usar Vazamento</em> na Isca Falsa sem ter verificado o PGP antes, cai na armadilha federal e recebe <strong>+2 Níveis de Heat Policial na hora</strong>!</li>
-                <li><strong>Mural Anônimo ($ 200 Limpos):</strong> Publicar nota custa $ 200 Limpos (+15 REP) e censura automaticamente qualquer IP digitado (<code>[IP-REDACTED]</code>) para proibir doxxing.</li>
+                <li><strong>Troca a Cada 1 Hora:</strong> Entram <strong>4 publicações</strong> por hora: 1 Senha Real de Empresa, 1 Armadilha da Polícia, 1 Dica da Bolsa e 1 Dica do Laboratório.</li>
+                <li><strong>Checar Antes (Grátis):</strong> Clique em <strong>🔍 Checar se é Verdadeiro</strong> antes de usar! Se for verdadeiro, você pega a senha root e ganha +$ 420 Sujos sem risco. Se descobrir a armadilha da polícia, ganha <strong>+25 REP e +25 pts no mês</strong>!</li>
+                <li><strong>O Que Acontece se Pular a Checagem:</strong> Clicar direto em <em>Pegar Senha Vazada</em> numa armadilha falsa sobe <strong>+2 Níveis de Procura na hora</strong>!</li>
+                <li><strong>Publicar Dica ($ 200 Limpos):</strong> Custam $ 200 Limpos (+15 REP) e qualquer IP digitado é ocultado automaticamente para evitar perseguição.</li>
               </ol>
             </details>
           </div>
@@ -1734,27 +1734,27 @@
         <div class="nds-card emerald">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
             <div>
-              <strong style="font-size:14.5px;">🧬 Mercado Clandestino P2P de Licenças do Laboratório</strong>
-              <div style="font-size:12px;color:var(--hc-text-2);">Alugue cepas por 24h/48h/72h com Dinheiro Limpo ou venda licenças das suas criações (Taxa de queima: 12%–20%).</div>
+              <strong style="font-size:14.5px;">🧬 Alugar ou Vender Vírus do Laboratório (24h a 72h)</strong>
+              <div style="font-size:12px;color:var(--hc-text-2);">Alugue vírus fortes com Dinheiro Limpo ou ganhe dinheiro alugando os vírus que você criou no Lab (taxa: 12% a 20%).</div>
             </div>
             ${firstStrain ? `
               <button type="button" id="btnListMyFirstStrainP2p" class="hc-btn primary sm" onclick="window.nineSystemsEngine.listMyStrainOnP2p('${firstStrain.id}', 48, ${Math.max(500, firstStrain.versionInt * 35)})">
-                + Emitir Licença 48h de "${esc(firstStrain.strainName)}"
+                + Colocar "${esc(firstStrain.strainName)}" p/ Alugar (48h)
               </button>
-            ` : `<button type="button" class="hc-btn ghost sm" onclick="navTo('winVirusLab')">Ir Compilar Cepa no Lab →</button>`}
+            ` : `<button type="button" class="hc-btn ghost sm" onclick="navTo('winVirusLab')">Criar Vírus no Lab →</button>`}
           </div>
 
           <div class="nds-pros-cons">
-            <div class="nds-pc-box pro"><strong>✅ Lado Bom:</strong> Monetiza cepas de famílias que você não usa e permite alugar poder imediato sem quebrar o limite de 1 compilação/dia do Lab.</div>
-            <div class="nds-pc-box con"><strong>⚠️ Lado Negativo (DRM):</strong> Licença comprada consome <strong>+20% mais RAM</strong> no servidor alvo, <strong>não pode ser revendida</strong> e cada cepa só emite no máx. <strong>2 licenças</strong>!</div>
+            <div class="nds-pc-box pro"><strong>✅ Lado Bom:</strong> Ganhe dinheiro Limpo com vírus que você criou e não está usando, ou alugue um vírus forte na hora sem esperar 24h do Lab.</div>
+            <div class="nds-pc-box con"><strong>⚠️ Limites do Aluguel:</strong> Vírus alugado usa <strong>+20% de Memória RAM</strong> no servidor invadido, <strong>não pode ser revendido</strong> e cada vírus criado só pode ser alugado <strong>2 vezes</strong>!</div>
           </div>
           <details class="nds-rules-drawer">
-            <summary>📖 Regras de Funcionamento do Mercado Clandestino P2P (Licenças do Lab)</summary>
+            <summary>📖 Como funciona o Aluguel de Vírus entre Jogadores</summary>
             <ol class="nds-rules-list">
-              <li><strong>Quem Pode Vender:</strong> Apenas cepas originais compiladas por você no Laboratório ($ 1.000 · 1x/24h reais). Cada cepa compilada tem limite vitalício estrito de <strong>no máximo 2 licenças emitidas</strong> (depois trava em 2/2).</li>
-              <li><strong>Durações &amp; Taxa de Queima:</strong> Licenças de <strong>24h reais</strong> queimam <strong>12%</strong> de taxa; <strong>48h reais</strong> queimam <strong>15%</strong>; <strong>72h reais</strong> queimam <strong>20%</strong>. Todas as compras exigem <strong>100% Dinheiro Limpo</strong>.</li>
-              <li><strong>Piso &amp; Teto de Preço (Anti-Transferência Ilegal):</strong> Preço mínimo obrigatório de <code>max($ 400, versãoInt × $ 25)</code> e máximo de <code>max($ 2.500, versãoInt × $ 250)</code>. 4 ofertas rotativas de Bots entram a cada 1h real garantindo liquidez inicial.</li>
-              <li><strong>Regras do DRM p/ o Comprador:</strong> O vírus alugado exige <strong>+20% mais Memória RAM no servidor da vítima</strong>, não pode ser revendido nem copiado pro HD Externo, e desativa sozinho quando o cronômetro real expira.</li>
+              <li><strong>Quem Pode Anunciar:</strong> Qualquer vírus criado por você no Laboratório. Cada criação pode ser alugada no máximo <strong>2 vezes</strong>.</li>
+              <li><strong>Tempo &amp; Taxa:</strong> Aluguel de <strong>24h reais</strong> desconta <strong>12%</strong>; <strong>48h</strong> desconta <strong>15%</strong>; <strong>72h</strong> desconta <strong>20%</strong>. Pago sempre com <strong>Dinheiro Limpo</strong>.</li>
+              <li><strong>Preço Justo:</strong> O jogo define um valor mínimo e máximo conforme a força do vírus para evitar repasse ilegal de dinheiro entre contas.</li>
+              <li><strong>Para Quem Aluga:</strong> O vírus alugado ocupa <strong>+20% de RAM</strong> no alvo, não vai para o HD Externo e desliga sozinho quando o tempo acaba.</li>
             </ol>
           </details>
 
@@ -1762,14 +1762,14 @@
             <div class="nds-row">
               <div>
                 <strong class="mono" style="color:#6ee7b7;">${esc(o.strainName)}.${esc(o.family)} (v${(o.versionInt / 10).toFixed(1)})</strong>
-                <span class="hc-badge success" style="margin-left:6px;">Nota ${esc(o.fitGrade)} · ${o.durationHours}h DRM</span>
-                <div style="font-size:11.5px;color:var(--hc-text-2);margin-top:2px;">Criador: <strong>${esc(o.sellerTag)}</strong> · Taxa rede: ${o.burnTaxPct}%</div>
+                <span class="hc-badge success" style="margin-left:6px;">Nota ${esc(o.fitGrade)} · Vale por ${o.durationHours}h</span>
+                <div style="font-size:11.5px;color:var(--hc-text-2);margin-top:2px;">Criador: <strong>${esc(o.sellerTag)}</strong> · Taxa: ${o.burnTaxPct}%</div>
               </div>
               <div style="display:flex;align-items:center;gap:10px;">
                 <strong class="mono">${fmtMoney(o.priceClean)} Limpos</strong>
                 ${o.isMine
                   ? `<span class="hc-badge info">Seu Anúncio</span>`
-                  : `<button type="button" id="btnBuyP2p_${o.offerId}" class="hc-btn primary sm" onclick="window.nineSystemsEngine.buyP2pLicense('${o.offerId}')">Comprar Licença</button>`}
+                  : `<button type="button" id="btnBuyP2p_${o.offerId}" class="hc-btn primary sm" onclick="window.nineSystemsEngine.buyP2pLicense('${o.offerId}')">Alugar Vírus</button>`}
               </div>
             </div>
           `).join('')}
