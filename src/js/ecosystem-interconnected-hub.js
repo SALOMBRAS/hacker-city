@@ -1953,7 +1953,7 @@
         const isUp = Number(pct) >= 0;
         const longPos = this.state.longPositions[c.symbol];
         const shortPos = this.state.shortPositions[c.symbol];
-        const forecast = st.integrity < 92 ? 'TENDÊNCIA: RECUPERAÇÃO ↑' : (st.integrity > 105 ? 'SOBRECOMPRADO ↓' : 'NEUTRO ↔');
+        const forecast = st.integrity < 92 ? 'VAI SUBIR ↑' : (st.integrity > 105 ? 'PODE CAIR ↓' : 'ESTÁVEL ↔');
         return `
           <tr>
             <td>
@@ -1967,20 +1967,20 @@
             <td>${this.renderSparkline(st.history)}</td>
             <td>
               <span class="hc-badge ${st.integrity < 80 ? 'danger' : 'success'}">${st.integrity}%</span>
-              ${has4s ? `<div style="font-size:10.5px;color:var(--hc-accent-text);margin-top:2px;">4S: ${forecast}</div>` : ''}
+              ${has4s ? `<div style="font-size:10.5px;color:var(--hc-accent-text);margin-top:2px;">Dica: ${forecast}</div>` : ''}
             </td>
             <td style="font-size:11.5px;">
-              ${longPos ? `<span class="hc-badge success">LONG ${longPos.shares.toFixed(2)}</span>` : ''}
-              ${shortPos ? `<span class="hc-badge warn">SHORT @$${shortPos.entryPrice.toFixed(2)}</span>` : ''}
+              ${longPos ? `<span class="hc-badge success">COMPRADO (${longPos.shares.toFixed(2)})</span>` : ''}
+              ${shortPos ? `<span class="hc-badge warn">NA QUEDA @$${shortPos.entryPrice.toFixed(2)}</span>` : ''}
               ${!longPos && !shortPos ? `<span style="color:var(--hc-text-3);">—</span>` : ''}
             </td>
             <td style="text-align:right;">
               <div style="display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap;">
-                <button type="button" id="btnBuyLong_${c.symbol}" class="hc-btn primary sm" onclick="window.ecosystemHub.buyLongPosition('${c.symbol}', Number(document.getElementById('stockOrderUsdInput')?.value || 200))">Comprar</button>
-                ${longPos ? `<button type="button" id="btnSellLong_${c.symbol}" class="hc-btn ghost sm" onclick="window.ecosystemHub.sellLongPosition('${c.symbol}')">Vender Long</button>` : ''}
-                <button type="button" id="btnOpenShort_${c.symbol}" class="hc-btn sm" style="border-color:var(--hc-warning);color:var(--hc-warning);" onclick="window.ecosystemHub.openShortPosition('${c.symbol}', Number(document.getElementById('stockOrderUsdInput')?.value || 200))">Short 📉</button>
-                ${shortPos ? `<button type="button" id="btnCloseShort_${c.symbol}" class="hc-btn primary sm" onclick="window.ecosystemHub.closeShortPosition('${c.symbol}')">Realizar Short</button>` : ''}
-                <button type="button" class="hc-btn ghost sm" title="Contrato White-Hat (Sobe ação + reduz Heat)" onclick="window.ecosystemHub.executeWhiteHatRestore('${c.symbol}')">🛡️ Restaurar</button>
+                <button type="button" id="btnBuyLong_${c.symbol}" class="hc-btn primary sm" onclick="window.ecosystemHub.buyLongPosition('${c.symbol}', Number(document.getElementById('stockOrderUsdInput')?.value || 200))">Comprar (Sobe)</button>
+                ${longPos ? `<button type="button" id="btnSellLong_${c.symbol}" class="hc-btn ghost sm" onclick="window.ecosystemHub.sellLongPosition('${c.symbol}')">Vender</button>` : ''}
+                <button type="button" id="btnOpenShort_${c.symbol}" class="hc-btn sm" style="border-color:var(--hc-warning);color:var(--hc-warning);" onclick="window.ecosystemHub.openShortPosition('${c.symbol}', Number(document.getElementById('stockOrderUsdInput')?.value || 200))">Apostar Queda 📉</button>
+                ${shortPos ? `<button type="button" id="btnCloseShort_${c.symbol}" class="hc-btn primary sm" onclick="window.ecosystemHub.closeShortPosition('${c.symbol}')">Pegar Lucro Queda</button>` : ''}
+                <button type="button" class="hc-btn ghost sm" title="Ajuda a empresa a subir e paga Dinheiro Limpo + baixa sua Procura" onclick="window.ecosystemHub.executeWhiteHatRestore('${c.symbol}')">🛡️ Defender</button>
               </div>
             </td>
           </tr>
@@ -1990,35 +1990,35 @@
       return `
         <div class="hc-stat-strip">
           <div class="hc-stat-cell">
-            <div class="hc-stat-label">Patrimônio Líquido Total</div>
+            <div class="hc-stat-label">Seu Patrimônio Total</div>
             <div class="hc-stat-value" style="color:var(--hc-accent-text);">$ ${nw.totalNetWorth.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-            <div class="hc-stat-sub">Caixa $${nw.cash.toFixed(0)} · Bolsa $${nw.stockEquity.toFixed(0)} · BTC $${nw.btcUsd.toFixed(0)}</div>
+            <div class="hc-stat-sub">Conta $${nw.cash.toFixed(0)} · Bolsa $${nw.stockEquity.toFixed(0)} · BTC $${nw.btcUsd.toFixed(0)}</div>
           </div>
           <div class="hc-stat-cell">
-            <div class="hc-stat-label">Lucro em Operações TIX</div>
+            <div class="hc-stat-label">Lucro na Bolsa (Limpo)</div>
             <div class="hc-stat-value">${this.state.totalTradingProfit >= 0 ? '+' : ''}$ ${this.state.totalTradingProfit.toFixed(2)}</div>
-            <div class="hc-stat-sub">Long &amp; Short realizados</div>
+            <div class="hc-stat-sub">Compras e quedas encerradas</div>
           </div>
           <div class="hc-stat-cell">
-            <div class="hc-stat-label">Dividendos das 12:00</div>
+            <div class="hc-stat-label">Rendimento às 12h</div>
             <div class="hc-stat-value" style="color:#35b877;">+$ ${this.state.totalDividendsEarned.toFixed(2)}</div>
-            <div class="hc-stat-sub">Ajuda a quitar Energia/Aluguel (${nw.monthlyBills}/mês)</div>
+            <div class="hc-stat-sub">Ajuda a pagar Luz e Aluguel ($${nw.monthlyBills}/mês)</div>
           </div>
           <div class="hc-stat-cell">
-            <div class="hc-stat-label">Sinal Quântico 4S</div>
-            <div class="hc-stat-value">${has4s ? 'ATIVO' : 'BLOQUEADO'}</div>
-            <div class="hc-stat-sub">${has4s ? 'Analyzer v2+ / CERT-201 detectado' : 'Exige Analyzer v2.0+ ou CERT-201'}</div>
+            <div class="hc-stat-label">Previsão de Preço</div>
+            <div class="hc-stat-value">${has4s ? 'LIBERADA' : 'BLOQUEADA'}</div>
+            <div class="hc-stat-sub">${has4s ? 'Mostrando tendência das ações' : 'Ter Analyzer v2.0+ ou CERT-201'}</div>
           </div>
         </div>
 
         <div class="eco-card accent">
           <div class="eco-card-head">
             <div>
-              <div class="eco-card-title">📈 Pregão Ao Vivo CyberStock (Causalidade Real Hack ↔ Ação!)</div>
-              <div class="eco-card-sub">Abra um <strong>Short 📉</strong> em uma empresa, clique no IP dela para invadir/desligar o CFTV/drenar o cofre, limpe seu IP do <code>/var/log/syslog</code> e realize o lucro na queda! Ou compre <strong>Long</strong> e execute <strong>🛡️ Restaurar</strong>!</div>
+              <div class="eco-card-title">📈 Bolsa de Empresas (Seus Ataques Mudam os Preços de Verdade!)</div>
+              <div class="eco-card-sub">Quer lucrar <strong>Dinheiro Limpo</strong>? Clique em <strong>Apostar Queda 📉</strong> numa empresa, invada o IP dela (apague as câmeras ou roube o cofre), limpe seu IP dos rastros e clique em <strong>Pegar Lucro Queda</strong>! Ou compre a ação e clique em <strong>🛡️ Defender</strong> para ela subir!</div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
-              <label style="font-size:12px;color:var(--hc-text-2);">Valor da Ordem ($ HC):</label>
+              <label style="font-size:12px;color:var(--hc-text-2);">Valor p/ Investir ($ Limpo):</label>
               <input type="number" id="stockOrderUsdInput" class="hc-input mono" style="width:120px;height:34px;" min="50" step="50" value="200">
             </div>
           </div>
@@ -2026,13 +2026,13 @@
             <table class="hc-table">
               <thead>
                 <tr>
-                  <th>Ticker / Empresa</th>
-                  <th>IP Real na Rede</th>
-                  <th>Cotação</th>
-                  <th>Gráfico</th>
-                  <th>Integridade</th>
-                  <th>Sua Posição</th>
-                  <th style="text-align:right;">Ordens &amp; Sabotagem</th>
+                  <th>Empresa</th>
+                  <th>IP p/ Invadir</th>
+                  <th>Preço Atual</th>
+                  <th>Histórico</th>
+                  <th>Saúde</th>
+                  <th>Sua Aposta</th>
+                  <th style="text-align:right;">Ações Rápidas</th>
                 </tr>
               </thead>
               <tbody>${rows}</tbody>
@@ -2438,12 +2438,12 @@
           </div>
 
           <div class="eco-nav-tabs">
-            <button type="button" id="ecoTab_stocks" class="eco-nav-btn ${this.activeTab === 'stocks' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('stocks')">📈 Bolsa CyberStock (8 Empresas)</button>
-            <button type="button" id="ecoTab_minigames" class="eco-nav-btn ${this.activeTab === 'minigames' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('minigames')">🧩 6 Minigames &amp; .CCT</button>
-            <button type="button" id="ecoTab_intel" class="eco-nav-btn ${this.activeTab === 'intel' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('intel')">🕵️ OSINT, Zero-Days &amp; Seguros</button>
-            <button type="button" id="ecoTab_factions" class="eco-nav-btn ${this.activeTab === 'factions' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('factions')">🎭 Facções &amp; Golpes 4x</button>
-            <button type="button" id="ecoTab_automation" class="eco-nav-btn ${this.activeTab === 'automation' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('automation')">🤖 CronDaemons VPS &amp; 24 Marcos</button>
-            <button type="button" id="ecoTab_elite" class="eco-nav-btn ${this.activeTab === 'elite' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('elite')">🏆 Leilões 2h &amp; Top 10</button>
+            <button type="button" id="ecoTab_stocks" class="eco-nav-btn ${this.activeTab === 'stocks' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('stocks')">📈 Bolsa de Empresas</button>
+            <button type="button" id="ecoTab_minigames" class="eco-nav-btn ${this.activeTab === 'minigames' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('minigames')">🧩 6 Desafios Rápidos</button>
+            <button type="button" id="ecoTab_intel" class="eco-nav-btn ${this.activeTab === 'intel' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('intel')">🕵️ Descobrir Senhas &amp; Seguro</button>
+            <button type="button" id="ecoTab_factions" class="eco-nav-btn ${this.activeTab === 'factions' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('factions')">🎭 Facções &amp; Roubos 4x</button>
+            <button type="button" id="ecoTab_automation" class="eco-nav-btn ${this.activeTab === 'automation' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('automation')">🤖 Tarefas Automáticas VPS</button>
+            <button type="button" id="ecoTab_elite" class="eco-nav-btn ${this.activeTab === 'elite' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('elite')">🏆 Leilão 2h &amp; Atalhos</button>
           </div>
 
           ${bodyHtml}
