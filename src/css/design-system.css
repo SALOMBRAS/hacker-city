@@ -372,6 +372,8 @@ h1, h2, h3, h4 { font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; }
 .my-ip-privacy:hover .my-ip-blur-tail,
 .my-ip-privacy:focus-visible .my-ip-blur-tail,
 .my-ip-privacy:active .my-ip-blur-tail,
+.my-ip-privacy.ip-revealed .my-ip-blur-tail,
+#hudMyIpChip.ip-revealed .my-ip-blur-tail,
 #hudMyIpChip:hover .my-ip-blur-tail,
 #hudMyIpChip:focus-within .my-ip-blur-tail,
 #homeMyIpCell:hover .my-ip-blur-tail,

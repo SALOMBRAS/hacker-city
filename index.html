@@ -488,7 +488,7 @@
         </div>
       </div>
       <div class="topbar-stats">
-        <div class="my-ip-chip" id="hudMyIpChip" onclick="window.internetEngine.openIp('71.4.5.1')" data-tip-title="Seu IP protegido (Anti-Curiosos)" data-tip-meta="Privacidade" data-tip-desc="Os últimos 7 dígitos ficam ocultos automaticamente. Passe o mouse por cima para ver ou clique para renovar no Provedor ISP.">
+        <div class="my-ip-chip" id="hudMyIpChip" onclick="window.networkIdentity.handleHudIpChipClick(event)" data-tip-title="Seu IP protegido (Anti-Curiosos)" data-tip-meta="Privacidade" data-tip-desc="Os últimos 7 dígitos ficam ocultos automaticamente. Passe o mouse ou toque para ver; toque novamente para abrir o Provedor ISP.">
           <span class="ip-dot"></span>
           <div class="ip-stack">
             <span class="ip-lbl">Seu IP</span>

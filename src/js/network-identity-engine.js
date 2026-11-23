@@ -61,6 +61,47 @@
     constructor() {
       this.userId = null;
       this.state = null;
+      this._revealTimer = null;
+      this.bindTouchPrivacyReveal();
+    }
+
+    isTouchOrCompactViewport() {
+      if (typeof window === 'undefined') return false;
+      if (window.innerWidth <= 860) return true;
+      return !!(window.matchMedia && window.matchMedia('(hover: none)').matches);
+    }
+
+    bindTouchPrivacyReveal() {
+      if (typeof document === 'undefined') return;
+      document.addEventListener('click', (ev) => {
+        if (!this.isTouchOrCompactViewport()) return;
+        const priv = ev.target && ev.target.closest ? ev.target.closest('.my-ip-privacy') : null;
+        if (!priv || priv.closest('#hudMyIpChip')) return;
+        ev.stopPropagation();
+        const next = !priv.classList.contains('ip-revealed');
+        priv.classList.toggle('ip-revealed', next);
+        if (next) {
+          setTimeout(() => priv.classList.remove('ip-revealed'), 6000);
+        }
+      });
+    }
+
+    handleHudIpChipClick(ev) {
+      if (ev && ev.target && ev.target.closest && ev.target.closest('.ip-copy-btn')) return;
+      const chip = typeof document !== 'undefined' ? document.getElementById('hudMyIpChip') : null;
+      if (this.isTouchOrCompactViewport() && chip && !chip.classList.contains('ip-revealed')) {
+        chip.classList.add('ip-revealed');
+        if (this._revealTimer) clearTimeout(this._revealTimer);
+        this._revealTimer = setTimeout(() => chip.classList.remove('ip-revealed'), 6000);
+        if (typeof window.showToast === 'function') {
+          window.showToast('👁️ Seu IP foi revelado por 6s! Toque de novo para abrir o Provedor ISP.');
+        }
+        return;
+      }
+      if (chip) chip.classList.remove('ip-revealed');
+      if (window.internetEngine && typeof window.internetEngine.openIp === 'function') {
+        window.internetEngine.openIp('71.4.5.1');
+      }
     }
 
     storageKey(uid) {
