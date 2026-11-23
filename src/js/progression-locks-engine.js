@@ -450,19 +450,19 @@
 
       if (targetIdx > curIdx + 1) {
         const reqPrev = list[targetIdx - 1];
-        const msg = `🔒 PROIBIDO PULAR GERAÇÃO! Para instalar "${list[targetIdx].name}", seu barramento exige instalar antes "${reqPrev.name}" (evolução degrau por degrau)!`;
+        const msg = `🔒 Evolua uma peça por vez! Para instalar "${list[targetIdx].name}", instale primeiro "${reqPrev.name}"!`;
         if (typeof window.showToast === 'function') window.showToast(msg);
         return { ok: false, code: 'CANNOT_SKIP_HARDWARE_TIER', requiredPartId: reqPrev.id, message: msg };
       }
 
       // Peças Tier 4 exigem CERT-301; Tier 5 exigem CERT-401!
       if (targetIdx >= 3 && window.universityEngine && !window.universityEngine.hasCert(4)) {
-        const msg = `🔒 Peças Empresariais Tier 4+ exigem concluir o Certificado CERT-301 na Universidade!`;
+        const msg = `🔒 Esta peça avançada exige concluir primeiro o Certificado CERT-301 na Universidade!`;
         if (typeof window.showToast === 'function') window.showToast(msg);
         return { ok: false, code: 'CERT_301_REQUIRED_FOR_HW', message: msg };
       }
       if (targetIdx >= 4 && window.universityEngine && !window.universityEngine.hasCert(5)) {
-        const msg = `🔒 Hardware Quantum Tier 5 exige o Mestrado CERT-401 na Universidade!`;
+        const msg = `🔒 Esta peça máxima exige concluir o Mestrado CERT-401 na Universidade!`;
         if (typeof window.showToast === 'function') window.showToast(msg);
         return { ok: false, code: 'CERT_401_REQUIRED_FOR_HW', message: msg };
       }
@@ -566,15 +566,15 @@
       modal.style.display = 'flex';
       modal.innerHTML = `
         <div class="hc-jail-card" style="border-color:#f0a83a;">
-          <span class="hc-badge warn" style="align-self:flex-start;">🔒 ACESSO CLASSIFICADO · ESTÁGIO ${reqStage} EXIGIDO</span>
-          <h3 style="font-size:18px;color:#fff;">${esc(featureLabel)} ainda está bloqueado</h3>
-          <p style="font-size:13px;color:#d6e2f0;">Seu estágio atual: <strong>${esc(cur.title)}</strong>. Evolua degrau por degrau para liberar este sistema:</p>
+          <span class="hc-badge warn" style="align-self:flex-start;">🔒 NÍVEL DE CARREIRA ${reqStage} NECESSÁRIO</span>
+          <h3 style="font-size:18px;color:#fff;margin:0;">${esc(featureLabel)} ainda está bloqueado</h3>
+          <p style="font-size:13px;color:#d6e2f0;margin:0;">Seu nível atual é <strong>${esc(cur.title)}</strong>. Faça o passo abaixo para liberar:</p>
           <div style="padding:10px 12px;background:#16120b;border:1px solid #4d3816;border-radius:8px;font-size:12.5px;color:#fcd34d;">
-            <strong>Requisito p/ Destravar:</strong> ${esc(reqDesc)}
+            <strong>O que falta fazer:</strong> ${esc(reqDesc)}
           </div>
           <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
             <button type="button" class="hc-btn ghost sm" onclick="document.getElementById('hcStageGateModal').style.display='none'">Fechar</button>
-            <button type="button" class="hc-btn primary sm" onclick="document.getElementById('hcStageGateModal').style.display='none'; navTo('winUniversity');">🎓 Ir p/ Universidade →</button>
+            <button type="button" class="hc-btn primary sm" onclick="document.getElementById('hcStageGateModal').style.display='none'; navTo('winUniversity');">🎓 Abrir Universidade →</button>
           </div>
         </div>
       `;
@@ -610,7 +610,7 @@
       const bl = this.state.hostIpBlacklists[host.ip];
       if (bl && bl.blockedIp === myIp && Date.now() < bl.until) {
         const remMin = Math.ceil((bl.until - Date.now()) / 60000);
-        const msg = `🚨 [403 IP BLACKLISTED] ${host.hostname} (${host.ip}) bloqueou seu IP (${myIp}) por mais ${remMin} min reais! Renove seu IP no ISP (71.4.5.1) ou aguarde.`;
+        const msg = `🚨 Seu IP está bloqueado em ${host.hostname} (${host.ip}) por mais ${remMin} min! Troque seu IP no Provedor (71.4.5.1) ou espere.`;
         if (typeof window.showToast === 'function') window.showToast(msg);
         return { ok: false, code: 'HOST_IP_BLACKLISTED_30M', remainingMs: bl.until - Date.now(), message: msg };
       }
@@ -637,7 +637,7 @@
         this.save();
         if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
         const reasonExtra = missingCert401 ? ' + Diploma CERT-401' : '';
-        const msg = `🚨 [403 DIRECT IP BLOCKED BY PERIMETER IDS] Alvo Tier ${effTier} exige mínimo de ${reqHops} saltos no Mapa-Múndi${reasonExtra} (você usou ${bounce.hops})! Seu IP foi fotografado (+2 Heat) e bloqueado neste servidor por 30 min!`;
+        const msg = `🚨 Precisa de mais cidades na Rota! Este servidor (Nível ${effTier}) exige pelo menos ${reqHops} saltos no Mapa-Múndi${reasonExtra} (você usou ${bounce.hops})! Seu IP foi bloqueado nele por 30 min e sua Procura subiu +2!`;
         if (typeof window.showToast === 'function') window.showToast(msg);
         return { ok: false, code: 'INSUFFICIENT_BOUNCE_HOPS', requiredHops: reqHops, currentHops: bounce.hops, message: msg };
       }

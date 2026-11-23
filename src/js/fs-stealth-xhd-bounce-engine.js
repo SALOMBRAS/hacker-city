@@ -749,15 +749,15 @@
               <div>
                 <strong style="font-family:var(--hc-font-mono);">${esc(SOFT_DISPLAY_NAMES[k] || k)}</strong>
                 ${isOwned
-                  ? `<span class="hc-badge info" style="margin-left:6px;">Local v${(st.versionInt / 10).toFixed(1)} (${sizeMb}MB)</span>`
-                  : `<span class="hc-badge warn" style="margin-left:6px;">Ausente no HD Interno</span>`}
-                ${bak ? `<span class="hc-badge success" style="margin-left:4px;">Backup XHD v${(bak.versionInt / 10).toFixed(1)}</span>` : ''}
+                  ? `<span class="hc-badge info" style="margin-left:6px;">No seu PC v${(st.versionInt / 10).toFixed(1)} (${sizeMb}MB)</span>`
+                  : `<span class="hc-badge warn" style="margin-left:6px;">Apagado do PC</span>`}
+                ${bak ? `<span class="hc-badge success" style="margin-left:4px;">Salvo no HD Externo v${(bak.versionInt / 10).toFixed(1)}</span>` : ''}
               </div>
               <div style="display:flex;gap:6px;">
                 ${isOwned
-                  ? `<button type="button" id="btnXhdBackup_${esc(k)}" class="hc-btn ghost sm" ${xhd.capMb <= 0 ? 'disabled' : ''} onclick="window.handleXhdBackup('${esc(k)}')">Salvar no XHD</button>`
+                  ? `<button type="button" id="btnXhdBackup_${esc(k)}" class="hc-btn ghost sm" ${xhd.capMb <= 0 ? 'disabled' : ''} onclick="window.handleXhdBackup('${esc(k)}')">Guardar Cópia</button>`
                   : ''}
-                ${bak ? `<button type="button" id="btnXhdRestore_${esc(k)}" class="hc-btn primary sm" onclick="window.handleXhdRestore('${esc(k)}')">Restaurar</button>` : ''}
+                ${bak ? `<button type="button" id="btnXhdRestore_${esc(k)}" class="hc-btn primary sm" onclick="window.handleXhdRestore('${esc(k)}')">Recuperar p/ PC</button>` : ''}
               </div>
             </div>
           `;
