@@ -471,35 +471,41 @@
       this.ensureLoaded();
       if (this.isUnlocked('winOpsHub')) return '';
 
+      const tut = window.tutorialEngine ? window.tutorialEngine.getCurrentStepInfo() : null;
+      const tutDone = !!(tut && tut.completed);
+      const curStep = tut ? Number(tut.step || 1) : 1;
       const has101 = !!(window.universityEngine && window.universityEngine.hasCert(1));
-      const hasHacked = !!(window.hackedDb && Array.isArray(window.hackedDb.entries) && window.hackedDb.entries.length > 0);
+      const invDone = tutDone || curStep >= 5;
       const dirty = window.nineSystemsEngine ? window.nineSystemsEngine.getDirtyBalance() : 0;
-      const washedBefore = !!(window.nineSystemsEngine && window.nineSystemsEngine.state && window.nineSystemsEngine.state.washingJobs && window.nineSystemsEngine.state.washingJobs.length > 0);
+      const washedBefore = tutDone || curStep >= 6 || !!(window.nineSystemsEngine && window.nineSystemsEngine.state && window.nineSystemsEngine.state.washingJobs && window.nineSystemsEngine.state.washingJobs.length > 0);
+      const readyClaim = !tutDone && curStep === 6;
 
       return `
         <div class="hc-card" id="beginnerThreeStepCard" style="margin-bottom:16px;padding:14px 16px;border-color:rgba(53,184,119,0.45);background:linear-gradient(145deg,rgba(14,28,22,0.92),rgba(11,16,24,0.96));">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
             <div>
-              <span class="hc-badge success">🧭 GUIA RÁPIDO DE RECRUTA (PRIMEIROS 10 MINUTOS)</span>
-              <span class="hc-badge info" style="margin-left:6px;">🛡️ Escudo Iniciante Ativo (&lt; 200 REP)</span>
+              <span class="hc-badge success">🧭 JORNADA DO RECRUTA (${tutDone ? 'CONCLUÍDA ✓' : `ETAPA ${curStep} DE 6`})</span>
+              ${this.isNewbiePvpShieldActive() ? `<span class="hc-badge info" style="margin-left:6px;">🛡️ Escudo Iniciante Ativo (&lt; 200 REP)</span>` : ''}
             </div>
-            <span style="font-size:11.5px;color:var(--hc-text-3);">Novas telas abrem no menu conforme você avança!</span>
+            <span style="font-size:11.5px;color:var(--hc-text-3);">Siga os passos para aprender Invasão, Rastro e Lavagem na prática!</span>
           </div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">
             <div style="padding:10px 12px;border-radius:8px;background:#0a1118;border:1px solid ${has101 ? 'var(--hc-accent)' : '#1e2c3e'};">
-              <strong style="font-size:12.5px;color:${has101 ? '#4ade80' : '#fff'};">${has101 ? '✓ ' : '1. '}Fazer o Curso Grátis #1</strong>
-              <div style="font-size:11.5px;color:var(--hc-text-2);margin:4px 0 8px;">Leva 1 minuto na Universidade, dá +100 REP e libera Missões e Lavagem.</div>
-              <button type="button" class="hc-btn ${has101 ? 'ghost' : 'primary'} sm" onclick="navTo('winUniversity')">${has101 ? '✓ Concluído' : 'Abrir Universidade →'}</button>
+              <strong style="font-size:12.5px;color:${has101 ? '#4ade80' : '#fff'};">${has101 ? '✓ ' : '1. '}Curso Grátis #1 (Imediato)</strong>
+              <div style="font-size:11.5px;color:var(--hc-text-2);margin:4px 0 8px;">Ensina IP, Contas 12h e Sujo vs. Limpo (+100 REP e +$ 80).</div>
+              <button type="button" class="hc-btn ${has101 ? 'ghost' : 'primary'} sm" onclick="navTo('winUniversity'); if(!${has101} && window.universityEngine) window.universityEngine.openCourseReader(1);">${has101 ? '✓ Concluído' : 'Fazer Curso #1 →'}</button>
             </div>
-            <div style="padding:10px 12px;border-radius:8px;background:#0a1118;border:1px solid ${hasHacked ? 'var(--hc-accent)' : '#1e2c3e'};">
-              <strong style="font-size:12.5px;color:${hasHacked ? '#4ade80' : '#fff'};">${hasHacked ? '✓ ' : '2. '}Invadir 1º IP e Limpar Rastro</strong>
-              <div style="font-size:11.5px;color:var(--hc-text-2);margin:4px 0 8px;">Quebre a senha na Internet, pegue o dinheiro e apague seu IP na aba Logs.</div>
-              <button type="button" class="hc-btn ${hasHacked ? 'ghost' : 'primary'} sm" onclick="navTo('winBrowser')">Ir p/ Internet →</button>
+            <div style="padding:10px 12px;border-radius:8px;background:#0a1118;border:1px solid ${invDone ? 'var(--hc-accent)' : '#1e2c3e'};">
+              <strong style="font-size:12.5px;color:${invDone ? '#4ade80' : '#fff'};">${invDone ? '✓ ' : '2. '}Invadir Treino &amp; Limpar IP</strong>
+              <div style="font-size:11.5px;color:var(--hc-text-2);margin:4px 0 8px;">Invada <code>198.51.100.42</code>, ganhe $ 600 Sujos e apague a Log.</div>
+              <button type="button" class="hc-btn ${invDone ? 'ghost' : 'primary'} sm" onclick="window.internetEngine.openIp('198.51.100.42', '${curStep === 4 ? 'entrar' : 'invadir'}')">${invDone ? '✓ Rastro Limpo' : 'Invadir 198.51.100.42 →'}</button>
             </div>
             <div style="padding:10px 12px;border-radius:8px;background:#0a1118;border:1px solid ${washedBefore ? 'var(--hc-accent)' : '#1e2c3e'};">
-              <strong style="font-size:12.5px;color:${washedBefore ? '#4ade80' : '#fff'};">${washedBefore ? '✓ ' : '3. '}Lavar seu 1º Dinheiro Sujo</strong>
-              <div style="font-size:11.5px;color:var(--hc-text-2);margin:4px 0 8px;">${dirty > 0 ? `Você tem $ ${Math.round(dirty)} Sujos prontos para lavar!` : 'Dinheiro de invasão vem Sujo — lave em 15 min para comprar peças!'}</div>
-              <button type="button" class="hc-btn ${dirty > 0 ? 'primary' : 'ghost'} sm" onclick="navTo('winLaundering')">Abrir Lavagem →</button>
+              <strong style="font-size:12.5px;color:${washedBefore ? '#4ade80' : '#fff'};">${washedBefore ? '✓ ' : '3. '}Lavar 1º Dinheiro Sujo (8s)</strong>
+              <div style="font-size:11.5px;color:var(--hc-text-2);margin:4px 0 8px;">${readyClaim ? 'Prêmio de Formatura pronto para resgatar!' : (dirty > 0 ? `Lave seus $ ${Math.round(dirty)} Sujos em só 8s no 1º treino!` : 'Transforme notas sujas em Dinheiro Limpo na Vitrine!')}</div>
+              ${readyClaim
+                ? `<button type="button" class="hc-btn primary sm" onclick="window.tutorialEngine.claimFinalReward()">🏆 Resgatar +$ 500 + BTC →</button>`
+                : `<button type="button" class="hc-btn ${dirty > 0 && !washedBefore ? 'primary' : 'ghost'} sm" onclick="navTo('winLaundering')">${washedBefore ? '✓ Já Lavou' : 'Abrir Lavagem →'}</button>`}
             </div>
           </div>
         </div>
