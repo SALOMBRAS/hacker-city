@@ -221,13 +221,13 @@
           }
           .hc-tour-dots {
             display: flex;
-            gap: 4px;
+            gap: 3px;
             align-items: center;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
           }
           .hc-tour-dot {
-            width: 6px;
-            height: 6px;
+            width: 5px;
+            height: 5px;
             border-radius: 999px;
             background: #2b3648;
             transition: width .18s ease, background .18s ease;
@@ -693,7 +693,7 @@
           id: 'dirty_vs_clean_economy',
           selector: '#hudDirtyCashBadge',
           fallbackSelector: '#hudWalletMoney',
-          pointerLabel: '🩸 Dinheiro Sujo Destravou Lavagem!',
+          pointerLabel: '🩸 Notas Sujas!',
           requiresDirectClick: false,
           title: '14. Regra de Ouro: Dinheiro Sujo vs. Dinheiro Limpo!',
           desc: 'Olhe no topo: entraram <strong>🩸 $ 600 Sujos</strong>! Dinheiro de invasão e vírus vem <strong>Sujo</strong> — se tentar forçar notas sujas para comprar Peças ou Cursos, a polícia prende você! Por isso o menu <strong>Dinheiro & Vida → Lavar Dinheiro</strong> acabou de abrir com o selo <strong>NOVO</strong>.',
