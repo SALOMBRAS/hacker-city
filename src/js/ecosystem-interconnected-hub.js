@@ -318,8 +318,15 @@
       return s;
     }
 
-    syncStocksFromGlobalMarket() {
+    syncStocksFromGlobalMarket(force = false) {
       if (!this.state || !this.state.stocks || !window.mmoGlobalMarket) return;
+      const sharedTs = typeof window.mmoGlobalMarket.getSharedUpdatedAt === 'function'
+        ? window.mmoGlobalMarket.getSharedUpdatedAt()
+        : Date.now();
+      if (!force && this._lastGlobalStockSyncAt && sharedTs <= this._lastGlobalStockSyncAt) {
+        return;
+      }
+      this._lastGlobalStockSyncAt = sharedTs;
       const gStocks = window.mmoGlobalMarket.getGlobalStocks();
       Object.keys(gStocks).forEach((sym) => {
         const gs = gStocks[sym];
@@ -342,7 +349,7 @@
     ensureLoaded() {
       const uid = (window.currentProfile && window.currentProfile.id) || 'guest';
       if (this.userId === uid && this.state) {
-        this.syncStocksFromGlobalMarket();
+        this.syncStocksFromGlobalMarket(false);
         return this.state;
       }
       this.userId = uid;
@@ -352,7 +359,7 @@
         if (raw) parsed = JSON.parse(raw);
       } catch (e) {}
       this.state = this.normalizeState(parsed);
-      this.syncStocksFromGlobalMarket();
+      this.syncStocksFromGlobalMarket(true);
       this.save(true);
       return this.state;
     }
@@ -376,7 +383,7 @@
       if (!snap || typeof snap !== 'object') return;
       this.userId = (window.currentProfile && window.currentProfile.id) || 'guest';
       this.state = this.normalizeState(snap);
-      this.syncStocksFromGlobalMarket();
+      this.syncStocksFromGlobalMarket(true);
       this.save(true);
     }
 
@@ -750,7 +757,7 @@
 
       if (window.mmoGlobalMarket) {
         const gRes = window.mmoGlobalMarket.applyGlobalStockImpact(corp.symbol, -finalDropPct, actionKind);
-        this.syncStocksFromGlobalMarket();
+        this.syncStocksFromGlobalMarket(true);
         if (!gRes.ok) {
           if (typeof window.showToast === 'function' && gRes.message) window.showToast(gRes.message);
           this.save();
@@ -831,7 +838,7 @@
       const oldPrice = st.price;
       if (window.mmoGlobalMarket) {
         window.mmoGlobalMarket.applyGlobalStockImpact(corp.symbol, boostPct, 'whitehat_restore');
-        this.syncStocksFromGlobalMarket();
+        this.syncStocksFromGlobalMarket(true);
       } else {
         st.integrity = Math.min(125, +(st.integrity + 14).toFixed(1));
         st.price = +(st.price * (1 + boostPct)).toFixed(2);

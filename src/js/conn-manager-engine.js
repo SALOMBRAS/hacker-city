@@ -85,11 +85,12 @@
     }
 
     registerInboundSession(session) {
-      if (window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.isNewbiePvpShieldActive === 'function' && window.progressiveUnlockEngine.isNewbiePvpShieldActive() && !(session && session.forceTest)) {
+      const isExplicitTrainingSim = !!(session && (session.forceTest || String(session.id || '').startsWith('sim_')));
+      if (window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.isNewbiePvpShieldActive === 'function' && window.progressiveUnlockEngine.isNewbiePvpShieldActive() && !isExplicitTrainingSim) {
         if (typeof window.addLocalLog === 'function') {
           window.addLocalLog('SHIELD-RECRUTA', `Escudo Iniciante (< 200 REP) bloqueou tentativa de intrusão externa de ${session ? session.originIp : 'remoto'}.`, 'info');
         }
-        return;
+        return { blockedByNewbieShield: true };
       }
       const idx = this.inboundSessions.findIndex((s) => s.originIp === session.originIp);
       if (idx >= 0) {

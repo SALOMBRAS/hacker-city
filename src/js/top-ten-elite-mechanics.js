@@ -543,7 +543,7 @@
       if (window.ecosystemHub) {
         window.ecosystemHub.ensureLoaded();
         if (window.mmoGlobalMarket) {
-          window.ecosystemHub.syncStocksFromGlobalMarket();
+          window.ecosystemHub.syncStocksFromGlobalMarket(true);
           window.ecosystemHub.save();
         } else {
           const st = window.ecosystemHub.state.stocks && window.ecosystemHub.state.stocks[proof.corpSymbol];

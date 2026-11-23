@@ -241,7 +241,7 @@
           window.nineSystemsEngine.renderLaunderingHub();
         }
         if (isVisible('winOpsHub') && window.ecosystemHub) {
-          window.ecosystemHub.syncStocksFromGlobalMarket();
+          window.ecosystemHub.syncStocksFromGlobalMarket(true);
           window.ecosystemHub.renderUI();
         }
         if (isVisible('winVirusLab') && window.nineSystemsEngine && typeof window.renderVirusLab === 'function') {
@@ -604,6 +604,11 @@
     // =========================================================================
     // 4. BOLSA GLOBAL UNIFICADA (8 EMPRESAS + CIRCUIT BREAKER 10 MIN)
     // =========================================================================
+    getSharedUpdatedAt() {
+      const ledger = this.readShared();
+      return Number(ledger.updatedAt || 0);
+    }
+
     getGlobalStocks() {
       const ledger = this.readShared();
       const now = Date.now();
