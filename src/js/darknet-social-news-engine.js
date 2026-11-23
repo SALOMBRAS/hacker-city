@@ -638,7 +638,7 @@
           ${this.composeOpen ? `
             <div class="hc-card" id="forumComposeCard" style="margin-bottom: 16px; padding: 16px 18px;">
               <div style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">Criar novo tópico no Fórum da Rede</div>
-              <div style="display: grid; grid-template-columns: 1fr 200px; gap: 10px; margin-bottom: 10px;">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 10px; margin-bottom: 10px;">
                 <input type="text" id="new-thread-title" class="form-input" maxlength="140" placeholder="Assunto claro e direto...">
                 <select id="new-thread-category" class="form-input">
                   <option value="exploits">Dicas &amp; Exploits</option>

@@ -255,7 +255,7 @@
       } else {
         const selected = this.state.inbox.find((m) => m.id === this.selectedMailId) || this.state.inbox[0] || null;
         contentHtml = `
-          <div style="display:grid;grid-template-columns:minmax(260px,0.95fr) minmax(320px,1.4fr);gap:14px;">
+          <div class="hc-mail-layout">
             <div class="hc-card" style="padding:0;overflow:hidden;">
               ${this.state.inbox.length === 0
                 ? `<div style="padding:1.5rem;text-align:center;color:var(--hc-text-3);font-size:0.82rem;">Caixa de entrada vazia.</div>`
@@ -721,7 +721,7 @@
         : `
           <div class="hc-card" style="padding:1.2rem;">
             <div class="hc-eyebrow" style="margin-bottom:6px;">Fundar Novo Clã ($ 1.000 HC · Inclui Servidor Dedicado IP Próprio)</div>
-            <div style="display:grid;grid-template-columns:minmax(180px,1.2fr) 110px minmax(200px,1.5fr) auto;gap:8px;align-items:center;">
+            <div class="hc-responsive-row-grid" style="display:grid;grid-template-columns:minmax(180px,1.2fr) 110px minmax(200px,1.5fr) auto;gap:8px;align-items:center;">
               <input type="text" id="clanCreateNameInput" class="form-input" placeholder="Nome do Clã (ex: Zero Trace)">
               <input type="text" id="clanCreateTagInput" class="form-input" maxlength="4" style="font-family:var(--hc-font-mono);text-transform:uppercase;" placeholder="TAG">
               <input type="text" id="clanCreateDescInput" class="form-input" placeholder="Lema / Especialidade do clã...">
@@ -733,7 +733,7 @@
       const listHtml = clans.map((c, idx) => {
         const isMine = my && my.id === c.id;
         return `
-          <div class="hc-card" style="padding:0.95rem 1.1rem;display:grid;grid-template-columns:46px minmax(220px,1.4fr) minmax(160px,1fr) auto;gap:12px;align-items:center;">
+          <div class="hc-card hc-responsive-row-grid" style="padding:0.95rem 1.1rem;display:grid;grid-template-columns:46px minmax(220px,1.4fr) minmax(160px,1fr) auto;gap:12px;align-items:center;">
             <strong style="font-family:var(--hc-font-mono);color:var(--hc-text-3);">#${idx + 1}</strong>
             <div>
               <strong style="font-size:0.94rem;">[${esc(c.tag)}] ${esc(c.name)}</strong>

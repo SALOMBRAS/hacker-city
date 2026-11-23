@@ -386,7 +386,7 @@
           : this.fbiWantedList.map((w) => {
               const canBeat = myGbps >= w.defenseGbps && w.ip !== myIp;
               return `
-                <div class="hc-card" style="padding:1rem 1.2rem;display:grid;grid-template-columns:minmax(210px,1.3fr) minmax(210px,1.5fr) minmax(150px,1fr) auto;gap:12px;align-items:center;border-color:rgba(208,68,58,0.35);">
+                <div class="hc-card hc-responsive-row-grid" style="padding:1rem 1.2rem;display:grid;grid-template-columns:minmax(210px,1.3fr) minmax(210px,1.5fr) minmax(150px,1fr) auto;gap:12px;align-items:center;border-color:rgba(208,68,58,0.35);">
                   <div>
                     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                       <span class="hc-badge danger">PROCURADO FBI</span>
@@ -419,7 +419,7 @@
               `;
             }).join('');
         bodyHtml = `
-          <div style="display:flex;justify-content:space-between;align-items:center;background:#151c27;border:1px solid #28374d;border-radius:8px;padding:10px 14px;margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:#151c27;border:1px solid #28374d;border-radius:8px;padding:10px 14px;margin-bottom:10px;">
             <div style="font-size:0.84rem;color:#cbd5e1;">
               💡 <strong>Dossiês Federais:</strong> IPs mascarados como <code>161.89.X.X</code> podem ser desmascarados invadindo o Mainframe do FBI.
             </div>
@@ -1116,7 +1116,7 @@
       const playerDef = this.getPlayerDefenseScore();
 
       const rankingRows = board.map((r) => `
-        <div style="display:grid;grid-template-columns:42px minmax(150px,1.2fr) minmax(120px,1fr) minmax(90px,0.7fr) auto;gap:10px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--hc-border);background:${r.isPlayer ? 'rgba(53,184,119,0.09)' : 'transparent'};border-radius:6px;font-size:0.81rem;">
+        <div class="hc-responsive-row-grid" style="display:grid;grid-template-columns:42px minmax(150px,1.2fr) minmax(120px,1fr) minmax(90px,0.7fr) auto;gap:10px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--hc-border);background:${r.isPlayer ? 'rgba(53,184,119,0.09)' : 'transparent'};border-radius:6px;font-size:0.81rem;">
           <strong style="font-family:var(--hc-font-mono);color:${r.isPlayer ? 'var(--hc-accent-text)' : 'var(--hc-text-3)'};">#${r.rank}</strong>
           <div>
             <strong>${esc(r.handle)}</strong>
@@ -1148,9 +1148,9 @@
       }).join('');
 
       return `
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:14px;">
+        <div class="hc-fbi-two-col">
           <div class="hc-card" style="padding:1.1rem;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
               <div class="hc-eyebrow">Ranking Vivo da Sub-Rede (Jogadores Online Agora)</div>
               <span style="font-size:0.75rem;color:var(--hc-text-2);">Sua Defesa (FWL+HASH): <strong>${playerDef}x</strong></span>
             </div>
@@ -1158,7 +1158,7 @@
           </div>
 
           <div class="hc-card" style="padding:1.1rem;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
               <div class="hc-eyebrow">Movimentação em Tempo Real (Invasões &amp; Disputas na Rede)</div>
               <button type="button" id="btnSimulateBotHuntNow" class="hc-btn ghost sm" onclick="window.livingBotsEngine.attemptBotHuntOnPlayer(true);window.safenetFbiEngine.renderUI();">
                 Testar Defesa Contra Invasor
