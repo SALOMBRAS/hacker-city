@@ -209,7 +209,7 @@
             Com o Bounce ligado, o servidor alvo enxerga apenas o IP do <strong>último salto</strong> da cadeia, mantendo seu IP público verdadeiro oculto!
           </p>
 
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:14px;">
             <div style="background:var(--hc-inset);border:1px solid var(--hc-border);border-radius:8px;padding:10px;">
               <div class="hc-eyebrow" style="margin-bottom:8px;">Servidores Disponíveis (Hacked DB)</div>
               ${knownHosts.length === 0
@@ -764,11 +764,11 @@
         }).join('');
 
       return `
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-top:8px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px;margin-top:8px;">
           <!-- Ferramentas de Camuflagem Hider.hdr & Seeker.skr -->
           <div class="hc-card" style="padding:1.1rem;">
             <div class="hc-eyebrow" style="margin-bottom:8px;">Esconder &amp; Revelar Arquivos Secretos</div>
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--hc-border);">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--hc-border);">
               <div>
                 <strong>Camuflador de Vírus <span style="font-family:var(--hc-font-mono);font-size:0.76rem;color:var(--hc-text-3);">(Hider.hdr)</span></strong>
                 <span class="hc-badge success" style="margin-left:6px;">v${this.getHiderVer().toFixed(1)}</span>
@@ -776,7 +776,7 @@
               </div>
               <button type="button" id="btnUpgradeHider" class="hc-btn primary sm" onclick="window.handleUpgradeStealth('hider')">Melhorar</button>
             </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 0;">
               <div>
                 <strong>Detector de Cofres <span style="font-family:var(--hc-font-mono);font-size:0.76rem;color:var(--hc-text-3);">(Seeker.skr)</span></strong>
                 <span class="hc-badge info" style="margin-left:6px;">v${this.getSeekerVer().toFixed(1)}</span>

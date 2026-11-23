@@ -653,7 +653,7 @@ class QuitineteEngine {
         <div class="soft-explorer-shell">
           <div class="soft-main-col">
             <!-- Faixa de Tempo & Regra das 12h + Pausa em 3 Meses -->
-            <div class="hw-total-strip" style="grid-template-columns:repeat(4, minmax(0, 1fr));">
+            <div class="hw-total-strip cols-4">
               <div class="hw-total-tile" tabindex="0"
                 data-tip-title="Escala de Tempo do Jogo" data-tip-meta="24x Tempo Real"
                 data-tip-desc="1 Hora da vida real equivale a 1 Dia no jogo; 1 Dia da vida real (24h) equivale a 1 Mês inteiro no jogo.">
