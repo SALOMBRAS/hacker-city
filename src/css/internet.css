@@ -260,6 +260,24 @@
   height: 12px;
 }
 
+@media (max-width: 680px) {
+  .inet-navbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+  }
+  .inet-addr-wrap {
+    flex: 1 1 100%;
+    order: 2;
+    height: 38px;
+  }
+  .inet-route-chip {
+    max-width: 118px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
 .inet-go-btn {
   height: 36px;
   padding: 0 16px;
@@ -1038,6 +1056,18 @@
 .hub-mini-hack:hover {
   border-color: var(--hc-accent) !important;
   color: var(--hc-accent-text) !important;
+}
+
+@media (hover: none), (max-width: 860px) {
+  .hub-mini-hack {
+    opacity: 0.96;
+    color: var(--hc-text-2);
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  .hub-site-line {
+    flex-wrap: wrap;
+  }
 }
 
 .inet-side-card {
