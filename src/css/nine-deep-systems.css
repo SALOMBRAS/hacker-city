@@ -226,6 +226,8 @@
   font-family: var(--hc-font-mono);
   font-size: 11.5px;
   font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
   cursor: pointer;
 }
 
@@ -241,6 +243,8 @@
   font-family: var(--hc-font-mono);
   font-size: 11.5px;
   font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
   cursor: pointer;
 }
 

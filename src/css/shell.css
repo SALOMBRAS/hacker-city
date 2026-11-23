@@ -777,7 +777,11 @@
 }
 
 /* ---------- Responsividade Mobile & Telas Médias ---------- */
-#btnMobileNavToggle { display: none; }
+#btnMobileNavToggle,
+#btnMobileIpQuick,
+.hc-mobile-ip-bar,
+.mobile-drawer-close-btn,
+.hc-mobile-backdrop { display: none; }
 
 @media (max-width: 1460px) {
   .topbar-stats { gap: 8px; }
@@ -796,18 +800,62 @@
 
 @media (max-width: 860px) {
   #desktopEnvironment { grid-template-columns: minmax(0, 1fr) !important; }
-  .topbar { grid-column: 1; padding: 0 12px; gap: 8px; }
+  .topbar { grid-column: 1; padding: 0 10px; gap: 6px; overflow: hidden; }
+  .topbar-left { flex: 0 0 auto; gap: 6px; }
+  .topbar-stats {
+    flex: 1 1 auto; min-width: 0; gap: 6px;
+    overflow-x: auto; overflow-y: hidden;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  .topbar-stats::-webkit-scrollbar { display: none; }
+  .topbar-metric, .hud-notif-btn, .user-chip { flex-shrink: 0; }
+  .topbar-metric.hide-sm, .topbar-metric.hide-md { display: inline-flex !important; }
+  .user-chip { padding-left: 8px; gap: 6px; }
   .window-frame { left: 0 !important; right: 0 !important; grid-column: 1; }
-  .window-header { padding: 16px 16px 0 !important; }
-  .window-body { padding: 14px 16px 68px !important; }
-  #btnMobileNavToggle {
+  .window-header { padding: 14px 14px 0 !important; }
+  .window-body { padding: 12px 14px 68px !important; }
+  #btnMobileNavToggle,
+  #btnMobileIpQuick {
     display: inline-flex; align-items: center; justify-content: center;
     width: 34px; height: 34px; border-radius: 7px;
     border: 1px solid var(--hc-border); background: var(--hc-surface);
     color: var(--hc-text); cursor: pointer; flex-shrink: 0;
   }
-  .sidebar { display: none; position: fixed; top: 0; bottom: 0; left: 0 !important; width: 268px; z-index: 980; }
+  .hc-mobile-ip-bar.open {
+    display: flex; align-items: center; gap: 8px;
+    position: fixed; top: var(--hc-topbar-h); left: 0; right: 0; z-index: 940;
+    padding: 8px 12px; background: #121720; border-bottom: 1px solid var(--hc-accent);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.65);
+  }
+  .hc-floating-tasks { right: 12px; bottom: 12px; min-width: 148px; }
+  .toast-popup { left: 12px; right: 12px; bottom: 58px; max-width: calc(100vw - 24px); }
+  .sidebar { display: none; position: fixed; top: 0; bottom: 0; left: 0 !important; width: min(286px, 84vw); z-index: 980; }
   .sidebar.mobile-open { display: flex; box-shadow: 0 0 48px rgba(0,0,0,0.85); }
+  .hc-mobile-backdrop.active,
+  body:has(.sidebar.mobile-open) .hc-mobile-backdrop {
+    display: block; position: fixed; inset: 0; z-index: 975;
+    background: rgba(4, 8, 14, 0.72); backdrop-filter: blur(2px);
+  }
+  .mobile-drawer-close-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-left: auto; width: 32px; height: 32px; border-radius: 7px;
+    border: 1px solid var(--hc-border); background: var(--hc-surface-2);
+    color: var(--hc-text-2); font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  /* Garante que o modo recolhido do desktop nunca esconda rótulos dentro da gaveta mobile */
+  #desktopEnvironment.sidebar-collapsed .brand-name,
+  #desktopEnvironment.sidebar-collapsed .brand-beta,
+  #desktopEnvironment.sidebar-collapsed .nav-section,
+  #desktopEnvironment.sidebar-collapsed .nav-topic-label,
+  #desktopEnvironment.sidebar-collapsed .nav-chevron,
+  #desktopEnvironment.sidebar-collapsed .nav-direct-label,
+  #desktopEnvironment.sidebar-collapsed .sidebar-meta-left { display: revert; }
+  #desktopEnvironment.sidebar-collapsed .sidebar-brand { justify-content: flex-start; padding: 0 14px; }
+  #desktopEnvironment.sidebar-collapsed .nav-topic-summary,
+  #desktopEnvironment.sidebar-collapsed .sidebar-nav > .nav-item,
+  #desktopEnvironment.sidebar-collapsed .sidebar-nav > .nav-quick-btn { justify-content: flex-start; padding: 7px 10px; }
+  #desktopEnvironment.sidebar-collapsed .sidebar-footer { flex-direction: row; height: 44px; padding: 0 10px; }
+  #btnCollapseSidebar { display: none !important; }
   .nav-sublist {
     margin: 4px 4px 6px 14px;
     padding: 4px 4px 4px 10px;
@@ -815,7 +863,7 @@
     display: flex; flex-direction: column; gap: 2px;
   }
   .flyout-head { display: none; }
-  .topbar-ip-omnibox, .topbar-metric.hide-sm, .user-meta { display: none !important; }
+  .topbar-ip-omnibox, .user-meta { display: none !important; }
   .inet-shell { grid-template-columns: 1fr !important; }
 }
 
