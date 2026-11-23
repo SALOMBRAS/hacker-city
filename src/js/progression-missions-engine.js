@@ -620,7 +620,7 @@
   }
 
   // =========================================================================
-  // 2. TUTORIAL DE INVASÃO GUIADA EM 5 ETAPAS (ALVO 198.51.100.42)
+  // 2. TRILHA PRÁTICA DO INICIANTE EM 6 ETAPAS (CURSO -> INVADIR -> SUJO -> LOG -> LAVAR -> FORMATURA)
   // =========================================================================
   const TUTORIAL_TARGET_IP = '198.51.100.42';
 
@@ -645,12 +645,18 @@
         if (raw) saved = JSON.parse(raw);
       } catch (e) {}
 
-      this.state = saved && saved.step ? saved : {
-        step: 1, // 1..5, 6 = concluído
+      this.state = saved && saved.step ? {
+        firstWashDone: false,
+        dirtySampleGranted: false,
+        ...saved
+      } : {
+        step: 1, // 1..6, 7 = concluído
         completed: false,
         fileExtracted: false,
         virusPlanted: false,
-        logsCleaned: false
+        logsCleaned: false,
+        firstWashDone: false,
+        dirtySampleGranted: false
       };
       return this.state;
     }
@@ -667,15 +673,34 @@
       return !!this.state.completed;
     }
 
+    isReadyForTutorialWash() {
+      this.ensureLoaded();
+      return !this.state.completed && this.state.step === 5 && !this.state.firstWashDone;
+    }
+
+    ensureTrainingDirtySample() {
+      this.ensureLoaded();
+      if (this.state.dirtySampleGranted) return;
+      this.state.dirtySampleGranted = true;
+      if (window.nineSystemsEngine && typeof window.nineSystemsEngine.getDirtyBalance === 'function') {
+        if (window.nineSystemsEngine.getDirtyBalance() <= 0) {
+          window.nineSystemsEngine.addDirtyMoney(600, '1º Saque de Treino (198.51.100.42)');
+        }
+      }
+      if (window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.syncSidebarDom === 'function') {
+        window.progressiveUnlockEngine.syncSidebarDom();
+      }
+    }
+
     getCurrentStepInfo() {
       this.ensureLoaded();
       if (this.state.completed) {
         return {
           completed: true,
-          step: 5,
-          title: 'Operação Numataka Concluída',
-          desc: 'Você concluiu o treinamento de invasão e desbloqueou todos os contratos do submundo!',
-          cta: 'Abrir Quadro de Missões',
+          step: 6,
+          title: 'Treinamento Inicial Concluído!',
+          desc: 'Você dominou Invasão, Limpeza de Rastro e Lavagem de Dinheiro! Pegue contratos pagos e siga para o Curso #2.',
+          cta: 'Abrir Trabalhos & Missões',
           action: () => window.openWindow('winMissions')
         };
       }
@@ -685,9 +710,9 @@
         return {
           completed: false,
           step: 1,
-          badge: 'Tutorial · Etapa 1 de 5',
-          title: 'Conclua o Curso #1 (Grátis) na Universidade',
-          desc: 'Ensei Tankado (Numataka Corp) exige que você conclua a Certificação #1 gratuita antes de liberar o IP do servidor de teste.',
+          badge: 'Treinamento · Etapa 1 de 6',
+          title: 'Conclua o Curso #1 (Grátis e Imediato) na Universidade',
+          desc: 'Aprenda em 1 minuto sobre IP Protegido, Contas das 12h e Dinheiro Sujo vs. Limpo (+100 REP e +$ 80 Limpos).',
           cta: 'Abrir Universidade (Grátis)',
           action: () => {
             window.openWindow('winUniversity');
@@ -699,10 +724,10 @@
         return {
           completed: false,
           step: 2,
-          badge: 'Tutorial · Etapa 2 de 5',
-          title: `Invada o Servidor de Treinamento (${TUTORIAL_TARGET_IP})`,
-          desc: `Abra ${TUTORIAL_TARGET_IP} na aba Internet, quebre a senha com Ataque Força-Bruta (ou Port Scan + Exploit) e conecte-se como root.`,
-          cta: `Invadir ${TUTORIAL_TARGET_IP} →`,
+          badge: 'Treinamento · Etapa 2 de 6',
+          title: `Invada o PC de Treino (${TUTORIAL_TARGET_IP})`,
+          desc: `Abra ${TUTORIAL_TARGET_IP} na Internet, compare a defesa (v1.0) e quebre a senha usando seu Cracker.crc v1.0.`,
+          cta: `Invadir ${TUTORIAL_TARGET_IP}`,
           action: () => window.internetEngine.openIp(TUTORIAL_TARGET_IP, 'invadir')
         };
       }
@@ -710,10 +735,10 @@
         return {
           completed: false,
           step: 3,
-          badge: 'Tutorial · Etapa 3 de 5',
-          title: `Extraia o Dossiê ou Plante um Vírus em ${TUTORIAL_TARGET_IP}`,
-          desc: `Conectado como root em ${TUTORIAL_TARGET_IP}, abra a sub-aba "Vírus, Carteira & Arquivos", clique em "Ler / Extrair" no arquivo dossie_tankado.txt ou instale um vírus!`,
-          cta: `Abrir Arquivos de ${TUTORIAL_TARGET_IP} →`,
+          badge: 'Treinamento · Etapa 3 de 6',
+          title: `Plante seu 1º Vírus ou Extraia o Dossiê (${TUTORIAL_TARGET_IP})`,
+          desc: `Na sub-aba "Vírus, Carteira & Arquivos", suba/execute seu Spam.vspam ou clique em "Ler / Extrair" para ganhar +$ 600 em Dinheiro Sujo!`,
+          cta: `Abrir Arquivos de ${TUTORIAL_TARGET_IP}`,
           action: () => {
             window.internetEngine.openIp(TUTORIAL_TARGET_IP, 'entrar');
             if (window.internetEngine.activeSshIp === TUTORIAL_TARGET_IP) {
@@ -727,10 +752,10 @@
         return {
           completed: false,
           step: 4,
-          badge: 'Tutorial · Etapa 4 de 5',
-          title: `Apague seu IP do /var/log/syslog de ${TUTORIAL_TARGET_IP}`,
-          desc: 'Regra vital de sobrevivência: vá à sub-aba Logs (/var/log/syslog) da máquina invadida, limpe todas as linhas com seu IP público e salve!',
-          cta: `Limpar Log em ${TUTORIAL_TARGET_IP} →`,
+          badge: 'Treinamento · Etapa 4 de 6',
+          title: `Apague seu IP na Aba Logs de ${TUTORIAL_TARGET_IP}`,
+          desc: 'Regra de sobrevivência: entre na sub-aba Logs (/var/log/syslog), clique em Apagar Meu IP e salve antes de sair!',
+          cta: `Limpar Rastro em ${TUTORIAL_TARGET_IP}`,
           action: () => {
             window.internetEngine.openIp(TUTORIAL_TARGET_IP, 'entrar');
             if (window.internetEngine.activeSshIp === TUTORIAL_TARGET_IP) {
@@ -740,13 +765,28 @@
           }
         };
       }
+      if (s === 5) {
+        return {
+          completed: false,
+          step: 5,
+          badge: 'Treinamento · Etapa 5 de 6 (Prática Nova!)',
+          title: 'Lave seu 1º Dinheiro Sujo na Vitrine Global (Bônus 8s!)',
+          desc: 'Dinheiro Sujo não compra peças! Abra a Vitrine Global de Lavagem e envie seus $ 600 Sujos (neste 1º treino fica pronto em só 8 segundos!).',
+          cta: 'Abrir Vitrine de Lavagem',
+          action: () => {
+            this.ensureTrainingDirtySample();
+            if (typeof window.navTo === 'function') window.navTo('winLaundering');
+            else window.openWindow('winLaundering');
+          }
+        };
+      }
       return {
         completed: false,
-        step: 5,
-        badge: 'Tutorial · Etapa 5 de 5 (Recompensa Pronta!)',
-        title: 'Resgate seu Pagamento Inicial ($ 350 HC + 0.00200 BTC)',
-        desc: 'Invasão limpa sem deixar rastros! Clique para receber $ 350 HC, +0.00200000 BTC na carteira e liberar o Quadro de Missões.',
-        cta: 'Resgatar $ 350 + 0.00200 BTC →',
+        step: 6,
+        badge: 'Treinamento · Etapa 6 de 6 (Prêmio Pronto!)',
+        title: 'Resgate sua Formatura (+$ 500 Limpos + 0.00200 BTC + 120 REP)',
+        desc: 'Parabéns! Você aprendeu o ciclo completo: estudar, invadir, limpar rastro e lavar Dinheiro Sujo em Dinheiro Limpo!',
+        cta: 'Resgatar $ 500 Limpos + BTC',
         action: () => this.claimFinalReward()
       };
     }
@@ -754,7 +794,8 @@
     onCertCompleted(certId) {
       this.ensureLoaded();
       if (!this.state.completed && this.state.step === 1 && certId >= 1) {
-        this.state.step = 2;
+        const alreadyWipedInTour = !!this.state.logsCleaned;
+        this.state.step = alreadyWipedInTour ? (this.state.firstWashDone ? 6 : 5) : 2;
         if (window.currentWallet) {
           const grantStep1 = () => {
             window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + 80).toFixed(2);
@@ -767,8 +808,11 @@
         }
         this.save();
         if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+        if (typeof window.renderHome === 'function' && window.winManager?.current === 'winHome') window.renderHome();
         if (typeof window.showToast === 'function') {
-          window.showToast(`Etapa 1 concluída (+$ 80 HC)! Agora invada ${TUTORIAL_TARGET_IP} na aba Internet.`);
+          window.showToast(alreadyWipedInTour
+            ? 'Curso #1 concluído (+$ 80 Limpos)! Agora envie sua 1ª remessa na Vitrine de Lavagem!'
+            : `Etapa 1 concluída (+$ 80 Limpos)! Agora invada ${TUTORIAL_TARGET_IP} na Internet.`);
         }
       }
     }
@@ -780,7 +824,7 @@
         this.state.step = 3;
         this.save();
         if (typeof window.showToast === 'function') {
-          window.showToast('Etapa 2 concluída! Abra "Vírus, Carteira & Arquivos" para extrair dossie_tankado.txt ou plantar um vírus.');
+          window.showToast('Etapa 2 concluída! Suba/execute seu vírus ou extraia o dossiê na aba Arquivos.');
         }
         if (typeof window.renderHome === 'function') window.renderHome();
       }
@@ -791,10 +835,11 @@
       if (this.state.completed) return;
       if (ip === TUTORIAL_TARGET_IP && this.state.step <= 3) {
         this.state.fileExtracted = true;
+        this.ensureTrainingDirtySample();
         this.state.step = 4;
         this.save();
         if (typeof window.showToast === 'function') {
-          window.showToast('Etapa 3 concluída! Agora apague seu IP na aba Logs (/var/log/syslog) e salve!');
+          window.showToast('Etapa 3 concluída (+$ 600 Sujos)! Agora apague seu IP na aba Logs (/var/log/syslog)!');
         }
         if (typeof window.renderHome === 'function') window.renderHome();
       }
@@ -808,14 +853,36 @@
         const stillExposed = (remainingLines || []).some((l) => myIp && l.includes(myIp));
         if (!stillExposed) {
           this.state.logsCleaned = true;
-          this.state.step = 5;
+          this.ensureTrainingDirtySample();
+          const hasWashed = !!(window.nineSystemsEngine && window.nineSystemsEngine.state && Array.isArray(window.nineSystemsEngine.state.washingJobs) && window.nineSystemsEngine.state.washingJobs.length > 0);
+          this.state.firstWashDone = this.state.firstWashDone || hasWashed;
+          this.state.step = this.state.firstWashDone ? 6 : 5;
           this.save();
           if (typeof window.showToast === 'function') {
-            window.showToast('Rastro apagado com perfeição! Resgate agora seu prêmio de $ 350 HC + 0.00200 BTC!');
+            window.showToast(this.state.step === 5
+              ? '🧼 Rastro limpo! Agora abra Lavar Dinheiro (selo NOVO) e lave seus $ 600 Sujos em 8 segundos!'
+              : 'Rastro apagado com perfeição! Resgate agora seu prêmio de formatura na Home!');
           }
           if (typeof window.renderHome === 'function') window.renderHome();
           if (window.missionsEngine) window.missionsEngine.renderUI();
         }
+      }
+    }
+
+    onFirstWashStarted(grossDirty, isExpress) {
+      this.ensureLoaded();
+      this.state.firstWashDone = true;
+      if (!this.state.completed && this.state.step === 5) {
+        this.state.step = 6;
+        this.save();
+        if (typeof window.renderHome === 'function' && window.winManager?.current === 'winHome') {
+          window.renderHome();
+        }
+        if (typeof window.showToast === 'function') {
+          window.showToast('🎉 Etapa 5 concluída! Em segundos seu Dinheiro Limpo cai na conta — volte em Início para resgatar +$ 500 Limpos + BTC!');
+        }
+      } else {
+        this.save();
       }
     }
 
@@ -824,12 +891,12 @@
       if (this.state.completed || this.state.step < 5) return { success: false };
 
       this.state.completed = true;
-      this.state.step = 6;
+      this.state.step = 7;
       this.save();
 
       const grantTutFinal = () => {
         if (window.currentWallet) {
-          window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + 350).toFixed(2);
+          window.currentWallet.balance = +(parseFloat(window.currentWallet.balance) + 500).toFixed(2);
         }
         if (window.currentProfile) {
           window.currentProfile.reputation = (window.currentProfile.reputation || 0) + 120;
@@ -841,18 +908,23 @@
         grantTutFinal();
       }
       if (window.bitcoinEngine) {
-        window.bitcoinEngine.creditSats(200000, 'TUTORIAL', 'Pagamento inicial Numataka // Conclusão da Invasão Tutorial (+0.00200000 BTC)');
+        window.bitcoinEngine.creditSats(200000, 'TUTORIAL', 'Prêmio de Formatura do Treinamento Inicial (+0.00200000 BTC)');
+      }
+      if (window.progressiveUnlockEngine) {
+        window.progressiveUnlockEngine.evaluateUnlocks(false);
+        window.progressiveUnlockEngine.syncSidebarDom();
       }
       if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
 
       if (typeof window.addLocalLog === 'function') {
-        window.addLocalLog('STORY-OK', 'Invasão Tutorial Numataka concluída! Recebido +$ 350.00 HC, +0.00200000 BTC e +120 REP.', 'success');
+        window.addLocalLog('STORY-OK', 'Treinamento Inicial de 6 Etapas concluído! Recebido +$ 500.00 Limpos, +0.00200000 BTC e +120 REP.', 'success');
       }
       if (window.hackerAudio) window.hackerAudio.playMoneyCollect();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+      if (typeof window.renderHome === 'function' && window.winManager?.current === 'winHome') window.renderHome();
       if (window.missionsEngine) window.missionsEngine.renderUI();
       if (typeof window.showToast === 'function') {
-        window.showToast('Parabéns! Você recebeu $ 350 HC + 0.00200000 BTC e liberou todos os contratos!');
+        window.showToast('🏆 Formatura concluída! +$ 500 Limpos, +0.00200 BTC, +120 REP e Trabalhos liberados!');
       }
       return { success: true };
     }
