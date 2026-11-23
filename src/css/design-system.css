@@ -386,6 +386,72 @@ h1, h2, h3, h4 { font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; }
   -webkit-user-select: text;
 }
 
+/* ---- Utilitários Responsivos & Touch Mobile (Grades, Tabelas e Mapas SVG) ---- */
+.hc-table-scroll,
+.hc-svg-pan-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.hc-mobile-pan-hint {
+  display: none;
+  font-family: var(--hc-font-mono);
+  font-size: 11px;
+  color: var(--hc-accent-text);
+  padding: 5px 10px;
+  background: rgba(53, 184, 119, 0.08);
+  border-bottom: 1px solid var(--hc-border);
+  text-align: center;
+}
+
+.hc-mail-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.95fr) minmax(320px, 1.4fr);
+  gap: 14px;
+}
+
+.hc-fbi-two-col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 860px) {
+  .hc-mail-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .hc-mobile-pan-hint {
+    display: block;
+  }
+  .hc-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .hc-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .hc-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 780px) {
+  .hc-responsive-row-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .hc-choice-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
