@@ -24,11 +24,13 @@
     {
       id: 1,
       code: 'CERT-101',
-      title: 'Fundamentos, Privacidade de IP & Ciclo de Contas',
+      title: 'Fundamentos: IP Protegido, Contas das 12h & Dinheiro Sujo vs. Limpo',
       cost: 0,
+      reqRep: 0,
+      studyLabel: 'Imediato',
       repReward: 100,
-      unlockBadge: 'Acesso à Rede & Tutorial',
-      bonusDesc: '+100 REP · Destrava o Curso #2 e a operação inicial da Numataka',
+      unlockBadge: 'Libera Trabalhos, Lavagem & Etapa 2',
+      bonusDesc: '+100 REP · Destrava Trabalhos & Missões, Lavagem de Dinheiro e Curso #2',
       exam: {
         question: 'O que acontece se você esquecer seu IP gravado no /var/log/syslog de uma máquina invadida?',
         options: [
@@ -52,11 +54,13 @@
     {
       id: 2,
       code: 'CERT-102',
-      title: 'Hacking 101: Mini-PC de Hashes, Daemons vs Sob Demanda & Logs',
+      title: 'Invasão 101: Força de Programas, Peças/Fonte & Rastros 7-Passos',
       cost: 0,
+      reqRep: 100,
+      studyLabel: '10 min',
       repReward: 100,
-      unlockBadge: '+20% Velocidade CPU em Quebras',
-      bonusDesc: '+100 REP · +20% velocidade de tempo no Cracker · Libera Invasão Tutorial',
+      unlockBadge: '+20% Vel. Quebra + Fórum & BTC',
+      bonusDesc: '+100 REP · +20% velocidade no Quebrador · Destrava Fórum, Notícias, Bitcoin e Placar',
       exam: {
         question: 'Qual é a regra obrigatória para quebrar a senha de um servidor alvo?',
         options: [
@@ -84,11 +88,13 @@
     {
       id: 3,
       code: 'CERT-201',
-      title: 'Exploits FTP/SSH, Bancos & Invasão de Câmeras CFTV/DVR',
-      cost: 250,
+      title: 'Mercado Global MMO: Lavagem 5/1h, Bolsa Unificada, Rotas & Fórum 30m',
+      cost: 1500,
+      reqRep: 250,
+      studyLabel: '45 min',
       repReward: 120,
-      unlockBadge: 'Domínio FTP/SSH, Bank & CFTV',
-      bonusDesc: '+120 REP · Destrava táticas avançadas de Exploit Dual (FTP+SSH), Contas Bancárias e Operações CFTV',
+      unlockBadge: 'Libera Bolsa, Mapa-Múndi & Clãs',
+      bonusDesc: '+120 REP · Destrava Bolsa de Empresas, Mapa-Múndi, Exploits FTP+SSH, Câmeras e Clãs',
       exam: {
         question: 'Como obter acesso ROOT sem precisar quebrar a senha do servidor?',
         options: [
@@ -116,11 +122,13 @@
     {
       id: 4,
       code: 'CERT-301',
-      title: 'Laboratório de Vírus (1+2+1), Escala 3.00x & Rede Zumbi DDoS',
-      cost: 800,
+      title: 'Engenharia de Vírus: Lab (1+2+1), Aluguel P2P, Encomendas & Leilão 2h',
+      cost: 6000,
+      reqRep: 600,
+      studyLabel: '2 horas',
       repReward: 150,
-      unlockBadge: 'Libera Ataques DDoS & +15% Coletor',
-      bonusDesc: '+150 REP · Destrava Canhão DDoS (com DDoS_Breaker.vbrk) · +15% no Collector.vcol',
+      unlockBadge: 'Libera Lab, VPS & Canhão DDoS',
+      bonusDesc: '+150 REP · Destrava Laboratório de Vírus, Servidores VPS, Ataques DDoS e +15% no Coletor',
       exam: {
         question: 'Qual é o multiplicador máximo do vírus mais forte (v10.0) e a regra de uso do Laboratório?',
         options: [
@@ -148,11 +156,13 @@
     {
       id: 5,
       code: 'CERT-401',
-      title: 'Defesa Cibernética, Mitigação DDoS & Contra-Espionagem',
-      cost: 2000,
+      title: 'Mestrado MIT-HC: Defesa 15s (VPS), Cofre Suíço, RAID & Patrocínio Clã',
+      cost: 18000,
+      reqRep: 1500,
+      studyLabel: '6 horas',
       repReward: 200,
-      unlockBadge: 'Mitigação DDoS via Firewall.fwl',
-      bonusDesc: '+200 REP · Medalha [GRADUADO MIT-HC] · Seu Firewall.fwl passa a mitigar/anular ataques DDoS!',
+      unlockBadge: 'Escudo DDoS + Acesso Tier 5',
+      bonusDesc: '+200 REP · Medalha [GRADUADO MIT-HC] · Firewall mitiga ataques DDoS e libera Mainframes Tier 5!',
       exam: {
         question: 'Se um invasor apagar o próprio IP da sua log e deixar apenas uma farpa com o nick dele, como reagir?',
         options: [
@@ -495,7 +505,8 @@
       const courseRows = CERT_COURSES.map((c) => {
         const done = this.hasCert(c.id);
         const unlocked = c.id === 1 || this.hasCert(c.id - 1);
-        const costStr = c.cost === 0 ? 'Grátis' : `$ ${c.cost.toLocaleString('pt-BR')}`;
+        const costStr = c.cost === 0 ? 'Grátis' : `$ ${c.cost.toLocaleString('pt-BR')} Limpos`;
+        const loadStr = `${c.studyLabel || (c.pages.length + ' aulas')}${c.reqRep > 0 ? ` · ${c.reqRep} REP` : ''}`;
         const glyph = done ? 'defense' : (unlocked ? 'attack' : 'text');
 
         return `
@@ -517,8 +528,8 @@
                 <span style="font-family:var(--hc-font-sans);font-weight:500;">${esc(c.title)}</span>
               </span>
             </td>
-            <td class="soft-col-ver">${c.pages.length} aulas</td>
-            <td class="soft-col-size" style="width:110px;color:${c.cost === 0 ? 'var(--hc-accent-text)' : 'var(--hc-warning-text)'};">${esc(costStr)}</td>
+            <td class="soft-col-ver" style="white-space:nowrap;">${esc(loadStr)}</td>
+            <td class="soft-col-size" style="width:128px;white-space:nowrap;color:${c.cost === 0 ? 'var(--hc-accent-text)' : 'var(--hc-warning-text)'};">${esc(costStr)}</td>
             <td class="soft-col-acts">
               <div class="soft-icon-actions">
                 ${done ? `
