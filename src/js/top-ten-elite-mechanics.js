@@ -818,6 +818,14 @@
 
     renderSafehouseUpgradeSectionHtml() {
       this.ensureLoaded();
+      if (window.progressiveUnlockEngine && !window.progressiveUnlockEngine.isUnlocked('winOpsHub') && this.state.safehouseTier === 'quitinete') {
+        return `
+          <div class="hc-card" style="margin-top:14px;padding:11px 14px;border-color:rgba(56,189,248,0.28);background:#0a1018;font-size:12px;color:var(--hc-text-2);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span>🔒 <strong>Próxima Evolução do Esconderijo:</strong> Mudar para Studio Blindado (-5°C e 5 VPS) libera ao chegar em <strong>250 REP</strong> ou concluir o <strong>Curso #3</strong>.</span>
+            <button type="button" class="hc-btn ghost sm" onclick="navTo('winUniversity')">🎓 Ver Cursos →</button>
+          </div>
+        `;
+      }
       const cur = this.getSafehouseMeta();
       const cleanBal = window.currentWallet ? Number(window.currentWallet.balance || 0) : 0;
       const vpsNow = window.lanServersEngine ? window.lanServersEngine.servers.filter((s) => s.id !== 'srv_gateway_01').length : 0;
@@ -1427,6 +1435,14 @@
 
     renderBankBacenjudAndSwissCardHtml() {
       this.ensureLoaded();
+      if (window.progressiveUnlockEngine && !window.progressiveUnlockEngine.isUnlocked('winVirusLab') && !this.state.swissVaultOpened && !this.state.bacenjudActive) {
+        return `
+          <div class="hc-card" style="margin-top:12px;padding:11px 14px;border-color:rgba(56,189,248,0.28);background:#0a1018;font-size:12px;color:var(--hc-text-2);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span>🔒 <strong>Cofre Protegido na Suíça ($ 25.000):</strong> libera automaticamente ao chegar em <strong>500 REP</strong> ou concluir o <strong>Curso #4</strong>.</span>
+            <button type="button" class="hc-btn ghost sm" onclick="navTo('winUniversity')">🎓 Ver Cursos →</button>
+          </div>
+        `;
+      }
       const pendingReps = (this.state.swissRepatriations || []).filter((r) => !r.claimed);
       const swissFeePct = (window.nineSystemsEngine && typeof window.nineSystemsEngine.getCompanyCnpjPerks === 'function')
         ? (Number(window.nineSystemsEngine.getCompanyCnpjPerks().swissDepositFeeRate || 0.04) * 100)

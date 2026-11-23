@@ -665,6 +665,9 @@
       this.state.dirtyBalance = +(this.state.dirtyBalance + amt).toFixed(2);
       this.awardSeasonPoints(Math.max(5, Math.round(amt * 0.04)), sourceLabel);
       this.save();
+      if (window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.notifyResourceEarned === 'function') {
+        window.progressiveUnlockEngine.notifyResourceEarned('dirty_money');
+      }
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       return this.state.dirtyBalance;
     }
