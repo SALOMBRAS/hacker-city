@@ -697,13 +697,13 @@ class QuitineteEngine {
 
             ${summary.isPaused ? `
               <div id="quitPausedCapBanner" class="soft-feedback-banner" style="background:rgba(240,160,58,0.14);border-color:rgba(240,160,58,0.45);color:#ffd28a;">
-                <span>⏸ <strong>Conta Pausada no Limite de 3 Meses (Dias):</strong> você atingiu o teto máximo de 3 faturas acumuladas. Nenhum dia extra foi cobrado enquanto você esteve fora — caso esteja sem Dinheiro Limpo, use o <strong>Micro-Reparo Municipal</strong> abaixo para religar a rede!</span>
-                ${window.progressionLocksEngine ? `<button type="button" id="btnMunicipalEmergencyJob" class="hc-btn primary sm" onclick="window.progressionLocksEngine.executeMunicipalEmergencyJob()">🛠️ Micro-Reparo Municipal (+$ 180 Limpos)</button>` : ''}
+                <span>⏸ <strong>Contas Pausadas no Limite de 3 Meses:</strong> nenhum valor novo acumulou enquanto você esteve fora! Sem Dinheiro Limpo para pagar? Faça um <strong>Serviço Rápido da Prefeitura</strong> abaixo para ganhar $ 180 Limpos e religar tudo:</span>
+                ${window.progressionLocksEngine ? `<button type="button" id="btnMunicipalEmergencyJob" class="hc-btn primary sm" onclick="window.progressionLocksEngine.executeMunicipalEmergencyJob()">🛠️ Serviço da Prefeitura (+$ 180 Limpos)</button>` : ''}
               </div>
             ` : (summary.maxMonths >= 2 && window.progressionLocksEngine ? `
               <div class="soft-feedback-banner" style="background:rgba(229,83,75,0.12);border-color:rgba(229,83,75,0.45);color:#fca5a5;">
-                <span>⚠️ <strong>Racionamento de Inadimplência (${summary.maxMonths}/3 meses):</strong> Nome Sujo comercial ativo, Internet -50% Mbps e CPU -35%! Quite suas faturas ou faça reparo emergencial:</span>
-                <button type="button" id="btnMunicipalEmergencyJob" class="hc-btn ghost sm" onclick="window.progressionLocksEngine.executeMunicipalEmergencyJob()">🛠️ Micro-Reparo (+$ 180)</button>
+                <span>⚠️ <strong>Contas Atrasadas (${summary.maxMonths}/3 meses):</strong> compras de empresas bloqueadas, Internet -50% mais lenta e PC -35% mais fraco! Pague as contas ou faça um Serviço da Prefeitura:</span>
+                <button type="button" id="btnMunicipalEmergencyJob" class="hc-btn ghost sm" onclick="window.progressionLocksEngine.executeMunicipalEmergencyJob()">🛠️ Serviço Rápido (+$ 180 Limpos)</button>
               </div>
             ` : '')}
 
