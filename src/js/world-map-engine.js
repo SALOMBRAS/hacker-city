@@ -389,7 +389,8 @@
             </div>
           </div>
 
-          <div style="background: #0d1117; border: 1px solid var(--hc-border-subtle); border-radius: 8px; overflow-x: auto;">
+          <div class="hc-svg-pan-wrap" style="background: #0d1117; border: 1px solid var(--hc-border-subtle); border-radius: 8px;">
+            <div class="hc-mobile-pan-hint">↔ Deslize o mapa horizontalmente para explorar todas as regiões e rotas</div>
             <svg width="960" height="460" viewBox="0 0 960 460" style="display: block; width: 100%; height: auto; min-width: 720px;">
               <defs>
                 <pattern id="hcWorldGrid" width="48" height="48" patternUnits="userSpaceOnUse">

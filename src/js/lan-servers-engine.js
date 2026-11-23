@@ -541,7 +541,8 @@
             <strong style="font-size: 14px;">Topologia da rede local</strong>
             <span style="font-size: 12px; color: var(--hc-text-3);">Tráfego externo entra pelo Gateway antes de alcançar os nós internos</span>
           </div>
-          <div style="background: var(--hc-inset); border: 1px solid var(--hc-border-subtle); border-radius: 8px; padding: 10px; overflow-x: auto;">
+          <div class="hc-svg-pan-wrap" style="background: var(--hc-inset); border: 1px solid var(--hc-border-subtle); border-radius: 8px; padding: 10px;">
+            <div class="hc-mobile-pan-hint" style="margin:-10px -10px 8px;">↔ Deslize a topologia para o lado para ver todos os nós</div>
             <svg width="${maxX}" height="${svgH}" viewBox="0 0 ${maxX} ${svgH}" style="display: block; margin: 0 auto; min-width: 720px;">
               ${wanToGwEdge}
               ${edgesSvg}
