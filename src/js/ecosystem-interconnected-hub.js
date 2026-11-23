@@ -1953,7 +1953,7 @@
         const isUp = Number(pct) >= 0;
         const longPos = this.state.longPositions[c.symbol];
         const shortPos = this.state.shortPositions[c.symbol];
-        const forecast = st.integrity < 92 ? 'TENDÊNCIA: RECUPERAÇÃO ↑' : (st.integrity > 105 ? 'SOBRECOMPRADO ↓' : 'NEUTRO ↔');
+        const forecast = st.integrity < 92 ? 'VAI SUBIR ↑' : (st.integrity > 105 ? 'PODE CAIR ↓' : 'ESTÁVEL ↔');
         return `
           <tr>
             <td>
@@ -1967,20 +1967,20 @@
             <td>${this.renderSparkline(st.history)}</td>
             <td>
               <span class="hc-badge ${st.integrity < 80 ? 'danger' : 'success'}">${st.integrity}%</span>
-              ${has4s ? `<div style="font-size:10.5px;color:var(--hc-accent-text);margin-top:2px;">4S: ${forecast}</div>` : ''}
+              ${has4s ? `<div style="font-size:10.5px;color:var(--hc-accent-text);margin-top:2px;">Dica: ${forecast}</div>` : ''}
             </td>
             <td style="font-size:11.5px;">
-              ${longPos ? `<span class="hc-badge success">LONG ${longPos.shares.toFixed(2)}</span>` : ''}
-              ${shortPos ? `<span class="hc-badge warn">SHORT @$${shortPos.entryPrice.toFixed(2)}</span>` : ''}
+              ${longPos ? `<span class="hc-badge success">COMPRADO (${longPos.shares.toFixed(2)})</span>` : ''}
+              ${shortPos ? `<span class="hc-badge warn">NA QUEDA @$${shortPos.entryPrice.toFixed(2)}</span>` : ''}
               ${!longPos && !shortPos ? `<span style="color:var(--hc-text-3);">—</span>` : ''}
             </td>
             <td style="text-align:right;">
               <div style="display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap;">
-                <button type="button" id="btnBuyLong_${c.symbol}" class="hc-btn primary sm" onclick="window.ecosystemHub.buyLongPosition('${c.symbol}', Number(document.getElementById('stockOrderUsdInput')?.value || 200))">Comprar</button>
-                ${longPos ? `<button type="button" id="btnSellLong_${c.symbol}" class="hc-btn ghost sm" onclick="window.ecosystemHub.sellLongPosition('${c.symbol}')">Vender Long</button>` : ''}
-                <button type="button" id="btnOpenShort_${c.symbol}" class="hc-btn sm" style="border-color:var(--hc-warning);color:var(--hc-warning);" onclick="window.ecosystemHub.openShortPosition('${c.symbol}', Number(document.getElementById('stockOrderUsdInput')?.value || 200))">Short 📉</button>
-                ${shortPos ? `<button type="button" id="btnCloseShort_${c.symbol}" class="hc-btn primary sm" onclick="window.ecosystemHub.closeShortPosition('${c.symbol}')">Realizar Short</button>` : ''}
-                <button type="button" class="hc-btn ghost sm" title="Contrato White-Hat (Sobe ação + reduz Heat)" onclick="window.ecosystemHub.executeWhiteHatRestore('${c.symbol}')">🛡️ Restaurar</button>
+                <button type="button" id="btnBuyLong_${c.symbol}" class="hc-btn primary sm" onclick="window.ecosystemHub.buyLongPosition('${c.symbol}', Number(document.getElementById('stockOrderUsdInput')?.value || 200))">Comprar (Sobe)</button>
+                ${longPos ? `<button type="button" id="btnSellLong_${c.symbol}" class="hc-btn ghost sm" onclick="window.ecosystemHub.sellLongPosition('${c.symbol}')">Vender</button>` : ''}
+                <button type="button" id="btnOpenShort_${c.symbol}" class="hc-btn sm" style="border-color:var(--hc-warning);color:var(--hc-warning);" onclick="window.ecosystemHub.openShortPosition('${c.symbol}', Number(document.getElementById('stockOrderUsdInput')?.value || 200))">Apostar Queda 📉</button>
+                ${shortPos ? `<button type="button" id="btnCloseShort_${c.symbol}" class="hc-btn primary sm" onclick="window.ecosystemHub.closeShortPosition('${c.symbol}')">Pegar Lucro Queda</button>` : ''}
+                <button type="button" class="hc-btn ghost sm" title="Ajuda a empresa a subir e paga Dinheiro Limpo + baixa sua Procura" onclick="window.ecosystemHub.executeWhiteHatRestore('${c.symbol}')">🛡️ Defender</button>
               </div>
             </td>
           </tr>
@@ -1990,35 +1990,35 @@
       return `
         <div class="hc-stat-strip">
           <div class="hc-stat-cell">
-            <div class="hc-stat-label">Patrimônio Líquido Total</div>
+            <div class="hc-stat-label">Seu Patrimônio Total</div>
             <div class="hc-stat-value" style="color:var(--hc-accent-text);">$ ${nw.totalNetWorth.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-            <div class="hc-stat-sub">Caixa $${nw.cash.toFixed(0)} · Bolsa $${nw.stockEquity.toFixed(0)} · BTC $${nw.btcUsd.toFixed(0)}</div>
+            <div class="hc-stat-sub">Conta $${nw.cash.toFixed(0)} · Bolsa $${nw.stockEquity.toFixed(0)} · BTC $${nw.btcUsd.toFixed(0)}</div>
           </div>
           <div class="hc-stat-cell">
-            <div class="hc-stat-label">Lucro em Operações TIX</div>
+            <div class="hc-stat-label">Lucro na Bolsa (Limpo)</div>
             <div class="hc-stat-value">${this.state.totalTradingProfit >= 0 ? '+' : ''}$ ${this.state.totalTradingProfit.toFixed(2)}</div>
-            <div class="hc-stat-sub">Long &amp; Short realizados</div>
+            <div class="hc-stat-sub">Compras e quedas encerradas</div>
           </div>
           <div class="hc-stat-cell">
-            <div class="hc-stat-label">Dividendos das 12:00</div>
+            <div class="hc-stat-label">Rendimento às 12h</div>
             <div class="hc-stat-value" style="color:#35b877;">+$ ${this.state.totalDividendsEarned.toFixed(2)}</div>
-            <div class="hc-stat-sub">Ajuda a quitar Energia/Aluguel (${nw.monthlyBills}/mês)</div>
+            <div class="hc-stat-sub">Ajuda a pagar Luz e Aluguel ($${nw.monthlyBills}/mês)</div>
           </div>
           <div class="hc-stat-cell">
-            <div class="hc-stat-label">Sinal Quântico 4S</div>
-            <div class="hc-stat-value">${has4s ? 'ATIVO' : 'BLOQUEADO'}</div>
-            <div class="hc-stat-sub">${has4s ? 'Analyzer v2+ / CERT-201 detectado' : 'Exige Analyzer v2.0+ ou CERT-201'}</div>
+            <div class="hc-stat-label">Previsão de Preço</div>
+            <div class="hc-stat-value">${has4s ? 'LIBERADA' : 'BLOQUEADA'}</div>
+            <div class="hc-stat-sub">${has4s ? 'Mostrando tendência das ações' : 'Ter Analyzer v2.0+ ou CERT-201'}</div>
           </div>
         </div>
 
         <div class="eco-card accent">
           <div class="eco-card-head">
             <div>
-              <div class="eco-card-title">📈 Pregão Ao Vivo CyberStock (Causalidade Real Hack ↔ Ação!)</div>
-              <div class="eco-card-sub">Abra um <strong>Short 📉</strong> em uma empresa, clique no IP dela para invadir/desligar o CFTV/drenar o cofre, limpe seu IP do <code>/var/log/syslog</code> e realize o lucro na queda! Ou compre <strong>Long</strong> e execute <strong>🛡️ Restaurar</strong>!</div>
+              <div class="eco-card-title">📈 Bolsa de Empresas (Seus Ataques Mudam os Preços de Verdade!)</div>
+              <div class="eco-card-sub">Quer lucrar <strong>Dinheiro Limpo</strong>? Clique em <strong>Apostar Queda 📉</strong> numa empresa, invada o IP dela (apague as câmeras ou roube o cofre), limpe seu IP dos rastros e clique em <strong>Pegar Lucro Queda</strong>! Ou compre a ação e clique em <strong>🛡️ Defender</strong> para ela subir!</div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
-              <label style="font-size:12px;color:var(--hc-text-2);">Valor da Ordem ($ HC):</label>
+              <label style="font-size:12px;color:var(--hc-text-2);">Valor p/ Investir ($ Limpo):</label>
               <input type="number" id="stockOrderUsdInput" class="hc-input mono" style="width:120px;height:34px;" min="50" step="50" value="200">
             </div>
           </div>
@@ -2026,13 +2026,13 @@
             <table class="hc-table">
               <thead>
                 <tr>
-                  <th>Ticker / Empresa</th>
-                  <th>IP Real na Rede</th>
-                  <th>Cotação</th>
-                  <th>Gráfico</th>
-                  <th>Integridade</th>
-                  <th>Sua Posição</th>
-                  <th style="text-align:right;">Ordens &amp; Sabotagem</th>
+                  <th>Empresa</th>
+                  <th>IP p/ Invadir</th>
+                  <th>Preço Atual</th>
+                  <th>Histórico</th>
+                  <th>Saúde</th>
+                  <th>Sua Aposta</th>
+                  <th style="text-align:right;">Ações Rápidas</th>
                 </tr>
               </thead>
               <tbody>${rows}</tbody>
@@ -2048,12 +2048,12 @@
       }
       const g = this.activeGameSession;
       const selectorBtns = [
-        { id: 'hex_breach', label: '1. Matriz Hex 5x5 (Daemons)' },
-        { id: 'packet_sniffer', label: '2. Packet Sniffer (OSINT)' },
-        { id: 'logic_gates', label: '3. Portas Lógicas (Luz -12%)' },
-        { id: 'rf_waveform', label: '4. Satélite RF (Mapa-Múndi)' },
-        { id: 'cipher_cracker', label: '5. Cifra Zero-Day (CVE 24h)' },
-        { id: 'canary_defuse', label: '6. Canário Reverso (Cupom Lab)' }
+        { id: 'hex_breach', label: '1. Matriz 5x5 (Enfraquece Firewall)' },
+        { id: 'packet_sniffer', label: '2. Filtrar Rede (+1 Dossiê Senha)' },
+        { id: 'logic_gates', label: '3. Chaves de Energia (-12% na Luz)' },
+        { id: 'rf_waveform', label: '4. Antena Satélite (+Influência Mapa)' },
+        { id: 'cipher_cracker', label: '5. Quebrar Código (+Fura-Firewall 24h)' },
+        { id: 'canary_defuse', label: '6. Ordem Inversa (Cupom -$250 Lab)' }
       ].map((b) => `
         <button type="button" id="btnPickMg_${b.id}" class="hc-btn ${this.selectedMinigameKind === b.id ? 'primary' : 'ghost'} sm" onclick="window.ecosystemHub.startMinigame('${b.id}')">${b.label}</button>
       `).join('');
@@ -2217,32 +2217,32 @@
 
       return `
         <div class="eco-grid-2">
-          <!-- OSINT & Zero-Days -->
+          <!-- Dossiês de Senha & Fura-Firewall 24h -->
           <div class="eco-card accent">
-            <div class="eco-card-title">🕵️ Central OSINT &amp; Exploits CVE Zero-Day (24h)</div>
-            <div class="eco-card-sub">Dossiês OSINT disponíveis: <strong>${this.state.osintDossiers}</strong>. Use em qualquer servidor Tier 1–3 para descobrir a senha <code>root</code> sem força-bruta!</div>
+            <div class="eco-card-title">🕵️ Descobrir Senha na Hora &amp; Fura-Firewall (24h)</div>
+            <div class="eco-card-sub">Dossiês guardados: <strong>${this.state.osintDossiers}</strong>. Use em qualquer servidor até Nível 3 para descobrir a senha <code>root</code> na hora sem esperar quebrar!</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               <input type="text" id="osintTargetIpInput" class="hc-input mono" style="flex:1;min-width:170px;height:34px;" value="203.17.88.40" placeholder="IP do alvo (ex: 203.17.88.40)">
-              <button type="button" id="btnUseOsintDossier" class="hc-btn primary sm" onclick="window.ecosystemHub.useOsintDossierOnIp(document.getElementById('osintTargetIpInput')?.value)">Investigar c/ OSINT</button>
+              <button type="button" id="btnUseOsintDossier" class="hc-btn primary sm" onclick="window.ecosystemHub.useOsintDossierOnIp(document.getElementById('osintTargetIpInput')?.value)">Descobrir Senha</button>
             </div>
             <div style="border-top:1px solid var(--hc-border);padding-top:8px;margin-top:4px;">
-              <div style="font-size:12px;font-weight:600;margin-bottom:6px;">Arsenal CVE Zero-Day Ativo (${activeZds.length}):</div>
+              <div style="font-size:12px;font-weight:600;margin-bottom:6px;">Fura-Firewalls Ativos de 24h (${activeZds.length}):</div>
               ${activeZds.length === 0
-                ? `<div style="font-size:12px;color:var(--hc-text-3);">Nenhum CVE ativo. Quebre uma Cifra na aba Minigames para gerar um Zero-Day de 24h!</div>`
+                ? `<div style="font-size:12px;color:var(--hc-text-3);">Nenhum ativo agora. Resolva o Desafio #5 (Quebrar Código) para ganhar um Fura-Firewall de 24h!</div>`
                 : activeZds.map((z) => `
                   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #1b2430;">
-                    <span class="mono" style="font-size:12px;color:#5fd39a;">${esc(z.code)} (até Tier ${z.maxTier + 1})</span>
+                    <span class="mono" style="font-size:12px;color:#5fd39a;">${esc(z.code)} (até Nível ${z.maxTier + 1})</span>
                     <button type="button" class="hc-btn primary sm" onclick="window.ecosystemHub.useZeroDayOnHost('${z.id}', document.getElementById('osintTargetIpInput')?.value)">Furar Firewall Agora →</button>
                   </div>
                 `).join('')}
             </div>
           </div>
 
-          <!-- Seguro de Hardware & Protocolo Fênix -->
+          <!-- Seguro do PC & Limpar Ficha -->
           <div class="eco-card warn">
-            <div class="eco-card-title">🛡️ Seguro Físico de Hardware &amp; Protocolo Fênix</div>
+            <div class="eco-card-title">🛡️ Seguro de Peças do PC &amp; Limpar Ficha Policial</div>
             <div class="eco-card-sub">
-              Status da Apólice: <strong>${ins && ins.plan ? `${ins.name} (${ins.coveragePct}% cobertura · ${ins.claimsLeft} sinistros restantes)` : 'Desprotegido contra sobrecarga DDoS'}</strong>
+              Seu Seguro: <strong>${ins && ins.plan ? `${ins.name} (cobre ${ins.coveragePct}% do conserto · ${ins.claimsLeft} usos restantes)` : 'Sem seguro contra ataques DDoS'}</strong>
             </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
               <button type="button" id="btnBuyInsBronze" class="hc-btn sm" onclick="window.ecosystemHub.buyHardwareInsurance('bronze')">Bronze 50% ($350)</button>
@@ -2250,38 +2250,38 @@
               <button type="button" id="btnBuyInsQuantum" class="hc-btn sm" onclick="window.ecosystemHub.buyHardwareInsurance('quantum')">Quantum 90% ($1.400)</button>
             </div>
             <div style="border-top:1px solid var(--hc-border);padding-top:8px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-              <div style="font-size:11.5px;color:var(--hc-text-2);">Cercado pelo FBI? Queime rastros e gire IP mantendo Diplomas, Clã e Offshore:</div>
-              <button type="button" id="btnPhoenixProtocol" class="hc-btn ghost sm" style="border-color:var(--hc-danger);color:var(--hc-danger-text);" onclick="window.ecosystemHub.triggerPhoenixProtocol()">🔥 Protocolo Fênix ($900)</button>
+              <div style="font-size:11.5px;color:var(--hc-text-2);">Polícia no seu pé? Apague seus rastros e troque de IP mantendo Diplomas, Clã e Banco:</div>
+              <button type="button" id="btnPhoenixProtocol" class="hc-btn ghost sm" style="border-color:var(--hc-danger);color:var(--hc-danger-text);" onclick="window.ecosystemHub.triggerPhoenixProtocol()">🔥 Limpar Ficha &amp; IP ($900)</button>
             </div>
           </div>
 
           <!-- Bônus Reais do Mapa-Múndi -->
           <div class="eco-card">
-            <div class="eco-card-title">🌍 Bônus Ativos da Sua Rota no Mapa-Múndi (${wm.hops} salto[s])</div>
-            <div class="eco-card-sub">Cidades encadeadas: <strong>${esc(wm.activePopNames.join(' → '))}</strong></div>
+            <div class="eco-card-title">🌍 Bônus da Sua Rota no Mapa-Múndi (${wm.hops} cidade[s])</div>
+            <div class="eco-card-sub">Caminho atual: <strong>${esc(wm.activePopNames.join(' → '))}</strong></div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <span class="hc-badge success">+${wm.crackerSpeedPct}% Velocidade Cracker</span>
+              <span class="hc-badge success">+${wm.crackerSpeedPct}% Quebra de Senha</span>
               <span class="hc-badge info">+${wm.btcYieldPct}% Mineração BTC</span>
-              <span class="hc-badge success">+${Math.round((wm.collectorMult - 1) * 100)}% Coletor Viral</span>
-              <span class="hc-badge warn">-${wm.billDiscountPct}% Desconto Continental</span>
+              <span class="hc-badge success">+${Math.round((wm.collectorMult - 1) * 100)}% Coleta de Vírus</span>
+              <span class="hc-badge warn">-${wm.billDiscountPct}% Desconto nas Contas</span>
             </div>
             <div>
-              <button type="button" class="hc-btn ghost sm" onclick="navTo('winWorldMap')">Editar Rota no Mapa-Múndi →</button>
+              <button type="button" class="hc-btn ghost sm" onclick="navTo('winWorldMap')">Mudar Rota no Mapa-Múndi →</button>
             </div>
           </div>
 
-          <!-- Auditoria Pentest Pessoal -->
+          <!-- Testar Segurança do Meu PC -->
           <div class="eco-card">
             <div class="eco-card-head">
-              <div class="eco-card-title">🔬 Pentest Pessoal da Sua Máquina</div>
-              <button type="button" id="btnRunSelfAudit" class="hc-btn primary sm" onclick="window.ecosystemHub.runSelfSecurityAudit()">Rodar Pentest Local</button>
+              <div class="eco-card-title">🔬 Testar Segurança do Meu PC</div>
+              <button type="button" id="btnRunSelfAudit" class="hc-btn primary sm" onclick="window.ecosystemHub.runSelfSecurityAudit()">Testar Meu PC Agora</button>
             </div>
             ${!aud
-              ? `<div class="eco-card-sub">Simule uma invasão contra o seu próprio PC para descobrir falhas em Firewall, Hasher, Antivírus e Rastros Esquecidos.</div>`
+              ? `<div class="eco-card-sub">Veja se seu PC está bem protegido ou se você esqueceu seu IP anotado em algum servidor invadido.</div>`
               : `<div style="font-size:12.5px;display:flex;flex-direction:column;gap:4px;">
-                   <div>Nota de Blindagem: <strong style="color:${aud.score >= 70 ? '#35b877' : '#f0a83a'};">${aud.score}/100</strong></div>
-                   <div>Firewall v${aud.fwVer.toFixed(1)} · Hasher v${aud.hashVer.toFixed(1)} · Antivírus ${aud.avVer > 0 ? 'v' + aud.avVer.toFixed(1) : 'AUSENTE ⚠️'}</div>
-                   <div>Rastros remotos com seu IP: <strong style="color:${aud.exposedTraces > 0 ? '#e5534b' : '#35b877'};">${aud.exposedTraces}</strong> · Saltos: ${aud.hops} · Seguro: ${aud.insured ? 'Ativo ✓' : 'Inativo'}</div>
+                   <div>Nota de Proteção: <strong style="color:${aud.score >= 70 ? '#35b877' : '#f0a83a'};">${aud.score}/100</strong></div>
+                   <div>Firewall v${aud.fwVer.toFixed(1)} · Hasher v${aud.hashVer.toFixed(1)} · Antivírus ${aud.avVer > 0 ? 'v' + aud.avVer.toFixed(1) : 'NÃO INSTALADO ⚠️'}</div>
+                   <div>Lugares onde você esqueceu seu IP: <strong style="color:${aud.exposedTraces > 0 ? '#e5534b' : '#35b877'};">${aud.exposedTraces}</strong> · Cidades na Rota: ${aud.hops} · Seguro: ${aud.insured ? 'Ativo ✓' : 'Sem seguro'}</div>
                  </div>`}
           </div>
         </div>
@@ -2315,10 +2315,10 @@
             <div class="eco-card-head">
               <div>
                 <div class="eco-card-title">🎭 ${esc(h.title)}</div>
-                <div style="font-size:11.5px;color:var(--hc-text-3);">Alvo: <code>${h.targetIp}</code> (${h.corpSymbol}) · Recompensa base: <strong>$ ${h.cashReward} HC + ${h.catalystGrant} Catalisador</strong></div>
+                <div style="font-size:11.5px;color:var(--hc-text-3);">Alvo: <code>${h.targetIp}</code> (${h.corpSymbol}) · Paga: <strong style="color:#fca5a5;">🩸 $ ${h.cashReward} Sujos + ${h.catalystGrant} Catalisador</strong></div>
               </div>
               <button type="button" id="btnExecHeist_${h.id}" class="hc-btn ${chk.ready && cdRem === 0 ? 'primary' : 'ghost'} sm" ${cdRem > 0 ? 'disabled' : ''} onclick="window.ecosystemHub.executeCrewHeist('${h.id}')">
-                ${cdRem > 0 ? `Aguarde ${cdRem}s` : 'Executar Golpe 4x'}
+                ${cdRem > 0 ? `Aguarde ${cdRem}s` : 'Fazer Roubo 4x'}
               </button>
             </div>
             <div class="eco-card-sub">${esc(h.desc)}</div>
@@ -2333,16 +2333,16 @@
         <div class="eco-card warn">
           <div class="eco-card-head">
             <div>
-              <div class="eco-card-title">⚡ Flash Bounty Corporativo &amp; Plantão Blue-Team</div>
+              <div class="eco-card-title">⚡ Missão Relâmpago &amp; Ajuda de Defesa (Ganha Limpo)</div>
               <div class="eco-card-sub">
                 ${fbActive
-                  ? `Alvo Relâmpago Ativo: sabote <strong>${esc(fb.targetName)} (${fb.targetIp})</strong> em até ${Math.ceil((fb.expiresAt - Date.now()) / 60000)} min para ganhar bônus automático de <strong>+$ ${fb.rewardCash} HC</strong>!`
-                  : 'Alvo relâmpago concluído neste ciclo! Você também pode atender chamados defensivos Blue-Team abaixo para ganhar dinheiro limpo e reduzir seu Heat:'}
+                  ? `Missão Relâmpago: invada <strong>${esc(fb.targetName)} (${fb.targetIp})</strong> em até ${Math.ceil((fb.expiresAt - Date.now()) / 60000)} min para ganhar <strong>+$ ${fb.rewardCash} Limpos</strong> extras!`
+                  : 'Missão relâmpago concluída! Você também pode ajudar na Defesa abaixo usando seu Antivírus para ganhar Dinheiro Limpo na hora e baixar sua Procura:'}
               </div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
               ${fbActive ? `<button type="button" class="hc-btn sm" onclick="window.internetEngine.openIp('${fb.targetIp}', 'invadir')">Ir Invadir ${fb.targetIp} →</button>` : ''}
-              <button type="button" id="btnBlueTeamIncident" class="hc-btn primary sm" onclick="window.ecosystemHub.executeBlueTeamIncident()">🧯 Atender Incidente Blue-Team (-Heat)</button>
+              <button type="button" id="btnBlueTeamIncident" class="hc-btn primary sm" onclick="window.ecosystemHub.executeBlueTeamIncident()">🧯 Ajudar na Defesa (+Limpo e -Procura)</button>
             </div>
           </div>
         </div>
@@ -2364,10 +2364,10 @@
             <div class="eco-card-head">
               <div>
                 <div class="eco-card-title">🤖 ${esc(d.name)}</div>
-                <div style="font-size:11.5px;color:var(--hc-text-3);">Requisito de Infraestrutura: ${d.reqVps} VPS (${meetsVps ? 'Disponível ✓' : `Você tem ${vpsCount}`})</div>
+                <div style="font-size:11.5px;color:var(--hc-text-3);">Precisa ter: ${d.reqVps} VPS (${meetsVps ? 'Liberado ✓' : `Você tem ${vpsCount}`})</div>
               </div>
               <button type="button" id="btnToggleCron_${d.id}" class="hc-btn ${active ? 'primary' : 'ghost'} sm" onclick="window.ecosystemHub.toggleCronDaemon('${d.id}')">
-                ${active ? 'Ativo na VPS ✓' : 'Ativar Daemon'}
+                ${active ? 'Ligado na VPS ✓' : 'Ligar Tarefa'}
               </button>
             </div>
             <div class="eco-card-sub">${esc(d.desc)}</div>
@@ -2392,8 +2392,8 @@
         <div class="eco-card accent">
           <div class="eco-card-head">
             <div>
-              <div class="eco-card-title">🖥️ Frota de Automação VPS (CronDaemons Legítimos)</div>
-              <div class="eco-card-sub">Servidores VPS detectados na sua conta: <strong>${vpsCount} VPS</strong>. Cada VPS comprada em <em>Peças do PC</em> ou <em>Servidores &amp; LAN</em> permite automatizar tarefas repetitivas de forma legítima!</div>
+              <div class="eco-card-title">🖥️ Tarefas Automáticas nas Suas VPS</div>
+              <div class="eco-card-sub">Suas VPS ativas hoje: <strong>${vpsCount} VPS</strong>. Quando você compra VPS em <em>Peças do PC</em>, pode ligar tarefas abaixo para colher vírus, apagar rastros e pagar contas sozinho!</div>
             </div>
             <button type="button" class="hc-btn ghost sm" onclick="navTo('winHardware')">Comprar / Ver VPS →</button>
           </div>
@@ -2402,7 +2402,7 @@
         <div class="eco-grid-2">${cronCards}</div>
 
         <div class="eco-card">
-          <div class="eco-card-title">🏆 24 Marcos Sinérgicos do Ecossistema (${unlockedCount}/${ECOSYSTEM_MILESTONES.length} concluídos · +${this.getBonusSkillPoints()} SP Bônus)</div>
+          <div class="eco-card-title">🏆 24 Conquistas do Jogo (${unlockedCount}/${ECOSYSTEM_MILESTONES.length} feitas · +${this.getBonusSkillPoints()} Pontos de Habilidade Bônus)</div>
           <div class="eco-grid-2">${msCards}</div>
         </div>
       `;
@@ -2438,12 +2438,12 @@
           </div>
 
           <div class="eco-nav-tabs">
-            <button type="button" id="ecoTab_stocks" class="eco-nav-btn ${this.activeTab === 'stocks' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('stocks')">📈 Bolsa CyberStock (8 Empresas)</button>
-            <button type="button" id="ecoTab_minigames" class="eco-nav-btn ${this.activeTab === 'minigames' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('minigames')">🧩 6 Minigames &amp; .CCT</button>
-            <button type="button" id="ecoTab_intel" class="eco-nav-btn ${this.activeTab === 'intel' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('intel')">🕵️ OSINT, Zero-Days &amp; Seguros</button>
-            <button type="button" id="ecoTab_factions" class="eco-nav-btn ${this.activeTab === 'factions' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('factions')">🎭 Facções &amp; Golpes 4x</button>
-            <button type="button" id="ecoTab_automation" class="eco-nav-btn ${this.activeTab === 'automation' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('automation')">🤖 CronDaemons VPS &amp; 24 Marcos</button>
-            <button type="button" id="ecoTab_elite" class="eco-nav-btn ${this.activeTab === 'elite' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('elite')">🏆 Leilões 2h &amp; Top 10</button>
+            <button type="button" id="ecoTab_stocks" class="eco-nav-btn ${this.activeTab === 'stocks' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('stocks')">📈 Bolsa de Empresas</button>
+            <button type="button" id="ecoTab_minigames" class="eco-nav-btn ${this.activeTab === 'minigames' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('minigames')">🧩 6 Desafios Rápidos</button>
+            <button type="button" id="ecoTab_intel" class="eco-nav-btn ${this.activeTab === 'intel' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('intel')">🕵️ Descobrir Senhas &amp; Seguro</button>
+            <button type="button" id="ecoTab_factions" class="eco-nav-btn ${this.activeTab === 'factions' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('factions')">🎭 Facções &amp; Roubos 4x</button>
+            <button type="button" id="ecoTab_automation" class="eco-nav-btn ${this.activeTab === 'automation' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('automation')">🤖 Tarefas Automáticas VPS</button>
+            <button type="button" id="ecoTab_elite" class="eco-nav-btn ${this.activeTab === 'elite' ? 'active' : ''}" onclick="window.ecosystemHub.switchTab('elite')">🏆 Leilão 2h &amp; Atalhos</button>
           </div>
 
           ${bodyHtml}
