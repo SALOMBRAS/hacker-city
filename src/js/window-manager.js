@@ -178,6 +178,9 @@ class WindowManager {
     el.style.display = 'flex';
     el.classList.add('focused');
     this.current = winId;
+    if (winId !== 'winBrowser' && window.internetEngine && typeof window.internetEngine.closeCrackerMiniPc === 'function') {
+      window.internetEngine.closeCrackerMiniPc();
+    }
     if (window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.markSeen === 'function') {
       window.progressiveUnlockEngine.markSeen(winId);
     }

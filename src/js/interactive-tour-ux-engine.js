@@ -738,6 +738,9 @@
           nextLabel: 'Concluir (+$ 500 Limpos) →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
+            if (window.internetEngine && typeof window.internetEngine.closeCrackerMiniPc === 'function') {
+              window.internetEngine.closeCrackerMiniPc();
+            }
             this.grantDirtyTourSampleOnce();
             if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
           },
@@ -806,6 +809,9 @@
       const root = document.getElementById('hcSpotlightRoot');
       if (root) root.classList.remove('active');
       this.ensureMobileDrawerIfNeeded(false);
+      if (window.internetEngine && typeof window.internetEngine.closeCrackerMiniPc === 'function') {
+        window.internetEngine.closeCrackerMiniPc();
+      }
 
       if (statusValue) {
         this.statusByUid[this.currentUid()] = statusValue;
