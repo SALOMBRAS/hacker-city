@@ -239,12 +239,16 @@
        ======================================================== -->
   <div id="desktopEnvironment">
 
+    <!-- Backdrop escurecido para fechar a gaveta mobile com 1 toque fora -->
+    <div id="hcMobileDrawerBackdrop" class="hc-mobile-backdrop" onclick="window.toggleMobileSidebar(false)" aria-hidden="true"></div>
+
     <!-- Sidebar Limpa com Tópicos e Mini-Menu Flutuante (Flyout) -->
     <aside class="sidebar" aria-label="Navegação principal">
       <div class="sidebar-brand">
         <span class="brand-mark" aria-hidden="true">HC</span>
         <span class="brand-name">Hacker City</span>
         <span class="brand-beta">beta</span>
+        <button type="button" id="btnCloseMobileSidebar" class="mobile-drawer-close-btn" onclick="window.toggleMobileSidebar(false)" aria-label="Fechar menu">✕</button>
       </div>
 
       <nav class="sidebar-nav" id="sidebarNav">
@@ -474,7 +478,7 @@
 
     <header class="topbar">
       <div class="topbar-left">
-        <button type="button" id="btnMobileNavToggle" onclick="document.querySelector('.sidebar')?.classList.toggle('mobile-open')" aria-label="Menu"><i data-icon="menu"></i></button>
+        <button type="button" id="btnMobileNavToggle" onclick="window.toggleMobileSidebar()" aria-label="Menu"><i data-icon="menu"></i></button>
         <div class="topbar-title" id="pageTitle">Início</div>
         <div class="topbar-ip-omnibox" title="Ir para qualquer endereço IP (Ctrl+K)">
           <i data-icon="globe"></i>

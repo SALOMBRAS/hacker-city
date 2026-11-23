@@ -40,11 +40,12 @@ class WindowManager {
       }
     });
 
-    // Atalhos de teclado: Esc fecha mini-menus; Ctrl+K foca na busca de IP
+    // Atalhos de teclado: Esc fecha mini-menus e gaveta mobile; Ctrl+K foca na busca de IP
     document.addEventListener('keydown', (ev) => {
       if (ev.key === 'Escape') {
         if (!(window.spotlightTour && window.spotlightTour.isActive)) {
           this.closeAllFlyouts();
+          this.setMobileSidebarOpen(false);
         }
       }
       if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'k') {
@@ -119,6 +120,15 @@ class WindowManager {
     this.setSidebarCollapsed(!desk.classList.contains('sidebar-collapsed'));
   }
 
+  setMobileSidebarOpen(open) {
+    const sb = document.querySelector('.sidebar');
+    const bd = document.getElementById('hcMobileDrawerBackdrop');
+    const next = typeof open === 'boolean' ? open : !(sb && sb.classList.contains('mobile-open'));
+    if (sb) sb.classList.toggle('mobile-open', next);
+    if (bd) bd.classList.toggle('active', next);
+    return next;
+  }
+
   refreshFloatingTasksPill() {
     const pill = document.getElementById('hcFloatingTasksPill');
     const txt = document.getElementById('hcFloatingTasksLabel');
@@ -183,8 +193,7 @@ class WindowManager {
     // Fecha o flyout após escolher um destino (a menos que o Tour esteja guiando o menu)
     if (!(window.spotlightTour && window.spotlightTour.isActive)) {
       this.closeAllFlyouts();
-      const sb = document.querySelector('.sidebar');
-      if (sb) sb.classList.remove('mobile-open');
+      this.setMobileSidebarOpen(false);
     }
 
     this.syncNav();
@@ -233,3 +242,4 @@ class WindowManager {
 
 window.winManager = new WindowManager();
 window.toggleSidebarCollapse = () => window.winManager.toggleSidebarCollapse();
+window.toggleMobileSidebar = (force) => window.winManager.setMobileSidebarOpen(force);
