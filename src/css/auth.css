@@ -7,8 +7,10 @@
   background: radial-gradient(circle at 50% 30%, var(--hc-surface-2) 0%, var(--hc-canvas) 100%);
   z-index: 9000;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 1.5rem;
   background-image: 
     radial-gradient(circle at 50% 10%, rgba(53, 184, 119, 0.15) 0%, transparent 60%),
@@ -24,8 +26,8 @@
   box-shadow: var(--hc-shadow-3);
   max-width: 580px;
   width: 100%;
+  margin: auto;
   padding: 2.2rem;
-  
   position: relative;
 }
 
@@ -371,4 +373,28 @@
 
 .verify-divider span {
   padding: 0 0.75rem;
+}
+
+@media (max-width: 520px) {
+  #authOverlay {
+    padding: 0.75rem;
+  }
+  .auth-card {
+    padding: 1.25rem 1.05rem;
+  }
+  .auth-title {
+    font-size: 1.4rem;
+  }
+  .specialty-grid {
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+  }
+  .verify-method-header {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  .verify-email-pill {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
 }

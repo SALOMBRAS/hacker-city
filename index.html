@@ -559,7 +559,7 @@
       </div>
       <div class="window-body" style="padding: 0;">
         <div class="cli-container">
-          <div id="terminalHardwareBanner" style="background: var(--hc-inset); border-bottom: 1px solid var(--hc-border); padding: 0.4rem 0.75rem; font-size: 0.76rem; color: var(--hc-success); font-family: var(--hc-font-mono); letter-spacing: 0.5px;">
+          <div id="terminalHardwareBanner" style="background: var(--hc-inset); border-bottom: 1px solid var(--hc-border); padding: 0.4rem 0.75rem; font-size: 0.74rem; color: var(--hc-success); font-family: var(--hc-font-mono); letter-spacing: 0.3px; overflow-wrap: anywhere;">
             PC SUCATA DO LIXÃO (CELERON 800MHZ / 256MB RAM) // REDE: MODEM 56kbps
           </div>
           <div class="cli-output" id="cliOutput">
@@ -702,9 +702,9 @@
         </div>
       </div>
       <div class="window-body">
-        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-          <button class="btn-submit active" id="tabArcadeCheckers" style="margin-top:0; padding: 0.5rem; flex: 1;" onclick="switchArcadeGame('checkers')">DAMAS BRASILEIRAS (IA 2S)</button>
-          <button class="btn-submit" id="tabArcadeSnake" style="margin-top:0; padding: 0.5rem; flex: 1; background: var(--hc-border-strong); border-color: var(--hc-border-strong);" onclick="switchArcadeGame('snake')">COBRINHA (100 PTS META)</button>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+          <button class="btn-submit active" id="tabArcadeCheckers" style="margin-top:0; padding: 0.5rem; flex: 1 1 180px;" onclick="switchArcadeGame('checkers')">DAMAS BRASILEIRAS (IA 2S)</button>
+          <button class="btn-submit" id="tabArcadeSnake" style="margin-top:0; padding: 0.5rem; flex: 1 1 180px; background: var(--hc-border-strong); border-color: var(--hc-border-strong);" onclick="switchArcadeGame('snake')">COBRINHA (100 PTS META)</button>
         </div>
 
         <div id="gameCheckersView">
@@ -713,18 +713,18 @@
             <span>Placar: <strong id="checkersScoreStatus" style="color: var(--hc-text);">12 × 12 peças</strong></span>
             <span>IA: <strong id="checkersAiStatus" style="color: var(--hc-danger-text);">Aguardando jogada</strong></span>
           </div>
-          <div id="checkersBoard" style="width: 320px; height: 320px; display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); border: 3px solid var(--hc-border-strong); margin: 0 auto; user-select: none;"></div>
+          <div id="checkersBoard" style="width: min(320px, calc(100vw - 56px)); height: min(320px, calc(100vw - 56px)); display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); border: 3px solid var(--hc-border-strong); margin: 0 auto; user-select: none;"></div>
           <div style="text-align: center; margin-top: 0.65rem;">
             <button type="button" class="btn-submit" style="width: auto; margin: 0; padding: 0.35rem 1rem; font-size: 0.78rem; background: var(--hc-surface-3); border-color: var(--hc-border-strong);" onclick="initCheckersBoard()">REINICIAR PARTIDA</button>
           </div>
         </div>
 
         <div id="gameSnakeView" style="display: none; text-align: center;">
-          <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--hc-text); margin-bottom: 0.5rem;">
+          <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; font-size: 0.85rem; color: var(--hc-text); margin-bottom: 0.5rem;">
             <span>Pontos: <strong id="snakeScore" style="color: var(--hc-success);">0</strong> / 100</span>
             <span>Controles: <strong>Setas ou WASD</strong></span>
           </div>
-          <canvas id="snakeCanvas" width="300" height="300" style="background:#000; border:2px solid var(--hc-success); border-radius:6px; margin: 0 auto; display:block;"></canvas>
+          <canvas id="snakeCanvas" width="300" height="300" style="max-width: 100%; height: auto; background:#000; border:2px solid var(--hc-success); border-radius:6px; margin: 0 auto; display:block;"></canvas>
           <button class="btn-submit" style="width: auto; margin-top: 0.75rem; padding: 0.4rem 1.25rem;" onclick="startSnakeGame()">INICIAR COBRINHA</button>
         </div>
       </div>
@@ -750,18 +750,18 @@
         </div>
       </div>
       <div class="window-body">
-        <div style="display: flex; gap: 1rem; align-items: center; border-bottom: 1px solid var(--hc-border); padding-bottom: 1rem; margin-bottom: 1rem;">
-          <div id="profAvatarCircle" style="font-size: 1.35rem; font-weight: 700; color: #fff; background: var(--hc-accent); border: 1px solid var(--hc-border-strong); border-radius: 50%; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;">
+        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--hc-border); padding-bottom: 1rem; margin-bottom: 1rem;">
+          <div id="profAvatarCircle" style="font-size: 1.35rem; font-weight: 700; color: #fff; background: var(--hc-accent); border: 1px solid var(--hc-border-strong); border-radius: 50%; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
             <i data-icon="user" data-icon-class="xl"></i>
           </div>
-          <div>
+          <div style="min-width: 0; overflow-wrap: anywhere;">
             <h3 style="color: #fff; font-family: var(--hc-font-sans);" id="profHackerTag">Carregando...</h3>
             <div style="color: var(--cyan-neon); font-size: 0.85rem;" id="profSpecialty">Especialidade: ...</div>
             <div style="color: var(--hc-text-2); font-size: 0.75rem;" id="profEmail">E-mail: ...</div>
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.85rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; font-size: 0.85rem;">
           <div style="background: var(--hc-inset); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--hc-border);">
             <span style="color: var(--hc-text-2); display: block; font-size: 0.75rem;">CONTA BANCÁRIA:</span>
             <strong id="profBankAcc" style="color: #fff; font-family: var(--hc-font-mono);">HC-0000-00</strong>
@@ -3517,7 +3517,7 @@
             <div>
               <span class="hc-badge info">${escapeHtml(step.tag)}</span>
               <h2 style="font-size: 18px; margin: 10px 0 14px; color: var(--hc-text);">${escapeHtml(step.title)}</h2>
-              <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px;">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(105px, 1fr)); gap: 12px; margin-bottom: 16px;">
                 <div>
                   <div class="hc-eyebrow" style="font-size: 10px;">Origem</div>
                   <div style="font-size: 13.5px; font-weight: 600; margin-top: 2px;">${escapeHtml(step.hirer)}</div>
@@ -3590,7 +3590,7 @@
 
         <!-- O Mundo (3 Cards Simétricos Limpos) -->
         <div class="hc-eyebrow section-label">O mundo</div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 14px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr)); gap: 14px;">
           <!-- Coluna 1: Notícias -->
           <div class="hc-card" style="padding: 16px 18px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
