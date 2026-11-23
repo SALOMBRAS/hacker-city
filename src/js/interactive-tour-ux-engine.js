@@ -318,11 +318,11 @@
         {
           id: 'my_ip',
           selector: '#hudMyIpChip',
-          pointerLabel: '👀 Seu IP (Com Blur Anti-Curiosos)',
+          pointerLabel: '👀 Seu IP + Escudo < 200 REP',
           requiresDirectClick: false,
-          title: '1. Seu Endereço IP & Proteção Anti-Curiosos',
-          desc: 'Esse número no topo é a <strong>placa do seu PC</strong> na rede. Repare que os <strong>últimos 7 dígitos ficam desfocados automaticamente</strong> para ninguém ao seu lado espiar — passe o mouse por cima quando quiser ver!',
-          hint: '💡 Tudo o que você fizer em outro PC grava seu IP na log da vítima; e suas contas mensais chegam às <strong>12:00</strong> (1h real = 1 dia; acumula no máx. 3 meses e pausa se ficar offline).',
+          title: '1. Seu IP Protegido & Escudo Iniciante (< 200 REP)',
+          desc: 'Esse número no topo é a <strong>placa do seu PC</strong> na rede (os últimos 7 dígitos ficam borrados contra curiosos — passe o mouse para ver). Enquanto tiver <strong>menos de 200 REP</strong>, seu <strong>Escudo Iniciante</strong> bloqueia ataques surpresa na sua porta 22!',
+          hint: '💡 Suas contas do Esconderijo fecham às <strong>12:00</strong> (1h real = 1 dia; acumulam no máx. 3 meses e pausam sozinhas se você ficar offline).',
           nextLabel: 'Entendi, Próximo →',
           onEnter: () => {
             if (typeof window.navTo === 'function') window.navTo('winHome');
@@ -335,9 +335,9 @@
           selector: '#navSummary_pc',
           pointerLabel: '👆 Clique neste tópico',
           requiresDirectClick: true,
-          title: '2. Menu Limpo por Tópicos',
-          desc: 'Na lateral esquerda tudo fica organizado em <strong>5 tópicos simples</strong> que só abrem quando você clica, sem poluir a tela.',
-          hint: '👆 <strong>Clique em "Meu Computador"</strong> (na área iluminada) para abrir o mini-menu dele!',
+          title: '2. Menu Progressivo (Destrava Aos Poucos!)',
+          desc: 'Para não poluir sua tela com 27 sistemas de uma vez, o menu lateral começa enxuto e <strong>libera novas telas automaticamente</strong> (com selo verde <strong>NOVO</strong>) conforme você avança!',
+          hint: '👆 <strong>Clique em "Meu Computador"</strong> (veteranos podem liberar tudo em <em>Minha Conta → Mostrar Todo o Menu</em>).',
           nextLabel: 'Abrir Meu Computador →',
           onEnter: () => {
             const d = document.getElementById('navTopic_pc');
@@ -355,9 +355,9 @@
           selector: 'button.nav-item[data-win="winSoftware"]',
           pointerLabel: '👆 Clique aqui',
           requiresDirectClick: true,
-          title: '3. Seus Programas & Proteção',
-          desc: 'Aqui ficam seus programas de ataque/defesa, sua fila de ações, peças do PC e seus rastros.',
-          hint: '👆 <strong>Clique em "Programas & Proteção"</strong> para entender como funciona a força dos aplicativos!',
+          title: '3. Seus Programas & Peças do PC',
+          desc: 'Aqui você controla seus programas de ataque/defesa e melhora as peças do computador (sempre degrau por degrau, cuidando da temperatura e da Fonte de Energia!).',
+          hint: '👆 <strong>Clique em "Programas & Proteção"</strong> para ver como funciona a força dos seus programas!',
           nextLabel: 'Abrir Programas →',
           onEnter: () => {
             const d = document.getElementById('navTopic_pc');
@@ -734,6 +734,13 @@
           localStorage.setItem(this.storageKey(this.currentUid()), statusValue);
         } catch (e) {}
         if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+      }
+    }
+
+    finishTour(silent = false) {
+      this.stop('completed');
+      if (!silent && typeof window.showToast === 'function') {
+        window.showToast('Tour Guiado concluído!');
       }
     }
 
