@@ -152,6 +152,8 @@
         window.addLocalLog('CHECKIN-DIA4', `Remessa BTC Estágio ${stage} + Pasta Térmica Prata (7h de -9°C) aplicadas.`, 'info');
       }
       return { pasteRenewed: true, note: 'Pasta Térmica Prata (-9°C por 7h) aplicada' };
-    }
+    },
+    renderExtraMeta: () => `<span style="font-size:9.8px;color:#7dd3fc;">❄️ -9°C CPU (7h)</span>`,
+    renderDetailPanel: (stage) => renderStageScaleStrip([25000, 55000, 100000, 180000], (v) => `${(v / 100000000).toFixed(5)} BTC`, stage)
   });
 })();
