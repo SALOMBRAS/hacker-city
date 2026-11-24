@@ -1647,19 +1647,28 @@ body:has(#hcSpotlightRoot.active) #miniPcCrackerBackdrop.open {
   vertical-align: middle;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 680px) {
   .soft-tabs-bar {
-    padding: 0 10px;
+    padding: 4px 8px;
+    gap: 6px;
   }
   .soft-tabs-left {
-    flex-wrap: nowrap;
-    overflow-x: auto;
+    flex-wrap: wrap !important;
+    overflow-x: visible;
     max-width: 100%;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
+    gap: 3px;
   }
-  .soft-tabs-left::-webkit-scrollbar {
-    display: none;
+  .soft-tab-btn {
+    padding: 6px 8px;
+    font-size: 11.5px;
+    gap: 5px;
+    white-space: normal;
+    line-height: 1.25;
+  }
+  .soft-tab-btn svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
   }
   .soft-main-col {
     padding: 10px;
