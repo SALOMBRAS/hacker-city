@@ -22,6 +22,8 @@
       .replace(/"/g, '&quot;');
   }
 
+  const NEWBIE_SHIELD_DURATION_MS = 24 * 60 * 60 * 1000; // 24 horas reais (86.400.000 ms) de Escudo de Novato
+
   const STEP1_ALWAYS_OPEN = new Set([
     'winHome',
     'winBrowser',
@@ -166,12 +168,33 @@
       return `HC_PROGRESSIVE_UNLOCKS_V1_${uid}`;
     }
 
+    resolveProfileCreatedMs() {
+      const p = window.currentProfile;
+      if (p && p.created_at) {
+        const parsed = Date.parse(p.created_at);
+        if (Number.isFinite(parsed) && parsed > 0) return parsed;
+      }
+      return Date.now();
+    }
+
     normalizeState(raw) {
       const s = raw && typeof raw === 'object' ? { ...raw } : {};
       if (!s.everUnlocked || typeof s.everUnlocked !== 'object') s.everUnlocked = {};
       if (!s.unseenNew || typeof s.unseenNew !== 'object') s.unseenNew = {};
       if (typeof s.veteranShowAll !== 'boolean') s.veteranShowAll = false;
       if (typeof s.seededInitial !== 'boolean') s.seededInitial = false;
+      const fallbackStart = this.resolveProfileCreatedMs();
+      s.shieldStartedAt = (Number.isFinite(Number(s.shieldStartedAt)) && Number(s.shieldStartedAt) > 0)
+        ? Number(s.shieldStartedAt)
+        : fallbackStart;
+      if (window.currentProfile && window.currentProfile.created_at) {
+        const createdMs = Date.parse(window.currentProfile.created_at);
+        if (Number.isFinite(createdMs) && createdMs > 0) {
+          s.shieldStartedAt = Math.min(s.shieldStartedAt, createdMs);
+        }
+      }
+      if (typeof s.shieldBrokenByPvp !== 'boolean') s.shieldBrokenByPvp = false;
+      if (typeof s.shieldBrokenReason !== 'string') s.shieldBrokenReason = '';
       return s;
     }
 
@@ -212,17 +235,167 @@
       if (!snap || typeof snap !== 'object') return;
       this.userId = (window.currentProfile && window.currentProfile.id) || 'guest';
       const prevEver = (this.state && this.state.everUnlocked) || {};
+      const prevStart = (this.state && this.state.shieldStartedAt) || null;
+      const prevBroken = !!(this.state && this.state.shieldBrokenByPvp);
       const next = this.normalizeState(snap);
-      // União monotônica: nunca perde um desbloqueio já conquistado!
+      // União monotônica: nunca perde um desbloqueio nem reseta o relógio de 24h do escudo!
       next.everUnlocked = { ...prevEver, ...next.everUnlocked };
+      if (prevStart && prevStart > 0) {
+        next.shieldStartedAt = Math.min(prevStart, next.shieldStartedAt);
+      }
+      next.shieldBrokenByPvp = prevBroken || !!next.shieldBrokenByPvp;
       this.state = next;
       this.save(true);
       this.syncSidebarDom();
     }
 
-    isNewbiePvpShieldActive() {
+    formatShieldRemaining(ms) {
+      const safe = Math.max(0, Number(ms || 0));
+      if (safe <= 0) return 'Expirado';
+      const totalMin = Math.ceil(safe / 60000);
+      const h = Math.floor(totalMin / 60);
+      const m = totalMin % 60;
+      if (h > 0) return `${h}h ${String(m).padStart(2, '0')}m`;
+      return `${m}m`;
+    }
+
+    getNewbieShieldStatus() {
+      this.ensureLoaded();
+      const now = Date.now();
       const rep = Number((window.currentProfile && window.currentProfile.reputation) || 100);
-      return rep < 200;
+      const hasCert4 = !!(window.universityEngine && typeof window.universityEngine.hasCert === 'function' && window.universityEngine.hasCert(4));
+      const shieldStartedAt = Number(this.state.shieldStartedAt || now);
+      const shieldUntilMs = shieldStartedAt + NEWBIE_SHIELD_DURATION_MS;
+      const remainingMs = Math.max(0, shieldUntilMs - now);
+      const brokenByPvp = !!this.state.shieldBrokenByPvp;
+      const graduatedByTier = rep >= 1000 || hasCert4;
+      const active = !brokenByPvp && !graduatedByTier && remainingMs > 0;
+
+      return {
+        active,
+        remainingMs: active ? remainingMs : 0,
+        formattedRemaining: active ? this.formatShieldRemaining(remainingMs) : 'Encerrado',
+        shieldStartedAt,
+        shieldUntilMs: active ? shieldUntilMs : 0,
+        brokenByPvp,
+        brokenReason: this.state.shieldBrokenReason || '',
+        graduatedByTier
+      };
+    }
+
+    isNewbiePvpShieldActive() {
+      return this.getNewbieShieldStatus().active;
+    }
+
+    breakNewbieShield(reason = 'Ataque PvP contra jogador real') {
+      this.ensureLoaded();
+      if (this.state.shieldBrokenByPvp) return false;
+      this.state.shieldBrokenByPvp = true;
+      this.state.shieldBrokenReason = String(reason || 'Ataque PvP');
+      this.save();
+      this.syncNewbieShieldHudBadge?.();
+      this.renderProfilePreferenceCard?.();
+      if (typeof window.renderHome === 'function' && window.winManager?.current === 'winHome') {
+        window.renderHome();
+      }
+      if (window.onlineEngine) {
+        if (typeof window.onlineEngine.trackRealtimePresence === 'function') window.onlineEngine.trackRealtimePresence();
+        if (typeof window.onlineEngine.publishDirectoryBeacon === 'function') window.onlineEngine.publishDirectoryBeacon();
+      }
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('SHIELD-ENCERRADO', `Escudo de Novato (24h) encerrado antecipadamente: ${reason}.`, 'warning');
+      }
+      if (typeof window.showToast === 'function') {
+        window.showToast(`⚔️ Escudo de Novato (24h) desativado (${reason})! Seu IP agora está em PvP aberto.`);
+      }
+      return true;
+    }
+
+    closeShieldModal() {
+      const m = typeof document !== 'undefined' ? document.getElementById('hcNewbieShieldModal') : null;
+      if (m) m.remove();
+    }
+
+    openShieldInfoModal() {
+      if (typeof document === 'undefined') return;
+      this.closeShieldModal();
+      const st = this.getNewbieShieldStatus();
+      const wrap = document.createElement('div');
+      wrap.id = 'hcNewbieShieldModal';
+      wrap.style.cssText = 'position:fixed;inset:0;z-index:9997;background:rgba(4,8,14,0.86);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;';
+      wrap.innerHTML = `
+        <div class="hc-card" style="max-width:510px;width:100%;margin:auto;padding:18px 20px;border-color:rgba(56,189,248,0.55);background:#0b1119;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
+            <span class="hc-badge info">🛡️ ESCUDO DE NOVATO (24 HORAS)</span>
+            <button type="button" class="hc-btn ghost sm" onclick="window.progressiveUnlockEngine.closeShieldModal()">✕</button>
+          </div>
+          <h3 style="margin:0 0 6px;font-size:17px;color:var(--hc-text);">${st.active ? `Proteção Ativa · Restam ${esc(st.formattedRemaining)}` : 'Escudo de Novato Encerrado'}</h3>
+          <p style="font-size:13px;color:var(--hc-text-2);margin:0 0 12px;line-height:1.5;">
+            Durante suas <strong>primeiras 24 horas reais</strong> no jogo, nenhum outro jogador ou bot caçador pode invadir sua porta 22, plantar vírus, drenar sua carteira ou disparar DDoS contra seu PC!
+          </p>
+          <div style="padding:10px 12px;border-radius:8px;background:#08121d;border:1px solid rgba(56,189,248,0.3);font-size:12.2px;color:#cbd5e1;margin-bottom:14px;display:flex;flex-direction:column;gap:5px;">
+            <div>✅ <strong>Liberado sem perder escudo:</strong> invadir treinos (<code>198.51.100.42</code>), missões, empresas, bancos e lavar dinheiro.</div>
+            <div>⚔️ <strong>Regra Anti-Abuso:</strong> se você decidir invadir ou disparar DDoS contra <strong>outro jogador real</strong> antes das 24h, seu escudo encerra na hora!</div>
+            <div>🚨 <strong>Atenção:</strong> o escudo protege contra hackers rivais, não contra a polícia se você tentar forçar Dinheiro Sujo em loja limpa.</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            ${st.active
+              ? `<button type="button" id="btnWaiveNewbieShield" class="hc-btn danger sm" onclick="window.progressiveUnlockEngine.breakNewbieShield('Desativado manualmente pelo jogador'); window.progressiveUnlockEngine.closeShieldModal();">Desativar Escudo Agora</button>`
+              : `<span></span>`}
+            <button type="button" class="hc-btn primary sm" onclick="window.progressiveUnlockEngine.closeShieldModal()">Entendi</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(wrap);
+    }
+
+    openBreakShieldConfirmModal(targetLabel, onConfirmAttack) {
+      if (typeof document === 'undefined') return;
+      this.closeShieldModal();
+      this._pendingBreakCb = typeof onConfirmAttack === 'function' ? onConfirmAttack : null;
+      this._pendingTargetLabel = String(targetLabel || 'jogador rival');
+      const st = this.getNewbieShieldStatus();
+      const wrap = document.createElement('div');
+      wrap.id = 'hcNewbieShieldModal';
+      wrap.style.cssText = 'position:fixed;inset:0;z-index:9998;background:rgba(4,8,14,0.88);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;';
+      wrap.innerHTML = `
+        <div class="hc-card" style="max-width:520px;width:100%;margin:auto;padding:18px 20px;border-color:rgba(245,158,11,0.6);background:#12100d;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
+            <span class="hc-badge warning">⚠️ AVISO: QUEBRA DO ESCUDO DE 24H</span>
+            <button type="button" class="hc-btn ghost sm" onclick="window.progressiveUnlockEngine.closeShieldModal()">✕</button>
+          </div>
+          <h3 style="margin:0 0 6px;font-size:17px;color:var(--hc-text);">Atacar ${esc(this._pendingTargetLabel)} encerra seu Escudo!</h3>
+          <p style="font-size:13px;color:var(--hc-text-2);margin:0 0 12px;line-height:1.5;">
+            Você ainda tem <strong style="color:#7dd3fc;">${esc(st.formattedRemaining)}</strong> restantes do seu <strong>Escudo de Novato de 24h</strong>. Invadir empresas, bancos e treinos <strong>não</strong> afeta seu escudo, mas atacar um <strong>jogador real</strong> remove sua proteção imediatamente para que ele possa revidar!
+          </p>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button type="button" id="btnKeepNewbieShield" class="hc-choice-row recommended" onclick="window.progressiveUnlockEngine.closeShieldModal()">
+              <span class="hc-choice-main">
+                <span class="hc-choice-title">🛡️ Manter Meu Escudo (${esc(st.formattedRemaining)} restantes)</span>
+                <span class="hc-choice-desc">Cancela este ataque PvP e continua 100% protegido contra outros jogadores.</span>
+              </span>
+              <span class="hc-choice-cta">Manter →</span>
+            </button>
+            <button type="button" id="btnConfirmBreakShieldPvp" class="hc-choice-row danger-opt" onclick="window.progressiveUnlockEngine.confirmBreakAndExecutePvp()">
+              <span class="hc-choice-main">
+                <span class="hc-choice-title" style="color:#fca5a5;">⚔️ Quebrar Escudo e Atacar Jogador</span>
+                <span class="hc-choice-desc">Desativa seu escudo permanentemente e inicia o ataque PvP agora.</span>
+              </span>
+              <span class="hc-choice-cta" style="color:#fca5a5;">Atacar →</span>
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(wrap);
+    }
+
+    confirmBreakAndExecutePvp() {
+      const cb = this._pendingBreakCb;
+      const lbl = this._pendingTargetLabel || 'jogador real';
+      this._pendingBreakCb = null;
+      this.closeShieldModal();
+      this.breakNewbieShield(`Atacou ${lbl}`);
+      if (cb) cb();
     }
 
     checkLiveCondition(winId) {
@@ -464,7 +637,33 @@
         }
       });
 
+      this.syncNewbieShieldHudBadge();
       this.renderProfilePreferenceCard();
+    }
+
+    syncNewbieShieldHudBadge() {
+      if (typeof document === 'undefined' || !window.currentProfile) return;
+      const ipChip = document.getElementById('hudMyIpChip');
+      if (!ipChip || !ipChip.parentElement) return;
+      let badge = document.getElementById('hudNewbieShieldBadge');
+      const st = this.getNewbieShieldStatus();
+      if (!st.active) {
+        if (badge) badge.style.display = 'none';
+        return;
+      }
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.id = 'hudNewbieShieldBadge';
+        badge.className = 'hud-shield-chip';
+        badge.title = 'Escudo de Novato (24h) — toque para ver as regras!';
+        badge.onclick = (ev) => {
+          ev.stopPropagation();
+          this.openShieldInfoModal();
+        };
+        ipChip.insertAdjacentElement('afterend', badge);
+      }
+      badge.style.display = 'inline-flex';
+      badge.textContent = `🛡️ ${st.formattedRemaining}`;
     }
 
     renderBeginnerHomeGuideHtml() {
@@ -479,13 +678,14 @@
       const dirty = window.nineSystemsEngine ? window.nineSystemsEngine.getDirtyBalance() : 0;
       const washedBefore = tutDone || curStep >= 6 || !!(window.nineSystemsEngine && window.nineSystemsEngine.state && window.nineSystemsEngine.state.washingJobs && window.nineSystemsEngine.state.washingJobs.length > 0);
       const readyClaim = !tutDone && curStep === 6;
+      const shieldSt = this.getNewbieShieldStatus();
 
       return `
         <div class="hc-card" id="beginnerThreeStepCard" style="margin-bottom:16px;padding:14px 16px;border-color:rgba(53,184,119,0.45);background:linear-gradient(145deg,rgba(14,28,22,0.92),rgba(11,16,24,0.96));">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
             <div>
               <span class="hc-badge success">🧭 JORNADA DO RECRUTA (${tutDone ? 'CONCLUÍDA ✓' : `ETAPA ${curStep} DE 6`})</span>
-              ${this.isNewbiePvpShieldActive() ? `<span class="hc-badge info" style="margin-left:6px;">🛡️ Escudo Iniciante Ativo (&lt; 200 REP)</span>` : ''}
+              ${shieldSt.active ? `<span class="hc-badge info" style="margin-left:6px;cursor:pointer;" onclick="window.progressiveUnlockEngine.openShieldInfoModal()">🛡️ Escudo 24h Ativo (${esc(shieldSt.formattedRemaining)})</span>` : ''}
             </div>
             <span style="font-size:11.5px;color:var(--hc-text-3);">Siga os passos para aprender Invasão, Rastro e Lavagem na prática!</span>
           </div>
@@ -526,15 +726,25 @@
       this.ensureLoaded();
       const vet = !!this.state.veteranShowAll;
       const stepNum = this.getCurrentStepNumber();
+      const sh = this.getNewbieShieldStatus();
       box.innerHTML = `
-        <div style="padding:10px 12px;border-radius:8px;background:var(--hc-inset);border:1px solid var(--hc-border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-          <div>
-            <strong style="font-size:12.5px;color:var(--hc-text);">🧭 Menu Lateral Progressivo (Degrau ${stepNum}/4)</strong>
-            <div style="font-size:11.5px;color:var(--hc-text-2);">${vet ? 'Mostrando todas as 27 telas (Modo Veterano ligado).' : 'Liberando novas telas aos poucos conforme você evolui.'}</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="padding:10px 12px;border-radius:8px;background:var(--hc-inset);border:1px solid ${sh.active ? 'rgba(56,189,248,0.45)' : 'var(--hc-border)'};display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div>
+              <strong style="font-size:12.5px;color:${sh.active ? '#7dd3fc' : 'var(--hc-text)'};">🛡️ Escudo de Novato (24 Horas): ${sh.active ? `Ativo · ${esc(sh.formattedRemaining)} restantes` : 'Encerrado'}</strong>
+              <div style="font-size:11.5px;color:var(--hc-text-2);">${sh.active ? 'Imune a invasões e DDoS de jogadores/bots (cai na hora se você atacar um jogador real).' : (sh.brokenByPvp ? `Encerrado antecipadamente (${esc(sh.brokenReason)}).` : 'Período inicial de 24h concluído — PvP aberto.')}</div>
+            </div>
+            <button type="button" class="hc-btn ghost sm" onclick="window.progressiveUnlockEngine.openShieldInfoModal()">Regras</button>
           </div>
-          <button type="button" id="btnToggleVeteranMenuMode" class="hc-btn ${vet ? 'primary' : 'ghost'} sm" onclick="window.progressiveUnlockEngine.toggleVeteranShowAll()">
-            ${vet ? '✓ Todo o Menu Visível' : 'Mostrar Todo o Menu'}
-          </button>
+          <div style="padding:10px 12px;border-radius:8px;background:var(--hc-inset);border:1px solid var(--hc-border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div>
+              <strong style="font-size:12.5px;color:var(--hc-text);">🧭 Menu Lateral Progressivo (Degrau ${stepNum}/4)</strong>
+              <div style="font-size:11.5px;color:var(--hc-text-2);">${vet ? 'Mostrando todas as 27 telas (Modo Veterano ligado).' : 'Liberando novas telas aos poucos conforme você evolui.'}</div>
+            </div>
+            <button type="button" id="btnToggleVeteranMenuMode" class="hc-btn ${vet ? 'primary' : 'ghost'} sm" onclick="window.progressiveUnlockEngine.toggleVeteranShowAll()">
+              ${vet ? '✓ Todo o Menu Visível' : 'Mostrar Todo o Menu'}
+            </button>
+          </div>
         </div>
       `;
     }
@@ -550,6 +760,7 @@
           this.syncSidebarDom();
         } else {
           this.evaluateUnlocks(false);
+          this.syncNewbieShieldHudBadge();
         }
       }, 2500);
     }

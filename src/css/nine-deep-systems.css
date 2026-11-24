@@ -260,6 +260,23 @@
   color: #fca5a5;
 }
 
+.hud-shield-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.48);
+  color: #7dd3fc;
+  font-family: var(--hc-font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
 /* Gaveta de Regras Completas de Funcionamento em todas as 9 telas */
 .nds-rules-drawer {
   background: #0b111a;
