@@ -419,6 +419,20 @@ h1, h2, h3, h4 { font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; }
 }
 
 @media (max-width: 860px) {
+  .hc-btn {
+    min-height: 30px;
+    padding: 4px 10px;
+    font-size: 11.8px;
+    gap: 5px;
+  }
+  .hc-btn.sm {
+    min-height: 25px;
+    padding: 3px 8px;
+    font-size: 11px;
+  }
+  .hc-card {
+    padding: 11px 12px;
+  }
   .hc-mail-layout {
     grid-template-columns: 1fr !important;
   }

@@ -818,8 +818,38 @@
   .user-chip { padding-left: 4px; gap: 4px; }
   .user-chip .avatar { width: 24px; height: 24px; font-size: 10.5px; }
   .window-frame { left: 0 !important; right: 0 !important; grid-column: 1; }
-  .window-header { padding: 14px 14px 0 !important; }
-  .window-body { padding: 12px 14px 68px !important; }
+  .window-header { padding: 8px 11px 0 !important; }
+  .window-body { padding: 8px 11px 58px !important; }
+  #homeBody { padding-top: 10px !important; }
+  .hc-breadcrumb {
+    font-size: 10.5px !important;
+    margin-bottom: 2px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .window-title, .home-title {
+    font-size: clamp(16px, 4.4vw, 18.5px) !important;
+    line-height: 1.2 !important;
+  }
+  .page-sub, .home-sub {
+    font-size: 11.5px !important;
+    line-height: 1.35 !important;
+    margin-top: 2px !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .hc-stat-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    margin-bottom: 12px !important;
+  }
+  .hc-stat-cell { padding: 9px 10px !important; }
+  .hc-stat-label { font-size: 10px !important; }
+  .hc-stat-value { font-size: 16px !important; }
+  .hc-stat-sub { font-size: 10.5px !important; }
   #btnMobileNavToggle,
   #btnMobileIpQuick {
     display: inline-flex; align-items: center; justify-content: center;
