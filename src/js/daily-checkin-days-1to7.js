@@ -55,6 +55,8 @@
         restoredPower,
         note: restoredPower ? 'Energia de emergência religada no esconderijo' : ''
       };
-    }
+    },
+    renderExtraMeta: () => `<span style="font-size:9.8px;color:var(--hc-text-3);">Capital Limpo + S.O.S.</span>`,
+    renderDetailPanel: (stage) => renderStageScaleStrip([350, 1000, 2500, 6000], (v) => `$${v.toLocaleString('pt-BR')}`, stage)
   });
 })();
