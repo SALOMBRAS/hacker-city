@@ -327,3 +327,18 @@
     padding: 16px 16px;
   }
 }
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .hc-defense-popover {
+    top: 50px;
+    max-height: calc(100vh - 60px);
+    padding: 10px 13px;
+  }
+  .hc-jail-overlay {
+    padding: 10px;
+  }
+  .hc-jail-card {
+    max-height: calc(100vh - 20px);
+    padding: 14px 16px;
+  }
+}

@@ -398,3 +398,18 @@
     overflow-wrap: anywhere;
   }
 }
+
+@media (max-height: 500px) and (orientation: landscape) {
+  #authOverlay {
+    padding: 0.65rem 1rem;
+  }
+  .auth-card {
+    padding: 1rem 1.25rem;
+  }
+  .auth-header {
+    margin-bottom: 0.85rem;
+  }
+  .auth-title {
+    font-size: 1.35rem;
+  }
+}
