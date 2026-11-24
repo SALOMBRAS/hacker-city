@@ -96,4 +96,18 @@
     },
     renderDetailPanel: (stage) => renderStageScaleStrip([45, 95, 170, 300], (v) => `+${v} REP`, stage)
   });
+
+  // =========================================================================
+  // DIA 3 — CAIXA DE INFILTRAÇÃO & INTELIGÊNCIA OSINT
+  // =========================================================================
+  ck.registerDaySpec(3, {
+    title: 'Dia 3',
+    codeName: 'Caixa de Infiltração & OSINT',
+    icon: '🕵️',
+    cleanByStage: [800, 2200, 5200, 12000],
+    repByStage: [0, 0, 0, 0],
+    satsByStage: [0, 0, 0, 0],
+    bonusTag: '+1 Dossiê OSINT',
+    bonusDesc: 'Reforço financeiro limpo acompanhado de +1 Dossiê OSINT para descobrir credenciais corporativas.'
+  });
 })();
