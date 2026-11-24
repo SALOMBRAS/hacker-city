@@ -2753,6 +2753,9 @@
       if (newLines.length < prevLines.length && window.nineSystemsEngine && typeof window.nineSystemsEngine.recordSimpleLogWipe === 'function') {
         window.nineSystemsEngine.recordSimpleLogWipe(this.activeSshIp);
       }
+      if (newLines.length < prevLines.length && window.operatorRetentionEngine && typeof window.operatorRetentionEngine.recordDailyGoalProgress === 'function') {
+        window.operatorRetentionEngine.recordDailyGoalProgress('ghost_wipe');
+      }
       const sshHost = this.resolveHost(this.activeSshIp);
       if (sshHost && sshHost.isRealHuman && window.onlineEngine) {
         const myReal = window.networkIdentity.getPublicIp();

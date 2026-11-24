@@ -1226,6 +1226,9 @@
       if (window.nineSystemsEngine && typeof window.nineSystemsEngine.recordSimpleLogWipe === 'function') {
         window.nineSystemsEngine.recordSimpleLogWipe(ip);
       }
+      if (window.operatorRetentionEngine && typeof window.operatorRetentionEngine.recordDailyGoalProgress === 'function') {
+        window.operatorRetentionEngine.recordDailyGoalProgress('ghost_wipe');
+      }
       if (window.hackerAudio) window.hackerAudio.playKeyClick();
       showToast(aborted
         ? `Rastro em ${ip} apagado e contra-ataque neutralizado!`
@@ -3493,6 +3496,10 @@
         ${window.progressiveUnlockEngine && !window.progressiveUnlockEngine.isUnlocked('winOpsHub')
           ? window.progressiveUnlockEngine.renderBeginnerHomeGuideHtml()
           : (window.ecosystemHub && typeof window.ecosystemHub.renderHomeStripHtml === 'function' ? window.ecosystemHub.renderHomeStripHtml() : '')}
+
+        ${window.operatorRetentionEngine && typeof window.operatorRetentionEngine.renderHomeRoutineCardHtml === 'function'
+          ? window.operatorRetentionEngine.renderHomeRoutineCardHtml()
+          : ''}
 
         <!-- Faixa Unificada de 4 Métricas -->
         <div class="hc-stat-strip">

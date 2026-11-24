@@ -9,6 +9,50 @@
 
   const AUTO_OPEN_MIN_AWAY_MS = 15 * 60 * 1000; // 15 minutos reais offline
 
+  const SEVEN_DAY_SUPPLY = [
+    { day: 1, label: '$ 350 Limpos', cleanCash: 350, rep: 0, sats: 0 },
+    { day: 2, label: '+40 REP', cleanCash: 0, rep: 40, sats: 0 },
+    { day: 3, label: '$ 750 Limpos', cleanCash: 750, rep: 0, sats: 0 },
+    { day: 4, label: '0.00020 BTC', cleanCash: 0, rep: 0, sats: 20000 },
+    { day: 5, label: '$ 1.400 Limpos', cleanCash: 1400, rep: 0, sats: 0 },
+    { day: 6, label: '+80 REP', cleanCash: 0, rep: 80, sats: 0 },
+    { day: 7, label: '🏆 Baú ($ 3.000 + BTC)', cleanCash: 3000, rep: 0, sats: 50000 }
+  ];
+
+  const DAILY_GOALS_CATALOG = [
+    {
+      id: 'ghost_wipe',
+      title: 'Infiltrador Limpo',
+      desc: 'Apagar seu IP dos logs de 1 servidor remoto',
+      rewardClean: 450,
+      rewardRep: 25,
+      goWin: 'winLogs'
+    },
+    {
+      id: 'clean_finance',
+      title: 'Operador Financeiro',
+      desc: 'Lavar dinheiro sujo OU abrir operação na Bolsa',
+      rewardClean: 600,
+      rewardRep: 30,
+      goWin: 'winLaundering'
+    },
+    {
+      id: 'sharp_mind',
+      title: 'Mente Afiada',
+      desc: 'Resolver 1 Desafio/Enigma OU concluir 1 Curso',
+      rewardClean: 400,
+      rewardRep: 25,
+      goWin: 'winUniversity'
+    }
+  ];
+
+  function runAuthorized(fn) {
+    if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+      return window.integrityGuard.runAuthorized(fn);
+    }
+    return fn();
+  }
+
   function escHtml(str) {
     return String(str == null ? '' : str)
       .replace(/&/g, '&amp;')
@@ -40,6 +84,12 @@
       if (typeof s.lastStockValue !== 'number') s.lastStockValue = 0;
       if (typeof s.blockedAttacksSinceLastLogin !== 'number') s.blockedAttacksSinceLastLogin = 0;
       if (typeof s.totalBlockedAttacks !== 'number') s.totalBlockedAttacks = 0;
+      if (typeof s.supplyStreakDay !== 'number' || s.supplyStreakDay < 1 || s.supplyStreakDay > 7) s.supplyStreakDay = 1;
+      if (typeof s.lastSupplyClaimDay !== 'string') s.lastSupplyClaimDay = '';
+      if (typeof s.dailyGoalsDay !== 'string') s.dailyGoalsDay = '';
+      if (!s.dailyGoalsDone || typeof s.dailyGoalsDone !== 'object') s.dailyGoalsDone = {};
+      if (!s.dailyGoalsClaimed || typeof s.dailyGoalsClaimed !== 'object') s.dailyGoalsClaimed = {};
+      if (typeof s.routineCollapsed !== 'boolean') s.routineCollapsed = false;
       return s;
     }
 
@@ -277,6 +327,200 @@
     closeOfflineBriefingModal() {
       const m = document.getElementById('hcOfflineBriefingModal');
       if (m) m.style.display = 'none';
+    }
+
+    todayKey() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    yesterdayKey() {
+      const d = new Date(Date.now() - 86400000);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    ensureDailyReset() {
+      const st = this.ensureLoaded();
+      const tk = this.todayKey();
+      if (st.dailyGoalsDay !== tk) {
+        st.dailyGoalsDay = tk;
+        st.dailyGoalsDone = {};
+        st.dailyGoalsClaimed = {};
+        if (st.lastSupplyClaimDay && st.lastSupplyClaimDay !== tk && st.lastSupplyClaimDay !== this.yesterdayKey()) {
+          st.supplyStreakDay = 1;
+        }
+        this.save();
+      }
+      return st;
+    }
+
+    getSevenDayCatalog() {
+      return SEVEN_DAY_SUPPLY;
+    }
+
+    getDailyGoalsCatalog() {
+      return DAILY_GOALS_CATALOG;
+    }
+
+    claimDailySupply() {
+      const st = this.ensureDailyReset();
+      const tk = this.todayKey();
+      if (st.lastSupplyClaimDay === tk) {
+        if (typeof window.showToast === 'function') {
+          window.showToast('🎁 Você já resgatou o Suprimento Diário de hoje! Volte amanhã para avançar a sequência.');
+        }
+        return { success: false, code: 'ALREADY_CLAIMED_TODAY' };
+      }
+
+      const dayIndex = Math.max(1, Math.min(7, Number(st.supplyStreakDay || 1)));
+      const tier = SEVEN_DAY_SUPPLY[dayIndex - 1] || SEVEN_DAY_SUPPLY[0];
+
+      runAuthorized(() => {
+        if (tier.cleanCash > 0 && window.currentWallet) {
+          window.currentWallet.balance = +(Number(window.currentWallet.balance || 0) + tier.cleanCash).toFixed(2);
+        }
+        if (tier.rep > 0 && window.currentProfile) {
+          window.currentProfile.reputation = Number(window.currentProfile.reputation || 0) + tier.rep;
+        }
+      });
+      if (tier.sats > 0 && window.bitcoinEngine && typeof window.bitcoinEngine.creditSats === 'function') {
+        window.bitcoinEngine.creditSats(tier.sats, 'DAILY-SUPPLY', `Suprimento Diário Dia ${dayIndex}`);
+      }
+
+      st.lastSupplyClaimDay = tk;
+      st.supplyStreakDay = dayIndex >= 7 ? 1 : dayIndex + 1;
+      this.save();
+      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+      if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+      if (typeof window.renderHome === 'function') window.renderHome();
+      const msg = `🎁 Suprimento do Dia ${dayIndex} resgatado: ${tier.label}!`;
+      if (typeof window.showToast === 'function') window.showToast(msg);
+      return { success: true, claimedDay: dayIndex, reward: tier, message: msg };
+    }
+
+    recordDailyGoalProgress(goalId) {
+      const st = this.ensureDailyReset();
+      const goal = DAILY_GOALS_CATALOG.find((g) => g.id === goalId);
+      if (!goal || st.dailyGoalsDone[goalId]) return false;
+      st.dailyGoalsDone[goalId] = true;
+      this.save();
+      if (typeof window.showToast === 'function') {
+        window.showToast(`✅ Meta Diária concluída: "${goal.title}"! Resgate +$${goal.rewardClean} Limpos no Painel Inicial.`);
+      }
+      if (window.winManager && window.winManager.current === 'winHome' && typeof window.renderHome === 'function') {
+        window.renderHome();
+      }
+      return true;
+    }
+
+    claimDailyGoal(goalId) {
+      const st = this.ensureDailyReset();
+      const goal = DAILY_GOALS_CATALOG.find((g) => g.id === goalId);
+      if (!goal) return { success: false, code: 'INVALID_GOAL' };
+      if (!st.dailyGoalsDone[goalId]) return { success: false, code: 'NOT_COMPLETED' };
+      if (st.dailyGoalsClaimed[goalId]) return { success: false, code: 'ALREADY_CLAIMED' };
+
+      runAuthorized(() => {
+        if (window.currentWallet) {
+          window.currentWallet.balance = +(Number(window.currentWallet.balance || 0) + goal.rewardClean).toFixed(2);
+        }
+        if (window.currentProfile) {
+          window.currentProfile.reputation = Number(window.currentProfile.reputation || 0) + goal.rewardRep;
+        }
+      });
+
+      st.dailyGoalsClaimed[goalId] = true;
+      this.save();
+      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+      if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+      if (typeof window.renderHome === 'function') window.renderHome();
+      const msg = `💵 Meta "${goal.title}" resgatada: +$${goal.rewardClean} Limpos e +${goal.rewardRep} REP!`;
+      if (typeof window.showToast === 'function') window.showToast(msg);
+      return { success: true, goal, message: msg };
+    }
+
+    toggleRoutineCollapsed() {
+      const st = this.ensureLoaded();
+      st.routineCollapsed = !st.routineCollapsed;
+      this.save();
+      if (typeof window.renderHome === 'function') window.renderHome();
+    }
+
+    navigateToGoalTarget(winId) {
+      let target = winId || 'winBrowser';
+      if (window.progressiveUnlockEngine && !window.progressiveUnlockEngine.isUnlocked(target)) {
+        target = target === 'winLaundering' ? 'winBrowser' : 'winUniversity';
+      }
+      if (typeof window.navTo === 'function') window.navTo(target);
+    }
+
+    renderHomeRoutineCardHtml() {
+      const st = this.ensureDailyReset();
+      const tk = this.todayKey();
+      const claimedToday = st.lastSupplyClaimDay === tk;
+      const curDay = Math.max(1, Math.min(7, Number(st.supplyStreakDay || 1)));
+      const doneGoalsCount = DAILY_GOALS_CATALOG.filter((g) => !!st.dailyGoalsClaimed[g.id]).length;
+      const readyClaims = (!claimedToday ? 1 : 0) + DAILY_GOALS_CATALOG.filter((g) => st.dailyGoalsDone[g.id] && !st.dailyGoalsClaimed[g.id]).length;
+
+      const pillsHtml = SEVEN_DAY_SUPPLY.map((item) => {
+        const isPast = claimedToday
+          ? (curDay === 1 ? item.day <= 7 : item.day < curDay)
+          : (item.day < curDay);
+        const isCurrent = !claimedToday && item.day === curDay;
+        const border = isCurrent ? 'rgba(53,184,119,0.75)' : (isPast ? 'rgba(53,184,119,0.28)' : 'var(--hc-border)');
+        const bg = isCurrent ? 'rgba(53,184,119,0.12)' : 'var(--hc-inset)';
+        return `
+          <div style="background:${bg};border:1px solid ${border};border-radius:7px;padding:6px 8px;min-width:0;">
+            <div style="font-size:10.5px;color:${isCurrent ? 'var(--hc-accent-text)' : 'var(--hc-text-3)'};font-weight:700;">DIA ${item.day} ${isPast ? '✓' : (isCurrent ? '●' : '')}</div>
+            <div style="font-size:11.5px;color:#fff;font-weight:600;overflow-wrap:anywhere;">${escHtml(item.label)}</div>
+          </div>
+        `;
+      }).join('');
+
+      const goalsHtml = DAILY_GOALS_CATALOG.map((g) => {
+        const isDone = !!st.dailyGoalsDone[g.id];
+        const isClaimed = !!st.dailyGoalsClaimed[g.id];
+        let actionHtml = '';
+        if (isClaimed) {
+          actionHtml = `<span class="hc-badge success" style="font-size:11px;">✓ Resgatada</span>`;
+        } else if (isDone) {
+          actionHtml = `<button type="button" id="btnClaimDailyGoal_${g.id}" class="hc-btn primary sm" onclick="window.operatorRetentionEngine.claimDailyGoal('${g.id}')">Resgatar +$${g.rewardClean}</button>`;
+        } else {
+          actionHtml = `<button type="button" class="hc-btn ghost sm" style="border-color:var(--hc-border);" onclick="window.operatorRetentionEngine.navigateToGoalTarget('${g.goWin}')">Ir →</button>`;
+        }
+        return `
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;border-radius:7px;background:var(--hc-inset);border:1px solid ${isDone && !isClaimed ? 'rgba(53,184,119,0.55)' : 'var(--hc-border)'};">
+            <div style="min-width:0;flex:1 1 180px;">
+              <strong style="font-size:12.5px;color:#fff;display:block;">${escHtml(g.title)} <span style="font-weight:500;font-size:11px;color:var(--hc-accent-text);">(+$${g.rewardClean} Limpos · +${g.rewardRep} REP)</span></strong>
+              <span style="font-size:11.5px;color:var(--hc-text-2);">${escHtml(g.desc)}</span>
+            </div>
+            <div style="flex-shrink:0;">${actionHtml}</div>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div id="hcHomeRoutineCard" class="hc-card" style="padding:12px 14px;margin-bottom:16px;border-color:${readyClaims > 0 ? 'rgba(53,184,119,0.45)' : 'var(--hc-border)'};">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0;">
+              <strong style="font-size:13.5px;color:#fff;">🎁 Suprimento 7 Dias &amp; Metas Diárias</strong>
+              <span class="hc-badge ${readyClaims > 0 ? 'success' : ''}" style="font-size:11px;">${doneGoalsCount}/3 metas · ${claimedToday ? 'Suprimento OK' : `Dia ${curDay} pronto`}</span>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              ${!claimedToday ? `<button type="button" id="btnClaimDailySupply" class="hc-btn primary sm" onclick="window.operatorRetentionEngine.claimDailySupply()">🎁 Resgatar Dia ${curDay}</button>` : ''}
+              <button type="button" id="btnToggleRoutineCard" class="hc-btn ghost sm" onclick="window.operatorRetentionEngine.toggleRoutineCollapsed()">${st.routineCollapsed ? 'Expandir ▾' : 'Recolher ▴'}</button>
+            </div>
+          </div>
+          ${st.routineCollapsed ? '' : `
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(92px, 1fr));gap:6px;margin-top:10px;">
+              ${pillsHtml}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px;">
+              ${goalsHtml}
+            </div>
+          `}
+        </div>
+      `;
     }
   }
 

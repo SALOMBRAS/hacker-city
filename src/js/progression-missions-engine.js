@@ -333,6 +333,9 @@
       }
 
       this.state.completed.push(certId);
+      if (window.operatorRetentionEngine && typeof window.operatorRetentionEngine.recordDailyGoalProgress === 'function') {
+        window.operatorRetentionEngine.recordDailyGoalProgress('sharp_mind');
+      }
       if (!this.state.issuedAt) this.state.issuedAt = {};
       this.state.issuedAt[certId] = new Date().toLocaleDateString('pt-BR') + ' · ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
       this.readingCourseId = null;
