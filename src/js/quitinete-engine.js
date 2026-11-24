@@ -499,6 +499,9 @@ class QuitineteEngine {
     this.syncDynamicPowerBill();
     this.save();
     this.applyEffects();
+    if (window.operatorRetentionEngine && typeof window.operatorRetentionEngine.recordDailyGoalProgress === 'function') {
+      window.operatorRetentionEngine.recordDailyGoalProgress('pay_hideout');
+    }
 
     return {
       success: true,
@@ -534,6 +537,9 @@ class QuitineteEngine {
     this.syncDynamicPowerBill();
     this.save();
     this.applyEffects();
+    if (window.operatorRetentionEngine && typeof window.operatorRetentionEngine.recordDailyGoalProgress === 'function') {
+      window.operatorRetentionEngine.recordDailyGoalProgress('pay_hideout');
+    }
 
     return {
       success: true,

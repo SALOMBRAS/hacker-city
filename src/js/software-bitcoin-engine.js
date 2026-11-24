@@ -2462,6 +2462,9 @@
           accumulatedSats: 0
         });
       }
+      if (window.operatorRetentionEngine && typeof window.operatorRetentionEngine.recordDailyGoalProgress === 'function') {
+        window.operatorRetentionEngine.recordDailyGoalProgress('plant_virus');
+      }
 
       // Remove da lista de "aguardando executar" já que agora entrou em execução na RAM da vítima!
       if (this.state.stagedRemoteViruses && Array.isArray(this.state.stagedRemoteViruses[host.ip])) {
@@ -2950,6 +2953,9 @@
         v.accumulatedSats = 0;
       });
       this.save();
+      if (window.operatorRetentionEngine && typeof window.operatorRetentionEngine.recordDailyGoalProgress === 'function') {
+        window.operatorRetentionEngine.recordDailyGoalProgress('harvest_virus');
+      }
 
       if (summary.cashReady > 0 && window.nineSystemsEngine && typeof window.nineSystemsEngine.addDirtyMoney === 'function') {
         window.nineSystemsEngine.addDirtyMoney(summary.cashReady, 'Coleta Botnet (.vbank/.vspam/.vwarez)');

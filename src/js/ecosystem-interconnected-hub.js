@@ -798,6 +798,9 @@
       if (this.state.shortPositions[corp.symbol]) {
         this.state.shortPositions[corp.symbol].sabotagedWhileOpen = true;
       }
+      if (window.operatorRetentionEngine && typeof window.operatorRetentionEngine.recordDailyGoalProgress === 'function') {
+        window.operatorRetentionEngine.recordDailyGoalProgress('sabotage_corp');
+      }
       if (window.topTenMechanics && typeof window.topTenMechanics.evaluateSponsoredCorpIntegrity === 'function') {
         window.topTenMechanics.evaluateSponsoredCorpIntegrity();
       }
