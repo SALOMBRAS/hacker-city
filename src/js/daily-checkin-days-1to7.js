@@ -59,4 +59,18 @@
     renderExtraMeta: () => `<span style="font-size:9.8px;color:var(--hc-text-3);">Capital Limpo + S.O.S.</span>`,
     renderDetailPanel: (stage) => renderStageScaleStrip([350, 1000, 2500, 6000], (v) => `$${v.toLocaleString('pt-BR')}`, stage)
   });
+
+  // =========================================================================
+  // DIA 2 — CREDENCIAL & IMPULSO DE REDE (REPUTAÇÃO ESCALÁVEL + TURBO CPU)
+  // =========================================================================
+  ck.registerDaySpec(2, {
+    title: 'Dia 2',
+    codeName: 'Credencial & Impulso de CPU',
+    icon: '⚡',
+    cleanByStage: [0, 0, 0, 0],
+    repByStage: [45, 95, 170, 300],
+    satsByStage: [0, 0, 0, 0],
+    bonusTag: '+12% CPU (25m)',
+    bonusDesc: 'Acelera seu prestígio hacker e ativa +12% de velocidade limpa no processador por 25 minutos.'
+  });
 })();
