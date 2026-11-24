@@ -128,4 +128,32 @@
     },
     renderDetailPanel: (stage) => renderStageScaleStrip([800, 2200, 5200, 12000], (v) => `$${v.toLocaleString('pt-BR')}`, stage)
   });
+
+  // =========================================================================
+  // DIA 4 — REMESSA CRIPTOGRÁFICA BTC & PASTA TÉRMICA PRATA (7H)
+  // =========================================================================
+  ck.registerDaySpec(4, {
+    title: 'Dia 4',
+    codeName: 'Remessa BTC & Resfriamento Prata',
+    icon: '₿',
+    cleanByStage: [0, 0, 0, 0],
+    repByStage: [0, 0, 0, 0],
+    satsByStage: [25000, 55000, 100000, 180000],
+    bonusTag: 'Pasta Prata (7h)',
+    bonusDesc: 'Transfere satoshis escalados direto para sua carteira Bitcoin e aplica Pasta Térmica Prata (-9°C por 7h).',
+    onClaimBonus: (stage) => {
+      if (window.nineSystemsEngine && typeof window.nineSystemsEngine.ensureLoaded === 'function') {
+        const ns = window.nineSystemsEngine.ensureLoaded();
+        if (!ns.thermals) ns.thermals = { coolerId: 'stock', pasteAppliedAt: 0, coldOverclockOn: false, empHeatUntil: 0 };
+        ns.thermals.pasteAppliedAt = Date.now();
+        window.nineSystemsEngine.save();
+      }
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('CHECKIN-DIA4', `Remessa BTC Estágio ${stage} + Pasta Térmica Prata (7h de -9°C) aplicadas.`, 'info');
+      }
+      return { pasteRenewed: true, note: 'Pasta Térmica Prata (-9°C por 7h) aplicada' };
+    },
+    renderExtraMeta: () => `<span style="font-size:9.8px;color:#7dd3fc;">❄️ -9°C CPU (7h)</span>`,
+    renderDetailPanel: (stage) => renderStageScaleStrip([25000, 55000, 100000, 180000], (v) => `${(v / 100000000).toFixed(5)} BTC`, stage)
+  });
 })();
