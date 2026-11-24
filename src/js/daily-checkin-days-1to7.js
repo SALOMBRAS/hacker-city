@@ -156,4 +156,45 @@
     renderExtraMeta: () => `<span style="font-size:9.8px;color:#7dd3fc;">❄️ -9°C CPU (7h)</span>`,
     renderDetailPanel: (stage) => renderStageScaleStrip([25000, 55000, 100000, 180000], (v) => `${(v / 100000000).toFixed(5)} BTC`, stage)
   });
+
+  // =========================================================================
+  // DIA 5 — SUBSÍDIO DE ENGENHARIA & LABORATÓRIO DE VÍRUS
+  // =========================================================================
+  ck.registerDaySpec(5, {
+    title: 'Dia 5',
+    codeName: 'Subsídio de Engenharia & Lab',
+    icon: '🧪',
+    cleanByStage: [1500, 4000, 9500, 22000],
+    repByStage: [0, 0, 0, 0],
+    satsByStage: [0, 0, 0, 0],
+    bonusTag: '+1 Cupom Lab',
+    bonusDesc: 'Financiamento pesado limpo para hardware/cursos mais +1 Cupom (-$250) e +40 XP no Laboratório de Vírus.',
+    onClaimBonus: (stage) => {
+      let coupons = 0;
+      if (window.ecosystemHub && typeof window.ecosystemHub.ensureLoaded === 'function') {
+        const es = window.ecosystemHub.ensureLoaded();
+        es.labDiscountCoupons = Number(es.labDiscountCoupons || 0) + 1;
+        coupons = es.labDiscountCoupons;
+        window.ecosystemHub.save();
+      }
+      if (window.virusLabEngine && typeof window.virusLabEngine.ensureLoaded === 'function') {
+        window.virusLabEngine.ensureLoaded();
+        window.virusLabEngine.state.xp = Number(window.virusLabEngine.state.xp || 0) + 40;
+        if (typeof window.virusLabEngine.computeLevelFromXp === 'function') {
+          const up = window.virusLabEngine.computeLevelFromXp(window.virusLabEngine.state.xp, window.virusLabEngine.state.level);
+          window.virusLabEngine.state.level = up.level;
+        }
+        window.virusLabEngine.save();
+      }
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('CHECKIN-DIA5', `Subsídio Estágio ${stage} + 1 Cupom Lab + 40 XP Lab creditados.`, 'info');
+      }
+      return { coupons, labXpAdded: 40, note: '+1 Cupom Lab (-$250) e +40 XP' };
+    },
+    renderExtraMeta: () => {
+      const c = (window.ecosystemHub && window.ecosystemHub.state) ? Number(window.ecosystemHub.state.labDiscountCoupons || 0) : 0;
+      return `<span style="font-size:9.8px;color:#f5c451;">🧪 Cupons: ${c} · +40 XP</span>`;
+    },
+    renderDetailPanel: (stage) => renderStageScaleStrip([1500, 4000, 9500, 22000], (v) => `$${v.toLocaleString('pt-BR')}`, stage)
+  });
 })();
