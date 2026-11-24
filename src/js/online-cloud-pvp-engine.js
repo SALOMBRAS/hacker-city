@@ -1567,6 +1567,20 @@
           window.systemLogs = window.systemLogs.filter((entry) => !String(entry.msg || '').includes(ipToRemove));
         }
 
+        // PILHA FORENSE UNIFICADA (PvP Humano): limpeza sem Shred 7-Passos deixa Sombra Magnética recuperável em localhost!
+        if ((fullClear || wipedOwnIp) && window.nineSystemsEngine) {
+          if (pkt.d && pkt.d.shredded7Pass) {
+            window.nineSystemsEngine.magneticShadows.set('localhost', [{
+              subnetPrefix: '0x00000000 (SHRED 7-PASSOS IRRECUPERÁVEL)',
+              wipedAt: new Date().toLocaleTimeString('pt-BR'),
+              expiresAt: Date.now() + 60000,
+              shredded: true
+            }]);
+          } else if (typeof window.nineSystemsEngine.recordSimpleLogWipe === 'function') {
+            window.nineSystemsEngine.recordSimpleLogWipe('localhost', ipToRemove || '187.44.12.9');
+          }
+        }
+
         // Se o invasor limpou o próprio IP da sua log, apaga também a pista de IP visível na Quarentena dos malwares dele!
         if ((fullClear || wipedOwnIp) && window.softwareEngine) {
           window.softwareEngine.ensureLoaded();

@@ -1500,8 +1500,26 @@
       if (target === 'localhost') {
         window.systemLogs = [];
         try { localStorage.setItem(window.getSystemLogsStorageKey(), '[]'); } catch (e) {}
-      } else if (window.botAI) {
-        window.botAI.wipeLogs(target);
+      } else {
+        if (window.botAI) window.botAI.wipeLogs(target);
+        const rHost = window.internetEngine && typeof window.internetEngine.resolveHost === 'function'
+          ? window.internetEngine.resolveHost(target)
+          : null;
+        if (rHost && rHost.isRealHuman && window.onlineEngine) {
+          const visIp = (window.internetEngine.lastPvpVisibleIpByTarget && window.internetEngine.lastPvpVisibleIpByTarget[target])
+            || (window.networkIdentity ? window.networkIdentity.getPublicIp() : '0.0.0.0');
+          window.onlineEngine.sendPvpPacket({
+            kind: 'PVP_WIPE_LOG',
+            visibleIp: visIp,
+            targetUserId: rHost.humanUserId,
+            targetTag: rHost.humanTag,
+            targetIp: rHost.ip,
+            d: { wipedOwnIp: true, fullClear: true, shredded7Pass: true }
+          });
+        }
+        if (window.operatorRetentionEngine && typeof window.operatorRetentionEngine.recordDailyGoalProgress === 'function') {
+          window.operatorRetentionEngine.recordDailyGoalProgress('ghost_wipe');
+        }
       }
       this.magneticShadows.set(target, [{
         subnetPrefix: '0x00000000 (SHRED 7-PASSOS IRRECUPERÁVEL)',
@@ -1532,6 +1550,11 @@
         return { success: true, shadows: [], message: 'Nenhuma sombra magnética recente encontrada nos setores deste disco.' };
       }
       return { success: true, shadows: list, message: `🔬 ${list.length} setor(es) magnético(s) inspecionado(s) em ${hostIp}!` };
+    }
+
+    getActiveShadowCount(hostIp = 'localhost') {
+      const list = (this.magneticShadows.get(hostIp) || []).filter((s) => s.expiresAt > Date.now() && !s.shredded);
+      return list.length;
     }
 
     // =========================================================================
