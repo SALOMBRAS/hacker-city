@@ -418,12 +418,19 @@
 
     recordDailyGoalProgress(goalId) {
       const st = this.ensureDailyReset();
-      const goal = DAILY_GOALS_CATALOG.find((g) => g.id === goalId);
+      const goal = (window.dailyCheckinV2 && typeof window.dailyCheckinV2.getGoalById === 'function')
+        ? window.dailyCheckinV2.getGoalById(goalId)
+        : DAILY_GOALS_CATALOG.find((g) => g.id === goalId);
       if (!goal || st.dailyGoalsDone[goalId]) return false;
       st.dailyGoalsDone[goalId] = true;
       this.save();
+      if (window.dailyCheckinV2) {
+        window.dailyCheckinV2.syncTopbarBadge();
+        window.dailyCheckinV2.rerenderIfOpen();
+      }
+      const cashLbl = goal.scaledClean || goal.rewardClean;
       if (typeof window.showToast === 'function') {
-        window.showToast(`✅ Meta Diária concluída: "${goal.title}"! Resgate +$${goal.rewardClean} Limpos no Painel Inicial.`);
+        window.showToast(`✅ Meta Diária concluída: "${goal.title}"! Resgate +$${cashLbl} Limpos no Check-in.`);
       }
       if (window.winManager && window.winManager.current === 'winHome' && typeof window.renderHome === 'function') {
         window.renderHome();
@@ -433,28 +440,37 @@
 
     claimDailyGoal(goalId) {
       const st = this.ensureDailyReset();
-      const goal = DAILY_GOALS_CATALOG.find((g) => g.id === goalId);
+      const goal = (window.dailyCheckinV2 && typeof window.dailyCheckinV2.getGoalById === 'function')
+        ? window.dailyCheckinV2.getGoalById(goalId)
+        : DAILY_GOALS_CATALOG.find((g) => g.id === goalId);
       if (!goal) return { success: false, code: 'INVALID_GOAL' };
       if (!st.dailyGoalsDone[goalId]) return { success: false, code: 'NOT_COMPLETED' };
       if (st.dailyGoalsClaimed[goalId]) return { success: false, code: 'ALREADY_CLAIMED' };
 
+      const cashOut = Number(goal.scaledClean || goal.rewardClean || 0);
+      const repOut = Number(goal.scaledRep || goal.rewardRep || 0);
+
       runAuthorized(() => {
         if (window.currentWallet) {
-          window.currentWallet.balance = +(Number(window.currentWallet.balance || 0) + goal.rewardClean).toFixed(2);
+          window.currentWallet.balance = +(Number(window.currentWallet.balance || 0) + cashOut).toFixed(2);
         }
         if (window.currentProfile) {
-          window.currentProfile.reputation = Number(window.currentProfile.reputation || 0) + goal.rewardRep;
+          window.currentProfile.reputation = Number(window.currentProfile.reputation || 0) + repOut;
         }
       });
 
       st.dailyGoalsClaimed[goalId] = true;
       this.save();
+      if (window.dailyCheckinV2) {
+        window.dailyCheckinV2.syncTopbarBadge();
+        window.dailyCheckinV2.rerenderIfOpen();
+      }
       if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       if (typeof window.renderHome === 'function') window.renderHome();
-      const msg = `💵 Meta "${goal.title}" resgatada: +$${goal.rewardClean} Limpos e +${goal.rewardRep} REP!`;
+      const msg = `💵 Meta "${goal.title}" resgatada: +$${cashOut} Limpos e +${repOut} REP!`;
       if (typeof window.showToast === 'function') window.showToast(msg);
-      return { success: true, goal, message: msg };
+      return { success: true, goal, cashOut, repOut, message: msg };
     }
 
     toggleRoutineCollapsed() {

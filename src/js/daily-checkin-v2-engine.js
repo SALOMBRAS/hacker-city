@@ -8,6 +8,18 @@
   'use strict';
 
   const BRT_OFFSET_MS = -3 * 60 * 60 * 1000; // America/Sao_Paulo (UTC-3)
+  const GOAL_STAGE_MULT = [1.0, 1.8, 3.2, 6.0];
+
+  const DYNAMIC_GOALS_POOL = [
+    { id: 'ghost_wipe', minStage: 1, title: 'Infiltrador Limpo', desc: 'Apagar seu IP dos logs de 1 servidor remoto', rewardClean: 450, rewardRep: 25, goWin: 'winLogs' },
+    { id: 'break_pass', minStage: 1, title: 'Quebrador de Acesso', desc: 'Quebrar a senha de 1 servidor na Internet', rewardClean: 420, rewardRep: 25, goWin: 'winBrowser' },
+    { id: 'sharp_mind', minStage: 1, title: 'Mente Afiada', desc: 'Resolver 1 Desafio/Enigma OU concluir 1 Curso', rewardClean: 400, rewardRep: 25, goWin: 'winUniversity' },
+    { id: 'harvest_virus', minStage: 1, title: 'Colheita Clandestina', desc: 'Coletar lucros acumulados da rede de vírus', rewardClean: 380, rewardRep: 20, goWin: 'winSoftware' },
+    { id: 'pay_hideout', minStage: 1, title: 'Esconderijo em Dia', desc: 'Quitar 1 conta mensal do Esconderijo', rewardClean: 400, rewardRep: 20, goWin: 'winQuitinete' },
+    { id: 'clean_finance', minStage: 2, title: 'Operador Financeiro', desc: 'Lavar dinheiro sujo OU abrir operação na Bolsa', rewardClean: 600, rewardRep: 30, goWin: 'winLaundering' },
+    { id: 'plant_virus', minStage: 2, title: 'Semeador de Botnet', desc: 'Instalar 1 vírus em servidor invadido', rewardClean: 520, rewardRep: 30, goWin: 'winBrowser' },
+    { id: 'sabotage_corp', minStage: 3, title: 'Sabotagem Corporativa', desc: 'Invadir ou sabotar empresa listada na Bolsa', rewardClean: 680, rewardRep: 35, goWin: 'winOpsHub' }
+  ];
 
   function esc(str) {
     return String(str == null ? '' : str)
@@ -175,7 +187,7 @@
       const tk = this.todayBrtKey();
       let count = st.lastSupplyClaimDay !== tk ? 1 : 0;
       if (window.operatorRetentionEngine) {
-        const cat = window.operatorRetentionEngine.getDailyGoalsCatalog();
+        const cat = this.getActiveDailyGoals(st);
         cat.forEach((g) => {
           if (st.dailyGoalsDone && st.dailyGoalsDone[g.id] && !(st.dailyGoalsClaimed && st.dailyGoalsClaimed[g.id])) {
             count += 1;
@@ -194,6 +206,71 @@
       const pending = this.getPendingAlertsCount();
       dot.style.display = pending > 0 ? 'inline-block' : 'none';
       dot.textContent = pending > 9 ? '9+' : String(pending);
+    }
+
+    getGoalById(goalId, stageOverride = null) {
+      const base = DYNAMIC_GOALS_POOL.find((g) => g.id === goalId);
+      if (!base) return null;
+      const stage = stageOverride || this.getOperatorStage();
+      const mult = GOAL_STAGE_MULT[Math.max(0, Math.min(3, stage - 1))] || 1.0;
+      return {
+        ...base,
+        scaledClean: Math.round(base.rewardClean * mult),
+        scaledRep: Math.round(base.rewardRep * (1 + (stage - 1) * 0.4))
+      };
+    }
+
+    getActiveDailyGoals(stOverride = null) {
+      const st = stOverride || this.getState();
+      if (!st) return DYNAMIC_GOALS_POOL.slice(0, 3).map((g) => this.getGoalById(g.id, 1));
+      const tk = this.todayBrtKey();
+      const stage = this.getOperatorStage();
+      const eligible = DYNAMIC_GOALS_POOL.filter((g) => g.minStage <= stage);
+
+      if (!Array.isArray(st.activeDailyGoalIds) || st.activeDailyGoalIds.length !== 3 || st.activeDailyGoalsDay !== tk) {
+        let seed = 0;
+        for (let i = 0; i < tk.length; i++) seed = (seed * 31 + tk.charCodeAt(i)) >>> 0;
+        const pool = eligible.slice();
+        const picked = [];
+        while (picked.length < 3 && pool.length > 0) {
+          seed = (seed * 1664525 + 1013904223) >>> 0;
+          const idx = seed % pool.length;
+          picked.push(pool.splice(idx, 1)[0].id);
+        }
+        st.activeDailyGoalIds = picked;
+        st.activeDailyGoalsDay = tk;
+        this.saveState();
+      }
+      return st.activeDailyGoalIds.map((id) => this.getGoalById(id, stage)).filter(Boolean);
+    }
+
+    rerollDailyGoal(goalId) {
+      const st = this.getState();
+      if (!st) return { success: false };
+      const tk = this.todayBrtKey();
+      if (st.rerolledDay === tk) {
+        if (typeof window.showToast === 'function') window.showToast('🔄 Você já usou sua troca grátis de meta hoje!');
+        return { success: false, code: 'REROLL_USED_TODAY' };
+      }
+      const activeIds = this.getActiveDailyGoals(st).map((g) => g.id);
+      const slotIdx = activeIds.indexOf(goalId);
+      if (slotIdx === -1) return { success: false, code: 'GOAL_NOT_ACTIVE' };
+      if (st.dailyGoalsClaimed && st.dailyGoalsClaimed[goalId]) {
+        return { success: false, code: 'GOAL_ALREADY_CLAIMED' };
+      }
+      const stage = this.getOperatorStage();
+      const candidates = DYNAMIC_GOALS_POOL.filter((g) => g.minStage <= stage && !activeIds.includes(g.id));
+      if (candidates.length === 0) return { success: false, code: 'NO_ALTERNATIVE' };
+
+      const replacement = candidates[Math.floor(Math.random() * candidates.length)];
+      st.activeDailyGoalIds[slotIdx] = replacement.id;
+      st.rerolledDay = tk;
+      this.saveState();
+      this.rerenderIfOpen();
+      if (typeof window.renderHome === 'function') window.renderHome();
+      const msg = `🔄 Meta trocada grátis por: "${replacement.title}"!`;
+      if (typeof window.showToast === 'function') window.showToast(msg);
+      return { success: true, newGoalId: replacement.id, title: replacement.title };
     }
 
     claimTodaySupplyV2() {
