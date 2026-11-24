@@ -2556,6 +2556,9 @@
       if (window.dynamicContractsEngine) {
         window.dynamicContractsEngine.onGameAction('break_pass', host.ip);
       }
+      if (window.operatorRetentionEngine && typeof window.operatorRetentionEngine.recordDailyGoalProgress === 'function') {
+        window.operatorRetentionEngine.recordDailyGoalProgress('break_pass');
+      }
       if (window.topTenMechanics && typeof window.topTenMechanics.registerHostIntrusionForNemesisAndDefcon === 'function') {
         window.topTenMechanics.registerHostIntrusionForNemesisAndDefcon(host, method);
       }
