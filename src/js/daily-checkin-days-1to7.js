@@ -260,6 +260,8 @@
         window.addLocalLog('CHECKIN-DIA7', `Baú Mestre Semanal Estágio ${stage} aberto! Recebeu ${cveCode} (24h) + 1 Catalisador Lab.`, 'success');
       }
       return { zeroDayCode: cveCode, catalystAdded: 1, note: `${cveCode} + 1 Catalisador` };
-    }
+    },
+    renderExtraMeta: () => `<span style="font-size:10px;color:#f5c451;font-weight:700;">✨ Zero-Day 24h + Catalisador</span>`,
+    renderDetailPanel: (stage) => renderStageScaleStrip([3500, 9000, 20000, 45000], (v) => `$${v.toLocaleString('pt-BR')}`, stage)
   });
 })();
