@@ -72,6 +72,7 @@
   <script src="src/js/progressive-unlock-engine.js"></script>
   <script src="src/js/pwa-fullscreen-helper.js"></script>
   <script src="src/js/operator-retention-qol-engine.js"></script>
+  <script src="src/js/daily-checkin-v2-engine.js"></script>
   <script src="src/js/quick-command-palette.js"></script>
 </head>
 <body>
@@ -534,6 +535,11 @@
             <span class="topbar-metric-val"><span id="hudReputation">0</span> <small id="hudHeatLevel" style="color:var(--hc-text-3);font-weight:400;font-size:11px;">Nv.1</small></span>
           </div>
         </div>
+
+        <button type="button" id="btnTopbarDailyCheckin" class="hud-notif-btn" style="position:relative;" onclick="if(window.dailyCheckinV2) window.dailyCheckinV2.openModal();" title="Check-in Diário &amp; Metas" aria-label="Check-in Diário">
+          <i data-icon="gift"></i>
+          <span id="topbarCheckinDot" class="hc-notif-dot-count" style="display:none;">1</span>
+        </button>
 
         <button type="button" id="btnQuickCommandPalette" class="hud-notif-btn" onclick="if(window.quickCommandPalette) window.quickCommandPalette.toggle();" title="Paleta de Ação Rápida (Alt+K)" aria-label="Paleta de Ação Rápida">
           <i data-icon="zap"></i>
@@ -1888,6 +1894,7 @@
       }
       document.getElementById('hudReputation').innerText = Number(currentProfile.reputation || 0).toLocaleString('pt-BR');
       document.getElementById('hudHeatLevel').innerText = `Nv.${currentProfile.heat_level}`;
+      if (window.dailyCheckinV2) window.dailyCheckinV2.syncTopbarBadge();
       document.getElementById('hudAvatar').innerText = (currentProfile.hacker_tag || '?').slice(0, 2).toUpperCase();
 
       // Hacker Bank

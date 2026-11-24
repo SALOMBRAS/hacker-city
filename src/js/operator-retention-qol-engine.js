@@ -331,11 +331,17 @@
     }
 
     todayKey() {
+      if (window.dailyCheckinV2 && typeof window.dailyCheckinV2.todayBrtKey === 'function') {
+        return window.dailyCheckinV2.todayBrtKey();
+      }
       const d = new Date();
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
 
     yesterdayKey() {
+      if (window.dailyCheckinV2 && typeof window.dailyCheckinV2.yesterdayBrtKey === 'function') {
+        return window.dailyCheckinV2.yesterdayBrtKey();
+      }
       const d = new Date(Date.now() - 86400000);
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
@@ -364,6 +370,9 @@
     }
 
     claimDailySupply() {
+      if (window.dailyCheckinV2 && typeof window.dailyCheckinV2.claimTodaySupplyV2 === 'function') {
+        return window.dailyCheckinV2.claimTodaySupplyV2();
+      }
       const st = this.ensureDailyReset();
       const tk = this.todayKey();
       if (st.lastSupplyClaimDay === tk) {
@@ -460,66 +469,31 @@
       const tk = this.todayKey();
       const claimedToday = st.lastSupplyClaimDay === tk;
       const curDay = Math.max(1, Math.min(7, Number(st.supplyStreakDay || 1)));
-      const doneGoalsCount = DAILY_GOALS_CATALOG.filter((g) => !!st.dailyGoalsClaimed[g.id]).length;
-      const readyClaims = (!claimedToday ? 1 : 0) + DAILY_GOALS_CATALOG.filter((g) => st.dailyGoalsDone[g.id] && !st.dailyGoalsClaimed[g.id]).length;
-
-      const pillsHtml = SEVEN_DAY_SUPPLY.map((item) => {
-        const isPast = claimedToday
-          ? (curDay === 1 ? item.day <= 7 : item.day < curDay)
-          : (item.day < curDay);
-        const isCurrent = !claimedToday && item.day === curDay;
-        const border = isCurrent ? 'rgba(53,184,119,0.75)' : (isPast ? 'rgba(53,184,119,0.28)' : 'var(--hc-border)');
-        const bg = isCurrent ? 'rgba(53,184,119,0.12)' : 'var(--hc-inset)';
-        return `
-          <div class="hc-routine-day-pill ${item.day === 7 ? 'is-day-7' : ''}" style="background:${bg};border:1px solid ${border};border-radius:7px;padding:5px 7px;min-width:0;">
-            <div style="font-size:10px;color:${isCurrent ? 'var(--hc-accent-text)' : 'var(--hc-text-3)'};font-weight:700;">DIA ${item.day} ${isPast ? '✓' : (isCurrent ? '●' : '')}</div>
-            <div style="font-size:11px;color:#fff;font-weight:600;overflow-wrap:anywhere;">${escHtml(item.label)}</div>
-          </div>
-        `;
-      }).join('');
-
-      const goalsHtml = DAILY_GOALS_CATALOG.map((g) => {
-        const isDone = !!st.dailyGoalsDone[g.id];
-        const isClaimed = !!st.dailyGoalsClaimed[g.id];
-        let actionHtml = '';
-        if (isClaimed) {
-          actionHtml = `<span class="hc-badge success" style="font-size:10.5px;">✓ Resgatada</span>`;
-        } else if (isDone) {
-          actionHtml = `<button type="button" id="btnClaimDailyGoal_${g.id}" class="hc-btn primary sm" onclick="window.operatorRetentionEngine.claimDailyGoal('${g.id}')">Resgatar +$${g.rewardClean}</button>`;
-        } else {
-          actionHtml = `<button type="button" class="hc-btn ghost sm" style="border-color:var(--hc-border);" onclick="window.operatorRetentionEngine.navigateToGoalTarget('${g.goWin}')">Ir →</button>`;
-        }
-        return `
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 9px;border-radius:7px;background:var(--hc-inset);border:1px solid ${isDone && !isClaimed ? 'rgba(53,184,119,0.55)' : 'var(--hc-border)'};">
-            <div style="min-width:0;flex:1 1 170px;">
-              <strong style="font-size:11.8px;color:#fff;display:block;">${escHtml(g.title)} <span style="font-weight:500;font-size:10.5px;color:var(--hc-accent-text);">(+$${g.rewardClean} · +${g.rewardRep} REP)</span></strong>
-              <span style="font-size:11px;color:var(--hc-text-2);line-height:1.3;display:block;">${escHtml(g.desc)}</span>
-            </div>
-            <div style="flex-shrink:0;">${actionHtml}</div>
-          </div>
-        `;
-      }).join('');
+      const goalsList = (window.dailyCheckinV2 && typeof window.dailyCheckinV2.getActiveDailyGoals === 'function')
+        ? window.dailyCheckinV2.getActiveDailyGoals(st)
+        : DAILY_GOALS_CATALOG;
+      const doneGoalsCount = goalsList.filter((g) => !!st.dailyGoalsClaimed[g.id]).length;
+      const pendingCount = (window.dailyCheckinV2 && typeof window.dailyCheckinV2.getPendingAlertsCount === 'function')
+        ? window.dailyCheckinV2.getPendingAlertsCount()
+        : ((!claimedToday ? 1 : 0) + goalsList.filter((g) => st.dailyGoalsDone[g.id] && !st.dailyGoalsClaimed[g.id]).length);
+      const stage = (window.dailyCheckinV2 && typeof window.dailyCheckinV2.getOperatorStage === 'function')
+        ? window.dailyCheckinV2.getOperatorStage()
+        : 1;
 
       return `
-        <div id="hcHomeRoutineCard" class="hc-card" style="padding:10px 12px;margin-bottom:12px;border-color:${readyClaims > 0 ? 'rgba(53,184,119,0.45)' : 'var(--hc-border)'};">
+        <div id="hcHomeRoutineCard" class="hc-card" style="padding:8px 11px;margin-bottom:11px;border-color:${pendingCount > 0 ? 'rgba(53,184,119,0.48)' : 'var(--hc-border)'};">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;">
             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0;">
-              <strong style="font-size:12.8px;color:#fff;">🎁 Suprimento 7 Dias &amp; Metas Diárias</strong>
-              <span class="hc-badge ${readyClaims > 0 ? 'success' : ''}" style="font-size:10.5px;">${doneGoalsCount}/3 metas · ${claimedToday ? 'Suprimento OK' : `Dia ${curDay} pronto`}</span>
+              <strong style="font-size:12.2px;color:#fff;">🎁 Check-in Diário</strong>
+              <span class="hc-badge ${pendingCount > 0 ? 'success' : ''}" style="font-size:10.5px;">
+                ${claimedToday ? `✓ Dia OK · ${doneGoalsCount}/3 metas` : `Dia ${curDay}/7 pronto · Estágio ${stage}`}
+              </span>
             </div>
             <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">
               ${!claimedToday ? `<button type="button" id="btnClaimDailySupply" class="hc-btn primary sm" onclick="window.operatorRetentionEngine.claimDailySupply()">🎁 Resgatar Dia ${curDay}</button>` : ''}
-              <button type="button" id="btnToggleRoutineCard" class="hc-btn ghost sm" onclick="window.operatorRetentionEngine.toggleRoutineCollapsed()">${st.routineCollapsed ? 'Expandir ▾' : 'Recolher ▴'}</button>
+              <button type="button" id="btnOpenDailyCheckinModal" class="hc-btn sm" style="border-color:var(--hc-border-strong);" onclick="if(window.dailyCheckinV2) window.dailyCheckinV2.openModal();">Abrir Central →</button>
             </div>
           </div>
-          ${st.routineCollapsed ? '' : `
-            <div class="hc-routine-days-grid">
-              ${pillsHtml}
-            </div>
-            <div style="display:flex;flex-direction:column;gap:5px;margin-top:8px;">
-              ${goalsHtml}
-            </div>
-          `}
         </div>
       `;
     }

@@ -999,7 +999,60 @@
   font-size: 11px; color: var(--hc-text-3); background: var(--hc-inset);
 }
 
-/* ---------- Grade Responsiva de 7 Dias do Suprimento Diário ---------- */
+/* ---------- Grade Responsiva de 7 Dias do Suprimento Diário & Modal Check-in 2.0 ---------- */
+.hc-checkin-overlay {
+  position: fixed; inset: 0; z-index: 26300;
+  background: rgba(8, 11, 15, 0.84); backdrop-filter: blur(4px);
+  display: none; align-items: center; justify-content: center; padding: 10px;
+}
+.hc-checkin-dialog {
+  width: min(560px, calc(100vw - 20px)); max-height: calc(100dvh - 20px);
+  overflow-y: auto; background: #131922;
+  border: 1px solid rgba(53, 184, 119, 0.48); border-radius: 13px;
+  box-shadow: 0 22px 54px rgba(0, 0, 0, 0.75); display: flex; flex-direction: column;
+}
+.hc-ck-head {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
+  padding: 12px 14px 10px; border-bottom: 1px solid var(--hc-border); background: var(--hc-inset);
+}
+.hc-ck-tabs {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px;
+  padding: 6px 12px; background: #0f141c; border-bottom: 1px solid var(--hc-border);
+}
+.hc-ck-tab {
+  padding: 6px 8px; border-radius: 7px; border: 1px solid transparent;
+  background: transparent; color: var(--hc-text-2); font-size: 11.8px; font-weight: 600;
+  cursor: pointer; text-align: center;
+}
+.hc-ck-tab.active {
+  background: rgba(53, 184, 119, 0.14); border-color: rgba(53, 184, 119, 0.45); color: var(--hc-accent-text);
+}
+.hc-ck-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.hc-ck-grid {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px;
+}
+.hc-ck-day {
+  background: var(--hc-inset); border: 1px solid var(--hc-border); border-radius: 8px;
+  padding: 7px 8px; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 3px; min-width: 0;
+}
+.hc-ck-day.is-day-7 {
+  grid-column: 1 / -1; background: linear-gradient(135deg, rgba(245, 196, 81, 0.1) 0%, rgba(18, 129, 79, 0.12) 100%);
+  border-color: rgba(245, 196, 81, 0.42);
+}
+.hc-ck-day.is-current { border-color: rgba(53, 184, 119, 0.85); background: rgba(53, 184, 119, 0.13); }
+.hc-ck-day.is-past { border-color: rgba(53, 184, 119, 0.3); opacity: 0.86; }
+.hc-ck-day.is-selected { box-shadow: 0 0 0 2px rgba(53, 184, 119, 0.45); }
+.hc-ck-day-top { display: flex; justify-content: space-between; align-items: center; font-size: 10px; font-weight: 700; color: var(--hc-text-3); }
+.hc-ck-day.is-current .hc-ck-day-top { color: var(--hc-accent-text); }
+.hc-ck-day-val { font-size: 11.2px; color: #fff; overflow-wrap: anywhere; line-height: 1.25; }
+.hc-ck-detail {
+  background: #0e131b; border: 1px solid var(--hc-border); border-radius: 9px; padding: 9px 11px;
+}
+.hc-notif-dot-count {
+  position: absolute; top: -3px; right: -3px; min-width: 15px; height: 15px; padding: 0 3px;
+  border-radius: 999px; background: #35b877; color: #08110c; font-size: 9.5px; font-weight: 800;
+  line-height: 15px; text-align: center; pointer-events: none;
+}
 .hc-routine-days-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
