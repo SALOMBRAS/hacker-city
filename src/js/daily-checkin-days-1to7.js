@@ -168,6 +168,28 @@
     repByStage: [0, 0, 0, 0],
     satsByStage: [0, 0, 0, 0],
     bonusTag: '+1 Cupom Lab',
-    bonusDesc: 'Financiamento pesado limpo para hardware/cursos mais +1 Cupom (-$250) e +40 XP no Laboratório de Vírus.'
+    bonusDesc: 'Financiamento pesado limpo para hardware/cursos mais +1 Cupom (-$250) e +40 XP no Laboratório de Vírus.',
+    onClaimBonus: (stage) => {
+      let coupons = 0;
+      if (window.ecosystemHub && typeof window.ecosystemHub.ensureLoaded === 'function') {
+        const es = window.ecosystemHub.ensureLoaded();
+        es.labDiscountCoupons = Number(es.labDiscountCoupons || 0) + 1;
+        coupons = es.labDiscountCoupons;
+        window.ecosystemHub.save();
+      }
+      if (window.virusLabEngine && typeof window.virusLabEngine.ensureLoaded === 'function') {
+        window.virusLabEngine.ensureLoaded();
+        window.virusLabEngine.state.xp = Number(window.virusLabEngine.state.xp || 0) + 40;
+        if (typeof window.virusLabEngine.computeLevelFromXp === 'function') {
+          const up = window.virusLabEngine.computeLevelFromXp(window.virusLabEngine.state.xp, window.virusLabEngine.state.level);
+          window.virusLabEngine.state.level = up.level;
+        }
+        window.virusLabEngine.save();
+      }
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('CHECKIN-DIA5', `Subsídio Estágio ${stage} + 1 Cupom Lab + 40 XP Lab creditados.`, 'info');
+      }
+      return { coupons, labXpAdded: 40, note: '+1 Cupom Lab (-$250) e +40 XP' };
+    }
   });
 })();
