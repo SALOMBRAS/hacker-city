@@ -40,6 +40,21 @@
     repByStage: [0, 0, 0, 0],
     satsByStage: [0, 0, 0, 0],
     bonusTag: 'Gerador S.O.S.',
-    bonusDesc: 'Capital limpo imediato para peças, cursos ou taxas bancárias, escalado pelo seu Estágio.'
+    bonusDesc: 'Capital limpo imediato para peças, cursos ou taxas bancárias, escalado pelo seu Estágio.',
+    onClaimBonus: (stage) => {
+      let restoredPower = false;
+      if (window.quitineteEngine && window.quitineteEngine.state && window.quitineteEngine.state.powerCut) {
+        window.quitineteEngine.state.powerCut = false;
+        if (typeof window.quitineteEngine.save === 'function') window.quitineteEngine.save();
+        restoredPower = true;
+      }
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('CHECKIN-DIA1', `Suprimento Inicial Estágio ${stage} creditado na conta corrente.`, 'info');
+      }
+      return {
+        restoredPower,
+        note: restoredPower ? 'Energia de emergência religada no esconderijo' : ''
+      };
+    }
   });
 })();
