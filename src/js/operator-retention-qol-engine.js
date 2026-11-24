@@ -216,10 +216,11 @@
       const stockNow = this.computeCurrentStockValue();
       const stockDelta = +(stockNow - Number(snap.prevStockValue || stockNow)).toFixed(2);
 
-      const shieldActive = !!(window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.isNewbiePvpShieldActive === 'function' && window.progressiveUnlockEngine.isNewbiePvpShieldActive());
-      const shieldRemText = (shieldActive && window.progressiveUnlockEngine.formatShieldRemaining)
-        ? window.progressiveUnlockEngine.formatShieldRemaining()
-        : null;
+      const shieldStatus = (window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.getNewbieShieldStatus === 'function')
+        ? window.progressiveUnlockEngine.getNewbieShieldStatus()
+        : { active: false, formattedRemaining: 'Encerrado' };
+      const shieldActive = !!shieldStatus.active;
+      const shieldRemText = shieldActive ? shieldStatus.formattedRemaining : null;
 
       return {
         awayMs: snap.awayMs || 0,
