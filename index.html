@@ -3482,11 +3482,11 @@
       el.innerHTML = `
         <div class="hc-breadcrumb"><span>Início</span><span class="sep">›</span><span class="curr">Painel de operações</span></div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;">
           <div>
             <h1 class="home-title">Bem-vindo de volta, ${escapeHtml(currentProfile.hacker_tag)}</h1>
           </div>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
             ${(!window.progressiveUnlockEngine || window.progressiveUnlockEngine.isUnlocked('winOpsHub')) ? `
               <button type="button" class="hc-btn primary" onclick="if(window.ecosystemHub) window.ecosystemHub.activeTab='stocks'; navTo('winOpsHub');">
                 ${HC.icon('trending-up')} Bolsa de Empresas &amp; Desafios
