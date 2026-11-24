@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="96" fill="#0e1115"/>
+  <rect x="36" y="36" width="440" height="440" rx="72" fill="#131922" stroke="#35b877" stroke-width="10" stroke-opacity="0.7"/>
+  <circle cx="112" cy="108" r="13" fill="#e5534b"/>
+  <circle cx="154" cy="108" r="13" fill="#d99b26"/>
+  <circle cx="196" cy="108" r="13" fill="#35b877"/>
+  <path d="M88 158 H424" stroke="#222b38" stroke-width="5"/>
+  <text x="256" y="312" font-family="monospace" font-weight="800" font-size="148" fill="#35b877" text-anchor="middle">HC</text>
+  <text x="256" y="392" font-family="monospace" font-weight="700" font-size="40" fill="#9fb0c5" letter-spacing="8" text-anchor="middle">HACKER CITY</text>
+  <rect x="156" y="418" width="200" height="8" rx="4" fill="#35b877" fill-opacity="0.45"/>
+</svg>
