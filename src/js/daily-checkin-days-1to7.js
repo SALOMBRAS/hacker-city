@@ -128,4 +128,18 @@
     },
     renderDetailPanel: (stage) => renderStageScaleStrip([800, 2200, 5200, 12000], (v) => `$${v.toLocaleString('pt-BR')}`, stage)
   });
+
+  // =========================================================================
+  // DIA 4 — REMESSA CRIPTOGRÁFICA BTC & PASTA TÉRMICA PRATA (7H)
+  // =========================================================================
+  ck.registerDaySpec(4, {
+    title: 'Dia 4',
+    codeName: 'Remessa BTC & Resfriamento Prata',
+    icon: '₿',
+    cleanByStage: [0, 0, 0, 0],
+    repByStage: [0, 0, 0, 0],
+    satsByStage: [25000, 55000, 100000, 180000],
+    bonusTag: 'Pasta Prata (7h)',
+    bonusDesc: 'Transfere satoshis escalados direto para sua carteira Bitcoin e aplica Pasta Térmica Prata (-9°C por 7h).'
+  });
 })();
