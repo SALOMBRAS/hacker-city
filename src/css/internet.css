@@ -1115,3 +1115,11 @@
   white-space: nowrap;
 }
 
+@media (max-width: 860px) {
+  .my-ip-chip { gap: 4px !important; padding: 3px 5px !important; }
+  .my-ip-chip .ip-lbl { display: none !important; }
+  .my-ip-chip .ip-val { font-size: 11px !important; }
+  .my-ip-chip .ip-dot { width: 6px; height: 6px; }
+}
+
+
