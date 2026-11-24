@@ -314,3 +314,30 @@
   border-radius: 2px;
   background: #3b82f6;
 }
+
+@media (max-width: 680px) {
+  .eco-nav-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+    padding: 5px;
+  }
+  .eco-nav-btn {
+    padding: 6px 8px;
+    font-size: 11.2px;
+    justify-content: center;
+    text-align: center;
+  }
+  .eco-top-ticker {
+    padding: 8px 10px;
+    gap: 7px;
+  }
+  .eco-ticker-chip {
+    padding: 3px 7px;
+    font-size: 10.5px;
+  }
+  .eco-card {
+    padding: 11px 12px;
+    gap: 8px;
+  }
+}

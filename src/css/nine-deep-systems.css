@@ -329,6 +329,29 @@
   border-top: 1px solid #1e2d42;
 }
 
+@media (max-width: 680px) {
+  .nds-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+    padding: 5px;
+  }
+  .nds-tab-btn {
+    padding: 6px 8px;
+    font-size: 11.2px;
+    line-height: 1.25;
+    text-align: center;
+  }
+  .nds-card {
+    padding: 11px 12px;
+    gap: 8px;
+  }
+  .nds-row {
+    padding: 8px 10px;
+    gap: 7px;
+  }
+}
+
 @media (max-width: 600px) {
   .hc-defense-popover {
     left: 10px;
