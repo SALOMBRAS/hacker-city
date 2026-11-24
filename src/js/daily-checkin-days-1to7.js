@@ -190,6 +190,11 @@
         window.addLocalLog('CHECKIN-DIA5', `Subsídio Estágio ${stage} + 1 Cupom Lab + 40 XP Lab creditados.`, 'info');
       }
       return { coupons, labXpAdded: 40, note: '+1 Cupom Lab (-$250) e +40 XP' };
-    }
+    },
+    renderExtraMeta: () => {
+      const c = (window.ecosystemHub && window.ecosystemHub.state) ? Number(window.ecosystemHub.state.labDiscountCoupons || 0) : 0;
+      return `<span style="font-size:9.8px;color:#f5c451;">🧪 Cupons: ${c} · +40 XP</span>`;
+    },
+    renderDetailPanel: (stage) => renderStageScaleStrip([1500, 4000, 9500, 22000], (v) => `$${v.toLocaleString('pt-BR')}`, stage)
   });
 })();
