@@ -93,12 +93,13 @@ function assert(cond, msg) {
       return {
         awayLabel: data.awayLabel,
         blockedCount: data.blockedCount,
+        shieldRemText: data.shieldRemText || '',
         hasCollectText: modalText.includes('Enquanto Você Esteve Offline'),
         gainedDirty: +(afterDirty - beforeDirty).toFixed(2)
       };
     });
     assert(offlineRes.awayLabel.includes('45 min') && offlineRes.blockedCount === 2, 'Cálculo do Resumo Offline incorreto');
-    assert(offlineRes.hasCollectText && offlineRes.gainedDirty > 0, 'Coleta em 1 clique no Resumo Offline falhou');
+    assert(offlineRes.shieldRemText.includes('h') && offlineRes.hasCollectText && offlineRes.gainedDirty > 0, 'Coleta ou Escudo 24h no Resumo Offline falhou');
     console.log(`✅ [2/5] Resumo Offline ("${offlineRes.awayLabel}", ${offlineRes.blockedCount} bloqueios, +$${offlineRes.gainedDirty} sujos coletados) validado`);
 
     // 3. Validar Suprimento de 7 Dias + 3 Metas Diárias + Layout Ultra-Compacto 320x568
