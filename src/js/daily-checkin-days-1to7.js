@@ -43,8 +43,11 @@
     bonusDesc: 'Capital limpo imediato para peças, cursos ou taxas bancárias, escalado pelo seu Estágio.',
     onClaimBonus: (stage) => {
       let restoredPower = false;
-      if (window.quitineteEngine && window.quitineteEngine.state && window.quitineteEngine.state.powerCut) {
-        window.quitineteEngine.state.powerCut = false;
+      if (window.quitineteEngine && window.quitineteEngine.bills && window.quitineteEngine.bills.power && window.quitineteEngine.bills.power.monthsDue >= 3) {
+        window.quitineteEngine.bills.power.monthsDue = 2;
+        if (typeof window.quitineteEngine.refreshPauseStateAfterPayment === 'function') window.quitineteEngine.refreshPauseStateAfterPayment(Date.now());
+        if (typeof window.quitineteEngine.syncDynamicPowerBill === 'function') window.quitineteEngine.syncDynamicPowerBill();
+        if (typeof window.quitineteEngine.applyEffects === 'function') window.quitineteEngine.applyEffects();
         if (typeof window.quitineteEngine.save === 'function') window.quitineteEngine.save();
         restoredPower = true;
       }
