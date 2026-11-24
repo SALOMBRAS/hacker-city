@@ -287,6 +287,117 @@
       return this.getNewbieShieldStatus().active;
     }
 
+    breakNewbieShield(reason = 'Ataque PvP contra jogador real') {
+      this.ensureLoaded();
+      if (this.state.shieldBrokenByPvp) return false;
+      this.state.shieldBrokenByPvp = true;
+      this.state.shieldBrokenReason = String(reason || 'Ataque PvP');
+      this.save();
+      this.syncNewbieShieldHudBadge?.();
+      this.renderProfilePreferenceCard?.();
+      if (typeof window.renderHome === 'function' && window.winManager?.current === 'winHome') {
+        window.renderHome();
+      }
+      if (window.onlineEngine) {
+        if (typeof window.onlineEngine.trackRealtimePresence === 'function') window.onlineEngine.trackRealtimePresence();
+        if (typeof window.onlineEngine.publishDirectoryBeacon === 'function') window.onlineEngine.publishDirectoryBeacon();
+      }
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('SHIELD-ENCERRADO', `Escudo de Novato (24h) encerrado antecipadamente: ${reason}.`, 'warning');
+      }
+      if (typeof window.showToast === 'function') {
+        window.showToast(`⚔️ Escudo de Novato (24h) desativado (${reason})! Seu IP agora está em PvP aberto.`);
+      }
+      return true;
+    }
+
+    closeShieldModal() {
+      const m = typeof document !== 'undefined' ? document.getElementById('hcNewbieShieldModal') : null;
+      if (m) m.remove();
+    }
+
+    openShieldInfoModal() {
+      if (typeof document === 'undefined') return;
+      this.closeShieldModal();
+      const st = this.getNewbieShieldStatus();
+      const wrap = document.createElement('div');
+      wrap.id = 'hcNewbieShieldModal';
+      wrap.style.cssText = 'position:fixed;inset:0;z-index:9997;background:rgba(4,8,14,0.86);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;';
+      wrap.innerHTML = `
+        <div class="hc-card" style="max-width:510px;width:100%;margin:auto;padding:18px 20px;border-color:rgba(56,189,248,0.55);background:#0b1119;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
+            <span class="hc-badge info">🛡️ ESCUDO DE NOVATO (24 HORAS)</span>
+            <button type="button" class="hc-btn ghost sm" onclick="window.progressiveUnlockEngine.closeShieldModal()">✕</button>
+          </div>
+          <h3 style="margin:0 0 6px;font-size:17px;color:var(--hc-text);">${st.active ? `Proteção Ativa · Restam ${esc(st.formattedRemaining)}` : 'Escudo de Novato Encerrado'}</h3>
+          <p style="font-size:13px;color:var(--hc-text-2);margin:0 0 12px;line-height:1.5;">
+            Durante suas <strong>primeiras 24 horas reais</strong> no jogo, nenhum outro jogador ou bot caçador pode invadir sua porta 22, plantar vírus, drenar sua carteira ou disparar DDoS contra seu PC!
+          </p>
+          <div style="padding:10px 12px;border-radius:8px;background:#08121d;border:1px solid rgba(56,189,248,0.3);font-size:12.2px;color:#cbd5e1;margin-bottom:14px;display:flex;flex-direction:column;gap:5px;">
+            <div>✅ <strong>Liberado sem perder escudo:</strong> invadir treinos (<code>198.51.100.42</code>), missões, empresas, bancos e lavar dinheiro.</div>
+            <div>⚔️ <strong>Regra Anti-Abuso:</strong> se você decidir invadir ou disparar DDoS contra <strong>outro jogador real</strong> antes das 24h, seu escudo encerra na hora!</div>
+            <div>🚨 <strong>Atenção:</strong> o escudo protege contra hackers rivais, não contra a polícia se você tentar forçar Dinheiro Sujo em loja limpa.</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            ${st.active
+              ? `<button type="button" id="btnWaiveNewbieShield" class="hc-btn danger sm" onclick="window.progressiveUnlockEngine.breakNewbieShield('Desativado manualmente pelo jogador'); window.progressiveUnlockEngine.closeShieldModal();">Desativar Escudo Agora</button>`
+              : `<span></span>`}
+            <button type="button" class="hc-btn primary sm" onclick="window.progressiveUnlockEngine.closeShieldModal()">Entendi</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(wrap);
+    }
+
+    openBreakShieldConfirmModal(targetLabel, onConfirmAttack) {
+      if (typeof document === 'undefined') return;
+      this.closeShieldModal();
+      this._pendingBreakCb = typeof onConfirmAttack === 'function' ? onConfirmAttack : null;
+      this._pendingTargetLabel = String(targetLabel || 'jogador rival');
+      const st = this.getNewbieShieldStatus();
+      const wrap = document.createElement('div');
+      wrap.id = 'hcNewbieShieldModal';
+      wrap.style.cssText = 'position:fixed;inset:0;z-index:9998;background:rgba(4,8,14,0.88);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px;';
+      wrap.innerHTML = `
+        <div class="hc-card" style="max-width:520px;width:100%;margin:auto;padding:18px 20px;border-color:rgba(245,158,11,0.6);background:#12100d;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
+            <span class="hc-badge warning">⚠️ AVISO: QUEBRA DO ESCUDO DE 24H</span>
+            <button type="button" class="hc-btn ghost sm" onclick="window.progressiveUnlockEngine.closeShieldModal()">✕</button>
+          </div>
+          <h3 style="margin:0 0 6px;font-size:17px;color:var(--hc-text);">Atacar ${esc(this._pendingTargetLabel)} encerra seu Escudo!</h3>
+          <p style="font-size:13px;color:var(--hc-text-2);margin:0 0 12px;line-height:1.5;">
+            Você ainda tem <strong style="color:#7dd3fc;">${esc(st.formattedRemaining)}</strong> restantes do seu <strong>Escudo de Novato de 24h</strong>. Invadir empresas, bancos e treinos <strong>não</strong> afeta seu escudo, mas atacar um <strong>jogador real</strong> remove sua proteção imediatamente para que ele possa revidar!
+          </p>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button type="button" id="btnKeepNewbieShield" class="hc-choice-row recommended" onclick="window.progressiveUnlockEngine.closeShieldModal()">
+              <span class="hc-choice-main">
+                <span class="hc-choice-title">🛡️ Manter Meu Escudo (${esc(st.formattedRemaining)} restantes)</span>
+                <span class="hc-choice-desc">Cancela este ataque PvP e continua 100% protegido contra outros jogadores.</span>
+              </span>
+              <span class="hc-choice-cta">Manter →</span>
+            </button>
+            <button type="button" id="btnConfirmBreakShieldPvp" class="hc-choice-row danger-opt" onclick="window.progressiveUnlockEngine.confirmBreakAndExecutePvp()">
+              <span class="hc-choice-main">
+                <span class="hc-choice-title" style="color:#fca5a5;">⚔️ Quebrar Escudo e Atacar Jogador</span>
+                <span class="hc-choice-desc">Desativa seu escudo permanentemente e inicia o ataque PvP agora.</span>
+              </span>
+              <span class="hc-choice-cta" style="color:#fca5a5;">Atacar →</span>
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(wrap);
+    }
+
+    confirmBreakAndExecutePvp() {
+      const cb = this._pendingBreakCb;
+      const lbl = this._pendingTargetLabel || 'jogador real';
+      this._pendingBreakCb = null;
+      this.closeShieldModal();
+      this.breakNewbieShield(`Atacou ${lbl}`);
+      if (cb) cb();
+    }
+
     checkLiveCondition(winId) {
       if (STEP1_ALWAYS_OPEN.has(winId)) return true;
       const rep = Number((window.currentProfile && window.currentProfile.reputation) || 100);
