@@ -1,0 +1,42 @@
+{
+  "name": "Hacker City — Simulador MMO Cyberpunk",
+  "short_name": "Hacker City",
+  "description": "Simulador MMO de hacking, servidores, economia global e invasões em tempo real.",
+  "id": "./index.html",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0e1115",
+  "theme_color": "#0e1115",
+  "lang": "pt-BR",
+  "categories": ["games", "strategy", "simulation"],
+  "icons": [
+    {
+      "src": "src/assets/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "src/assets/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Explorar Internet & IPs",
+      "short_name": "Internet",
+      "url": "./index.html?open=winBrowser",
+      "icons": [{ "src": "src/assets/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Fila de Ações",
+      "short_name": "Processos",
+      "url": "./index.html?open=winTaskManager",
+      "icons": [{ "src": "src/assets/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    }
+  ]
+}

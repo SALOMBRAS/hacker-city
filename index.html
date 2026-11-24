@@ -6,6 +6,12 @@
   <title>Hacker City — Web Edition (Supabase Online & Multiplayer)</title>
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#0e1115">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Hacker City">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="src/assets/icon-192.svg">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2310151c'/%3E%3Ctext x='16' y='22' font-family='monospace' font-weight='700' font-size='15' fill='%2335b877' text-anchor='middle'%3EHC%3C/text%3E%3C/svg%3E">
   <link rel="preload" href="src/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="src/fonts/jetbrains-mono-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -64,6 +70,7 @@
   <script src="src/js/progression-locks-engine.js"></script>
   <script src="src/js/top-ten-elite-mechanics.js"></script>
   <script src="src/js/progressive-unlock-engine.js"></script>
+  <script src="src/js/pwa-fullscreen-helper.js"></script>
 </head>
 <body>
 
@@ -463,6 +470,9 @@
           </button>
         </div>
         <div class="sidebar-footer-actions">
+          <button type="button" id="btnSidebarInstallApp" class="sidebar-icon-btn" onclick="if(window.pwaHelper) window.pwaHelper.promptInstallApp();" title="Instalar App / Tela Cheia" aria-label="Instalar App ou Tela Cheia">
+            <i data-icon="download"></i>
+          </button>
           <button type="button" id="btnStartInteractiveTour" class="sidebar-icon-btn" onclick="if(window.spotlightTour) window.spotlightTour.start(true);" title="Tour Guiado (Ajuda)" aria-label="Tour Guiado">
             <i data-icon="help-circle"></i>
           </button>
@@ -782,6 +792,7 @@
 
         <!-- Bloco 1 MMO: Identidade de Rede, IP Público Aleatório & Troca 1x/Semana -->
         <div id="profileIpCardMount"></div>
+        <div id="profilePwaCardMount"></div>
 
         <button class="btn-submit" style="background: var(--hc-border-strong); border-color: var(--hc-border-strong); margin-top: 1.25rem;" onclick="logoutCurrentSession()">
           DESCONECTAR DA CONTA
@@ -1757,6 +1768,7 @@
         setupRealtimeSubscriptions();
 
         openWindow('winHome');
+        if (window.pwaHelper) window.pwaHelper.applyShortcutDeepLinkAfterLogin();
         window.addLocalLog('AUTH-LOGIN', `Sessão iniciada por ${currentProfile.hacker_tag} em localhost:/dev/tty1`, 'info');
         showToast(`Bem-vindo, ${currentProfile.hacker_tag}! Mainframe sincronizado.`);
         if (window.spotlightTour) window.spotlightTour.maybeAutoStartForSession();
@@ -1831,6 +1843,7 @@
       updateHudDisplays();
       initCheckersBoard();
       openWindow('winHome');
+      if (window.pwaHelper) window.pwaHelper.applyShortcutDeepLinkAfterLogin();
       window.addLocalLog('INSTANT-BOOT', `Operador rápido ${tag} conectado em localhost:/dev/tty1`, 'success');
       showToast(`Conectado como ${tag}! Seu progresso salva automaticamente.`);
       if (window.spotlightTour) window.spotlightTour.maybeAutoStartForSession();
@@ -3694,6 +3707,9 @@
       }
       if (winId === 'winProfile' && window.networkIdentity) {
         window.networkIdentity.renderProfileIpCard('profileIpCardMount');
+      }
+      if (winId === 'winProfile' && window.pwaHelper) {
+        window.pwaHelper.renderProfileCard();
       }
       if (winId === 'winCracker' && typeof window.renderCrackerUI === 'function') {
         window.renderCrackerUI('crackerAppBody');
