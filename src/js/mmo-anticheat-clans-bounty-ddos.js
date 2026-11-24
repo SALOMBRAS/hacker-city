@@ -516,7 +516,7 @@
       return +(fwl * 1.15).toFixed(1);
     }
 
-    launchDdosOverloadOnHost(targetIp) {
+    launchDdosOverloadOnHost(targetIp, opts = {}) {
       if (!window.internetEngine) return { success: false, message: 'Motor de rede indisponível.' };
       const host = window.internetEngine.resolveHost(targetIp);
       if (!host || host.notFound) return { success: false, message: 'Alvo não encontrado.' };
@@ -526,9 +526,15 @@
         return { success: false, message: msg };
       }
       if (host.newbieProtected) {
-        const msg = `Proteção de Iniciante: ${host.hostname} possui menos de 100 REP e não pode sofrer DDoS PvP!`;
-        if (typeof window.showToast === 'function') window.showToast('⚠️ ' + msg);
-        return { success: false, message: msg };
+        const msg = `🛡️ Escudo de Novato (24h): ${host.hostname} está protegido e não pode sofrer DDoS PvP${host.newbieShieldRemaining ? ' (restam ' + host.newbieShieldRemaining + ')' : ''}!`;
+        if (typeof window.showToast === 'function') window.showToast(msg);
+        return { success: false, code: 'NEWBIE_PROTECTED', message: msg };
+      }
+      if (host.kind === 'player' && window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.isNewbiePvpShieldActive === 'function' && window.progressiveUnlockEngine.isNewbiePvpShieldActive() && !(opts && opts.confirmedBreakShield)) {
+        window.progressiveUnlockEngine.openBreakShieldConfirmModal(host.hostname, () => {
+          this.launchDdosOverloadOnHost(targetIp, { ...(opts || {}), confirmedBreakShield: true });
+        });
+        return { success: false, code: 'CONFIRM_BREAK_SHIELD', message: 'Confirme a quebra do seu Escudo de 24h para disparar DDoS contra um jogador real.' };
       }
 
       const myGbps = this.getPlayerTotalDdosGbps();
@@ -564,6 +570,9 @@
       );
 
       if (host.isRealHuman && window.onlineEngine) {
+        if (window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.isNewbiePvpShieldActive === 'function' && window.progressiveUnlockEngine.isNewbiePvpShieldActive()) {
+          window.progressiveUnlockEngine.breakNewbieShield(`Disparou DDoS contra ${host.hostname}`);
+        }
         const peer = window.onlineEngine.getHumanPlayerByIp(host.ip);
         if (peer) peer.hardwareHealthPct = nextHealth;
         window.onlineEngine.sendPvpPacket({

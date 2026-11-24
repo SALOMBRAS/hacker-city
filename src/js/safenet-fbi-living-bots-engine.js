@@ -904,7 +904,8 @@
       }
 
       const rep = window.currentProfile.reputation || 0;
-      if (rep < 100 && !forceHunt) {
+      const shielded24h = !!(window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.isNewbiePvpShieldActive === 'function' && window.progressiveUnlockEngine.isNewbiePvpShieldActive());
+      if ((shielded24h || rep < 100) && !forceHunt) {
         return { triggered: false, reason: 'NEWBIE_SANDBOX_PROTECTED' };
       }
 
