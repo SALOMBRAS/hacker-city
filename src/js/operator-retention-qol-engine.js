@@ -9,6 +9,50 @@
 
   const AUTO_OPEN_MIN_AWAY_MS = 15 * 60 * 1000; // 15 minutos reais offline
 
+  const SEVEN_DAY_SUPPLY = [
+    { day: 1, label: '$ 350 Limpos', cleanCash: 350, rep: 0, sats: 0 },
+    { day: 2, label: '+40 REP', cleanCash: 0, rep: 40, sats: 0 },
+    { day: 3, label: '$ 750 Limpos', cleanCash: 750, rep: 0, sats: 0 },
+    { day: 4, label: '0.00020 BTC', cleanCash: 0, rep: 0, sats: 20000 },
+    { day: 5, label: '$ 1.400 Limpos', cleanCash: 1400, rep: 0, sats: 0 },
+    { day: 6, label: '+80 REP', cleanCash: 0, rep: 80, sats: 0 },
+    { day: 7, label: '🏆 Baú ($ 3.000 + BTC)', cleanCash: 3000, rep: 0, sats: 50000 }
+  ];
+
+  const DAILY_GOALS_CATALOG = [
+    {
+      id: 'ghost_wipe',
+      title: 'Infiltrador Limpo',
+      desc: 'Apagar seu IP dos logs de 1 servidor remoto',
+      rewardClean: 450,
+      rewardRep: 25,
+      goWin: 'winLogs'
+    },
+    {
+      id: 'clean_finance',
+      title: 'Operador Financeiro',
+      desc: 'Lavar dinheiro sujo OU abrir operação na Bolsa',
+      rewardClean: 600,
+      rewardRep: 30,
+      goWin: 'winLaundering'
+    },
+    {
+      id: 'sharp_mind',
+      title: 'Mente Afiada',
+      desc: 'Resolver 1 Desafio/Enigma OU concluir 1 Curso',
+      rewardClean: 400,
+      rewardRep: 25,
+      goWin: 'winUniversity'
+    }
+  ];
+
+  function runAuthorized(fn) {
+    if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+      return window.integrityGuard.runAuthorized(fn);
+    }
+    return fn();
+  }
+
   function escHtml(str) {
     return String(str == null ? '' : str)
       .replace(/&/g, '&amp;')
@@ -40,6 +84,12 @@
       if (typeof s.lastStockValue !== 'number') s.lastStockValue = 0;
       if (typeof s.blockedAttacksSinceLastLogin !== 'number') s.blockedAttacksSinceLastLogin = 0;
       if (typeof s.totalBlockedAttacks !== 'number') s.totalBlockedAttacks = 0;
+      if (typeof s.supplyStreakDay !== 'number' || s.supplyStreakDay < 1 || s.supplyStreakDay > 7) s.supplyStreakDay = 1;
+      if (typeof s.lastSupplyClaimDay !== 'string') s.lastSupplyClaimDay = '';
+      if (typeof s.dailyGoalsDay !== 'string') s.dailyGoalsDay = '';
+      if (!s.dailyGoalsDone || typeof s.dailyGoalsDone !== 'object') s.dailyGoalsDone = {};
+      if (!s.dailyGoalsClaimed || typeof s.dailyGoalsClaimed !== 'object') s.dailyGoalsClaimed = {};
+      if (typeof s.routineCollapsed !== 'boolean') s.routineCollapsed = false;
       return s;
     }
 
@@ -277,6 +327,123 @@
     closeOfflineBriefingModal() {
       const m = document.getElementById('hcOfflineBriefingModal');
       if (m) m.style.display = 'none';
+    }
+
+    todayKey() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    yesterdayKey() {
+      const d = new Date(Date.now() - 86400000);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    ensureDailyReset() {
+      const st = this.ensureLoaded();
+      const tk = this.todayKey();
+      if (st.dailyGoalsDay !== tk) {
+        st.dailyGoalsDay = tk;
+        st.dailyGoalsDone = {};
+        st.dailyGoalsClaimed = {};
+        if (st.lastSupplyClaimDay && st.lastSupplyClaimDay !== tk && st.lastSupplyClaimDay !== this.yesterdayKey()) {
+          st.supplyStreakDay = 1;
+        }
+        this.save();
+      }
+      return st;
+    }
+
+    getSevenDayCatalog() {
+      return SEVEN_DAY_SUPPLY;
+    }
+
+    getDailyGoalsCatalog() {
+      return DAILY_GOALS_CATALOG;
+    }
+
+    claimDailySupply() {
+      const st = this.ensureDailyReset();
+      const tk = this.todayKey();
+      if (st.lastSupplyClaimDay === tk) {
+        if (typeof window.showToast === 'function') {
+          window.showToast('🎁 Você já resgatou o Suprimento Diário de hoje! Volte amanhã para avançar a sequência.');
+        }
+        return { success: false, code: 'ALREADY_CLAIMED_TODAY' };
+      }
+
+      const dayIndex = Math.max(1, Math.min(7, Number(st.supplyStreakDay || 1)));
+      const tier = SEVEN_DAY_SUPPLY[dayIndex - 1] || SEVEN_DAY_SUPPLY[0];
+
+      runAuthorized(() => {
+        if (tier.cleanCash > 0 && window.currentWallet) {
+          window.currentWallet.balance = +(Number(window.currentWallet.balance || 0) + tier.cleanCash).toFixed(2);
+        }
+        if (tier.rep > 0 && window.currentProfile) {
+          window.currentProfile.reputation = Number(window.currentProfile.reputation || 0) + tier.rep;
+        }
+      });
+      if (tier.sats > 0 && window.bitcoinEngine && typeof window.bitcoinEngine.creditSats === 'function') {
+        window.bitcoinEngine.creditSats(tier.sats, 'DAILY-SUPPLY', `Suprimento Diário Dia ${dayIndex}`);
+      }
+
+      st.lastSupplyClaimDay = tk;
+      st.supplyStreakDay = dayIndex >= 7 ? 1 : dayIndex + 1;
+      this.save();
+      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+      if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+      if (typeof window.renderHome === 'function') window.renderHome();
+      const msg = `🎁 Suprimento do Dia ${dayIndex} resgatado: ${tier.label}!`;
+      if (typeof window.showToast === 'function') window.showToast(msg);
+      return { success: true, claimedDay: dayIndex, reward: tier, message: msg };
+    }
+
+    recordDailyGoalProgress(goalId) {
+      const st = this.ensureDailyReset();
+      const goal = DAILY_GOALS_CATALOG.find((g) => g.id === goalId);
+      if (!goal || st.dailyGoalsDone[goalId]) return false;
+      st.dailyGoalsDone[goalId] = true;
+      this.save();
+      if (typeof window.showToast === 'function') {
+        window.showToast(`✅ Meta Diária concluída: "${goal.title}"! Resgate +$${goal.rewardClean} Limpos no Painel Inicial.`);
+      }
+      if (window.winManager && window.winManager.current === 'winHome' && typeof window.renderHome === 'function') {
+        window.renderHome();
+      }
+      return true;
+    }
+
+    claimDailyGoal(goalId) {
+      const st = this.ensureDailyReset();
+      const goal = DAILY_GOALS_CATALOG.find((g) => g.id === goalId);
+      if (!goal) return { success: false, code: 'INVALID_GOAL' };
+      if (!st.dailyGoalsDone[goalId]) return { success: false, code: 'NOT_COMPLETED' };
+      if (st.dailyGoalsClaimed[goalId]) return { success: false, code: 'ALREADY_CLAIMED' };
+
+      runAuthorized(() => {
+        if (window.currentWallet) {
+          window.currentWallet.balance = +(Number(window.currentWallet.balance || 0) + goal.rewardClean).toFixed(2);
+        }
+        if (window.currentProfile) {
+          window.currentProfile.reputation = Number(window.currentProfile.reputation || 0) + goal.rewardRep;
+        }
+      });
+
+      st.dailyGoalsClaimed[goalId] = true;
+      this.save();
+      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+      if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+      if (typeof window.renderHome === 'function') window.renderHome();
+      const msg = `💵 Meta "${goal.title}" resgatada: +$${goal.rewardClean} Limpos e +${goal.rewardRep} REP!`;
+      if (typeof window.showToast === 'function') window.showToast(msg);
+      return { success: true, goal, message: msg };
+    }
+
+    toggleRoutineCollapsed() {
+      const st = this.ensureLoaded();
+      st.routineCollapsed = !st.routineCollapsed;
+      this.save();
+      if (typeof window.renderHome === 'function') window.renderHome();
     }
   }
 
