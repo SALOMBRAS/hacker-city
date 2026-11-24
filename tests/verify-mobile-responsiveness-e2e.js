@@ -86,12 +86,17 @@ const assert = require('assert');
     ipChip.click();
     const secondTapOpenedIsp = window.winManager.current === 'winBrowser' && window.internetEngine.currentIp === '71.4.5.1';
 
+    const moneyRect = document.getElementById('hudWalletMoney')?.getBoundingClientRect() || { left: -1, right: 9999 };
+    const moneyVisibleFirstView = moneyRect.left >= 0 && moneyRect.right <= window.innerWidth + 2;
+
     return {
       topbarOverflow: topbar.scrollWidth > topbar.clientWidth + 1,
+      moneyVisibleFirstView,
       btcVis, repVis, opened, labelVis, closedByBackdrop, ipBarOpen, firstTapRevealed, secondTapOpenedIsp
     };
   });
   assert.strictEqual(shellRes.topbarOverflow, false, 'Topbar não pode estourar horizontalmente no celular');
+  assert.strictEqual(shellRes.moneyVisibleFirstView, true, 'Saldo de Dinheiro deve caber visível na barra superior em 390x844 sem cortar');
   assert.ok(shellRes.btcVis && shellRes.repVis, 'Chips de Bitcoin e Reputação devem ficar acessíveis na faixa mobile');
   assert.ok(shellRes.opened && shellRes.labelVis && shellRes.closedByBackdrop, 'Gaveta mobile deve abrir c/ rótulos e fechar pelo backdrop');
   assert.ok(shellRes.ipBarOpen, 'Botão rápido de IP no celular deve abrir barra de endereço');
@@ -175,6 +180,13 @@ const assert = require('assert');
         const activeWin = Array.from(document.querySelectorAll('.window-frame')).find((w) => w.offsetParent !== null);
         const wb = activeWin?.querySelector('.window-body');
         if (wb && wb.scrollWidth > wb.clientWidth + 4) out.push(`${tag}:winBodyOverflow(${wb.scrollWidth}>${wb.clientWidth})`);
+        if (wb && vw <= 680) {
+          wb.querySelectorAll('.soft-table-wrap, .soft-tabs-left').forEach((sub, idx) => {
+            if (sub.offsetParent !== null && sub.scrollWidth > sub.clientWidth + 6) {
+              out.push(`${tag}:innerClip[${sub.className}#${idx}](${sub.scrollWidth}>${sub.clientWidth})`);
+            }
+          });
+        }
         return out;
       }, `${vp.width}x${vp.height}:${label}`);
       layoutIssues.push(...errs);
