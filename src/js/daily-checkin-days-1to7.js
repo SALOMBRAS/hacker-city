@@ -197,4 +197,18 @@
     },
     renderDetailPanel: (stage) => renderStageScaleStrip([1500, 4000, 9500, 22000], (v) => `$${v.toLocaleString('pt-BR')}`, stage)
   });
+
+  // =========================================================================
+  // DIA 6 — PRESTÍGIO NA REDE & ESCUDO DE SEQUÊNCIA (STREAK FREEZE)
+  // =========================================================================
+  ck.registerDaySpec(6, {
+    title: 'Dia 6',
+    codeName: 'Prestígio & Escudo de Sequência',
+    icon: '🧊',
+    cleanByStage: [0, 0, 0, 0],
+    repByStage: [90, 180, 320, 550],
+    satsByStage: [0, 0, 0, 0],
+    bonusTag: '+1 Escudo Freeze',
+    bonusDesc: 'Grande pacote de Reputação mais +1 Escudo de Sequência (protege seu Dia atual se você faltar 1 dia).'
+  });
 })();
