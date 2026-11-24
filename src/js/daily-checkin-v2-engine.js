@@ -195,6 +195,199 @@
       dot.style.display = pending > 0 ? 'inline-block' : 'none';
       dot.textContent = pending > 9 ? '9+' : String(pending);
     }
+
+    claimTodaySupplyV2() {
+      if (!window.operatorRetentionEngine) return { success: false, code: 'NO_ENGINE' };
+      const st = window.operatorRetentionEngine.ensureDailyReset();
+      this.getState();
+      const tk = this.todayBrtKey();
+
+      if (st.lastSupplyClaimDay === tk) {
+        if (typeof window.showToast === 'function') {
+          window.showToast('🎁 Você já resgatou o Check-in de hoje! Volte após 00:00 BRT.');
+        }
+        return { success: false, code: 'ALREADY_CLAIMED_TODAY' };
+      }
+
+      const dayIndex = Math.max(1, Math.min(7, Number(st.supplyStreakDay || 1)));
+      const rw = this.getResolvedDayReward(dayIndex);
+
+      runAuthorized(() => {
+        if (rw.cleanCash > 0 && window.currentWallet) {
+          window.currentWallet.balance = +(Number(window.currentWallet.balance || 0) + rw.cleanCash).toFixed(2);
+        }
+        if (rw.rep > 0 && window.currentProfile) {
+          window.currentProfile.reputation = Number(window.currentProfile.reputation || 0) + rw.rep;
+        }
+      });
+
+      if (rw.sats > 0 && window.bitcoinEngine && typeof window.bitcoinEngine.creditSats === 'function') {
+        window.bitcoinEngine.creditSats(rw.sats, 'DAILY-SUPPLY-V2', `Check-in Dia ${dayIndex} (Estágio ${rw.stage})`);
+      }
+
+      let bonusOutcome = null;
+      if (rw.spec && typeof rw.spec.onClaimBonus === 'function') {
+        bonusOutcome = rw.spec.onClaimBonus(rw.stage, st);
+      }
+
+      st.lastSupplyClaimDay = tk;
+      st.lastTrustedClaimEpoch = this.nowTrustedMs();
+      st.monthlyCheckinCount = Number(st.monthlyCheckinCount || 0) + 1;
+      st.supplyStreakDay = dayIndex >= 7 ? 1 : dayIndex + 1;
+      this.saveState();
+
+      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+      if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+      if (typeof window.renderHome === 'function') window.renderHome();
+      this.rerenderIfOpen();
+
+      const extraTxt = bonusOutcome && bonusOutcome.note ? ` · ${bonusOutcome.note}` : '';
+      const msg = `🎁 Dia ${dayIndex} resgatado (Estágio ${rw.stage}): ${rw.summaryLabel}${extraTxt}!`;
+      if (typeof window.showToast === 'function') window.showToast(msg);
+      return {
+        success: true,
+        claimedDay: dayIndex,
+        stage: rw.stage,
+        reward: rw,
+        bonusOutcome,
+        message: msg
+      };
+    }
+
+    openModal(tab = null) {
+      if (tab) this.activeTab = tab;
+      let modal = document.getElementById('hcDailyCheckinModal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'hcDailyCheckinModal';
+        modal.className = 'hc-checkin-overlay';
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) this.closeModal();
+        });
+        document.body.appendChild(modal);
+      }
+      modal.style.display = 'flex';
+      this.renderModalBody();
+    }
+
+    closeModal() {
+      const m = document.getElementById('hcDailyCheckinModal');
+      if (m) m.style.display = 'none';
+    }
+
+    rerenderIfOpen() {
+      const m = document.getElementById('hcDailyCheckinModal');
+      if (m && m.style.display !== 'none') this.renderModalBody();
+    }
+
+    switchTab(tab) {
+      this.activeTab = tab || 'calendar';
+      this.renderModalBody();
+    }
+
+    selectDayPreview(dayNum) {
+      this.selectedPreviewDay = Number(dayNum);
+      this.renderModalBody();
+    }
+
+    renderDayCardHtml(dNum, curDay, claimedToday, selectedDay) {
+      const rw = this.getResolvedDayReward(dNum);
+      const isPast = claimedToday ? (curDay === 1 ? dNum <= 7 : dNum < curDay) : (dNum < curDay);
+      const isCurrent = !claimedToday && dNum === curDay;
+      const isSelected = selectedDay === dNum;
+      const cls = [
+        'hc-ck-day',
+        dNum === 7 ? 'is-day-7' : '',
+        isCurrent ? 'is-current' : '',
+        isPast ? 'is-past' : '',
+        isSelected ? 'is-selected' : ''
+      ].filter(Boolean).join(' ');
+
+      const extraBadge = (rw.spec && typeof rw.spec.renderExtraMeta === 'function')
+        ? rw.spec.renderExtraMeta(rw.stage, this.getState())
+        : '';
+
+      return `
+        <button type="button" id="btnCheckinDayCard_${dNum}" class="${cls}" onclick="window.dailyCheckinV2.selectDayPreview(${dNum})">
+          <div class="hc-ck-day-top">
+            <span>DIA ${dNum} ${isPast ? '✓' : (isCurrent ? '●' : '')}</span>
+            <span>${esc(rw.icon)}</span>
+          </div>
+          <strong class="hc-ck-day-val">${esc(rw.summaryLabel)}</strong>
+          ${extraBadge}
+        </button>
+      `;
+    }
+
+    renderModalBody() {
+      const modal = document.getElementById('hcDailyCheckinModal');
+      if (!modal || !window.operatorRetentionEngine) return;
+      const st = window.operatorRetentionEngine.ensureDailyReset();
+      this.getState();
+      const tk = this.todayBrtKey();
+      const stage = this.getOperatorStage();
+      const claimedToday = st.lastSupplyClaimDay === tk;
+      const curDay = Math.max(1, Math.min(7, Number(st.supplyStreakDay || 1)));
+      const selDay = this.selectedPreviewDay || curDay;
+      const selRw = this.getResolvedDayReward(selDay);
+
+      let bodyHtml = '';
+      if (this.activeTab === 'goals') {
+        bodyHtml = typeof this.renderDynamicGoalsTabHtml === 'function'
+          ? this.renderDynamicGoalsTabHtml(st, tk, stage)
+          : `<div style="font-size:12px;color:var(--hc-text-2);">Carregando metas operacionais...</div>`;
+      } else if (this.activeTab === 'monthly') {
+        bodyHtml = typeof this.renderMonthlyMilestonesTabHtml === 'function'
+          ? this.renderMonthlyMilestonesTabHtml(st)
+          : `<div style="padding:12px;background:var(--hc-inset);border:1px solid var(--hc-border);border-radius:8px;font-size:12px;color:var(--hc-text-2);">Check-ins acumulados neste mês (${esc(st.monthlyKey)}): <strong style="color:#fff;">${st.monthlyCheckinCount} dia(s)</strong>.</div>`;
+      } else {
+        const cards = [1, 2, 3, 4, 5, 6, 7].map((d) => this.renderDayCardHtml(d, curDay, claimedToday, selDay)).join('');
+        const detailCustom = (selRw.spec && typeof selRw.spec.renderDetailPanel === 'function')
+          ? selRw.spec.renderDetailPanel(stage, st)
+          : '';
+        bodyHtml = `
+          <div class="hc-ck-grid">${cards}</div>
+          <div class="hc-ck-detail">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+              <strong style="font-size:12.8px;color:#fff;">${esc(selRw.icon)} Dia ${selRw.day} — ${esc(selRw.codeName)}</strong>
+              <span class="hc-badge success" style="font-size:10.5px;">Escalado: Estágio ${stage}</span>
+            </div>
+            <div style="font-size:11.8px;color:var(--hc-accent-text);font-weight:600;margin-top:3px;">${esc(selRw.summaryLabel)}</div>
+            <div style="font-size:11.3px;color:var(--hc-text-2);margin-top:2px;">${esc(selRw.bonusDesc)}</div>
+            ${detailCustom}
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;">
+            <span style="font-size:11px;color:var(--hc-text-3);">🔒 Relógio BRT anti-adulteração ativo</span>
+            ${claimedToday
+              ? `<span class="hc-badge success" style="font-size:11.5px;padding:5px 10px;">✓ Suprimento de hoje resgatado</span>`
+              : `<button type="button" id="btnModalClaimDailySupply" class="hc-btn primary" onclick="window.dailyCheckinV2.claimTodaySupplyV2()">🎁 Resgatar Dia ${curDay} Agora</button>`}
+          </div>
+        `;
+      }
+
+      const headerExtra = typeof this.renderHeaderFreezeBadge === 'function' ? this.renderHeaderFreezeBadge(st) : '';
+      modal.innerHTML = `
+        <div class="hc-checkin-dialog" role="dialog" aria-label="Central de Check-in Diário">
+          <div class="hc-ck-head">
+            <div>
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                <strong style="font-size:15px;color:#fff;">🎁 Check-in &amp; Operações Diárias</strong>
+                <span class="hc-badge" style="font-size:10.5px;">Estágio ${stage}/4</span>
+                ${headerExtra}
+              </div>
+              <span style="font-size:11.2px;color:var(--hc-text-3);">Recompensas escalam automaticamente com o seu nível de desbloqueio.</span>
+            </div>
+            <button type="button" class="hc-btn ghost sm" onclick="window.dailyCheckinV2.closeModal()" aria-label="Fechar">✕</button>
+          </div>
+          <div class="hc-ck-tabs">
+            <button type="button" id="btnCkTabCalendar" class="hc-ck-tab ${this.activeTab === 'calendar' ? 'active' : ''}" onclick="window.dailyCheckinV2.switchTab('calendar')">📅 7 Dias</button>
+            <button type="button" id="btnCkTabGoals" class="hc-ck-tab ${this.activeTab === 'goals' ? 'active' : ''}" onclick="window.dailyCheckinV2.switchTab('goals')">🎯 Metas</button>
+            <button type="button" id="btnCkTabMonthly" class="hc-ck-tab ${this.activeTab === 'monthly' ? 'active' : ''}" onclick="window.dailyCheckinV2.switchTab('monthly')">🏅 Mês (${st.monthlyCheckinCount}/28)</button>
+          </div>
+          <div class="hc-ck-body">${bodyHtml}</div>
+        </div>
+      `;
+    }
   }
 
   window.DailyCheckinV2Engine = DailyCheckinV2Engine;
