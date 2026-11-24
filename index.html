@@ -1428,6 +1428,12 @@
                 <button type="button" class="hc-btn sm" style="background:var(--hc-danger);border-color:var(--hc-danger);color:#fff;opacity:1;" onclick="window.switchLogsSubTab('remote')">Ver &amp; Limpar →</button>
               </div>
             ` : ''}
+            ${(window.nineSystemsEngine && typeof window.nineSystemsEngine.getActiveShadowCount === 'function' && window.nineSystemsEngine.getActiveShadowCount('localhost') > 0) ? `
+              <div id="forensicShadowAlertBanner" class="soft-feedback-banner" style="background:rgba(56,189,248,0.12);border-color:rgba(56,189,248,0.42);color:#7dd3fc;">
+                <span>🔬 Radar Forense: ${window.nineSystemsEngine.getActiveShadowCount('localhost')} limpeza(s) recente(s) sem Shred 7-Passos deixaram Sombra Magnética no seu disco!</span>
+                <button type="button" class="hc-btn sm" style="border-color:rgba(56,189,248,0.5);color:#7dd3fc;" onclick="document.getElementById('btnScanMagneticShadowLocal')?.click()">Inspecionar Setor →</button>
+              </div>
+            ` : ''}
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
               <span class="mono" style="font-size:12px;color:var(--hc-text-2);">${blurredIp}:/var/log/syslog (${window.systemLogs.length} linha${window.systemLogs.length === 1 ? '' : 's'})</span>
               <div style="display:flex;gap:8px;flex-wrap:wrap;">
