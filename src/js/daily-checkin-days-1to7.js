@@ -197,4 +197,35 @@
     },
     renderDetailPanel: (stage) => renderStageScaleStrip([1500, 4000, 9500, 22000], (v) => `$${v.toLocaleString('pt-BR')}`, stage)
   });
+
+  // =========================================================================
+  // DIA 6 — PRESTÍGIO NA REDE & ESCUDO DE SEQUÊNCIA (STREAK FREEZE)
+  // =========================================================================
+  ck.renderHeaderFreezeBadge = function (st) {
+    const cnt = st ? Number(st.freezeTokens || 0) : 0;
+    return `<span class="hc-badge" style="font-size:10.5px;border-color:rgba(125,211,252,0.45);color:#7dd3fc;">🧊 Escudos: ${cnt}/2</span>`;
+  };
+
+  ck.registerDaySpec(6, {
+    title: 'Dia 6',
+    codeName: 'Prestígio & Escudo de Sequência',
+    icon: '🧊',
+    cleanByStage: [0, 0, 0, 0],
+    repByStage: [90, 180, 320, 550],
+    satsByStage: [0, 0, 0, 0],
+    bonusTag: '+1 Escudo Freeze',
+    bonusDesc: 'Grande pacote de Reputação mais +1 Escudo de Sequência (protege seu Dia atual se você faltar 1 dia).',
+    onClaimBonus: (stage, st) => {
+      st.freezeTokens = Math.min(2, Number(st.freezeTokens || 0) + 1);
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('CHECKIN-DIA6', `Prestígio Estágio ${stage} + 1 Escudo de Sequência (${st.freezeTokens}/2) recebidos.`, 'info');
+      }
+      return { freezeTokens: st.freezeTokens, note: `🧊 Escudo de Sequência (${st.freezeTokens}/2)` };
+    },
+    renderExtraMeta: (stage, st) => {
+      const cnt = st ? Number(st.freezeTokens || 0) : 0;
+      return `<span style="font-size:9.8px;color:#7dd3fc;">🧊 Protege 1 falta (${cnt}/2)</span>`;
+    },
+    renderDetailPanel: (stage) => renderStageScaleStrip([90, 180, 320, 550], (v) => `+${v} REP`, stage)
+  });
 })();

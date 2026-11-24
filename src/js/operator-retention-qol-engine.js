@@ -354,7 +354,15 @@
         st.dailyGoalsDone = {};
         st.dailyGoalsClaimed = {};
         if (st.lastSupplyClaimDay && st.lastSupplyClaimDay !== tk && st.lastSupplyClaimDay !== this.yesterdayKey()) {
-          st.supplyStreakDay = 1;
+          if (Number(st.freezeTokens || 0) > 0) {
+            st.freezeTokens -= 1;
+            st.lastFreezeSavedDay = tk;
+            if (typeof window.showToast === 'function') {
+              window.showToast('🧊 Escudo de Sequência ativado! Sua ofensiva de Check-in foi protegida após 1 dia ausente.');
+            }
+          } else {
+            st.supplyStreakDay = 1;
+          }
         }
         this.save();
       }
