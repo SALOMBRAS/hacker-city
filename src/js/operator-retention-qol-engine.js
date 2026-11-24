@@ -293,7 +293,7 @@
 
           <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:8px;margin-bottom:12px;font-size:12.5px;">
             <div style="background:var(--hc-inset);border:1px solid var(--hc-border);border-radius:8px;padding:10px;">
-              <span style="color:var(--hc-text-3);font-size:11px;display:block;">🦠 RENDIMENTO DE VÍRUS</span>
+              <span style="color:var(--hc-text-3);font-size:11px;display:block;">🦠 VÍRUS PRONTOS (SUJO)</span>
               <strong style="color:var(--hc-accent-text);font-size:14px;">${fmtUsd(d.cashReady)}</strong>
               <div style="font-size:11px;color:var(--hc-text-2);margin-top:2px;">${d.virusCount} vírus ativos · ${escHtml(d.btcReadyStr)} BTC</div>
             </div>

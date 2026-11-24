@@ -86,11 +86,17 @@
         return { outcome: 'already_standalone' };
       }
       if (this.deferredPrompt) {
-        this.deferredPrompt.prompt();
-        const choice = await this.deferredPrompt.userChoice.catch(() => ({ outcome: 'dismissed' }));
-        if (choice && choice.outcome === 'accepted') this.deferredPrompt = null;
-        this.renderProfileCard();
-        return choice;
+        try {
+          const p = this.deferredPrompt;
+          p.prompt();
+          if (p.userChoice && typeof p.userChoice.then === 'function') {
+            p.userChoice.then((choice) => {
+              if (choice && choice.outcome === 'accepted') this.deferredPrompt = null;
+              this.renderProfileCard();
+            }).catch(() => {});
+          }
+          return { outcome: 'native_prompt_shown' };
+        } catch (e) {}
       }
       this.openInstallGuideModal();
       return { outcome: 'guide_opened' };
