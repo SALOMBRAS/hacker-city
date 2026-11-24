@@ -209,6 +209,13 @@
     repByStage: [90, 180, 320, 550],
     satsByStage: [0, 0, 0, 0],
     bonusTag: '+1 Escudo Freeze',
-    bonusDesc: 'Grande pacote de Reputação mais +1 Escudo de Sequência (protege seu Dia atual se você faltar 1 dia).'
+    bonusDesc: 'Grande pacote de Reputação mais +1 Escudo de Sequência (protege seu Dia atual se você faltar 1 dia).',
+    onClaimBonus: (stage, st) => {
+      st.freezeTokens = Math.min(2, Number(st.freezeTokens || 0) + 1);
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('CHECKIN-DIA6', `Prestígio Estágio ${stage} + 1 Escudo de Sequência (${st.freezeTokens}/2) recebidos.`, 'info');
+      }
+      return { freezeTokens: st.freezeTokens, note: `🧊 Escudo de Sequência (${st.freezeTokens}/2)` };
+    }
   });
 })();
