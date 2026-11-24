@@ -1226,6 +1226,9 @@
       if (window.nineSystemsEngine && typeof window.nineSystemsEngine.recordSimpleLogWipe === 'function') {
         window.nineSystemsEngine.recordSimpleLogWipe(ip);
       }
+      if (window.operatorRetentionEngine && typeof window.operatorRetentionEngine.recordDailyGoalProgress === 'function') {
+        window.operatorRetentionEngine.recordDailyGoalProgress('ghost_wipe');
+      }
       if (window.hackerAudio) window.hackerAudio.playKeyClick();
       showToast(aborted
         ? `Rastro em ${ip} apagado e contra-ataque neutralizado!`

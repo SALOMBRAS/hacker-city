@@ -589,6 +589,9 @@
       };
 
       this.unlockMilestone('ms_first_stock');
+      if (window.operatorRetentionEngine && typeof window.operatorRetentionEngine.recordDailyGoalProgress === 'function') {
+        window.operatorRetentionEngine.recordDailyGoalProgress('clean_finance');
+      }
       this.save();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       const msg = `📈 Posição COMPRADA aberta: +${shares} cotas de ${corp.symbol} a $ ${st.price.toFixed(2)}!`;
@@ -675,6 +678,9 @@
       }
 
       this.unlockMilestone('ms_first_stock');
+      if (window.operatorRetentionEngine && typeof window.operatorRetentionEngine.recordDailyGoalProgress === 'function') {
+        window.operatorRetentionEngine.recordDailyGoalProgress('clean_finance');
+      }
       this.save();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       const msg = `📉 SHORT aberto em ${corp.symbol} @ $ ${st.price.toFixed(2)}! Dica: invada ${corp.ip} ou sabote o CFTV dela para derrubar a ação!`;
@@ -1356,6 +1362,9 @@
 
     finalizeMinigameRewards(baseCash, baseRep, ctx, customMsg) {
       this.ensureLoaded();
+      if (window.operatorRetentionEngine && typeof window.operatorRetentionEngine.recordDailyGoalProgress === 'function') {
+        window.operatorRetentionEngine.recordDailyGoalProgress('sharp_mind');
+      }
       const ev = this.getCurrentGlobalEvent();
       const resBonus = window.skillTreeEngine ? window.skillTreeEngine.getActiveResonanceBonus() : { contractCashMult: 1 };
       const cicadaMult = 1 + Math.min(0.45, Math.floor((this.state.factions.cicada || 0) / 100) * 0.15);

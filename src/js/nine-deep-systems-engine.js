@@ -1104,6 +1104,9 @@
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       const timeLabel = useTutorialExpress ? '8 segundos (Bônus Único de 1º Treino!)' : '15 minutos da vida real';
       const msg = `🧼 Remessa de ${fmtMoney(grossDirty)} enviada para "${targetCo.name}" (Taxa ${effectiveFeePct}%)! Ficará limpa (${fmtMoney(netClean)}) em ${timeLabel}.`;
+      if (window.operatorRetentionEngine && typeof window.operatorRetentionEngine.recordDailyGoalProgress === 'function') {
+        window.operatorRetentionEngine.recordDailyGoalProgress('clean_finance');
+      }
       if (typeof window.showToast === 'function') window.showToast(msg);
       this.renderLaunderingHub();
       return { success: true, job, message: msg };
