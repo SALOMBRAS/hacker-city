@@ -501,60 +501,62 @@
           <span class="topbar-kbd">Ctrl K</span>
         </div>
       </div>
-      <div class="topbar-stats">
-        <div class="my-ip-chip" id="hudMyIpChip" onclick="window.networkIdentity.handleHudIpChipClick(event)" data-tip-title="Seu IP protegido (Anti-Curiosos)" data-tip-meta="Privacidade" data-tip-desc="Os últimos 7 dígitos ficam ocultos automaticamente. Passe o mouse ou toque para ver; toque novamente para abrir o Provedor ISP.">
-          <span class="ip-dot"></span>
-          <div class="ip-stack">
-            <span class="ip-lbl">Seu IP</span>
-            <span class="ip-row">
-              <span class="ip-val" id="hudMyIp"><span class="my-ip-privacy" tabindex="0"><span class="my-ip-head">0.</span><span class="my-ip-blur-tail">0.0.0</span></span></span>
-              <button type="button" class="ip-copy-btn" onclick="window.networkIdentity.copyMyIp(event)" data-tip-title="Copiar meu IP" data-tip-meta="Área de Transferência" data-tip-desc="Copia seu IP completo sem mostrá-lo em aviso na tela." aria-label="Copiar meu IP"><i data-icon="copy"></i></button>
-            </span>
+      <div class="topbar-right-group">
+        <div class="topbar-stats">
+          <div class="my-ip-chip" id="hudMyIpChip" onclick="window.networkIdentity.handleHudIpChipClick(event)" data-tip-title="Seu IP protegido (Anti-Curiosos)" data-tip-meta="Privacidade" data-tip-desc="Os últimos 7 dígitos ficam ocultos automaticamente. Passe o mouse ou toque para ver; toque novamente para abrir o Provedor ISP.">
+            <span class="ip-dot"></span>
+            <div class="ip-stack">
+              <span class="ip-lbl">Seu IP</span>
+              <span class="ip-row">
+                <span class="ip-val" id="hudMyIp"><span class="my-ip-privacy" tabindex="0"><span class="my-ip-head">0.</span><span class="my-ip-blur-tail">0.0.0</span></span></span>
+                <button type="button" class="ip-copy-btn" onclick="window.networkIdentity.copyMyIp(event)" data-tip-title="Copiar meu IP" data-tip-meta="Área de Transferência" data-tip-desc="Copia seu IP completo sem mostrá-lo em aviso na tela." aria-label="Copiar meu IP"><i data-icon="copy"></i></button>
+              </span>
+            </div>
+          </div>
+
+          <div class="topbar-metric clickable" onclick="navTo('winBank')" title="Saldo bancário">
+            <i data-icon="wallet"></i>
+            <div class="topbar-metric-stack">
+              <span class="topbar-metric-lbl">Dinheiro</span>
+              <span class="topbar-metric-val money" id="hudWalletMoney">$0</span>
+            </div>
+          </div>
+
+          <div class="topbar-metric clickable hide-sm" id="hudBtcChip" onclick="navTo('winBitcoin')" title="Carteira Bitcoin">
+            <i data-icon="bitcoin"></i>
+            <div class="topbar-metric-stack">
+              <span class="topbar-metric-lbl">Bitcoin</span>
+              <span class="topbar-metric-val" id="hudBtcBalance">0.0050</span>
+            </div>
+          </div>
+
+          <div class="topbar-metric clickable hide-md" onclick="navTo('winRanking')" title="Reputação e Nível">
+            <i data-icon="trophy"></i>
+            <div class="topbar-metric-stack">
+              <span class="topbar-metric-lbl">Reputação</span>
+              <span class="topbar-metric-val"><span id="hudReputation">0</span> <small id="hudHeatLevel" style="color:var(--hc-text-3);font-weight:400;font-size:11px;">Nv.1</small></span>
+            </div>
+          </div>
+
+          <button type="button" id="btnQuickCommandPalette" class="hud-notif-btn" onclick="if(window.quickCommandPalette) window.quickCommandPalette.toggle();" title="Paleta de Ação Rápida (Alt+K)" aria-label="Paleta de Ação Rápida">
+            <i data-icon="zap"></i>
+          </button>
+
+          <button type="button" id="hudQuitinetePill" class="hud-notif-btn" onclick="openQuitineteWindow()" title="Despesas do esconderijo" aria-label="Notificações e contas">
+            <i data-icon="bell"></i>
+          </button>
+
+          <div class="user-chip">
+            <span class="avatar" id="hudAvatar">?</span>
+            <span class="user-meta"><strong id="hudPlayerTag">Operador</strong><small id="hudSpecialtyBadge">exploiter</small></span>
+            <button type="button" class="icon-btn" onclick="logoutCurrentSession()" title="Sair" aria-label="Sair"><i data-icon="log-out"></i></button>
           </div>
         </div>
 
-        <div class="topbar-metric clickable" onclick="navTo('winBank')" title="Saldo bancário">
-          <i data-icon="wallet"></i>
-          <div class="topbar-metric-stack">
-            <span class="topbar-metric-lbl">Dinheiro</span>
-            <span class="topbar-metric-val money" id="hudWalletMoney">$0</span>
-          </div>
-        </div>
-
-        <div class="topbar-metric clickable hide-sm" id="hudBtcChip" onclick="navTo('winBitcoin')" title="Carteira Bitcoin">
-          <i data-icon="bitcoin"></i>
-          <div class="topbar-metric-stack">
-            <span class="topbar-metric-lbl">Bitcoin</span>
-            <span class="topbar-metric-val" id="hudBtcBalance">0.0050</span>
-          </div>
-        </div>
-
-        <div class="topbar-metric clickable hide-md" onclick="navTo('winRanking')" title="Reputação e Nível">
-          <i data-icon="trophy"></i>
-          <div class="topbar-metric-stack">
-            <span class="topbar-metric-lbl">Reputação</span>
-            <span class="topbar-metric-val"><span id="hudReputation">0</span> <small id="hudHeatLevel" style="color:var(--hc-text-3);font-weight:400;font-size:11px;">Nv.1</small></span>
-          </div>
-        </div>
-
-        <button type="button" id="btnTopbarDailyCheckin" class="hud-notif-btn" style="position:relative;" onclick="if(window.dailyCheckinV2) window.dailyCheckinV2.openModal();" title="Check-in Diário &amp; Metas" aria-label="Check-in Diário">
+        <button type="button" id="btnTopbarDailyCheckin" class="hud-notif-btn hc-topbar-checkin-pin" onclick="if(window.dailyCheckinV2) window.dailyCheckinV2.openModal();" title="Check-in Diário &amp; Metas" aria-label="Check-in Diário">
           <i data-icon="gift"></i>
           <span id="topbarCheckinDot" class="hc-notif-dot-count" style="display:none;">1</span>
         </button>
-
-        <button type="button" id="btnQuickCommandPalette" class="hud-notif-btn" onclick="if(window.quickCommandPalette) window.quickCommandPalette.toggle();" title="Paleta de Ação Rápida (Alt+K)" aria-label="Paleta de Ação Rápida">
-          <i data-icon="zap"></i>
-        </button>
-
-        <button type="button" id="hudQuitinetePill" class="hud-notif-btn" onclick="openQuitineteWindow()" title="Despesas do esconderijo" aria-label="Notificações e contas">
-          <i data-icon="bell"></i>
-        </button>
-
-        <div class="user-chip">
-          <span class="avatar" id="hudAvatar">?</span>
-          <span class="user-meta"><strong id="hudPlayerTag">Operador</strong><small id="hudSpecialtyBadge">exploiter</small></span>
-          <button type="button" class="icon-btn" onclick="logoutCurrentSession()" title="Sair" aria-label="Sair"><i data-icon="log-out"></i></button>
-        </div>
       </div>
     </header>
 
