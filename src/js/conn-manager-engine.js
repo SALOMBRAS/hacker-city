@@ -88,7 +88,7 @@
       const isExplicitTrainingSim = !!(session && (session.forceTest || String(session.id || '').startsWith('sim_')));
       if (window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.isNewbiePvpShieldActive === 'function' && window.progressiveUnlockEngine.isNewbiePvpShieldActive() && !isExplicitTrainingSim) {
         if (typeof window.addLocalLog === 'function') {
-          window.addLocalLog('SHIELD-RECRUTA', `Escudo Iniciante (< 200 REP) bloqueou tentativa de intrusão externa de ${session ? session.originIp : 'remoto'}.`, 'info');
+          window.addLocalLog('SHIELD-RECRUTA', `Escudo de Novato (24h) bloqueou tentativa de intrusão externa de ${session ? session.originIp : 'remoto'}.`, 'info');
         }
         return { blockedByNewbieShield: true };
       }
@@ -222,7 +222,7 @@
           const pick = Math.floor(Math.random() * botIps.length);
 
           this.registerInboundSession({
-            id: 'sim_' + Date.now(),
+            id: 'bot_bg_' + Date.now(),
             originIp: botIps[pick],
             originAlias: botAliases[pick],
             protocol: 'SSH',
