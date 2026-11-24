@@ -330,6 +330,20 @@
 }
 
 @media (max-width: 680px) {
+  .nds-dual-wallet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+  .nds-wallet-box {
+    padding: 8px 10px;
+    gap: 2px;
+  }
+  .nds-wallet-box strong,
+  .nds-wallet-box div[style*="font-size:24px"],
+  .nds-wallet-box div[style*="font-size: 24px"],
+  .nds-wallet-box div[style*="font-size:22px"] {
+    font-size: 15.5px !important;
+  }
   .nds-tabs {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -365,6 +379,12 @@
   }
   .hc-jail-card {
     padding: 16px 16px;
+  }
+}
+
+@media (max-width: 345px) {
+  .nds-dual-wallet {
+    grid-template-columns: 1fr;
   }
 }
 

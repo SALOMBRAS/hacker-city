@@ -377,17 +377,56 @@
 
 @media (max-width: 520px) {
   #authOverlay {
-    padding: 0.75rem;
+    padding: 0.5rem;
   }
   .auth-card {
-    padding: 1.25rem 1.05rem;
+    padding: 0.9rem 0.85rem;
+  }
+  .auth-header {
+    margin-bottom: 0.65rem;
   }
   .auth-title {
-    font-size: 1.4rem;
+    font-size: 1.25rem;
+  }
+  .auth-subtitle {
+    font-size: 0.78rem;
+  }
+  .form-group {
+    margin-bottom: 0.65rem;
+  }
+  .form-group label {
+    font-size: 0.72rem;
+    margin-bottom: 0.25rem;
+  }
+  .form-input {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.84rem;
   }
   .specialty-grid {
-    grid-template-columns: 1fr;
-    gap: 0.55rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+  }
+  .specialty-card {
+    padding: 0.5rem 0.55rem;
+  }
+  .spec-radio {
+    top: 0.45rem;
+    right: 0.45rem;
+    width: 11px;
+    height: 11px;
+  }
+  .spec-title {
+    font-size: 0.78rem;
+    padding-right: 14px;
+  }
+  .spec-desc {
+    font-size: 0.66rem;
+    line-height: 1.22;
+  }
+  .btn-submit {
+    padding: 0.6rem;
+    font-size: 0.85rem;
+    margin-top: 0.75rem;
   }
   .verify-method-header {
     flex-wrap: wrap;
@@ -396,6 +435,12 @@
   .verify-email-pill {
     max-width: 100%;
     overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 340px) {
+  .specialty-grid {
+    grid-template-columns: 1fr;
   }
 }
 
