@@ -21,6 +21,13 @@
     { id: 'sabotage_corp', minStage: 3, title: 'Sabotagem Corporativa', desc: 'Invadir ou sabotar empresa listada na Bolsa', rewardClean: 680, rewardRep: 35, goWin: 'winOpsHub' }
   ];
 
+  const MONTHLY_MILESTONES = [
+    { days: 7, title: 'Operador Assíduo (7d)', cleanByStage: [1200, 3000, 7500, 16000], sats: 30000, rep: 80 },
+    { days: 14, title: 'Veterano de Campo (14d)', cleanByStage: [2800, 7000, 16000, 35000], sats: 70000, rep: 180 },
+    { days: 21, title: 'Fantasma da Rede (21d)', cleanByStage: [5500, 14000, 32000, 70000], sats: 140000, rep: 320 },
+    { days: 28, title: 'Lenda do Mês (28d)', cleanByStage: [10000, 25000, 60000, 130000], sats: 280000, rep: 600 }
+  ];
+
   function esc(str) {
     return String(str == null ? '' : str)
       .replace(/&/g, '&amp;')
@@ -463,6 +470,154 @@
           </div>
           <div class="hc-ck-body">${bodyHtml}</div>
         </div>
+      `;
+    }
+
+    getReadyComboAndMonthlyCount(st, tk) {
+      let extra = 0;
+      const activeGoals = this.getActiveDailyGoals(st);
+      const claimedCount = activeGoals.filter((g) => st.dailyGoalsClaimed && st.dailyGoalsClaimed[g.id]).length;
+      if (claimedCount >= 3 && st.comboClaimedDay !== tk) extra += 1;
+      MONTHLY_MILESTONES.forEach((m) => {
+        if (Number(st.monthlyCheckinCount || 0) >= m.days && !(st.monthlyMilestonesClaimed && st.monthlyMilestonesClaimed[m.days])) {
+          extra += 1;
+        }
+      });
+      return extra;
+    }
+
+    claimDailyComboBox() {
+      const st = this.getState();
+      if (!st) return { success: false };
+      const tk = this.todayBrtKey();
+      if (st.comboClaimedDay === tk) return { success: false, code: 'COMBO_ALREADY_CLAIMED' };
+      const activeGoals = this.getActiveDailyGoals(st);
+      const claimedCount = activeGoals.filter((g) => st.dailyGoalsClaimed && st.dailyGoalsClaimed[g.id]).length;
+      if (claimedCount < 3) return { success: false, code: 'NEEDS_3_GOALS' };
+
+      const stage = this.getOperatorStage();
+      const bonusCash = [600, 1500, 3500, 8000][stage - 1] || 600;
+      runAuthorized(() => {
+        if (window.currentWallet) {
+          window.currentWallet.balance = +(Number(window.currentWallet.balance || 0) + bonusCash).toFixed(2);
+        }
+      });
+      st.freezeTokens = Math.min(2, Number(st.freezeTokens || 0) + 1);
+      if (window.ecosystemHub && typeof window.ecosystemHub.ensureLoaded === 'function') {
+        const es = window.ecosystemHub.ensureLoaded();
+        es.osintDossiers = Number(es.osintDossiers || 0) + 1;
+        window.ecosystemHub.save();
+      }
+      st.comboClaimedDay = tk;
+      this.saveState();
+      if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+      if (typeof window.renderHome === 'function') window.renderHome();
+      this.rerenderIfOpen();
+      const msg = `📦 Baú Combo 3/3 aberto: +${fmtUsd(bonusCash)} Limpos + 1 Dossiê OSINT + 🧊 Escudo Freeze!`;
+      if (typeof window.showToast === 'function') window.showToast(msg);
+      return { success: true, bonusCash, freezeTokens: st.freezeTokens };
+    }
+
+    claimMonthlyMilestone(daysReq) {
+      const st = this.getState();
+      const ms = MONTHLY_MILESTONES.find((m) => m.days === Number(daysReq));
+      if (!st || !ms) return { success: false, code: 'INVALID_MILESTONE' };
+      if (Number(st.monthlyCheckinCount || 0) < ms.days) return { success: false, code: 'NOT_ENOUGH_DAYS' };
+      if (st.monthlyMilestonesClaimed[ms.days]) return { success: false, code: 'ALREADY_CLAIMED' };
+
+      const stage = this.getOperatorStage();
+      const cash = ms.cleanByStage[stage - 1] || ms.cleanByStage[0];
+      runAuthorized(() => {
+        if (window.currentWallet) window.currentWallet.balance = +(Number(window.currentWallet.balance || 0) + cash).toFixed(2);
+        if (window.currentProfile) window.currentProfile.reputation = Number(window.currentProfile.reputation || 0) + ms.rep;
+      });
+      if (ms.sats > 0 && window.bitcoinEngine) {
+        window.bitcoinEngine.creditSats(ms.sats, 'MONTHLY-CHECKIN', ms.title);
+      }
+      st.monthlyMilestonesClaimed[ms.days] = true;
+      this.saveState();
+      if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
+      this.rerenderIfOpen();
+      const msg = `🏅 Marco "${ms.title}" resgatado: +${fmtUsd(cash)} Limpos, +${ms.rep} REP e BTC!`;
+      if (typeof window.showToast === 'function') window.showToast(msg);
+      return { success: true, cash, rep: ms.rep, sats: ms.sats };
+    }
+
+    renderDynamicGoalsTabHtml(st, tk) {
+      const goals = this.getActiveDailyGoals(st);
+      const canReroll = st.rerolledDay !== tk;
+      const claimedCount = goals.filter((g) => st.dailyGoalsClaimed && st.dailyGoalsClaimed[g.id]).length;
+      const comboClaimed = st.comboClaimedDay === tk;
+
+      const rows = goals.map((g) => {
+        const done = !!(st.dailyGoalsDone && st.dailyGoalsDone[g.id]);
+        const claimed = !!(st.dailyGoalsClaimed && st.dailyGoalsClaimed[g.id]);
+        return `
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 10px;border-radius:8px;background:var(--hc-inset);border:1px solid ${done && !claimed ? 'rgba(53,184,119,0.6)' : 'var(--hc-border)'};">
+            <div style="min-width:0;flex:1 1 170px;">
+              <strong style="font-size:12px;color:#fff;display:block;">${esc(g.title)} <span style="color:var(--hc-accent-text);font-size:10.5px;">(+${fmtUsd(g.scaledClean)} · +${g.scaledRep} REP)</span></strong>
+              <span style="font-size:11px;color:var(--hc-text-2);">${esc(g.desc)}</span>
+            </div>
+            <div style="display:flex;gap:4px;align-items:center;">
+              ${!claimed && !done && canReroll ? `<button type="button" id="btnRerollGoal_${g.id}" class="hc-btn ghost sm" title="Trocar meta grátis (1x/dia)" onclick="window.dailyCheckinV2.rerollDailyGoal('${g.id}')">🔄</button>` : ''}
+              ${claimed
+                ? `<span class="hc-badge success" style="font-size:10.5px;">✓ OK</span>`
+                : (done
+                  ? `<button type="button" id="btnModalClaimGoal_${g.id}" class="hc-btn primary sm" onclick="window.operatorRetentionEngine.claimDailyGoal('${g.id}')">Resgatar</button>`
+                  : `<button type="button" class="hc-btn sm" onclick="window.dailyCheckinV2.closeModal(); window.operatorRetentionEngine.navigateToGoalTarget('${g.goWin}');">Ir →</button>`)}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px;color:var(--hc-text-2);">
+          <span>3 missões compatíveis com seu Estágio atual</span>
+          <span class="hc-badge">${canReroll ? '🔄 1 troca grátis disponível' : 'Troca diária usada'}</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">${rows}</div>
+        <div style="padding:9px 11px;border-radius:8px;background:linear-gradient(135deg, rgba(53,184,119,0.12), rgba(59,130,246,0.1));border:1px solid rgba(53,184,119,0.4);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div>
+            <strong style="font-size:12px;color:#fff;display:block;">📦 Baú Combo 3/3 (${claimedCount}/3)</strong>
+            <span style="font-size:10.8px;color:var(--hc-text-2);">Prêmio extra: Dinheiro Limpo + Dossiê OSINT + 🧊 Escudo Freeze</span>
+          </div>
+          ${comboClaimed
+            ? `<span class="hc-badge success">✓ Resgatado</span>`
+            : `<button type="button" id="btnClaimDailyCombo" class="hc-btn ${claimedCount >= 3 ? 'primary' : 'ghost'} sm" ${claimedCount >= 3 ? '' : 'disabled'} onclick="window.dailyCheckinV2.claimDailyComboBox()">Abrir Baú 3/3</button>`}
+        </div>
+      `;
+    }
+
+    renderMonthlyMilestonesTabHtml(st) {
+      const stage = this.getOperatorStage();
+      const cur = Number(st.monthlyCheckinCount || 0);
+      const pct = Math.min(100, Math.round((cur / 28) * 100));
+      const rows = MONTHLY_MILESTONES.map((m) => {
+        const cash = m.cleanByStage[stage - 1] || m.cleanByStage[0];
+        const reached = cur >= m.days;
+        const claimed = !!(st.monthlyMilestonesClaimed && st.monthlyMilestonesClaimed[m.days]);
+        return `
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;border-radius:8px;background:var(--hc-inset);border:1px solid ${reached && !claimed ? 'rgba(53,184,119,0.55)' : 'var(--hc-border)'};">
+            <div>
+              <strong style="font-size:12px;color:#fff;display:block;">🏅 ${esc(m.title)}</strong>
+              <span style="font-size:11px;color:var(--hc-accent-text);">+${fmtUsd(cash)} Limpos · +${m.rep} REP · ${(m.sats / 100000000).toFixed(5)} BTC</span>
+            </div>
+            ${claimed
+              ? `<span class="hc-badge success">✓ Resgatado</span>`
+              : `<button type="button" id="btnClaimMonthly_${m.days}" class="hc-btn ${reached ? 'primary' : 'ghost'} sm" ${reached ? '' : 'disabled'} onclick="window.dailyCheckinV2.claimMonthlyMilestone(${m.days})">${reached ? 'Resgatar' : `${cur}/${m.days}d`}</button>`}
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div style="padding:8px 10px;background:var(--hc-inset);border:1px solid var(--hc-border);border-radius:8px;">
+          <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:4px;">
+            <span>Progresso Acumulado (${esc(st.monthlyKey)} · <strong>não zera se faltar</strong>)</span>
+            <strong style="color:var(--hc-accent-text);">${cur} / 28 dias</strong>
+          </div>
+          <div class="hc-progress"><span style="width:${pct}%;"></span></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">${rows}</div>
       `;
     }
   }
