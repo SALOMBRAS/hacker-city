@@ -1120,6 +1120,18 @@
   .my-ip-chip .ip-lbl { display: none !important; }
   .my-ip-chip .ip-val { font-size: 11px !important; }
   .my-ip-chip .ip-dot { width: 6px; height: 6px; }
+  .inet-navbar { padding: 7px 8px !important; gap: 5px !important; }
+  .inet-go-btn { height: 30px; padding: 0 10px; font-size: 11.8px; }
+  .inet-addr-wrap { height: 33px !important; }
+  .inet-shell { min-height: 0; }
+  .inet-host-banner { padding: 9px 10px 7px !important; gap: 6px !important; }
+  .inet-host-id { gap: 8px; flex: 1 1 180px; }
+  .inet-host-icon { width: 32px; height: 32px; border-radius: 7px; }
+  .inet-ip-code { font-size: 13.5px; }
+  .inet-host-name { font-size: 11.5px; }
+  .inet-tabs { padding: 0 10px; gap: 3px; flex-wrap: wrap; }
+  .inet-tab { padding: 7px 9px; font-size: 11.8px; gap: 5px; }
+  .hub-two-cols { padding: 10px 12px; gap: 10px; }
 }
 
 
