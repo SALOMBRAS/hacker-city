@@ -121,6 +121,11 @@
         window.addLocalLog('CHECKIN-DIA3', `Caixa OSINT Estágio ${stage} recebida (+1 Dossiê OSINT, total: ${totalOsint}).`, 'info');
       }
       return { osintAdded: 1, totalOsint, note: `+1 Dossiê OSINT (${totalOsint} no inventário)` };
-    }
+    },
+    renderExtraMeta: () => {
+      const cur = (window.ecosystemHub && window.ecosystemHub.state) ? Number(window.ecosystemHub.state.osintDossiers || 0) : 0;
+      return `<span style="font-size:9.8px;color:var(--hc-text-3);">🕵️ Dossiês: ${cur}</span>`;
+    },
+    renderDetailPanel: (stage) => renderStageScaleStrip([800, 2200, 5200, 12000], (v) => `$${v.toLocaleString('pt-BR')}`, stage)
   });
 })();
