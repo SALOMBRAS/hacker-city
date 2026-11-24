@@ -228,4 +228,40 @@
     },
     renderDetailPanel: (stage) => renderStageScaleStrip([90, 180, 320, 550], (v) => `+${v} REP`, stage)
   });
+
+  // =========================================================================
+  // DIA 7 — BAÚ MESTRE SEMANAL CRIPTOGRAFADO (JACKPOT + ZERO-DAY + CATALISADOR)
+  // =========================================================================
+  ck.registerDaySpec(7, {
+    title: 'Dia 7',
+    codeName: 'Baú Mestre Semanal Criptografado',
+    icon: '🏆',
+    cleanByStage: [3500, 9000, 20000, 45000],
+    repByStage: [60, 120, 220, 400],
+    satsByStage: [50000, 100000, 180000, 300000],
+    bonusTag: 'Zero-Day 24h + Catalisador',
+    bonusDesc: 'Jackpot semanal de Dinheiro Limpo, Bitcoin e Reputação, acompanhado de Exploit Zero-Day (24h) e Catalisador.',
+    onClaimBonus: (stage) => {
+      const cveCode = `CVE-2026-${1000 + Math.floor(Math.random() * 8999)}`;
+      if (window.ecosystemHub && typeof window.ecosystemHub.ensureLoaded === 'function') {
+        const es = window.ecosystemHub.ensureLoaded();
+        if (!Array.isArray(es.zeroDays)) es.zeroDays = [];
+        es.zeroDays.unshift({
+          id: 'zd_wk_' + Date.now(),
+          code: cveCode,
+          maxTier: Math.max(2, stage),
+          expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+          used: false
+        });
+        es.labCatalysts = Number(es.labCatalysts || 0) + 1;
+        window.ecosystemHub.save();
+      }
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('CHECKIN-DIA7', `Baú Mestre Semanal Estágio ${stage} aberto! Recebeu ${cveCode} (24h) + 1 Catalisador Lab.`, 'success');
+      }
+      return { zeroDayCode: cveCode, catalystAdded: 1, note: `${cveCode} + 1 Catalisador` };
+    },
+    renderExtraMeta: () => `<span style="font-size:10px;color:#f5c451;font-weight:700;">✨ Zero-Day 24h + Catalisador</span>`,
+    renderDetailPanel: (stage) => renderStageScaleStrip([3500, 9000, 20000, 45000], (v) => `$${v.toLocaleString('pt-BR')}`, stage)
+  });
 })();
