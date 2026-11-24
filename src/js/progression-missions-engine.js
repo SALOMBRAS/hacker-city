@@ -42,8 +42,8 @@
       },
       pages: [
         {
-          heading: 'Aula 1/3 — Seu IP Protegido, Escudo Iniciante (< 200 REP) & Menu Progressivo',
-          body: 'Seu endereço IPv4 no topo da tela é a placa do seu PC na rede (os últimos 7 dígitos ficam borrados automaticamente para ninguém espiar — passe o mouse para ver). Enquanto você tiver menos de 200 REP, seu Escudo Iniciante bloqueia ataques surpresa na porta 22! E repare no menu lateral: novas telas abrem aos poucos conforme você evolui (com selo verde NOVO), sem poluir sua tela.'
+          heading: 'Aula 1/3 — Seu IP Protegido, Escudo Iniciante (24 Horas) & Menu Progressivo',
+          body: 'Seu endereço IPv4 no topo da tela é a placa do seu PC na rede (os últimos 7 dígitos ficam borrados — passe o mouse ou toque para ver). Nas suas primeiras 24 horas reais, seu Escudo Iniciante de 24h bloqueia invasões e DDoS de outros jogadores e bots caçadores! Invadir treinos, empresas e bancos mantém seu escudo intacto, mas atacar um jogador real encerra o escudo na hora. E repare no menu lateral: novas telas abrem aos poucos conforme você evolui (com selo verde NOVO).'
         },
         {
           heading: 'Aula 2/3 — Troca Grátis no Provedor ISP (71.4.5.1) & Contas das 12:00',

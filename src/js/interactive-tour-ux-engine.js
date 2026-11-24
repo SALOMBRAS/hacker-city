@@ -403,10 +403,10 @@
         {
           id: 'my_ip',
           selector: '#hudMyIpChip',
-          pointerLabel: '👀 Seu IP + Escudo < 200 REP',
+          pointerLabel: '👀 Seu IP + Escudo 24h',
           requiresDirectClick: false,
-          title: '1. Seu IP Protegido & Escudo Iniciante (< 200 REP)',
-          desc: 'Esse número no topo é a <strong>placa do seu PC</strong> na rede (os últimos 7 dígitos ficam borrados contra curiosos — passe o mouse para ver). Enquanto tiver <strong>menos de 200 REP</strong>, seu <strong>Escudo Iniciante</strong> bloqueia ataques surpresa na sua porta 22!',
+          title: '1. Seu IP Protegido & Escudo Iniciante (24h)',
+          desc: 'Esse número no topo é a <strong>placa do seu PC</strong> na rede (passe o mouse ou toque para revelar os últimos 7 dígitos). Nas suas <strong>primeiras 24 horas reais</strong>, seu <strong>Escudo Iniciante de 24h</strong> impede invasões e DDoS de outros jogadores (cai na hora se você atacar um jogador real)!',
           hint: '💡 Suas contas do Esconderijo fecham às <strong>12:00</strong> (1h real = 1 dia; acumulam no máx. 3 meses e pausam sozinhas se você ficar offline).',
           nextLabel: 'Entendi, Próximo →',
           onEnter: () => {
