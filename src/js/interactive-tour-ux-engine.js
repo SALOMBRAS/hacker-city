@@ -287,6 +287,36 @@
               justify-content: flex-end;
             }
           }
+          @media (max-height: 600px) {
+            #hcTourCard {
+              max-height: 44vh;
+              overflow-y: auto;
+              padding: 9px 12px;
+            }
+            #hcTourCardTitle {
+              font-size: 13.5px;
+              margin-bottom: 4px;
+            }
+            #hcTourCardDesc {
+              font-size: 11.6px;
+              line-height: 1.35;
+              margin-bottom: 5px;
+            }
+            #hcTourActionHint {
+              font-size: 11px;
+              padding: 5px 8px;
+              margin-bottom: 6px;
+            }
+          }
+          @media (max-height: 500px) and (orientation: landscape) {
+            #hcTourCard {
+              width: min(365px, 48vw);
+              max-height: calc(100vh - 16px);
+            }
+            .hc-tour-dots {
+              display: none;
+            }
+          }
         `;
         document.head.appendChild(st);
       }
@@ -978,7 +1008,7 @@
 
     resolveTargetElement(step) {
       if (!step) return null;
-      const isCompact = window.innerWidth <= 860;
+      const isCompact = window.innerWidth <= 860 || window.innerHeight <= 600;
       if (step.id === 'choose_minipc_hash') {
         if (window.internetEngine && window.internetEngine.isCracking) {
           return document.getElementById('cardAttackBruteforce') || document.querySelector(step.selector);
@@ -990,7 +1020,7 @@
       }
       if (isCompact) {
         if (step.id === 'running_ram_cooldown') {
-          const compactRam = document.querySelector('#softwareExplorerMain .soft-tabs-bar') || document.getElementById('runningProgramsPanel');
+          const compactRam = document.querySelector('#softwareExplorerMain .soft-tab-btn.active') || document.querySelector('#softwareExplorerMain .soft-tabs-bar') || document.getElementById('runningProgramsPanel');
           if (compactRam && compactRam.offsetWidth > 0) return compactRam;
         }
         if (step.id === 'upload_virus_stage') {
@@ -1256,6 +1286,21 @@
 
         left = Math.max(margin, Math.min(vw - cw - margin, left));
         top = Math.max(margin, Math.min(vh - ch - margin, top));
+
+        // Garantia extra em telas ultra-baixas (320x568 / paisagem 844x390): ajusta max-height se ainda encostar no alvo
+        if (hole.width > 0 && !(left + cw < hole.left || left > hole.right || top + ch < hole.top || top > hole.bottom)) {
+          const clearBelow = vh - hole.bottom - bottomGap - margin;
+          const clearAbove = hole.top - topGap - margin;
+          if (clearBelow >= clearAbove && clearBelow >= 115) {
+            card.style.maxHeight = Math.floor(clearBelow) + 'px';
+            top = hole.bottom + bottomGap;
+          } else if (clearAbove >= 115) {
+            card.style.maxHeight = Math.floor(clearAbove) + 'px';
+            top = margin;
+          }
+        } else {
+          card.style.maxHeight = '';
+        }
 
         card.style.left = Math.round(left) + 'px';
         card.style.top = Math.round(top) + 'px';
