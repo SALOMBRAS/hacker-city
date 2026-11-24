@@ -637,7 +637,33 @@
         }
       });
 
+      this.syncNewbieShieldHudBadge();
       this.renderProfilePreferenceCard();
+    }
+
+    syncNewbieShieldHudBadge() {
+      if (typeof document === 'undefined' || !window.currentProfile) return;
+      const ipChip = document.getElementById('hudMyIpChip');
+      if (!ipChip || !ipChip.parentElement) return;
+      let badge = document.getElementById('hudNewbieShieldBadge');
+      const st = this.getNewbieShieldStatus();
+      if (!st.active) {
+        if (badge) badge.style.display = 'none';
+        return;
+      }
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.id = 'hudNewbieShieldBadge';
+        badge.className = 'hud-shield-chip';
+        badge.title = 'Escudo de Novato (24h) — toque para ver as regras!';
+        badge.onclick = (ev) => {
+          ev.stopPropagation();
+          this.openShieldInfoModal();
+        };
+        ipChip.insertAdjacentElement('afterend', badge);
+      }
+      badge.style.display = 'inline-flex';
+      badge.textContent = `🛡️ ${st.formattedRemaining}`;
     }
 
     renderBeginnerHomeGuideHtml() {
@@ -652,13 +678,14 @@
       const dirty = window.nineSystemsEngine ? window.nineSystemsEngine.getDirtyBalance() : 0;
       const washedBefore = tutDone || curStep >= 6 || !!(window.nineSystemsEngine && window.nineSystemsEngine.state && window.nineSystemsEngine.state.washingJobs && window.nineSystemsEngine.state.washingJobs.length > 0);
       const readyClaim = !tutDone && curStep === 6;
+      const shieldSt = this.getNewbieShieldStatus();
 
       return `
         <div class="hc-card" id="beginnerThreeStepCard" style="margin-bottom:16px;padding:14px 16px;border-color:rgba(53,184,119,0.45);background:linear-gradient(145deg,rgba(14,28,22,0.92),rgba(11,16,24,0.96));">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
             <div>
               <span class="hc-badge success">🧭 JORNADA DO RECRUTA (${tutDone ? 'CONCLUÍDA ✓' : `ETAPA ${curStep} DE 6`})</span>
-              ${this.isNewbiePvpShieldActive() ? `<span class="hc-badge info" style="margin-left:6px;">🛡️ Escudo Iniciante Ativo (&lt; 200 REP)</span>` : ''}
+              ${shieldSt.active ? `<span class="hc-badge info" style="margin-left:6px;cursor:pointer;" onclick="window.progressiveUnlockEngine.openShieldInfoModal()">🛡️ Escudo 24h Ativo (${esc(shieldSt.formattedRemaining)})</span>` : ''}
             </div>
             <span style="font-size:11.5px;color:var(--hc-text-3);">Siga os passos para aprender Invasão, Rastro e Lavagem na prática!</span>
           </div>
@@ -699,15 +726,25 @@
       this.ensureLoaded();
       const vet = !!this.state.veteranShowAll;
       const stepNum = this.getCurrentStepNumber();
+      const sh = this.getNewbieShieldStatus();
       box.innerHTML = `
-        <div style="padding:10px 12px;border-radius:8px;background:var(--hc-inset);border:1px solid var(--hc-border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-          <div>
-            <strong style="font-size:12.5px;color:var(--hc-text);">🧭 Menu Lateral Progressivo (Degrau ${stepNum}/4)</strong>
-            <div style="font-size:11.5px;color:var(--hc-text-2);">${vet ? 'Mostrando todas as 27 telas (Modo Veterano ligado).' : 'Liberando novas telas aos poucos conforme você evolui.'}</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="padding:10px 12px;border-radius:8px;background:var(--hc-inset);border:1px solid ${sh.active ? 'rgba(56,189,248,0.45)' : 'var(--hc-border)'};display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div>
+              <strong style="font-size:12.5px;color:${sh.active ? '#7dd3fc' : 'var(--hc-text)'};">🛡️ Escudo de Novato (24 Horas): ${sh.active ? `Ativo · ${esc(sh.formattedRemaining)} restantes` : 'Encerrado'}</strong>
+              <div style="font-size:11.5px;color:var(--hc-text-2);">${sh.active ? 'Imune a invasões e DDoS de jogadores/bots (cai na hora se você atacar um jogador real).' : (sh.brokenByPvp ? `Encerrado antecipadamente (${esc(sh.brokenReason)}).` : 'Período inicial de 24h concluído — PvP aberto.')}</div>
+            </div>
+            <button type="button" class="hc-btn ghost sm" onclick="window.progressiveUnlockEngine.openShieldInfoModal()">Regras</button>
           </div>
-          <button type="button" id="btnToggleVeteranMenuMode" class="hc-btn ${vet ? 'primary' : 'ghost'} sm" onclick="window.progressiveUnlockEngine.toggleVeteranShowAll()">
-            ${vet ? '✓ Todo o Menu Visível' : 'Mostrar Todo o Menu'}
-          </button>
+          <div style="padding:10px 12px;border-radius:8px;background:var(--hc-inset);border:1px solid var(--hc-border);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div>
+              <strong style="font-size:12.5px;color:var(--hc-text);">🧭 Menu Lateral Progressivo (Degrau ${stepNum}/4)</strong>
+              <div style="font-size:11.5px;color:var(--hc-text-2);">${vet ? 'Mostrando todas as 27 telas (Modo Veterano ligado).' : 'Liberando novas telas aos poucos conforme você evolui.'}</div>
+            </div>
+            <button type="button" id="btnToggleVeteranMenuMode" class="hc-btn ${vet ? 'primary' : 'ghost'} sm" onclick="window.progressiveUnlockEngine.toggleVeteranShowAll()">
+              ${vet ? '✓ Todo o Menu Visível' : 'Mostrar Todo o Menu'}
+            </button>
+          </div>
         </div>
       `;
     }
@@ -723,6 +760,7 @@
           this.syncSidebarDom();
         } else {
           this.evaluateUnlocks(false);
+          this.syncNewbieShieldHudBadge();
         }
       }, 2500);
     }
