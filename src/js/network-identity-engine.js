@@ -1715,6 +1715,11 @@
         const hddMb = Number(liveHuman.hddTotalMb || (rep >= 1000 ? 2048 : 640));
         const ramMb = Number(liveHuman.ramTotalMb || (rep >= 1000 ? 1024 : 384));
         const pwdEpoch = Number(liveHuman.pwdEpoch || 1);
+        const shieldUntilMs = Number(liveHuman.newbieShieldUntilMs || 0);
+        const isShielded24h = (shieldUntilMs > Date.now()) || (!!liveHuman.newbieProtected && shieldUntilMs === 0);
+        const shieldRemStr = (isShielded24h && shieldUntilMs > Date.now() && window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.formatShieldRemaining === 'function')
+          ? window.progressiveUnlockEngine.formatShieldRemaining(shieldUntilMs - Date.now())
+          : (liveHuman.newbieShieldLabel || '24h');
 
         return {
           ip,
@@ -1725,10 +1730,11 @@
           humanUserId: liveHuman.userId,
           humanTag: liveHuman.hackerTag,
           customWebPage: liveHuman.customWebPage || null,
-          badge: liveHuman.onlineNow ? '🟢 Jogador Online' : '○ Jogador Offline (PC Ligado)',
+          badge: isShielded24h ? `🛡️ Escudo Novato (${shieldRemStr})` : (liveHuman.onlineNow ? '🟢 Jogador Online' : '○ Jogador Offline (PC Ligado)'),
           online: true,
           reputation: rep,
-          newbieProtected: rep < 100,
+          newbieProtected: isShielded24h,
+          newbieShieldRemaining: isShielded24h ? shieldRemStr : '',
           tier: rep >= 1000 ? 2 : 1,
           securityLevel: rep >= 1000 ? 2 : 1,
           cpuMhz,
@@ -1755,14 +1761,16 @@
       if (cloudPlayer) {
         const rep = cloudPlayer.reputation || 100;
         const isMid = rep >= 500;
+        const createdMs = cloudPlayer.created_at ? Date.parse(cloudPlayer.created_at) : 0;
+        const cloudShielded = (createdMs > 0 && (Date.now() - createdMs) < 86400000 && rep < 1000) || rep < 100;
         return {
           ip,
           hostname: `VPC de ${cloudPlayer.hacker_tag}`,
           kind: 'player',
-          badge: 'Jogador Online',
+          badge: cloudShielded ? '🛡️ Escudo Novato (24h)' : 'Jogador Online',
           online: true,
           reputation: rep,
-          newbieProtected: rep < 100,
+          newbieProtected: cloudShielded,
           tier: isMid ? 2 : 1,
           securityLevel: isMid ? 2 : 1,
           cpuMhz: isMid ? 2800 : 1000,
@@ -2281,8 +2289,16 @@
         return { started: false, code: 'SELF_TARGET' };
       }
       if (host.newbieProtected) {
-        alert(`Proteção de Iniciante (ISP Sandbox): ${host.hostname} tem menos de 100 REP e ainda não pode sofrer invasão PvP!`);
-        return { started: false, code: 'NEWBIE_PROTECTED' };
+        const msg = `🛡️ Escudo de Novato (24h): ${host.hostname} está protegido contra ataques PvP${host.newbieShieldRemaining ? ' (restam ' + host.newbieShieldRemaining + ')' : ''}!`;
+        if (typeof window.showToast === 'function') window.showToast(msg);
+        else alert(msg);
+        return { started: false, code: 'NEWBIE_PROTECTED', message: msg };
+      }
+      if (host.kind === 'player' && window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.isNewbiePvpShieldActive === 'function' && window.progressiveUnlockEngine.isNewbiePvpShieldActive() && !(opts && opts.confirmedBreakShield)) {
+        window.progressiveUnlockEngine.openBreakShieldConfirmModal(host.hostname, () => {
+          this.startBruteforce({ ...(opts || {}), confirmedBreakShield: true });
+        });
+        return { started: false, code: 'CONFIRM_BREAK_SHIELD' };
       }
       if (!host.online) {
         alert('Este host está OFFLINE no turno atual. Aguarde a próxima janela ou escolha um IP online.');
@@ -2445,13 +2461,20 @@
       this.render();
     }
 
-    startExploitAttack() {
+    startExploitAttack(opts = {}) {
       const host = this.resolveHost(this.currentIp);
       if (host.notFound || host.kind === 'self') return { success: false };
       if (host.newbieProtected) {
-        const msg = `Proteção de Iniciante (ISP Sandbox): ${host.hostname} possui menos de 100 REP!`;
-        alert(msg);
+        const msg = `🛡️ Escudo de Novato (24h): ${host.hostname} está protegido contra ataques PvP${host.newbieShieldRemaining ? ' (restam ' + host.newbieShieldRemaining + ')' : ''}!`;
+        if (typeof window.showToast === 'function') window.showToast(msg);
+        else alert(msg);
         return { success: false, code: 'NEWBIE_PROTECTED', message: msg };
+      }
+      if (host.kind === 'player' && window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.isNewbiePvpShieldActive === 'function' && window.progressiveUnlockEngine.isNewbiePvpShieldActive() && !(opts && opts.confirmedBreakShield)) {
+        window.progressiveUnlockEngine.openBreakShieldConfirmModal(host.hostname, () => {
+          this.startExploitAttack({ ...(opts || {}), confirmedBreakShield: true });
+        });
+        return { success: false, code: 'CONFIRM_BREAK_SHIELD' };
       }
       if (window.progressionLocksEngine && typeof window.progressionLocksEngine.validateTargetBounceGate === 'function') {
         const bg = window.progressionLocksEngine.validateTargetBounceGate(host);
@@ -2508,6 +2531,9 @@
     }
 
     onAttackSucceeded(host, method, pwdOrToken, sshRole = 'root') {
+      if (host && host.kind === 'player' && window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.isNewbiePvpShieldActive === 'function' && window.progressiveUnlockEngine.isNewbiePvpShieldActive()) {
+        window.progressiveUnlockEngine.breakNewbieShield(`Invadiu ${host.hostname}`);
+      }
       const route = window.bounceEngine
         ? window.bounceEngine.routeConnectionAndGetVisibleIp(host.ip)
         : { visibleIp: window.networkIdentity.getPublicIp(), bounced: false };
@@ -2558,7 +2584,14 @@
       }
 
       if (window.currentProfile) {
-        window.currentProfile.reputation = (window.currentProfile.reputation || 0) + (15 * host.securityLevel);
+        const grantRep = () => {
+          window.currentProfile.reputation = (window.currentProfile.reputation || 0) + (15 * host.securityLevel);
+        };
+        if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+          window.integrityGuard.runAuthorized(grantRep);
+        } else {
+          grantRep();
+        }
       }
       if (typeof window.addLocalLog === 'function') {
         window.addLocalLog('HACK-OK', `Invasão concluída em ${host.ip} (${host.hostname}) via ${method} [permissão: ${sshRole.toUpperCase()}]`, 'warning');
@@ -2600,7 +2633,9 @@
       const host = this.resolveHost(ip);
       if (host.notFound || host.kind === 'self') return false;
       if (host.newbieProtected) {
-        alert(`Proteção de Iniciante: ${host.hostname} possui menos de 100 REP!`);
+        const msg = `🛡️ Escudo de Novato (24h): ${host.hostname} está protegido contra conexões hostis PvP!`;
+        if (typeof window.showToast === 'function') window.showToast(msg);
+        else alert(msg);
         return false;
       }
 
@@ -3361,7 +3396,7 @@
             <p style="font-size: 0.85rem; color: var(--hc-text-2); margin-bottom: 1rem;">
               Servidor operando em <code>${esc(host.ip)}</code> (${esc(host.cpuSpec)}).
               Defesas ativas: <strong>Firewall.fwl v${(host.firewallVer || 1.0).toFixed(1)}</strong> · <strong>Hasher.hash v${(host.hasherVer || 1.0).toFixed(1)}</strong>.
-              ${host.newbieProtected ? '<br><strong style="color: var(--hc-warning);">Este operador está sob Proteção de Iniciante (&lt; 100 REP).</strong>' : ''}
+              ${host.newbieProtected ? `<br><strong style="color: var(--hc-info-text);">🛡️ Este operador está sob Escudo de Novato de 24h${host.newbieShieldRemaining ? ' (restam ' + esc(host.newbieShieldRemaining) + ')' : ''}.</strong>` : ''}
             </p>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button type="button" class="hc-btn primary" onclick="window.internetEngine.switchTab('invadir')">Ir para Aba Invadir →</button>
