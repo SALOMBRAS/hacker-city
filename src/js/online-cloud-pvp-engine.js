@@ -1671,7 +1671,8 @@
         if (!silentReplay) {
           if (window.hackerAudio && typeof window.hackerAudio.playErrorBuzz === 'function') window.hackerAudio.playErrorBuzz();
           if (typeof window.showToast === 'function') {
-            window.showToast(`💥 SOBRECARGA DDoS! Suas peças caíram para ${res.healthPct}% de saúde! Conserte em Peças do PC.`);
+            const rTag = res.raidMode === 'raid1' ? ' (RAID-1 amortecido -40%)' : (res.raidMode === 'raid0' ? ' (RAID-0 vulnerável +25%)' : '');
+            window.showToast(`💥 SOBRECARGA DDoS! Suas peças caíram para ${res.healthPct}% de saúde${rTag}! Conserte em Peças do PC.`);
           }
         }
       }
