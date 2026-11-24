@@ -912,7 +912,7 @@
   }
   .flyout-head { display: none; }
   .topbar-ip-omnibox, .user-meta { display: none !important; }
-  .inet-shell { grid-template-columns: 1fr !important; }
+  .inet-shell { grid-template-columns: minmax(0, 1fr) !important; }
 }
 
 /* ---------- Ultra-Compacto (320x568 iPhone SE 1ª Geração / WebViews Estreitas) ---------- */

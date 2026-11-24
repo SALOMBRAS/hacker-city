@@ -312,7 +312,7 @@
 
 @media (max-width: 1040px) {
   .inet-shell {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 }
 
@@ -935,7 +935,7 @@
 
 @media (max-width: 960px) {
   .hub-two-cols {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -1131,6 +1131,7 @@
   .inet-host-name { font-size: 11.5px; }
   .inet-tabs { padding: 0 10px; gap: 3px; flex-wrap: wrap; }
   .inet-tab { padding: 7px 9px; font-size: 11.8px; gap: 5px; }
+  .inet-viewport { padding: 10px !important; min-width: 0; max-width: 100%; overflow-x: hidden; }
   .hub-two-cols { padding: 10px 12px; gap: 10px; }
 }
 

@@ -108,13 +108,13 @@
 
 @media (max-width: 1080px) {
   .inet-viewport .soft-explorer-shell {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
 @media (max-width: 980px) {
   .soft-explorer-shell {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

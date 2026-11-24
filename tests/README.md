@@ -21,6 +21,6 @@ NODE_PATH=../pague-on-old/node_modules node tests/verify-retention-pwa-pvp-ideas
 
 Critérios obrigatórios em todas as execuções:
 - `0` violações no `IntegrityGuard` (`cheatStrikes === 0`)
-- `0` estouros horizontais ou colisões de texto em Desktop (`1366x860` / `1200x800`) e nas 8 resoluções Mobile/Paisagem/Tablet (`320x568`, `360x800`, `375x667`, `390x844`, `412x915`, `430x932`, `844x390` e `768x1024`)
+- `0` estouros horizontais ou colisões de texto em Desktop (`1366x860` / `1200x800`) e nas 8 resoluções Mobile/Paisagem/Tablet (`320x568`, `360x800`, `375x667`, `390x844`, `412x915`, `430x932`, `844x390` e `768x1024`), incluindo `0` cortes internos em `.soft-table-wrap` e `.soft-tabs-left` em telas `<= 680px` e saldo de Dinheiro visível na barra superior.
 - `0` sobreposições entre `#hcTourCard` e `#hcTourRing` nos 14 passos do Tour Guiado
 - Preservação integral da regra de `15 minutos` (`900.000ms`) após o bônus único do 1º lote de treino (`8.000ms`).
