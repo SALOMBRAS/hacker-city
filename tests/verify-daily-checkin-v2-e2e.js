@@ -41,6 +41,8 @@ function assert(cond, msg) {
     await page.setViewport({ width: 320, height: 568, isMobile: true, hasTouch: true });
     const uiRes = await page.evaluate(() => {
       const btn = document.getElementById('btnTopbarDailyCheckin');
+      const btnRect = btn ? btn.getBoundingClientRect() : { left: -1, right: 999 };
+      const btnVisibleInViewport = btnRect.left >= 0 && btnRect.right <= window.innerWidth + 1;
       const dot = document.getElementById('topbarCheckinDot');
       const dotVisible = dot && getComputedStyle(dot).display !== 'none';
       btn.click();
@@ -48,12 +50,13 @@ function assert(cond, msg) {
       const dialog = modal?.querySelector('.hc-checkin-dialog');
       const rect = dialog ? dialog.getBoundingClientRect() : { right: 999 };
       return {
+        btnVisibleInViewport,
         dotVisible,
         modalOpen: modal && getComputedStyle(modal).display !== 'none',
         fits320: rect.right <= 321 && document.documentElement.scrollWidth <= 321
       };
     });
-    assert(uiRes.dotVisible && uiRes.modalOpen && uiRes.fits320, 'Modal ou botão 🎁 falhou em 320x568');
+    assert(uiRes.btnVisibleInViewport && uiRes.dotVisible && uiRes.modalOpen && uiRes.fits320, 'Modal ou botão 🎁 falhou em 320x568');
     console.log('✅ [1/4] Modal #hcDailyCheckinModal + Botão 🎁 no topo validados em 320x568 (0 overflow)');
 
     // 2. Validar Dias 1 a 7 (Estágio 1 -> Estágio 4) e cada bônus tático dedicado
