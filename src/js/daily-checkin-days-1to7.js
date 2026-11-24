@@ -59,4 +59,41 @@
     renderExtraMeta: () => `<span style="font-size:9.8px;color:var(--hc-text-3);">Capital Limpo + S.O.S.</span>`,
     renderDetailPanel: (stage) => renderStageScaleStrip([350, 1000, 2500, 6000], (v) => `$${v.toLocaleString('pt-BR')}`, stage)
   });
+
+  // =========================================================================
+  // DIA 2 — CREDENCIAL & IMPULSO DE REDE (REPUTAÇÃO ESCALÁVEL + TURBO CPU)
+  // =========================================================================
+  ck.getCpuBoostMultiplier = function () {
+    const st = this.getState();
+    if (st && Number(st.cpuBoostUntil || 0) > Date.now()) return 1.12;
+    return 1.0;
+  };
+
+  ck.registerDaySpec(2, {
+    title: 'Dia 2',
+    codeName: 'Credencial & Impulso de CPU',
+    icon: '⚡',
+    cleanByStage: [0, 0, 0, 0],
+    repByStage: [45, 95, 170, 300],
+    satsByStage: [0, 0, 0, 0],
+    bonusTag: '+12% CPU (25m)',
+    bonusDesc: 'Acelera seu prestígio hacker e ativa +12% de velocidade limpa no processador por 25 minutos.',
+    onClaimBonus: (stage, st) => {
+      st.cpuBoostUntil = Math.max(Date.now(), Number(st.cpuBoostUntil || 0)) + 25 * 60 * 1000;
+      if (window.hardwareEngine && typeof window.hardwareEngine.rerender === 'function') {
+        window.hardwareEngine.rerender();
+      }
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('CHECKIN-DIA2', `Turbo de CPU (+12% MHz por 25 min) ativado no Estágio ${stage}.`, 'info');
+      }
+      return { cpuBoostMinutes: 25, note: 'Turbo +12% CPU ativo por 25m' };
+    },
+    renderExtraMeta: (stage, st) => {
+      const rem = st && Number(st.cpuBoostUntil || 0) > Date.now()
+        ? Math.ceil((st.cpuBoostUntil - Date.now()) / 60000)
+        : 0;
+      return `<span style="font-size:9.8px;color:${rem > 0 ? 'var(--hc-accent-text)' : 'var(--hc-text-3)'};">${rem > 0 ? `⚡ Ativo (${rem}m)` : 'REP + Turbo CPU'}</span>`;
+    },
+    renderDetailPanel: (stage) => renderStageScaleStrip([45, 95, 170, 300], (v) => `+${v} REP`, stage)
+  });
 })();

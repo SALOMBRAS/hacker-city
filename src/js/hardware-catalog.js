@@ -105,7 +105,10 @@ class HardwareEngine {
   }
 
   getEffectiveCpuMhz() {
-    return Math.max(200, Math.round(this.getCpu().mhz * this.getHealthMultiplier()));
+    const ckMult = (window.dailyCheckinV2 && typeof window.dailyCheckinV2.getCpuBoostMultiplier === 'function')
+      ? window.dailyCheckinV2.getCpuBoostMultiplier()
+      : 1.0;
+    return Math.max(200, Math.round(this.getCpu().mhz * this.getHealthMultiplier() * ckMult));
   }
 
   getEffectiveNetMbps() {
