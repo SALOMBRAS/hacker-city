@@ -22,6 +22,8 @@
       .replace(/"/g, '&quot;');
   }
 
+  const NEWBIE_SHIELD_DURATION_MS = 24 * 60 * 60 * 1000; // 24 horas reais (86.400.000 ms) de Escudo de Novato
+
   const STEP1_ALWAYS_OPEN = new Set([
     'winHome',
     'winBrowser',
@@ -166,12 +168,33 @@
       return `HC_PROGRESSIVE_UNLOCKS_V1_${uid}`;
     }
 
+    resolveProfileCreatedMs() {
+      const p = window.currentProfile;
+      if (p && p.created_at) {
+        const parsed = Date.parse(p.created_at);
+        if (Number.isFinite(parsed) && parsed > 0) return parsed;
+      }
+      return Date.now();
+    }
+
     normalizeState(raw) {
       const s = raw && typeof raw === 'object' ? { ...raw } : {};
       if (!s.everUnlocked || typeof s.everUnlocked !== 'object') s.everUnlocked = {};
       if (!s.unseenNew || typeof s.unseenNew !== 'object') s.unseenNew = {};
       if (typeof s.veteranShowAll !== 'boolean') s.veteranShowAll = false;
       if (typeof s.seededInitial !== 'boolean') s.seededInitial = false;
+      const fallbackStart = this.resolveProfileCreatedMs();
+      s.shieldStartedAt = (Number.isFinite(Number(s.shieldStartedAt)) && Number(s.shieldStartedAt) > 0)
+        ? Number(s.shieldStartedAt)
+        : fallbackStart;
+      if (window.currentProfile && window.currentProfile.created_at) {
+        const createdMs = Date.parse(window.currentProfile.created_at);
+        if (Number.isFinite(createdMs) && createdMs > 0) {
+          s.shieldStartedAt = Math.min(s.shieldStartedAt, createdMs);
+        }
+      }
+      if (typeof s.shieldBrokenByPvp !== 'boolean') s.shieldBrokenByPvp = false;
+      if (typeof s.shieldBrokenReason !== 'string') s.shieldBrokenReason = '';
       return s;
     }
 
@@ -212,17 +235,56 @@
       if (!snap || typeof snap !== 'object') return;
       this.userId = (window.currentProfile && window.currentProfile.id) || 'guest';
       const prevEver = (this.state && this.state.everUnlocked) || {};
+      const prevStart = (this.state && this.state.shieldStartedAt) || null;
+      const prevBroken = !!(this.state && this.state.shieldBrokenByPvp);
       const next = this.normalizeState(snap);
-      // União monotônica: nunca perde um desbloqueio já conquistado!
+      // União monotônica: nunca perde um desbloqueio nem reseta o relógio de 24h do escudo!
       next.everUnlocked = { ...prevEver, ...next.everUnlocked };
+      if (prevStart && prevStart > 0) {
+        next.shieldStartedAt = Math.min(prevStart, next.shieldStartedAt);
+      }
+      next.shieldBrokenByPvp = prevBroken || !!next.shieldBrokenByPvp;
       this.state = next;
       this.save(true);
       this.syncSidebarDom();
     }
 
-    isNewbiePvpShieldActive() {
+    formatShieldRemaining(ms) {
+      const safe = Math.max(0, Number(ms || 0));
+      if (safe <= 0) return 'Expirado';
+      const totalMin = Math.ceil(safe / 60000);
+      const h = Math.floor(totalMin / 60);
+      const m = totalMin % 60;
+      if (h > 0) return `${h}h ${String(m).padStart(2, '0')}m`;
+      return `${m}m`;
+    }
+
+    getNewbieShieldStatus() {
+      this.ensureLoaded();
+      const now = Date.now();
       const rep = Number((window.currentProfile && window.currentProfile.reputation) || 100);
-      return rep < 200;
+      const hasCert4 = !!(window.universityEngine && typeof window.universityEngine.hasCert === 'function' && window.universityEngine.hasCert(4));
+      const shieldStartedAt = Number(this.state.shieldStartedAt || now);
+      const shieldUntilMs = shieldStartedAt + NEWBIE_SHIELD_DURATION_MS;
+      const remainingMs = Math.max(0, shieldUntilMs - now);
+      const brokenByPvp = !!this.state.shieldBrokenByPvp;
+      const graduatedByTier = rep >= 1000 || hasCert4;
+      const active = !brokenByPvp && !graduatedByTier && remainingMs > 0;
+
+      return {
+        active,
+        remainingMs: active ? remainingMs : 0,
+        formattedRemaining: active ? this.formatShieldRemaining(remainingMs) : 'Encerrado',
+        shieldStartedAt,
+        shieldUntilMs: active ? shieldUntilMs : 0,
+        brokenByPvp,
+        brokenReason: this.state.shieldBrokenReason || '',
+        graduatedByTier
+      };
+    }
+
+    isNewbiePvpShieldActive() {
+      return this.getNewbieShieldStatus().active;
     }
 
     checkLiveCondition(winId) {
