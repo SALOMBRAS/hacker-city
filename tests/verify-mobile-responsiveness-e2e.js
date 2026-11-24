@@ -146,8 +146,18 @@ const assert = require('assert');
   ];
 
   const layoutIssues = [];
-  for (const vp of [{ width: 390, height: 844 }, { width: 360, height: 800 }, { width: 768, height: 1024 }]) {
-    await page.setViewport({ width: vp.width, height: vp.height, isMobile: vp.width < 768, hasTouch: true });
+  const resolutionMatrix = [
+    { width: 320, height: 568 },
+    { width: 360, height: 800 },
+    { width: 375, height: 667 },
+    { width: 390, height: 844 },
+    { width: 412, height: 915 },
+    { width: 430, height: 932 },
+    { width: 844, height: 390 },
+    { width: 768, height: 1024 }
+  ];
+  for (const vp of resolutionMatrix) {
+    await page.setViewport({ width: vp.width, height: vp.height, isMobile: vp.width < 768 || vp.height < 500, hasTouch: true });
     await page.evaluate(() => {
       window.nineSystemsEngine.closeDirtyMoneyBridgeModal();
       document.getElementById('hcBufferOverflowModal')?.remove();
