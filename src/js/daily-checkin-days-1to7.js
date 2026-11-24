@@ -108,6 +108,19 @@
     repByStage: [0, 0, 0, 0],
     satsByStage: [0, 0, 0, 0],
     bonusTag: '+1 Dossiê OSINT',
-    bonusDesc: 'Reforço financeiro limpo acompanhado de +1 Dossiê OSINT para descobrir credenciais corporativas.'
+    bonusDesc: 'Reforço financeiro limpo acompanhado de +1 Dossiê OSINT para descobrir credenciais corporativas.',
+    onClaimBonus: (stage) => {
+      let totalOsint = 0;
+      if (window.ecosystemHub && typeof window.ecosystemHub.ensureLoaded === 'function') {
+        const es = window.ecosystemHub.ensureLoaded();
+        es.osintDossiers = Number(es.osintDossiers || 0) + 1;
+        totalOsint = es.osintDossiers;
+        window.ecosystemHub.save();
+      }
+      if (typeof window.addLocalLog === 'function') {
+        window.addLocalLog('CHECKIN-DIA3', `Caixa OSINT Estágio ${stage} recebida (+1 Dossiê OSINT, total: ${totalOsint}).`, 'info');
+      }
+      return { osintAdded: 1, totalOsint, note: `+1 Dossiê OSINT (${totalOsint} no inventário)` };
+    }
   });
 })();
