@@ -156,4 +156,18 @@
     renderExtraMeta: () => `<span style="font-size:9.8px;color:#7dd3fc;">❄️ -9°C CPU (7h)</span>`,
     renderDetailPanel: (stage) => renderStageScaleStrip([25000, 55000, 100000, 180000], (v) => `${(v / 100000000).toFixed(5)} BTC`, stage)
   });
+
+  // =========================================================================
+  // DIA 5 — SUBSÍDIO DE ENGENHARIA & LABORATÓRIO DE VÍRUS
+  // =========================================================================
+  ck.registerDaySpec(5, {
+    title: 'Dia 5',
+    codeName: 'Subsídio de Engenharia & Lab',
+    icon: '🧪',
+    cleanByStage: [1500, 4000, 9500, 22000],
+    repByStage: [0, 0, 0, 0],
+    satsByStage: [0, 0, 0, 0],
+    bonusTag: '+1 Cupom Lab',
+    bonusDesc: 'Financiamento pesado limpo para hardware/cursos mais +1 Cupom (-$250) e +40 XP no Laboratório de Vírus.'
+  });
 })();
