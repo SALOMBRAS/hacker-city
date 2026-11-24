@@ -445,6 +445,83 @@
       this.save();
       if (typeof window.renderHome === 'function') window.renderHome();
     }
+
+    navigateToGoalTarget(winId) {
+      let target = winId || 'winBrowser';
+      if (window.progressiveUnlockEngine && !window.progressiveUnlockEngine.isUnlocked(target)) {
+        target = target === 'winLaundering' ? 'winBrowser' : 'winUniversity';
+      }
+      if (typeof window.navTo === 'function') window.navTo(target);
+    }
+
+    renderHomeRoutineCardHtml() {
+      const st = this.ensureDailyReset();
+      const tk = this.todayKey();
+      const claimedToday = st.lastSupplyClaimDay === tk;
+      const curDay = Math.max(1, Math.min(7, Number(st.supplyStreakDay || 1)));
+      const doneGoalsCount = DAILY_GOALS_CATALOG.filter((g) => !!st.dailyGoalsClaimed[g.id]).length;
+      const readyClaims = (!claimedToday ? 1 : 0) + DAILY_GOALS_CATALOG.filter((g) => st.dailyGoalsDone[g.id] && !st.dailyGoalsClaimed[g.id]).length;
+
+      const pillsHtml = SEVEN_DAY_SUPPLY.map((item) => {
+        const isPast = claimedToday
+          ? (curDay === 1 ? item.day <= 7 : item.day < curDay)
+          : (item.day < curDay);
+        const isCurrent = !claimedToday && item.day === curDay;
+        const border = isCurrent ? 'rgba(53,184,119,0.75)' : (isPast ? 'rgba(53,184,119,0.28)' : 'var(--hc-border)');
+        const bg = isCurrent ? 'rgba(53,184,119,0.12)' : 'var(--hc-inset)';
+        return `
+          <div style="background:${bg};border:1px solid ${border};border-radius:7px;padding:6px 8px;min-width:0;">
+            <div style="font-size:10.5px;color:${isCurrent ? 'var(--hc-accent-text)' : 'var(--hc-text-3)'};font-weight:700;">DIA ${item.day} ${isPast ? '✓' : (isCurrent ? '●' : '')}</div>
+            <div style="font-size:11.5px;color:#fff;font-weight:600;overflow-wrap:anywhere;">${escHtml(item.label)}</div>
+          </div>
+        `;
+      }).join('');
+
+      const goalsHtml = DAILY_GOALS_CATALOG.map((g) => {
+        const isDone = !!st.dailyGoalsDone[g.id];
+        const isClaimed = !!st.dailyGoalsClaimed[g.id];
+        let actionHtml = '';
+        if (isClaimed) {
+          actionHtml = `<span class="hc-badge success" style="font-size:11px;">✓ Resgatada</span>`;
+        } else if (isDone) {
+          actionHtml = `<button type="button" id="btnClaimDailyGoal_${g.id}" class="hc-btn primary sm" onclick="window.operatorRetentionEngine.claimDailyGoal('${g.id}')">Resgatar +$${g.rewardClean}</button>`;
+        } else {
+          actionHtml = `<button type="button" class="hc-btn ghost sm" style="border-color:var(--hc-border);" onclick="window.operatorRetentionEngine.navigateToGoalTarget('${g.goWin}')">Ir →</button>`;
+        }
+        return `
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;border-radius:7px;background:var(--hc-inset);border:1px solid ${isDone && !isClaimed ? 'rgba(53,184,119,0.55)' : 'var(--hc-border)'};">
+            <div style="min-width:0;flex:1 1 180px;">
+              <strong style="font-size:12.5px;color:#fff;display:block;">${escHtml(g.title)} <span style="font-weight:500;font-size:11px;color:var(--hc-accent-text);">(+$${g.rewardClean} Limpos · +${g.rewardRep} REP)</span></strong>
+              <span style="font-size:11.5px;color:var(--hc-text-2);">${escHtml(g.desc)}</span>
+            </div>
+            <div style="flex-shrink:0;">${actionHtml}</div>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div id="hcHomeRoutineCard" class="hc-card" style="padding:12px 14px;margin-bottom:16px;border-color:${readyClaims > 0 ? 'rgba(53,184,119,0.45)' : 'var(--hc-border)'};">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0;">
+              <strong style="font-size:13.5px;color:#fff;">🎁 Suprimento 7 Dias &amp; Metas Diárias</strong>
+              <span class="hc-badge ${readyClaims > 0 ? 'success' : ''}" style="font-size:11px;">${doneGoalsCount}/3 metas · ${claimedToday ? 'Suprimento OK' : `Dia ${curDay} pronto`}</span>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              ${!claimedToday ? `<button type="button" id="btnClaimDailySupply" class="hc-btn primary sm" onclick="window.operatorRetentionEngine.claimDailySupply()">🎁 Resgatar Dia ${curDay}</button>` : ''}
+              <button type="button" id="btnToggleRoutineCard" class="hc-btn ghost sm" onclick="window.operatorRetentionEngine.toggleRoutineCollapsed()">${st.routineCollapsed ? 'Expandir ▾' : 'Recolher ▴'}</button>
+            </div>
+          </div>
+          ${st.routineCollapsed ? '' : `
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(92px, 1fr));gap:6px;margin-top:10px;">
+              ${pillsHtml}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px;">
+              ${goalsHtml}
+            </div>
+          `}
+        </div>
+      `;
+    }
   }
 
   window.OperatorRetentionQolEngine = OperatorRetentionQolEngine;

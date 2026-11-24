@@ -3494,6 +3494,10 @@
           ? window.progressiveUnlockEngine.renderBeginnerHomeGuideHtml()
           : (window.ecosystemHub && typeof window.ecosystemHub.renderHomeStripHtml === 'function' ? window.ecosystemHub.renderHomeStripHtml() : '')}
 
+        ${window.operatorRetentionEngine && typeof window.operatorRetentionEngine.renderHomeRoutineCardHtml === 'function'
+          ? window.operatorRetentionEngine.renderHomeRoutineCardHtml()
+          : ''}
+
         <!-- Faixa Unificada de 4 Métricas -->
         <div class="hc-stat-strip">
           <div class="hc-stat-cell clickable" onclick="navTo('winBank')" title="Abrir Banco &amp; Carteira">
