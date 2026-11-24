@@ -182,36 +182,38 @@ const assert = require('assert');
   }
   assert.deepStrictEqual(layoutIssues, [], `Encontrados estouros mobile/tablet: ${layoutIssues.join(', ')}`);
 
-  // 4. Todos os 14 passos do Spotlight Tour em 390x844 (0 sobreposição e 100% dentro da tela)
-  await page.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true });
-  await page.evaluate(() => {
-    document.getElementById('hcUnlockPreviewModal')?.remove();
-    window.DISABLE_AUTO_TOUR = false;
-    localStorage.removeItem('HC_DISABLE_AUTO_TOUR');
-    window.progressiveUnlockEngine.toggleVeteranShowAll(false);
-    window.integrityGuard.runAuthorized(() => { window.currentProfile.reputation = 0; });
-    window.spotlightTour.start(true);
-  });
-  await new Promise((r) => setTimeout(r, 250));
+  // 4. Todos os 14 passos do Spotlight Tour em 390x844, 320x568 e Paisagem 844x390 (0 sobreposição)
+  for (const tvp of [{ width: 390, height: 844 }, { width: 320, height: 568 }, { width: 844, height: 390 }]) {
+    await page.setViewport({ width: tvp.width, height: tvp.height, isMobile: true, hasTouch: true });
+    await page.evaluate(() => {
+      document.getElementById('hcUnlockPreviewModal')?.remove();
+      window.DISABLE_AUTO_TOUR = false;
+      localStorage.removeItem('HC_DISABLE_AUTO_TOUR');
+      window.progressiveUnlockEngine.toggleVeteranShowAll(false);
+      window.integrityGuard.runAuthorized(() => { window.currentProfile.reputation = 0; });
+      window.spotlightTour.start(true);
+    });
+    await new Promise((r) => setTimeout(r, 200));
 
-  for (let i = 0; i < 14; i++) {
-    const stepState = await page.evaluate((idx) => {
-      window.spotlightTour.goToStep(idx);
-      return new Promise((resolve) => setTimeout(() => {
-        const cr = document.getElementById('hcTourCard').getBoundingClientRect();
-        const rr = document.getElementById('hcTourRing').getBoundingClientRect();
-        const overlap = !(cr.right < rr.left || cr.left > rr.right || cr.bottom < rr.top || cr.top > rr.bottom);
-        const out = cr.left < -2 || cr.right > window.innerWidth + 2 || cr.top < -2 || cr.bottom > window.innerHeight + 2;
-        resolve({ step: idx + 1, overlap, out });
-      }, 240));
-    }, i);
-    assert.strictEqual(stepState.overlap, false, `Tour Passo ${stepState.step} não pode sobrepor o botão destacado no celular`);
-    assert.strictEqual(stepState.out, false, `Tour Passo ${stepState.step} deve caber inteiro em 390x844`);
+    for (let i = 0; i < 14; i++) {
+      const stepState = await page.evaluate((idx) => {
+        window.spotlightTour.goToStep(idx);
+        return new Promise((resolve) => setTimeout(() => {
+          const cr = document.getElementById('hcTourCard').getBoundingClientRect();
+          const rr = document.getElementById('hcTourRing').getBoundingClientRect();
+          const overlap = !(cr.right < rr.left || cr.left > rr.right || cr.bottom < rr.top || cr.top > rr.bottom);
+          const out = cr.left < -2 || cr.right > window.innerWidth + 2 || cr.top < -2 || cr.bottom > window.innerHeight + 2;
+          resolve({ step: idx + 1, overlap, out });
+        }, 210));
+      }, i);
+      assert.strictEqual(stepState.overlap, false, `Tour Passo ${stepState.step} sobrepôs alvo em ${tvp.width}x${tvp.height}`);
+      assert.strictEqual(stepState.out, false, `Tour Passo ${stepState.step} saiu da tela em ${tvp.width}x${tvp.height}`);
+    }
   }
 
   const strikes = await page.evaluate(() => window.integrityGuard ? window.integrityGuard.cheatStrikes : 0);
   assert.strictEqual(strikes, 0, 'IntegrityGuard deve registrar 0 strikes durante toda a suíte mobile');
 
-  console.log('✅ SUÍTE MOBILE E2E APROVADA (360x800, 390x844, 768x1024 + 14 Passos do Tour + 0 Strikes)!');
+  console.log('✅ SUÍTE MOBILE E2E APROVADA (8 Resoluções Mobile/Paisagem/Tablet + 14 Passos do Tour + 0 Strikes)!');
   await browser.close();
 })();
