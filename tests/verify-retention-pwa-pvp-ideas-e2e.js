@@ -129,6 +129,8 @@ function assert(cond, msg) {
         supOk: sup1.success && sup1.claimedDay === 1,
         supDupBlocked: !supDup.success && supDup.code === 'ALREADY_CLAIMED_TODAY',
         allGoalsOk: g1.success && g2.success && g3.success && !gDup.success,
+        expectedBal: Number(sup1.reward.cleanCash || 0) + Number(g1.cashOut || 0) + Number(g2.cashOut || 0) + Number(g3.cashOut || 0),
+        expectedRep: Number(g1.repOut || 0) + Number(g2.repOut || 0) + Number(g3.repOut || 0),
         deltaBal: +(Number(window.currentWallet.balance || 0) - startBal).toFixed(2),
         deltaRep: Number(window.currentProfile.reputation || 0) - startRep,
         fits320: rect.right <= 321 && document.documentElement.scrollWidth <= 321,
@@ -136,9 +138,9 @@ function assert(cond, msg) {
       };
     });
     assert(routineRes.supOk && routineRes.supDupBlocked, 'Suprimento de 7 Dias ou trava anti-duplicata falhou');
-    assert(routineRes.allGoalsOk && routineRes.deltaBal === 1800 && routineRes.deltaRep === 80, `Soma de recompensas incorreta: $${routineRes.deltaBal} / ${routineRes.deltaRep} REP`);
+    assert(routineRes.allGoalsOk && routineRes.deltaBal === routineRes.expectedBal && routineRes.deltaRep === routineRes.expectedRep, `Soma de recompensas incorreta: $${routineRes.deltaBal} / ${routineRes.deltaRep} REP`);
     assert(routineRes.fits320 && routineRes.strikes === 0, 'Card de Rotina estourou 320px ou acionou IntegrityGuard');
-    console.log('✅ [3/5] Suprimento 7 Dias (+$350) + 3 Metas Diárias (+$1.450 Limpos +80 REP) + 320x568 sem overflow validados');
+    console.log(`✅ [3/5] Check-in Escalável (+$${routineRes.deltaBal} Limpos +${routineRes.deltaRep} REP) + 320x568 sem overflow validados`);
 
     // 4. Validar Paleta de Comando Rápido (⚡ / Alt+K / IP Direto / Trava Progressiva)
     await page.setViewport({ width: 1366, height: 860, isMobile: false, hasTouch: false });

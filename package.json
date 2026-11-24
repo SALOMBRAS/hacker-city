@@ -11,7 +11,8 @@
     "test:shield": "NODE_PATH=../pague-on-old/node_modules node tests/verify-newbie-24h-shield-e2e.js",
     "test:onboarding": "NODE_PATH=../pague-on-old/node_modules node tests/verify-new-onboarding-training.js",
     "test:mmo": "NODE_PATH=../pague-on-old/node_modules node tests/verify-mmo-global-and-unlocks.js",
-    "test:ideas": "NODE_PATH=../pague-on-old/node_modules node tests/verify-retention-pwa-pvp-ideas-e2e.js"
+    "test:ideas": "NODE_PATH=../pague-on-old/node_modules node tests/verify-retention-pwa-pvp-ideas-e2e.js",
+    "test:checkin": "NODE_PATH=../pague-on-old/node_modules node tests/verify-daily-checkin-v2-e2e.js"
   },
   "keywords": [
     "cyberpunk",

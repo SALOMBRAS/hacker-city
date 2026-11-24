@@ -17,6 +17,9 @@ NODE_PATH=../pague-on-old/node_modules node tests/verify-newbie-24h-shield-e2e.j
 
 # 5. Novas Mecânicas de Retenção, PWA Mobile, Paleta Rápida ⚡ & Unificação PvP (PRs #92 a #97)
 NODE_PATH=../pague-on-old/node_modules node tests/verify-retention-pwa-pvp-ideas-e2e.js
+
+# 6. Check-in Diário 2.0: Modal Dedicado, Dias 1–7 Escaláveis, Reroll, Combo 3/3, Freeze & Mensal (PRs #103 a #112)
+NODE_PATH=../pague-on-old/node_modules node tests/verify-daily-checkin-v2-e2e.js
 ```
 
 Critérios obrigatórios em todas as execuções:
