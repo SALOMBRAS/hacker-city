@@ -497,6 +497,20 @@
   display: none; /* O título fica limpo no cabeçalho da página + breadcrumb */
 }
 
+.topbar-right-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.hc-topbar-checkin-pin {
+  position: relative;
+  flex-shrink: 0;
+  border-color: rgba(53, 184, 119, 0.4) !important;
+  color: var(--hc-accent-text) !important;
+}
+
 .topbar-stats {
   display: flex;
   align-items: center;
@@ -799,12 +813,15 @@
   :root { --hc-topbar-h: 46px; }
   #desktopEnvironment { grid-template-columns: minmax(0, 1fr) !important; }
   .topbar { grid-column: 1; padding: 0 8px; gap: 5px; overflow: hidden; }
-  .topbar-left { flex: 0 0 auto; gap: 5px; }
+  .topbar-left { flex: 0 0 auto; gap: 4px; }
+  .topbar-right-group { flex: 1 1 auto; min-width: 0; gap: 5px; padding-right: 2px; }
   .topbar-title { display: none !important; }
   .topbar-stats {
-    flex: 1 1 auto; min-width: 0; gap: 4px;
+    flex: 1 1 auto; min-width: 0; gap: 4px; padding-right: 10px;
     overflow-x: auto; overflow-y: hidden;
     scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    mask-image: linear-gradient(to right, #000 calc(100% - 12px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 12px), transparent 100%);
   }
   .topbar-stats::-webkit-scrollbar { display: none; }
   .topbar-metric, .hud-notif-btn, .user-chip { flex-shrink: 0; }
