@@ -158,6 +158,9 @@
         ? window.hardwareEngine.getHealthPct()
         : 100;
       const myClan = window.clanEngine ? window.clanEngine.getMyClan() : null;
+      const shieldSt = (window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.getNewbieShieldStatus === 'function')
+        ? window.progressiveUnlockEngine.getNewbieShieldStatus()
+        : { active: false, shieldUntilMs: 0, formattedRemaining: '' };
 
       return {
         userId: p.id || 'guest',
@@ -166,6 +169,9 @@
         publicIp: myIp,
         pwdEpoch,
         reputation: Number(p.reputation || 100),
+        newbieProtected: !!shieldSt.active,
+        newbieShieldUntilMs: Number(shieldSt.shieldUntilMs || 0),
+        newbieShieldLabel: shieldSt.formattedRemaining || '',
         heatLevel: Number(p.heat_level || 1),
         firewallVer: fw,
         hasherVer: hs,
@@ -1189,7 +1195,9 @@
                     hasherVer: pkt.hs || 1.0,
                     antivirusVer: pkt.av || 1.0,
                     bestSoftVer: pkt.bs || 1.0,
-                    clanTag: pkt.cl || null
+                    clanTag: pkt.cl || null,
+                    newbieShieldUntilMs: Number(pkt.sh || 0),
+                    newbieProtected: Number(pkt.sh || 0) > Date.now()
                   }, false);
                 } else if (row.channel === 'hc_pvp' && pkt && pkt.pktId) {
                   const seenKey = `HC_PKT_ACK_${uid}_${pkt.pktId}`;
@@ -1281,7 +1289,8 @@
         hs: me.hasherVer,
         av: me.antivirusVer,
         bs: me.bestSoftVer,
-        cl: me.clanTag
+        cl: me.clanTag,
+        sh: me.newbieShieldUntilMs || 0
       });
 
       if (sessionStorage.getItem(lastBeaconKey) === compact) return;
@@ -1430,6 +1439,15 @@
       });
       if (this.livePvpFeed.length > 25) this.livePvpFeed.length = 25;
 
+      // ESCUDO DE NOVATO DE 24 HORAS (Imunidade Total Kernel Local contra ataques PvP enquanto ativo):
+      const hostileKinds = ['PVP_INTRUSION', 'PVP_VIRUS_PLANT', 'PVP_VIRUS_HIDE', 'PVP_DRAIN_WALLET', 'PVP_WIPE_LOG', 'PVP_EDIT_LOG', 'PVP_DDOS_DAMAGE'];
+      if (hostileKinds.includes(pkt.kind) && isForMeByIp && window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.isNewbiePvpShieldActive === 'function' && window.progressiveUnlockEngine.isNewbiePvpShieldActive()) {
+        if (typeof window.addLocalLog === 'function') {
+          window.addLocalLog('SHIELD-24H-PVP', `Escudo de Novato (24h) bloqueou pacote hostil (${pkt.kind}) de ${pkt.visibleIp || pkt.senderTag || 'remoto'}.`, 'info');
+        }
+        return true;
+      }
+
       // VALIDAÇÃO KERNEL LOCAL DO DEFENSOR (Firewall.fwl & Hasher.hash):
       // Se meu Firewall.fwl (ou Hasher.hash) for mais forte que o software usado pelo atacante humano, BLOQUEIA no ato!
       if (['PVP_INTRUSION', 'PVP_VIRUS_PLANT', 'PVP_DRAIN_WALLET', 'PVP_EDIT_LOG'].includes(pkt.kind) && isForMeByIp && window.softwareEngine) {
@@ -1471,6 +1489,12 @@
           if (window.hackerAudio && typeof window.hackerAudio.playErrorBuzz === 'function') window.hackerAudio.playErrorBuzz();
           if (typeof window.showToast === 'function') {
             window.showToast(`ALERTA PVP: ${pkt.visibleIp} invadiu seu IP (${myIp})! Cheque a aba Logs!`);
+          }
+          if (window.nineSystemsEngine && typeof window.nineSystemsEngine.triggerActiveDefensePopover === 'function') {
+            window.nineSystemsEngine.triggerActiveDefensePopover({
+              originIp: pkt.visibleIp,
+              originAlias: pkt.senderTag || 'Operador PvP'
+            });
           }
         }
       }
@@ -1576,7 +1600,14 @@
         const maxTake = Math.min(450, Math.round(parseFloat(window.currentWallet.balance || 0) * 0.12));
         const lost = Math.max(0, Math.min(maxTake, Number(pkt.d?.amt || 0)));
         if (lost > 0) {
-          window.currentWallet.balance = Math.max(0, +(parseFloat(window.currentWallet.balance) - lost).toFixed(2));
+          const applyDrain = () => {
+            window.currentWallet.balance = Math.max(0, +(parseFloat(window.currentWallet.balance) - lost).toFixed(2));
+          };
+          if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+            window.integrityGuard.runAuthorized(applyDrain);
+          } else {
+            applyDrain();
+          }
           if (typeof window.addLocalLog === 'function') {
             window.addLocalLog('PVP-DRAIN', `${pkt.visibleIp} drenou -$ ${lost} HC da sua conta corrente! (Contas Offshore intactas)`, 'danger');
           }
@@ -1705,39 +1736,49 @@
       const onlinePlayers = this.getUnifiedOnlinePlayers();
       const allPlayers = this.getUnifiedPlayerDirectory();
 
-      const onlineRows = onlinePlayers.map((p) => `
+      const isPeerShielded = (p) => Boolean((p.newbieShieldUntilMs && p.newbieShieldUntilMs > Date.now()) || (p.newbieProtected && (!p.newbieShieldUntilMs || p.newbieShieldUntilMs > Date.now())));
+
+      const onlineRows = onlinePlayers.map((p) => {
+        const shielded = isPeerShielded(p);
+        return `
         <div class="online-player-row" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--hc-border);gap:10px;flex-wrap:wrap;font-size:0.83rem;">
           <div>
             <span class="hc-badge success" style="margin-right:6px;">● ONLINE · Jogador</span>
             <strong>${esc(p.hackerTag)}</strong>
             ${p.clanTag ? `<span class="hc-badge info" style="margin-left:6px;">[${esc(p.clanTag)}]</span>` : ''}
+            ${shielded ? `<span class="hc-badge info" style="margin-left:6px;">🛡️ Escudo 24h</span>` : ''}
             <code style="color:var(--hc-accent-text);margin-left:8px;">${esc(p.publicIp)}</code>
             <span style="color:var(--hc-text-3);font-size:0.76rem;margin-left:8px;">
-              ${(p.reputation || 100).toLocaleString('pt-BR')} REP · ${(p.reputation || 100) < 100 ? 'Iniciante (<100 REP)' : `Escudo v${(p.firewallVer || 1).toFixed(1)}`}
+              ${(p.reputation || 100).toLocaleString('pt-BR')} REP · ${shielded ? 'Protegido (24h)' : `Escudo v${(p.firewallVer || 1).toFixed(1)}`}
             </span>
           </div>
-          <div style="display:flex;gap:6px;">
-            <button type="button" class="hc-btn primary sm" onclick="window.internetEngine.openIp('${esc(p.publicIp)}', 'invadir')">Invadir PC</button>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button type="button" class="hc-btn ${shielded ? 'ghost' : 'primary'} sm" onclick="window.internetEngine.openIp('${esc(p.publicIp)}', 'invadir')">${shielded ? '🛡️ Protegido' : 'Invadir PC'}</button>
             <button type="button" class="hc-btn ghost sm" onclick="window.mailEngine.activeTab='compose';navTo('winMail');setTimeout(()=>{const el=document.getElementById('mailToInput');if(el)el.value='${esc(p.hackerTag)}';},60);">Enviar Mensagem</button>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
 
-      const directoryRows = allPlayers.slice(0, 28).map((p) => `
+      const directoryRows = allPlayers.slice(0, 28).map((p) => {
+        const shielded = isPeerShielded(p);
+        return `
         <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--hc-border);gap:10px;flex-wrap:wrap;font-size:0.82rem;">
           <div>
             <span class="hc-badge ${p.onlineNow ? 'success' : ''}" style="margin-right:6px;">${p.onlineNow ? '● ONLINE' : '○ OFFLINE'}</span>
             <strong>${esc(p.hackerTag)}</strong>
             ${p.clanTag ? `<span class="hc-badge info" style="margin-left:6px;">[${esc(p.clanTag)}]</span>` : ''}
+            ${shielded ? `<span class="hc-badge info" style="margin-left:6px;">🛡️ Escudo 24h</span>` : ''}
             <code style="color:var(--hc-accent-text);margin-left:8px;">${esc(p.publicIp)}</code>
-            <span style="color:var(--hc-text-3);font-size:0.75rem;margin-left:8px;">${(p.reputation || 100).toLocaleString('pt-BR')} REP · ${(p.reputation || 100) < 100 ? 'Protegido (<100 REP)' : `Cofre v${(p.hasherVer || 1).toFixed(1)}`}</span>
+            <span style="color:var(--hc-text-3);font-size:0.75rem;margin-left:8px;">${(p.reputation || 100).toLocaleString('pt-BR')} REP · ${shielded ? 'Protegido (24h)' : `Cofre v${(p.hasherVer || 1).toFixed(1)}`}</span>
           </div>
-          <div style="display:flex;gap:6px;">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
             <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(p.publicIp)}')">Abrir PC</button>
-            <button type="button" class="hc-btn primary sm" onclick="window.internetEngine.openIp('${esc(p.publicIp)}', 'invadir')">Invadir PC</button>
+            <button type="button" class="hc-btn ${shielded ? 'ghost' : 'primary'} sm" onclick="window.internetEngine.openIp('${esc(p.publicIp)}', 'invadir')">${shielded ? '🛡️ Protegido' : 'Invadir PC'}</button>
           </div>
         </div>
-      `).join('');
+      `;
+      }).join('');
 
       const feedRows = this.livePvpFeed.length === 0
         ? `<div style="color:var(--hc-text-3);font-size:0.8rem;padding:8px 0;">Nenhuma invasão ou mensagem registrada nesta sessão ainda.</div>`
