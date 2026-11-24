@@ -87,6 +87,13 @@
         window.addLocalLog('CHECKIN-DIA2', `Turbo de CPU (+12% MHz por 25 min) ativado no Estágio ${stage}.`, 'info');
       }
       return { cpuBoostMinutes: 25, note: 'Turbo +12% CPU ativo por 25m' };
-    }
+    },
+    renderExtraMeta: (stage, st) => {
+      const rem = st && Number(st.cpuBoostUntil || 0) > Date.now()
+        ? Math.ceil((st.cpuBoostUntil - Date.now()) / 60000)
+        : 0;
+      return `<span style="font-size:9.8px;color:${rem > 0 ? 'var(--hc-accent-text)' : 'var(--hc-text-3)'};">${rem > 0 ? `⚡ Ativo (${rem}m)` : 'REP + Turbo CPU'}</span>`;
+    },
+    renderDetailPanel: (stage) => renderStageScaleStrip([45, 95, 170, 300], (v) => `+${v} REP`, stage)
   });
 })();
