@@ -2741,7 +2741,14 @@
         window.addLocalLog('E_LOG', `Arquivo ${this.activeSshIp}:/var/log/syslog reescrito (${newLines.length} linhas restantes)`, 'success');
       }
       if (window.currentProfile) {
-        window.currentProfile.reputation = (window.currentProfile.reputation || 0) + 5;
+        const grantRep = () => {
+          window.currentProfile.reputation = (window.currentProfile.reputation || 0) + 5;
+        };
+        if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') {
+          window.integrityGuard.runAuthorized(grantRep);
+        } else {
+          grantRep();
+        }
         if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       }
       if (window.tutorialEngine) {

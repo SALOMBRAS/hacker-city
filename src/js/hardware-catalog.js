@@ -131,7 +131,11 @@ class HardwareEngine {
       ? Number(window.skillTreeEngine.getActiveResonanceBonus().ddosArmorPct || 0)
       : 0;
     const rawDmg = Math.max(8, Math.min(65, Math.round(Number(damagePct || 35))));
-    const dmg = Math.max(5, Math.round(rawDmg * (1 - Math.min(0.65, armorPct / 100))));
+    const raidMode = (window.topTenMechanics && window.topTenMechanics.state && window.topTenMechanics.state.raidMode)
+      ? window.topTenMechanics.state.raidMode
+      : 'normal';
+    const raidMult = raidMode === 'raid1' ? 0.60 : (raidMode === 'raid0' ? 1.25 : 1.0);
+    const dmg = Math.max(4, Math.round(rawDmg * raidMult * (1 - Math.min(0.65, armorPct / 100))));
     const next = Math.max(20, prev - dmg);
     this.saveRig({ healthPct: next, lastDdosBy: attackerLabel });
     let raidCorrupted = null;
@@ -139,17 +143,18 @@ class HardwareEngine {
       raidCorrupted = window.topTenMechanics.onPlayerPcHitByDdos(next);
     }
 
+    const raidNote = raidMode === 'raid1' ? ' [RAID-1 absorveu -40% do impacto]' : (raidMode === 'raid0' ? ' [RAID-0 sofreu +25% de sobrecarga]' : '');
     if (typeof window.addLocalLog === 'function') {
       window.addLocalLog(
         'DDOS-HARDWARE',
-        `SOBRECARGA DDoS (${attackerLabel}) queimou circuitos do seu PC! Integridade caiu de ${prev}% para ${next}% (CPU e Internet reduzidas até consertar!).`,
+        `SOBRECARGA DDoS (${attackerLabel}) queimou circuitos do seu PC! Integridade caiu de ${prev}% para ${next}%${raidNote} (CPU e Internet reduzidas até consertar!).`,
         'danger'
       );
     }
     if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
     if (typeof window.updateHardwareDisplay === 'function') window.updateHardwareDisplay();
     if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
-    return { prevHealth: prev, healthPct: next, repairCost: this.getRepairCost() };
+    return { prevHealth: prev, healthPct: next, effectiveDmg: dmg, raidMode, raidCorrupted, repairCost: this.getRepairCost() };
   }
 
   repairHardware() {
