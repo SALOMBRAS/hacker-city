@@ -378,10 +378,7 @@
 }
 
 .sidebar-version {
-  font-family: var(--hc-font-mono);
-  font-size: 10.5px;
-  color: var(--hc-text-3);
-  white-space: nowrap;
+  display: none;
 }
 
 .sidebar-online-btn {
@@ -411,8 +408,8 @@
 }
 
 .sidebar-icon-btn {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   display: grid;
   place-items: center;
   background: transparent;
