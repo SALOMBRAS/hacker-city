@@ -14,6 +14,9 @@ NODE_PATH=../pague-on-old/node_modules node tests/verify-mobile-responsiveness-e
 
 # 4. Escudo de Novato de 24 Horas & Regra Anti-Abuso PvP (Multi-Aba Veterano vs. Novato)
 NODE_PATH=../pague-on-old/node_modules node tests/verify-newbie-24h-shield-e2e.js
+
+# 5. Novas Mecânicas de Retenção, PWA Mobile, Paleta Rápida ⚡ & Unificação PvP (PRs #92 a #97)
+NODE_PATH=../pague-on-old/node_modules node tests/verify-retention-pwa-pvp-ideas-e2e.js
 ```
 
 Critérios obrigatórios em todas as execuções:
