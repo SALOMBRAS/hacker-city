@@ -71,6 +71,7 @@
   <script src="src/js/top-ten-elite-mechanics.js"></script>
   <script src="src/js/progressive-unlock-engine.js"></script>
   <script src="src/js/pwa-fullscreen-helper.js"></script>
+  <script src="src/js/operator-retention-qol-engine.js"></script>
 </head>
 <body>
 
@@ -1768,6 +1769,7 @@
         setupRealtimeSubscriptions();
 
         openWindow('winHome');
+        if (window.operatorRetentionEngine) window.operatorRetentionEngine.onSessionEntered();
         if (window.pwaHelper) window.pwaHelper.applyShortcutDeepLinkAfterLogin();
         window.addLocalLog('AUTH-LOGIN', `Sessão iniciada por ${currentProfile.hacker_tag} em localhost:/dev/tty1`, 'info');
         showToast(`Bem-vindo, ${currentProfile.hacker_tag}! Mainframe sincronizado.`);
@@ -1843,6 +1845,7 @@
       updateHudDisplays();
       initCheckersBoard();
       openWindow('winHome');
+      if (window.operatorRetentionEngine) window.operatorRetentionEngine.onSessionEntered();
       if (window.pwaHelper) window.pwaHelper.applyShortcutDeepLinkAfterLogin();
       window.addLocalLog('INSTANT-BOOT', `Operador rápido ${tag} conectado em localhost:/dev/tty1`, 'success');
       showToast(`Conectado como ${tag}! Seu progresso salva automaticamente.`);
@@ -3475,6 +3478,9 @@
                 ${HC.icon('trending-up')} Bolsa de Empresas &amp; Desafios
               </button>
             ` : ''}
+            <button type="button" id="btnHomeOfflineBriefing" class="hc-btn ghost" style="border-color: var(--hc-border);" onclick="if(window.operatorRetentionEngine) window.operatorRetentionEngine.openOfflineBriefingModal();">
+              📬 Resumo Offline
+            </button>
             <button type="button" id="btnHomeStartTour" class="hc-btn ghost" style="border-color: var(--hc-border);" onclick="if(window.spotlightTour) window.spotlightTour.start(true);">
               ${HC.icon('help-circle')} Tour Guiado
             </button>

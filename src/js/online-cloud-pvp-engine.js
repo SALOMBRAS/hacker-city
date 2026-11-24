@@ -1442,6 +1442,9 @@
       // ESCUDO DE NOVATO DE 24 HORAS (Imunidade Total Kernel Local contra ataques PvP enquanto ativo):
       const hostileKinds = ['PVP_INTRUSION', 'PVP_VIRUS_PLANT', 'PVP_VIRUS_HIDE', 'PVP_DRAIN_WALLET', 'PVP_WIPE_LOG', 'PVP_EDIT_LOG', 'PVP_DDOS_DAMAGE'];
       if (hostileKinds.includes(pkt.kind) && isForMeByIp && window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.isNewbiePvpShieldActive === 'function' && window.progressiveUnlockEngine.isNewbiePvpShieldActive()) {
+        if (window.operatorRetentionEngine && typeof window.operatorRetentionEngine.recordBlockedAttack === 'function') {
+          window.operatorRetentionEngine.recordBlockedAttack('Escudo 24h');
+        }
         if (typeof window.addLocalLog === 'function') {
           window.addLocalLog('SHIELD-24H-PVP', `Escudo de Novato (24h) bloqueou pacote hostil (${pkt.kind}) de ${pkt.visibleIp || pkt.senderTag || 'remoto'}.`, 'info');
         }
@@ -1462,6 +1465,9 @@
 
         if (blockedByFw || blockedByHs) {
           const shield = blockedByFw ? `Firewall.fwl v${myFw.toFixed(1)}` : `Hasher.hash v${myHs.toFixed(1)}`;
+          if (window.operatorRetentionEngine && typeof window.operatorRetentionEngine.recordBlockedAttack === 'function') {
+            window.operatorRetentionEngine.recordBlockedAttack(shield);
+          }
           if (typeof window.addLocalLog === 'function') {
             window.addLocalLog(
               'FIREWALL-PVP-BLOCK',
