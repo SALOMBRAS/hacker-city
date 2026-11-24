@@ -228,4 +228,18 @@
     },
     renderDetailPanel: (stage) => renderStageScaleStrip([90, 180, 320, 550], (v) => `+${v} REP`, stage)
   });
+
+  // =========================================================================
+  // DIA 7 — BAÚ MESTRE SEMANAL CRIPTOGRAFADO (JACKPOT + ZERO-DAY + CATALISADOR)
+  // =========================================================================
+  ck.registerDaySpec(7, {
+    title: 'Dia 7',
+    codeName: 'Baú Mestre Semanal Criptografado',
+    icon: '🏆',
+    cleanByStage: [3500, 9000, 20000, 45000],
+    repByStage: [60, 120, 220, 400],
+    satsByStage: [50000, 100000, 180000, 300000],
+    bonusTag: 'Zero-Day 24h + Catalisador',
+    bonusDesc: 'Jackpot semanal de Dinheiro Limpo, Bitcoin e Reputação, acompanhado de Exploit Zero-Day (24h) e Catalisador.'
+  });
 })();
