@@ -11,6 +11,9 @@ NODE_PATH=../pague-on-old/node_modules node tests/verify-mmo-global-and-unlocks.
 
 # 3. Matriz Completa de 8 Resoluções Mobile, Paisagem & Tablet (320x568 a 844x390 + 768x1024 + Tour 14 Passos)
 NODE_PATH=../pague-on-old/node_modules node tests/verify-mobile-responsiveness-e2e.js
+
+# 4. Escudo de Novato de 24 Horas & Regra Anti-Abuso PvP (Multi-Aba Veterano vs. Novato)
+NODE_PATH=../pague-on-old/node_modules node tests/verify-newbie-24h-shield-e2e.js
 ```
 
 Critérios obrigatórios em todas as execuções:
