@@ -243,9 +243,13 @@
   transform: translateX(2px);
 }
 
+details.nav-topic:not([open]) > .nav-sublist {
+  display: none !important;
+}
+
 /* Mini-Menu Flutuante (Flyout Card ao lado da Sidebar no Desktop) */
 @media (min-width: 861px) {
-  .nav-sublist {
+  details.nav-topic[open] > .nav-sublist {
     position: fixed;
     left: calc(var(--hc-active-sidebar-w, 236px) + 8px);
     top: 72px;

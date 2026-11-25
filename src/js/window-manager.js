@@ -7,7 +7,11 @@ class WindowManager {
     this.current = null;
     this.home = 'winHome';
     this.boundListeners = false;
-    setTimeout(() => this.initShellInteractions(), 0);
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => this.initShellInteractions(), { once: true });
+    } else {
+      setTimeout(() => this.initShellInteractions(), 0);
+    }
   }
 
   frames() {
@@ -18,27 +22,39 @@ class WindowManager {
     if (this.boundListeners) return;
     this.boundListeners = true;
 
-    // Posiciona o Mini-Menu Flutuante (Flyout) ao abrir qualquer tópico da sidebar
-    document.querySelectorAll('details.nav-topic').forEach((topic) => {
-      topic.addEventListener('toggle', () => {
-        if (topic.open) {
-          // Fecha os demais tópicos para manter 1 único mini-menu limpo por vez
-          document.querySelectorAll('details.nav-topic').forEach((other) => {
-            if (other !== topic && other.open) other.open = false;
-          });
-          this.positionFlyout(topic);
-        }
-      });
-    });
-
-    // Fecha o Mini-Menu ao clicar fora da sidebar (respeitando o Tour Guiado se ativo)
+    // 1. No clique de abertura em qualquer tópico da sidebar, fecha imediatamente os outros já abertos
     document.addEventListener('click', (ev) => {
+      const summary = ev.target && ev.target.closest ? ev.target.closest('summary.nav-topic-summary') : null;
+      if (summary) {
+        const clickedTopic = summary.closest('details.nav-topic');
+        if (clickedTopic && !clickedTopic.open) {
+          document.querySelectorAll('details.nav-topic[open]').forEach((other) => {
+            if (other !== clickedTopic) other.open = false;
+          });
+          requestAnimationFrame(() => {
+            if (clickedTopic.open) this.positionFlyout(clickedTopic);
+          });
+        }
+        return;
+      }
+
       if (window.spotlightTour && window.spotlightTour.isActive) return;
-      const inTopic = ev.target.closest('details.nav-topic');
+      const inTopic = ev.target && ev.target.closest ? ev.target.closest('details.nav-topic') : null;
       if (!inTopic) {
         this.closeAllFlyouts();
       }
-    });
+    }, true);
+
+    // 2. Delegação em captura para toggle (funciona para cliques manuais e aberturas via JS/Tour)
+    document.addEventListener('toggle', (ev) => {
+      const topic = ev.target;
+      if (topic && topic.matches && topic.matches('details.nav-topic') && topic.open) {
+        document.querySelectorAll('details.nav-topic[open]').forEach((other) => {
+          if (other !== topic) other.open = false;
+        });
+        this.positionFlyout(topic);
+      }
+    }, true);
 
     // Atalhos de teclado: Esc fecha mini-menus e gaveta mobile; Ctrl+K foca na busca de IP
     document.addEventListener('keydown', (ev) => {

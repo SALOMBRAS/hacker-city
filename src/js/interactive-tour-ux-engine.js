@@ -157,6 +157,8 @@
             z-index: 9405;
             pointer-events: auto;
             width: min(415px, calc(100vw - 24px));
+            max-height: calc(100dvh - 16px);
+            overflow-y: auto;
             background: #131922;
             border: 1px solid rgba(53, 184, 119, 0.55);
             border-radius: 14px;
@@ -474,6 +476,7 @@
           if (warnEl) {
             warnEl.textContent = '🔇 Narração por voz desativada neste passo: o texto do tutorial mudou e o áudio ainda não foi atualizado. Por favor, avise o desenvolvedor.';
             warnEl.hidden = false;
+            if (typeof this.repositionCurrentStep === 'function') this.repositionCurrentStep();
           }
           console.warn(`[Tour/voz] áudio desatualizado: tutorial=${this.voiceTutorialId} passo=${step.id} texto=${hash} manifesto=${entry ? entry.hash : 'ausente'}. Rode: npm run gerar:voz`);
           return;
@@ -494,7 +497,10 @@
         audio.play().catch((err) => {
           if (!err || err.name !== 'NotAllowedError') return;
           const unlockEl = document.getElementById('btnTourVoiceUnlock');
-          if (unlockEl && this.isActive && audio.src.endsWith(src)) unlockEl.hidden = false;
+          if (unlockEl && this.isActive && audio.src.endsWith(src)) {
+            unlockEl.hidden = false;
+            if (typeof this.repositionCurrentStep === 'function') this.repositionCurrentStep();
+          }
           document.addEventListener('pointerdown', () => {
             if (this.isActive && this.voiceEnabled() && audio.paused && audio.src.endsWith(src)) audio.play().catch(() => {});
           }, { once: true });
@@ -1397,6 +1403,7 @@
       }
 
       if (card) {
+        card.style.maxHeight = '';
         const cw = card.offsetWidth || 405;
         const ch = card.offsetHeight || 205;
         const gap = 16;
