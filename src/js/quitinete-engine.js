@@ -42,11 +42,11 @@ class QuitineteEngine {
         tagUnpaid: 'FATURA ABERTA',
         tagPaid: 'EM DIA',
         monthlyBase: 307,
-        monthsDue: 1,
+        monthsDue: 0,
         price: 307,
         desc: 'Calculada sobre o consumo em Watts do seu PC Principal.',
         descPaid: 'Fornecimento elétrico em dia para o seu PC Principal.',
-        paid: false,
+        paid: true,
         repGain: 25
       },
       internet: {
@@ -58,11 +58,11 @@ class QuitineteEngine {
         tagUnpaid: 'FATURA ABERTA',
         tagPaid: 'EM DIA',
         monthlyBase: 35,
-        monthsDue: 1,
+        monthsDue: 0,
         price: 35,
         desc: 'Assinatura mensal do seu plano de Internet + servidores VPS ativos.',
         descPaid: 'Link de Internet e servidores VPS quitados neste mês.',
-        paid: false,
+        paid: true,
         repGain: 25
       },
       rent: {
@@ -74,11 +74,11 @@ class QuitineteEngine {
         tagUnpaid: 'FATURA ABERTA',
         tagPaid: 'EM DIA',
         monthlyBase: 800,
-        monthsDue: 1,
+        monthsDue: 0,
         price: 800,
         desc: 'Aluguel mensal da Quitinete / Esconderijo de operações.',
         descPaid: 'Aluguel do mês quitado. Sem risco de despejo.',
-        paid: false,
+        paid: true,
         repGain: 50
       },
       water: {
@@ -90,11 +90,11 @@ class QuitineteEngine {
         tagUnpaid: 'FATURA ABERTA',
         tagPaid: 'EM DIA',
         monthlyBase: 150,
-        monthsDue: 1,
+        monthsDue: 0,
         price: 150,
         desc: 'Taxa mensal básica de abastecimento do esconderijo.',
         descPaid: 'Abastecimento regularizado neste mês.',
-        paid: false,
+        paid: true,
         repGain: 15
       }
     };
@@ -218,6 +218,23 @@ class QuitineteEngine {
   }
 
   saveState() {
+    this.save();
+  }
+
+  resetAllRealPlayerBillsNow(nowMs = Date.now()) {
+    this.cycle = {
+      lastEvalMs: nowMs,
+      isPaused: false,
+      pausedAtMs: null,
+      wasPausedWhileAway: false,
+      lastPlayerLoginMs: nowMs
+    };
+    Object.values(this.bills).forEach((b) => {
+      b.monthsDue = 0;
+      b.paid = true;
+    });
+    this.syncDynamicPowerBill();
+    this.applyEffects();
     this.save();
   }
 

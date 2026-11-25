@@ -27,9 +27,11 @@
     return h >>> 0;
   }
 
-  // Gera um IP público determinístico e único para contas reais de public.profiles que ainda não anunciaram IP próprio
+  const GLOBAL_PLAYER_RESET_EPOCH = '20261125_v2';
+
+  // Gera um IP público determinístico e único (rotacionado na época V3) para contas reais que ainda não anunciaram IP próprio
   function deterministicIpFromUserId(uid) {
-    let h = hash32('PLAYER_IP::' + uid);
+    let h = hash32('PLAYER_IP_V3_20261125::' + uid);
     let o1 = 14 + (h % 205);
     while (RESERVED_OCTETS.has(o1)) {
       o1 = ((o1 + 7) % 210) + 12;
@@ -62,6 +64,9 @@
       this.livePvpFeed = [];             // histórico de eventos online na sessão
       this.processedPacketIds = new Set();
       this.cloudTablesAvailable = null;  // auto-detectado p/ evitar 404 repetidos
+      this.onlineSortMode = 'bounty';    // 'bounty' | 'rep' | 'alpha' (padrão: quem tem recompensa vai lá pra cima!)
+      this.onlineOnlyWanted = false;
+      this.onlineSearchQuery = '';
       this.initLocalCrossTabBus();
       this.bindLifecycleHooks();
     }
@@ -266,29 +271,32 @@
       });
     }
 
-    // Operadores de IA marcados e exibidos 100% como Jogadores Reais (com sessões online/offline, clãs, reputação viva e defesas reais!)
+    // 30 Bots Hackers diários (inteligências variadas + nomes BR/meme) + 5 Policiais + 1 Delegado,
+    // variando organicamente a cada 10 minutos sem nunca travar em número fixo!
     getSimulatedPlayersList(onlyOnlineNow = false) {
       if (window.livingBotsEngine) window.livingBotsEngine.ensureInitialized();
       const clanPool = [null, null, '0DAY', 'ZTRC', 'KRNS', 'VRTX', null];
       const dayBots = (window.botScheduler && window.botScheduler.getCurrentDayBots()) || [];
+      const lawUnits = (window.botScheduler && typeof window.botScheduler.getCurrentDayLawEnforcement === 'function')
+        ? window.botScheduler.getCurrentDayLawEnforcement()
+        : [];
       const list = [];
 
       dayBots.forEach((b, idx) => {
         const liveStat = (window.livingBotsEngine && window.livingBotsEngine.botStats)
           ? window.livingBotsEngine.botStats.get(b.ip)
           : null;
-        const shiftOnline = window.botScheduler ? window.botScheduler.isBotOnline(b.ip) : true;
-        // Garante um lobby vivo com operadores entrando/saindo igual servidor MMO real (~12 online simultâneos)
-        const onlineNow = shiftOnline || (idx % 3 === 0);
+        const onlineNow = window.botScheduler ? window.botScheduler.isBotOnline(b.ip) : true;
         if (onlyOnlineNow && !onlineNow) return;
 
         const defVer = b.tier === 3 ? 2.5 : (b.tier === 2 ? 1.5 : 1.0);
-        const rep = liveStat ? liveStat.rep : (b.tier === 3 ? 3100 : (b.tier === 2 ? 1050 : 240));
+        const rep = liveStat ? liveStat.rep : (b.tier === 3 ? 3100 + idx * 45 : (b.tier === 2 ? 1050 + idx * 30 : 180 + idx * 18));
         const clanTag = b.tier >= 2 ? clanPool[idx % clanPool.length] : (idx % 5 === 0 ? '0DAY' : null);
 
         list.push({
           userId: 'plr_' + b.id,
           hackerTag: b.handle,
+          role: 'hacker',
           publicIp: b.ip,
           reputation: rep,
           firewallVer: defVer,
@@ -303,13 +311,33 @@
         });
       });
 
-      // Inclui também m4riposa e rookie_br como jogadores registrados na rede
-      const extraPlayers = [
-        { userId: 'plr_m4riposa', hackerTag: 'm4riposa', publicIp: '149.56.28.11', reputation: 8240, firewallVer: 1.5, hasherVer: 1.5, antivirusVer: 1.5, bestSoftVer: 4.5, ddosGbps: 11.2, clanTag: 'KRNS', onlineNow: true, isAiPlayer: true },
-        { userId: 'plr_rookie_br', hackerTag: 'rookie_br', publicIp: '177.84.19.62', reputation: 65, firewallVer: 1.0, hasherVer: 1.0, antivirusVer: 1.0, bestSoftVer: 1.0, ddosGbps: 0, clanTag: null, onlineNow: true, isAiPlayer: true }
-      ];
-      extraPlayers.forEach((ep) => {
-        if (!onlyOnlineNow || ep.onlineNow) list.push(ep);
+      // 5 Policiais Cibernéticos + 1 Delegado em exercício (variando turnos a cada 10 min!)
+      const activeDel = (window.nineSystemsEngine && typeof window.nineSystemsEngine.getActiveDelegate === 'function')
+        ? window.nineSystemsEngine.getActiveDelegate()
+        : null;
+
+      lawUnits.forEach((lw) => {
+        const onlineNow = window.botScheduler ? window.botScheduler.isBotOnline(lw.ip) : true;
+        if (onlyOnlineNow && !onlineNow) return;
+        const tag = (lw.role === 'delegado' && activeDel && activeDel.name)
+          ? ('delegado_' + String(activeDel.name).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, ''))
+          : lw.handle;
+        list.push({
+          userId: 'plr_' + lw.id,
+          hackerTag: tag,
+          role: lw.role, // 'policial' | 'delegado'
+          publicIp: lw.ip,
+          reputation: lw.reputation,
+          firewallVer: lw.defVer,
+          hasherVer: lw.defVer,
+          antivirusVer: lw.defVer,
+          bestSoftVer: +(lw.defVer + 0.5).toFixed(1),
+          ddosGbps: lw.role === 'delegado' ? 16.5 : 8.4,
+          clanTag: lw.clanTag,
+          lastAction: lw.role === 'delegado' ? 'Supervisionando Divisão Cyber' : 'Patrulha Forense na Rede',
+          onlineNow,
+          isAiPlayer: true
+        });
       });
 
       return list;
@@ -418,6 +446,7 @@
 
       const rawSnap = {
         v: 4,
+        resetEpoch: GLOBAL_PLAYER_RESET_EPOCH,
         savedAt: Date.now(),
         userId: uid,
         walletBalance: +(Number(window.currentWallet.balance || 0)).toFixed(2),
@@ -1073,6 +1102,69 @@
         }
       }
 
+      // Aplicar Época Global de Reset (2026-11-25): rotaciona IP antigo, zera despesas de jogadores reais e reinicia Tutorial do zero!
+      const sanitizeLegacySnapshot = (snapObj) => {
+        if (!snapObj || snapObj.resetEpoch === GLOBAL_PLAYER_RESET_EPOCH) return false;
+        const freshIp = window.networkIdentity ? window.networkIdentity.generateRandomPublicIp() : deterministicIpFromUserId(userId + '_v2');
+        const freshPwd = Math.random().toString(36).slice(2, 10);
+        const nowMs = Date.now();
+        snapObj.resetEpoch = GLOBAL_PLAYER_RESET_EPOCH;
+        snapObj.netId = {
+          publicIp: freshIp,
+          rootPassword: freshPwd,
+          pwdEpoch: ((snapObj.netId && snapObj.netId.pwdEpoch) || 1) + 1,
+          resetsCount: 0,
+          lastFreeResetAt: null,
+          history: []
+        };
+        snapObj.tour = { done: null, rewarded: snapObj.tour ? snapObj.tour.rewarded : null };
+        snapObj.tut = {
+          step: 1,
+          completed: false,
+          hostHacked: false,
+          fileExtracted: false,
+          virusPlanted: false,
+          logsCleaned: false
+        };
+        snapObj.billsPaid = { power: true, internet: true, rent: true, water: true };
+        snapObj.quitineteBilling = {
+          cycle: { lastEvalMs: nowMs, isPaused: false, pausedAtMs: null, wasPausedWhileAway: false, lastPlayerLoginMs: nowMs },
+          months: { power: 0, internet: 0, rent: 0, water: 0 }
+        };
+        if (Array.isArray(snapObj.hdb)) {
+          snapObj.hdb = snapObj.hdb.filter((e) => {
+            const ip = String((e && e.ip) || '');
+            return !ip.startsWith('10.110.') && !ip.startsWith('10.120.') && !ip.startsWith('10.130.') &&
+                   ip !== '149.56.28.11' && ip !== '91.134.72.19' && ip !== '177.84.19.62';
+          });
+        }
+        return true;
+      };
+
+      const localMigrated = sanitizeLegacySnapshot(localSnap);
+      const cloudMigrated = sanitizeLegacySnapshot(cloudSnap);
+      const browserResetMarker = `HC_GLOBAL_RESET_APPLIED_${GLOBAL_PLAYER_RESET_EPOCH}_${userId}`;
+      let needsTutorialRestart = false;
+
+      if (localMigrated || cloudMigrated || (!localStorage.getItem(browserResetMarker) && (localSnap || cloudSnap))) {
+        try {
+          localStorage.removeItem(`HC_SPOTLIGHT_TOUR_DONE_${userId}`);
+          localStorage.removeItem(`HC_TUTORIAL_${userId}`);
+          localStorage.removeItem(`HC_QUITINETE_STATE_${userId}`);
+          localStorage.removeItem('HC_QUITINETE_STATE');
+          localStorage.setItem(browserResetMarker, '1');
+        } catch (e) {}
+        if (window.spotlightTour && window.spotlightTour.statusByUid) {
+          delete window.spotlightTour.statusByUid[userId];
+        }
+        if (window.quitineteEngine && typeof window.quitineteEngine.resetAllRealPlayerBillsNow === 'function') {
+          window.quitineteEngine.resetAllRealPlayerBillsNow();
+        }
+        needsTutorialRestart = true;
+      } else {
+        try { localStorage.setItem(browserResetMarker, '1'); } catch (e) {}
+      }
+
       // Reconciliar Local e Nuvem com união monotônica anti-duplicação (PC <-> Celular)!
       let winner = localSnap;
       if (window.crossSaveEngine && typeof window.crossSaveEngine.mergeSnapshotsAntiDupe === 'function') {
@@ -1083,7 +1175,19 @@
 
       if (winner) {
         this.applyMasterSnapshot(winner, dbWalletBalance);
-        this.saveLocalSnapshotImmediate();
+        if (needsTutorialRestart) {
+          if (window.quitineteEngine && typeof window.quitineteEngine.resetAllRealPlayerBillsNow === 'function') {
+            window.quitineteEngine.resetAllRealPlayerBillsNow();
+          }
+          if (window.spotlightTour && !winner.tour?.done) {
+            delete window.spotlightTour.statusByUid[userId];
+            try { localStorage.removeItem(`HC_SPOTLIGHT_TOUR_DONE_${userId}`); } catch (e) {}
+            window.spotlightTour.maybeAutoStartForSession();
+          }
+          this.scheduleSave(true);
+        } else {
+          this.saveLocalSnapshotImmediate();
+        }
       } else {
         this.saveLocalSnapshotImmediate();
       }
@@ -1822,80 +1926,154 @@
       chip.innerHTML = `<span style="width:6px;height:6px;border-radius:50%;background:${dotColor};display:inline-block;"></span><span>${esc(label)}</span>`;
     }
 
+    setOnlineFilterMode(sortMode, onlyWanted = null) {
+      if (sortMode) this.onlineSortMode = sortMode;
+      if (typeof onlyWanted === 'boolean') this.onlineOnlyWanted = onlyWanted;
+      this.renderOnlineHubUI();
+    }
+
+    setOnlineSearchQuery(q) {
+      this.onlineSearchQuery = String(q || '');
+      this.renderOnlineHubUI();
+    }
+
+    getOperatorHeadBountyUsd(peer) {
+      if (!peer) return 0;
+      const tagLower = String(peer.hackerTag || '').trim().toLowerCase();
+      let total = 0;
+      if (window.safenetFbiEngine && Array.isArray(window.safenetFbiEngine.fbiWantedList)) {
+        window.safenetFbiEngine.fbiWantedList.forEach((w) => {
+          if ((w.handle && String(w.handle).toLowerCase() === tagLower) || (peer.publicIp && w.ip === peer.publicIp)) {
+            total += Number(w.bountyCash || 0);
+          }
+        });
+      }
+      if (window.playerBountyEngine && typeof window.playerBountyEngine.getOpenBounties === 'function') {
+        window.playerBountyEngine.getOpenBounties().forEach((b) => {
+          if (b.targetTag && String(b.targetTag).toLowerCase() === tagLower) {
+            total += Number(b.rewardCash || 0);
+          }
+        });
+      }
+      return Math.round(total);
+    }
+
+    getOperatorStrengthInfo(peer) {
+      const rep = Number((peer && peer.reputation) || 100);
+      const fw = Number((peer && peer.firewallVer) || 1.0);
+      const bs = Number((peer && peer.bestSoftVer) || fw);
+      const lv = Math.max(1, Math.min(10, Math.round((fw + bs) * 0.75 + Math.log10(Math.max(10, rep)) * 1.15 - 1)));
+      const label = lv >= 9 ? 'Lendário' : (lv >= 7 ? 'Elite' : (lv >= 4 ? 'Operacional' : 'Iniciante'));
+      return { level: lv, label: `Força Nv. ${lv} (${label})` };
+    }
+
     renderOnlineHubUI(containerId = 'onlineAppBody') {
       const container = document.getElementById(containerId);
       if (!container) return;
 
       const me = this.buildMyPublicPeerDescriptor();
-      const onlinePlayers = this.getUnifiedOnlinePlayers();
-      const allPlayers = this.getUnifiedPlayerDirectory();
-
+      const rawOnline = this.getUnifiedOnlinePlayers();
       const isPeerShielded = (p) => Boolean((p.newbieShieldUntilMs && p.newbieShieldUntilMs > Date.now()) || (p.newbieProtected && (!p.newbieShieldUntilMs || p.newbieShieldUntilMs > Date.now())));
 
-      const onlineRows = onlinePlayers.map((p) => {
-        const shielded = isPeerShielded(p);
-        return `
-        <div class="online-player-row" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--hc-border);gap:10px;flex-wrap:wrap;font-size:0.83rem;">
-          <div>
-            <span class="hc-badge success" style="margin-right:6px;">● ONLINE · Jogador</span>
-            <strong>${esc(p.hackerTag)}</strong>
-            ${p.clanTag ? `<span class="hc-badge info" style="margin-left:6px;">[${esc(p.clanTag)}]</span>` : ''}
-            ${shielded ? `<span class="hc-badge info" style="margin-left:6px;">🛡️ Escudo 24h</span>` : ''}
-            <code style="color:var(--hc-accent-text);margin-left:8px;">${esc(p.publicIp)}</code>
-            <span style="color:var(--hc-text-3);font-size:0.76rem;margin-left:8px;">
-              ${(p.reputation || 100).toLocaleString('pt-BR')} REP · ${shielded ? 'Protegido (24h)' : `Escudo v${(p.firewallVer || 1).toFixed(1)}`}
-            </span>
-          </div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            <button type="button" class="hc-btn ${shielded ? 'ghost' : 'primary'} sm" onclick="window.internetEngine.openIp('${esc(p.publicIp)}', 'invadir')">${shielded ? '🛡️ Protegido' : 'Invadir PC'}</button>
-            <button type="button" class="hc-btn ghost sm" onclick="window.mailEngine.activeTab='compose';navTo('winMail');setTimeout(()=>{const el=document.getElementById('mailToInput');if(el)el.value='${esc(p.hackerTag)}';},60);">Enviar Mensagem</button>
-          </div>
-        </div>
-      `;
-      }).join('');
+      // Enriquecer operadores online (SEM NUNCA expor IP nem listar jogadores offline!)
+      const enriched = rawOnline.map((p) => {
+        const bountyUsd = this.getOperatorHeadBountyUsd(p);
+        const strength = this.getOperatorStrengthInfo(p);
+        return {
+          ...p,
+          bountyUsd,
+          strengthLevel: strength.level,
+          strengthLabel: strength.label,
+          shielded: isPeerShielded(p)
+        };
+      });
 
-      const directoryRows = allPlayers.slice(0, 28).map((p) => {
-        const shielded = isPeerShielded(p);
-        return `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--hc-border);gap:10px;flex-wrap:wrap;font-size:0.82rem;">
-          <div>
-            <span class="hc-badge ${p.onlineNow ? 'success' : ''}" style="margin-right:6px;">${p.onlineNow ? '● ONLINE' : '○ OFFLINE'}</span>
-            <strong>${esc(p.hackerTag)}</strong>
-            ${p.clanTag ? `<span class="hc-badge info" style="margin-left:6px;">[${esc(p.clanTag)}]</span>` : ''}
-            ${shielded ? `<span class="hc-badge info" style="margin-left:6px;">🛡️ Escudo 24h</span>` : ''}
-            <code style="color:var(--hc-accent-text);margin-left:8px;">${esc(p.publicIp)}</code>
-            <span style="color:var(--hc-text-3);font-size:0.75rem;margin-left:8px;">${(p.reputation || 100).toLocaleString('pt-BR')} REP · ${shielded ? 'Protegido (24h)' : `Cofre v${(p.hasherVer || 1).toFixed(1)}`}</span>
-          </div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(p.publicIp)}')">Abrir PC</button>
-            <button type="button" class="hc-btn ${shielded ? 'ghost' : 'primary'} sm" onclick="window.internetEngine.openIp('${esc(p.publicIp)}', 'invadir')">${shielded ? '🛡️ Protegido' : 'Invadir PC'}</button>
-          </div>
-        </div>
-      `;
-      }).join('');
+      const q = (this.onlineSearchQuery || '').trim().toLowerCase();
+      let visibleList = enriched.filter((p) => {
+        if (this.onlineOnlyWanted && p.bountyUsd <= 0) return false;
+        if (!q) return true;
+        return String(p.hackerTag || '').toLowerCase().includes(q) ||
+               String(p.clanTag || '').toLowerCase().includes(q);
+      });
 
-      const feedRows = this.livePvpFeed.length === 0
-        ? `<div style="color:var(--hc-text-3);font-size:0.8rem;padding:8px 0;">Nenhuma invasão ou mensagem registrada nesta sessão ainda.</div>`
-        : this.livePvpFeed.slice(0, 10).map((f) => `
-            <div style="padding:6px 0;border-bottom:1px solid var(--hc-border);font-family:var(--hc-font-mono);font-size:0.77rem;">
-              <span style="color:var(--hc-text-3);">[${esc(f.at)}]</span>
-              <span class="hc-badge ${f.dir === 'IN' ? 'danger' : 'info'}" style="margin:0 6px;">${f.dir === 'IN' ? 'RECEBIDO' : 'ENVIADO'}</span>
-              <span>${esc(f.summary)}</span>
-            </div>
-          `).join('');
+      // Ordenação conforme filtro selecionado (padrão 'bounty': quem tem recompensa por cabeça vai lá pra cima!)
+      visibleList.sort((a, b) => {
+        if (this.onlineSortMode === 'alpha') {
+          return String(a.hackerTag || '').localeCompare(String(b.hackerTag || ''), 'pt-BR', { sensitivity: 'base' });
+        }
+        if (this.onlineSortMode === 'rep') {
+          if ((b.reputation || 0) !== (a.reputation || 0)) return (b.reputation || 0) - (a.reputation || 0);
+          return (b.bountyUsd || 0) - (a.bountyUsd || 0);
+        }
+        // 'bounty' (Padrão): quem tem recompensa vai pro topo, maior recompensa primeiro, depois reputação!
+        if ((b.bountyUsd > 0) !== (a.bountyUsd > 0)) return b.bountyUsd > 0 ? 1 : -1;
+        if (b.bountyUsd !== a.bountyUsd) return b.bountyUsd - a.bountyUsd;
+        return (b.reputation || 0) - (a.reputation || 0);
+      });
+
+      const wantedOnlineCount = enriched.filter((p) => p.bountyUsd > 0).length;
+      const policeOnlineCount = enriched.filter((p) => p.role === 'policial' || p.role === 'delegado').length;
+
+      const onlineRows = visibleList.length === 0
+        ? `<div style="padding:24px 16px;text-align:center;color:var(--hc-text-3);font-size:0.84rem;">Nenhum operador online encontrado com esse filtro agora.</div>`
+        : visibleList.map((p) => {
+            const roleBadge = p.role === 'delegado'
+              ? `<span class="hc-badge danger" style="margin-right:6px;">⭐ DELEGADO</span>`
+              : (p.role === 'policial'
+                  ? `<span class="hc-badge warning" style="margin-right:6px;">🚔 POLICIAL</span>`
+                  : `<span class="hc-badge success" style="margin-right:6px;">● ONLINE</span>`);
+
+            const clanHtml = p.clanTag
+              ? `<span class="hc-badge info" style="margin-left:6px;">Clã [${esc(p.clanTag)}]</span>`
+              : `<span style="color:var(--hc-text-3);font-size:0.75rem;margin-left:6px;">Sem clã</span>`;
+
+            const bountyHtml = p.bountyUsd > 0
+              ? `<span class="hc-badge danger" style="margin-left:8px;font-family:var(--hc-font-mono);">🎯 Recompensa: $ ${p.bountyUsd.toLocaleString('pt-BR')} HC</span>`
+              : '';
+
+            return `
+              <div class="online-player-row" style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:1px solid var(--hc-border);gap:10px;flex-wrap:wrap;font-size:0.83rem;background:${p.bountyUsd > 0 ? 'rgba(220,38,38,0.06)' : 'transparent'};">
+                <div style="display:flex;flex-direction:column;gap:4px;min-width:220px;">
+                  <div style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;">
+                    ${roleBadge}
+                    <strong style="font-size:0.9rem;color:var(--hc-text);">@${esc(p.hackerTag)}</strong>
+                    ${clanHtml}
+                    ${p.shielded ? `<span class="hc-badge info" style="margin-left:6px;">🛡️ Escudo 24h</span>` : ''}
+                    ${bountyHtml}
+                  </div>
+                  <div style="color:var(--hc-text-2);font-size:0.77rem;display:flex;gap:12px;flex-wrap:wrap;font-family:var(--hc-font-mono);">
+                    <span>🏆 <strong>${(p.reputation || 100).toLocaleString('pt-BR')} REP</strong></span>
+                    <span>⚡ ${esc(p.strengthLabel)}</span>
+                  </div>
+                </div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <button type="button" class="hc-btn primary sm" onclick="if(window.darknetSocialEngine) window.darknetSocialEngine.openAuthorPublications('${esc(p.hackerTag)}')">
+                    Ver Publicações
+                  </button>
+                  <button type="button" class="hc-btn ghost sm" onclick="window.mailEngine.activeTab='compose';navTo('winMail');setTimeout(()=>{const el=document.getElementById('mailToInput');if(el)el.value='${esc(p.hackerTag)}';},60);">
+                    Enviar Mensagem
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+      const myBlurredIp = (window.networkIdentity && typeof window.networkIdentity.renderBlurredMyIpHtml === 'function')
+        ? window.networkIdentity.renderBlurredMyIpHtml(me.publicIp)
+        : esc(me.publicIp);
 
       container.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:14px;">
-          <!-- Card de Status Cloud Save + Presença -->
-          <div class="hc-card" style="padding:1.15rem;border-color:rgba(53,184,119,0.4);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+          <!-- Card de Status Cloud Save (Sem expor IPs de terceiros!) -->
+          <div class="hc-card" style="padding:1.05rem 1.2rem;border-color:rgba(53,184,119,0.4);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
             <div>
-              <div class="hc-eyebrow">Save Automático Anti-F5 &amp; Nuvem (Zero Perda de Dados)</div>
-              <h3 style="font-size:1.05rem;margin:4px 0;">
-                Seu IP Atual: <code style="color:var(--hc-accent-text);">${esc(me.publicIp)}</code> ·
-                Estado do Save: <strong style="color:var(--hc-accent-text);">${this.syncStatus === 'synced' ? 'Nuvem + Navegador Sincronizados' : 'Salvo Instantaneamente (Anti-F5)'}</strong>
+              <div class="hc-eyebrow">Lobby em Tempo Real · Zero Vazamento de IP</div>
+              <h3 style="font-size:1rem;margin:4px 0;">
+                Seu IP Protegido: <span style="color:var(--hc-accent-text);">${myBlurredIp}</span> ·
+                Save: <strong style="color:var(--hc-accent-text);">${this.syncStatus === 'synced' ? 'Nuvem + Local Sincronizados' : 'Salvo Instantaneamente'}</strong>
               </h3>
-              <div style="font-size:0.8rem;color:var(--hc-text-2);">
-                Tudo salvo em tempo real (dinheiro, BTC, peças, programas ativos, carência, vírus, senhas descobertas, logs/farpas e missões) · Último save: ${esc(this.lastSyncedAt || 'agora')}
+              <div style="font-size:0.79rem;color:var(--hc-text-2);">
+                Os IPs das máquinas são secretos — encontre pistas em logs de servidores invadidos, contratos ou desmascarando dossiês no FBI.
               </div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -1906,28 +2084,35 @@
             </div>
           </div>
 
-          <!-- Jogadores Online Agora (Humanos + IA unificados como Jogadores!) -->
+          <!-- Barra de Filtros & Ordenação -->
+          <div class="hc-card" style="padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+              <span style="font-size:0.76rem;color:var(--hc-text-3);font-weight:700;text-transform:uppercase;margin-right:4px;">Ordenar / Filtrar:</span>
+              <button type="button" id="btnOnlineSortBounty" class="hc-btn ${this.onlineSortMode === 'bounty' ? 'primary' : 'ghost'} sm" onclick="window.onlineEngine.setOnlineFilterMode('bounty')">
+                🎯 Recompensa (${wantedOnlineCount})
+              </button>
+              <button type="button" id="btnOnlineSortRep" class="hc-btn ${this.onlineSortMode === 'rep' ? 'primary' : 'ghost'} sm" onclick="window.onlineEngine.setOnlineFilterMode('rep')">
+                🏆 Nível de Reputação
+              </button>
+              <button type="button" id="btnOnlineSortAlpha" class="hc-btn ${this.onlineSortMode === 'alpha' ? 'primary' : 'ghost'} sm" onclick="window.onlineEngine.setOnlineFilterMode('alpha')">
+                🔤 Ordem Alfabética
+              </button>
+              <button type="button" id="btnOnlineToggleOnlyWanted" class="hc-btn ${this.onlineOnlyWanted ? 'primary' : 'ghost'} sm" onclick="window.onlineEngine.setOnlineFilterMode(null, !window.onlineEngine.onlineOnlyWanted)">
+                ${this.onlineOnlyWanted ? '✓ Só Procurados' : 'Só com Recompensa'}
+              </button>
+            </div>
+            <input type="search" id="onlineSearchInput" class="form-input" style="width:210px;font-size:0.8rem;padding:6px 10px;"
+              placeholder="Buscar @nick ou [CLÃ]..." value="${esc(this.onlineSearchQuery)}"
+              oninput="window.onlineEngine.setOnlineSearchQuery(this.value)">
+          </div>
+
+          <!-- Lista Exclusiva de Operadores Online Agora -->
           <div class="hc-card" id="onlinePlayersLiveCard" style="padding:0;overflow:hidden;">
             <div style="padding:11px 14px;border-bottom:1px solid var(--hc-border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-              <strong style="font-size:0.9rem;">🟢 Jogadores Online Agora (${onlinePlayers.length + 1} conectados na rede)</strong>
-              <span class="hc-badge success">Servidor Online Ao Vivo</span>
+              <strong style="font-size:0.9rem;">🟢 Operadores Online Agora (${rawOnline.length + 1} conectados · ${policeOnlineCount} autoridades em ronda)</strong>
+              <span class="hc-badge success">Rotação Orgânica 10m</span>
             </div>
             ${onlineRows}
-          </div>
-
-          <!-- Todos os Jogadores do Servidor -->
-          <div class="hc-card" id="onlinePlayersDirectoryCard" style="padding:0;overflow:hidden;">
-            <div style="padding:11px 14px;border-bottom:1px solid var(--hc-border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-              <strong style="font-size:0.9rem;">🌐 Todos os Jogadores Registrados (${allPlayers.length} operadores)</strong>
-              <span style="font-size:0.75rem;color:var(--hc-text-3);font-family:var(--hc-font-mono);">Online &amp; Offline</span>
-            </div>
-            ${directoryRows}
-          </div>
-
-          <!-- Telemetria de Pacotes PvP & Mail -->
-          <div class="hc-card" style="padding:1rem 1.15rem;">
-            <div class="hc-eyebrow" style="margin-bottom:6px;">Histórico de Invasões, Farpas em Logs &amp; Mensagens entre Jogadores</div>
-            ${feedRows}
           </div>
         </div>
       `;
