@@ -194,20 +194,21 @@ const assert = require('assert');
   }
   assert.deepStrictEqual(layoutIssues, [], `Encontrados estouros mobile/tablet: ${layoutIssues.join(', ')}`);
 
-  // 4. Todos os 14 passos do Spotlight Tour em 390x844, 320x568 e Paisagem 844x390 (0 sobreposição)
+  // 4. Todos os passos do Spotlight Tour em 390x844, 320x568 e Paisagem 844x390 (0 sobreposição)
   for (const tvp of [{ width: 390, height: 844 }, { width: 320, height: 568 }, { width: 844, height: 390 }]) {
     await page.setViewport({ width: tvp.width, height: tvp.height, isMobile: true, hasTouch: true });
-    await page.evaluate(() => {
+    const totalSteps = await page.evaluate(() => {
       document.getElementById('hcUnlockPreviewModal')?.remove();
       window.DISABLE_AUTO_TOUR = false;
       localStorage.removeItem('HC_DISABLE_AUTO_TOUR');
       window.progressiveUnlockEngine.toggleVeteranShowAll(false);
       window.integrityGuard.runAuthorized(() => { window.currentProfile.reputation = 0; });
       window.spotlightTour.start(true);
+      return window.spotlightTour.steps.length;
     });
     await new Promise((r) => setTimeout(r, 200));
 
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < totalSteps; i++) {
       const stepState = await page.evaluate((idx) => {
         window.spotlightTour.goToStep(idx);
         return new Promise((resolve) => setTimeout(() => {
@@ -259,8 +260,42 @@ const assert = require('assert');
   }));
   assert.strictEqual(afterOutside.openCount, 0, 'Clicar fora deveria fechar todos os submenus');
   assert.strictEqual(afterOutside.visibleCount, 0, 'Nenhum .nav-sublist deve continuar visível após clicar fora');
+
+  // 6. Validar Máscara Translúcida Legível (sem blur) + Auto-Avanço ao clicar no alvo (sem clicar em Próximo no card!)
+  const maskAndClickCheck = await deskPage.evaluate(() => {
+    window.DISABLE_AUTO_TOUR = false;
+    localStorage.removeItem('HC_DISABLE_AUTO_TOUR');
+    window.spotlightTour.start(true);
+    const maskEl = document.getElementById('hcTourMaskBottom');
+    const cs = getComputedStyle(maskEl);
+    const alphaMatch = cs.backgroundColor.match(/rgba?\([^,]+,[^,]+,[^,]+,\s*([0-9.]+)\)/);
+    const alpha = alphaMatch ? parseFloat(alphaMatch[1]) : 1;
+    return {
+      stepBefore: window.spotlightTour.stepIndex,
+      backdropFilter: cs.backdropFilter || cs.webkitBackdropFilter || 'none',
+      alpha
+    };
+  });
+  assert.strictEqual(maskAndClickCheck.stepBefore, 0, 'Tour deve iniciar no passo 0');
+  assert.strictEqual(maskAndClickCheck.backdropFilter, 'none', 'Máscara do Tour não deve borrar o layout (backdrop-filter: none)');
+  assert(maskAndClickCheck.alpha > 0.2 && maskAndClickCheck.alpha < 0.5, `Máscara deve ser escura porém visível (alpha=${maskAndClickCheck.alpha})`);
+
+  await deskPage.click('#hudMyIpChip');
+  await new Promise((r) => setTimeout(r, 120));
+  const stepAfterClick1 = await deskPage.evaluate(() => window.spotlightTour.stepIndex);
+  assert.strictEqual(stepAfterClick1, 1, 'Clicar diretamente em #hudMyIpChip deve avançar para o passo 2 mesmo no meio do áudio');
+
+  const step2Sel = await deskPage.evaluate(() => {
+    const el = window.spotlightTour.resolveTargetElement(window.spotlightTour.steps[1]);
+    return el && el.id ? '#' + el.id : window.spotlightTour.steps[1].selector;
+  });
+  await deskPage.click(step2Sel);
+  await new Promise((r) => setTimeout(r, 140));
+  const stepAfterClick2 = await deskPage.evaluate(() => window.spotlightTour.stepIndex);
+  assert.strictEqual(stepAfterClick2, 2, 'Clicar no alvo iluminado do passo 2 deve avançar automaticamente para o passo 3');
+
   await deskPage.close();
 
-  console.log('✅ SUÍTE MOBILE & FLYOUT EXCLUSIVO APROVADA (8 Resoluções + Flyout Único Desktop + 14 Passos Tour + 0 Strikes)!');
+  console.log('✅ SUÍTE MOBILE, FLYOUT EXCLUSIVO, MÁSCARA VISÍVEL & AUTO-AVANÇO POR CLIQUE APROVADOS (0 Strikes)!');
   await browser.close();
 })();
