@@ -101,16 +101,22 @@
         }
       ];
 
-      this.addNews('FBI-ALERT', `Recompensa federal de ${fmtUsd(3200)} aberta pela captura por DDoS de ${b2.handle} [${b2.ip}].`);
-      this.addNews('SAFENET', `Monitoramento forense iniciado sobre ${b1.handle} [${b1.ip}] após tráfego suspeito de mineração.`);
+      this.addNews('FBI-ALERT', `Recompensa federal de ${fmtUsd(3200)} aberta pela captura de @${b2.handle} na Lista de Procurados.`);
+      this.addNews('SAFENET', `Divisão Cyber iniciou monitoramento sobre @${b1.handle} após tráfego suspeito de mineração.`);
     }
 
     addNews(tag, headline) {
+      // Blindagem anti-vazamento: manchetes públicas NUNCA entregam IPs de máquinas/jogadores de graça!
+      const cleanHeadline = String(headline || '')
+        .replace(/\s*\[\d{1,3}(?:\.\d{1,3}|\.X){3}\]/gi, '')
+        .replace(/\b10\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g, '[rastro oculto]')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
       this.worldNews.unshift({
         id: Date.now() + Math.floor(Math.random() * 1000),
         at: nowTime(),
         tag,
-        headline
+        headline: cleanHeadline
       });
       if (this.worldNews.length > 25) this.worldNews.length = 25;
     }
@@ -195,7 +201,7 @@
         };
         this.fbiWantedList.unshift(fbiEntry);
         if (this.fbiWantedList.length > 8) this.fbiWantedList.length = 8;
-        this.addNews('FBI-WANTED', `${handle} [${fbiEntry.maskedDisplayIp}] entrou na Lista de Procurados do FBI! Recompensa: ${fmtUsd(fbiEntry.bountyCash)}.`);
+        this.addNews('FBI-WANTED', `@${handle} entrou na Lista de Procurados do FBI! Recompensa pela cabeça: ${fmtUsd(fbiEntry.bountyCash)}.`);
       }
 
       if (kind === 'player') {
@@ -382,25 +388,27 @@
       let bodyHtml = '';
       if (this.activeTab === 'fbi') {
         const rows = this.fbiWantedList.length === 0
-          ? `<div class="hc-card" style="padding:2rem;text-align:center;color:var(--hc-text-2);">Nenhum procurado ativo neste segundo. Os bots vivos da rede logo cometerão novos crimes!</div>`
+          ? `<div class="hc-card" style="padding:2rem;text-align:center;color:var(--hc-text-2);">Nenhum procurado ativo neste segundo. Os operadores da rede logo cometerão novos crimes!</div>`
           : this.fbiWantedList.map((w) => {
-              const canBeat = myGbps >= w.defenseGbps && w.ip !== myIp;
+              const isDecrypted = Number(w.maskTier || 1) >= 4;
+              const canBeat = isDecrypted && myGbps >= w.defenseGbps && w.ip !== myIp;
               return `
                 <div class="hc-card hc-responsive-row-grid" style="padding:1rem 1.2rem;display:grid;grid-template-columns:minmax(210px,1.3fr) minmax(210px,1.5fr) minmax(150px,1fr) auto;gap:12px;align-items:center;border-color:rgba(208,68,58,0.35);">
                   <div>
                     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                       <span class="hc-badge danger">PROCURADO FBI</span>
-                      <strong style="font-size:0.95rem;">${esc(w.handle)}</strong>
+                      <strong style="font-size:0.95rem;">@${esc(w.handle)}</strong>
                     </div>
-                    <div style="font-family:var(--hc-font-mono);font-size:0.84rem;color:#fca5a5;margin-top:3px;cursor:pointer;" onclick="window.internetEngine.openIp('${esc(w.ip)}')">
-                      Rastro: <strong>${esc(w.maskedDisplayIp || w.ip)}</strong>
-                      ${w.maskTier && w.maskTier < 4 ? `<span style="font-size:0.72rem;background:#451a1a;color:#fca5a5;padding:1px 5px;border-radius:3px;margin-left:4px;">Máscara ${w.maskTier}/4</span>` : '<span style="font-size:0.72rem;color:var(--hc-accent-text);margin-left:4px;">[IP 100% REVELADO]</span>'}
+                    <div style="font-family:var(--hc-font-mono);font-size:0.82rem;color:#fca5a5;margin-top:3px;">
+                      ${isDecrypted
+                        ? `IP Desmascarado: <strong style="color:var(--hc-accent-text);cursor:pointer;" onclick="window.internetEngine.openIp('${esc(w.ip)}')">${esc(w.ip)}</strong>`
+                        : `Rastro Sigiloso: <strong>🔒 Criptografado (Nível ${w.maskTier || 1}/4)</strong>`}
                     </div>
                   </div>
 
                   <div style="font-size:0.8rem;color:var(--hc-text-2);">
                     <div>${esc(w.crime)}</div>
-                    <div style="font-family:var(--hc-font-mono);font-size:0.74rem;color:var(--hc-text-3);margin-top:3px;">Defesa do Alvo: ${w.defenseGbps} Gbps</div>
+                    <div style="font-family:var(--hc-font-mono);font-size:0.74rem;color:var(--hc-text-3);margin-top:3px;">Defesa Estimada: ${w.defenseGbps} Gbps</div>
                   </div>
 
                   <div>
@@ -410,10 +418,11 @@
                   </div>
 
                   <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">
-                    <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(w.ip)}', 'invadir')">Invadir IP</button>
-                    <button type="button" id="btnFbiTakedown_${esc(w.ip.replace(/\./g, '_'))}" class="hc-btn ${canBeat ? 'primary' : 'ghost'} sm" onclick="window.handleFbiTakedown('${esc(w.ip)}')">
-                      DDoS & Capturar Bounty
-                    </button>
+                    ${isDecrypted
+                      ? `<button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(w.ip)}', 'invadir')">Abrir Alvo</button>
+                         <button type="button" id="btnFbiTakedown_${esc(w.ip.replace(/\./g, '_'))}" class="hc-btn ${canBeat ? 'primary' : 'ghost'} sm" onclick="window.handleFbiTakedown('${esc(w.ip)}')">DDoS &amp; Capturar Bounty</button>`
+                      : `<button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('161.89.1.1')">🔓 Desmascarar no FBI</button>
+                         <button type="button" class="hc-btn ghost sm" onclick="if(window.darknetSocialEngine) window.darknetSocialEngine.openAuthorPublications('${esc(w.handle)}')">Ver Publicações</button>`}
                   </div>
                 </div>
               `;
@@ -421,7 +430,7 @@
         bodyHtml = `
           <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;background:#151c27;border:1px solid #28374d;border-radius:8px;padding:10px 14px;margin-bottom:10px;">
             <div style="font-size:0.84rem;color:#cbd5e1;">
-              💡 <strong>Dossiês Federais:</strong> IPs mascarados como <code>161.89.X.X</code> podem ser desmascarados invadindo o Mainframe do FBI.
+              💡 <strong>Caça Real de IPs:</strong> O IP dos procurados não é entregue de bandeja — cace pistas em logs de servidores ou invada o Mainframe do FBI para descriptografar o dossiê!
             </div>
             <button type="button" class="hc-btn primary sm" style="background:#dc2626;border-color:#ef4444;" onclick="window.internetEngine.openIp('161.89.1.1')">
               🏛️ Infiltrar Mainframe Central FBI (161.89.1.1) →
@@ -431,16 +440,16 @@
         `;
       } else if (this.activeTab === 'safenet') {
         const sRows = this.safenetList.length === 0
-          ? `<div class="hc-card" style="padding:2rem;text-align:center;color:var(--hc-text-2);">Nenhum IP sob investigação preliminar da Safenet agora.</div>`
+          ? `<div class="hc-card" style="padding:2rem;text-align:center;color:var(--hc-text-2);">Nenhum operador sob investigação preliminar da Safenet agora.</div>`
           : this.safenetList.map((s) => `
               <div class="hc-card" style="padding:0.9rem 1.15rem;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
                 <div>
                   <span class="hc-badge warn">Severidade ${s.severity}</span>
-                  <strong style="margin-left:8px;">${esc(s.handle)}</strong>
-                  <code style="margin-left:8px;color:var(--hc-accent-text);cursor:pointer;" onclick="window.internetEngine.openIp('${esc(s.ip)}')">${esc(s.ip)}</code>
+                  <strong style="margin-left:8px;">@${esc(s.handle)}</strong>
+                  <span class="mono" style="margin-left:8px;font-size:0.76rem;color:var(--hc-text-3);">[IP sob sigilo forense]</span>
                   <div style="font-size:0.8rem;color:var(--hc-text-2);margin-top:4px;">Motivo: ${esc(s.reason)} · Detectado às ${esc(s.since)}</div>
                 </div>
-                <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(s.ip)}', 'invadir')">Rastrear na Internet →</button>
+                <button type="button" class="hc-btn ghost sm" onclick="if(window.darknetSocialEngine) window.darknetSocialEngine.openAuthorPublications('${esc(s.handle)}')">Ver Publicações →</button>
               </div>
             `).join('');
         bodyHtml = `<div style="display:flex;flex-direction:column;gap:8px;">${sRows}</div>`;
@@ -859,23 +868,24 @@
         defender = bots[(bots.indexOf(attacker) + 1) % bots.length];
       }
 
+      // Zero vazamento de IP nas manchetes! Quando o invasor limpa o rastro, nem o nick do atacante aparece!
       const actions = [
-        { kind: 'virus', msg: `${attacker.handle} [${attacker.ip}] invadiu ${defender.handle} [${defender.ip}], plantou Miner.vminer v${attacker.tier}.5 e limpou o próprio IP`, repDelta: 45 },
-        { kind: 'loot', msg: `${attacker.handle} [${attacker.ip}] coletou IPs nos logs de 203.17.88.40 e drenou $ ${320 * attacker.tier} HC de ${defender.handle} [${defender.ip}]`, repDelta: 65, noisyCrime: 'Dreno bancário entre operadores na sub-rede' },
-        { kind: 'ddos', msg: `${attacker.handle} [${attacker.ip}] disparou rajada DDoS (${(attacker.tier * 2.4).toFixed(1)} Gbps) contra ${defender.handle} [${defender.ip}]`, repDelta: 80, noisyCrime: 'Ataque DDoS autônomo contra VPC rival' }
+        { kind: 'virus', msg: `Um operador fantasma invadiu @${defender.handle}, plantou Miner.vminer v${attacker.tier}.5 e limpou todos os rastros da log`, repDelta: 45 },
+        { kind: 'loot', msg: `@${attacker.handle} rastreou uma brecha esquecida em logs públicos e drenou $ ${320 * attacker.tier} HC de @${defender.handle}`, repDelta: 65, noisyCrime: 'Dreno bancário entre operadores na sub-rede' },
+        { kind: 'ddos', msg: `@${attacker.handle} disparou sobrecarga DDoS (${(attacker.tier * 2.4).toFixed(1)} Gbps) contra a máquina de @${defender.handle}`, repDelta: 80, noisyCrime: 'Ataque DDoS autônomo contra operador rival' }
       ];
       const chosen = actions[Math.floor(Math.random() * actions.length)];
 
       attacker.rep += chosen.repDelta;
       attacker.hacks += 1;
-      attacker.lastAction = `Atacou ${defender.ip} (${chosen.kind.toUpperCase()})`;
-      defender.lastAction = `Sofreu intrusão de ${attacker.handle} e auditou logs`;
+      attacker.lastAction = `Operação em curso (${chosen.kind.toUpperCase()})`;
+      defender.lastAction = `Auditou logs após intrusão`;
 
       this.battleFeed.unshift({
         at: nowTime(),
         type: 'BOT-VS-BOT',
         text: chosen.msg,
-        attackerIp: attacker.ip
+        attackerHandle: attacker.handle
       });
       if (this.battleFeed.length > 25) this.battleFeed.length = 25;
 
@@ -1118,18 +1128,17 @@
       const playerDef = this.getPlayerDefenseScore();
 
       const rankingRows = board.map((r) => `
-        <div class="hc-responsive-row-grid" style="display:grid;grid-template-columns:42px minmax(150px,1.2fr) minmax(120px,1fr) minmax(90px,0.7fr) auto;gap:10px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--hc-border);background:${r.isPlayer ? 'rgba(53,184,119,0.09)' : 'transparent'};border-radius:6px;font-size:0.81rem;">
+        <div class="hc-responsive-row-grid" style="display:grid;grid-template-columns:42px minmax(160px,1.4fr) minmax(110px,0.9fr) auto;gap:10px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--hc-border);background:${r.isPlayer ? 'rgba(53,184,119,0.09)' : 'transparent'};border-radius:6px;font-size:0.81rem;">
           <strong style="font-family:var(--hc-font-mono);color:${r.isPlayer ? 'var(--hc-accent-text)' : 'var(--hc-text-3)'};">#${r.rank}</strong>
           <div>
-            <strong>${esc(r.handle)}</strong>
+            <strong>@${esc(r.handle)}</strong>
             <span class="hc-badge success" style="margin-left:6px;">${esc(r.tierLabel)}</span>
           </div>
-          <code style="color:var(--hc-accent-text);cursor:pointer;" onclick="window.internetEngine.openIp('${esc(r.ip)}')">${esc(r.ip)}</code>
           <strong style="font-family:var(--hc-font-mono);">${r.rep.toLocaleString('pt-BR')} REP</strong>
-          <div style="text-align:right;">
+          <div style="text-align:right;display:flex;gap:6px;justify-content:flex-end;">
             ${r.isPlayer
               ? `<span style="font-size:0.75rem;color:var(--hc-accent-text);">Defesa: ${playerDef}x</span>`
-              : `<button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(r.ip)}', 'invadir')">Invadir Jogador →</button>`}
+              : `<button type="button" class="hc-btn ghost sm" onclick="if(window.darknetSocialEngine) window.darknetSocialEngine.openAuthorPublications('${esc(r.handle)}')">Ver Publicações →</button>`}
           </div>
         </div>
       `).join('');
@@ -1144,7 +1153,6 @@
               <span class="hc-badge ${badgeCls}" style="margin:0 6px;">${esc(labelType)}</span>
               <span style="color:var(--hc-text-2);">${esc(f.text)}</span>
             </div>
-            ${f.attackerIp ? `<button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(f.attackerIp)}', 'invadir')">Abrir IP</button>` : ''}
           </div>
         `;
       }).join('');
