@@ -35,6 +35,24 @@ CREATE TABLE IF NOT EXISTS public.player_cloud_saves (
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- Garante colunas mesmo se player_cloud_saves já tiver sido criada pela migration 20261118
+ALTER TABLE public.player_cloud_saves
+  ADD COLUMN IF NOT EXISTS operator_key TEXT,
+  ADD COLUMN IF NOT EXISTS hdd_total_mb INT NOT NULL DEFAULT 350,
+  ADD COLUMN IF NOT EXISTS ram_total_mb INT NOT NULL DEFAULT 256,
+  ADD COLUMN IF NOT EXISTS hardware_health_pct INT NOT NULL DEFAULT 100,
+  ADD COLUMN IF NOT EXISTS custom_web_page TEXT,
+  ADD COLUMN IF NOT EXISTS public_syslog JSONB NOT NULL DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS cheat_strikes INT NOT NULL DEFAULT 0;
+
+UPDATE public.player_cloud_saves
+SET operator_key = COALESCE(operator_key, user_id::text)
+WHERE operator_key IS NULL;
+
+ALTER TABLE public.player_cloud_saves DROP CONSTRAINT IF EXISTS player_cloud_saves_pkey;
+ALTER TABLE public.player_cloud_saves ALTER COLUMN user_id DROP NOT NULL, ALTER COLUMN operator_key SET NOT NULL;
+ALTER TABLE public.player_cloud_saves ADD CONSTRAINT player_cloud_saves_pkey PRIMARY KEY (operator_key);
+
 CREATE INDEX IF NOT EXISTS idx_cloud_saves_tag ON public.player_cloud_saves(lower(hacker_tag));
 CREATE INDEX IF NOT EXISTS idx_cloud_saves_ip ON public.player_cloud_saves(public_ip);
 
@@ -78,6 +96,10 @@ CREATE TABLE IF NOT EXISTS public.pvp_network_events (
   consumed BOOLEAN NOT NULL DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+ALTER TABLE public.pvp_network_events
+  ADD COLUMN IF NOT EXISTS sender_key TEXT,
+  ADD COLUMN IF NOT EXISTS target_operator_key TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_pvp_events_target_ip_pending ON public.pvp_network_events(target_ip, consumed);
 CREATE INDEX IF NOT EXISTS idx_pvp_events_target_tag_pending ON public.pvp_network_events(lower(target_tag), consumed);
