@@ -2313,21 +2313,15 @@
         })
         .subscribe();
 
-      // 2. Ouvir novas mensagens no chat IRC (filtrando exclusivamente o canal público 'global' e roteando pacotes 'hc_pvp'!)
+      // 2. Ouvir novas mensagens no chat IRC filtrando na origem (channel=eq.global) para escalar 50+ jogadores sem fan-out de beacons!
       _hcIrcChannel = supabase.channel('irc-global-channel-' + currentWallet.id)
         .on('postgres_changes', { 
           event: 'INSERT', 
           schema: 'public', 
-          table: 'chat_messages' 
+          table: 'chat_messages',
+          filter: 'channel=eq.global'
         }, (payload) => {
-          const ch = payload.new.channel || 'global';
-          if (ch === 'global') {
-            appendIrcMessage(payload.new.hacker_tag, payload.new.message, payload.new.created_at);
-          } else if (ch === 'hc_pvp' && window.onlineEngine) {
-            try {
-              window.onlineEngine.handleIncomingPacket(JSON.parse(payload.new.message), false);
-            } catch (e) {}
-          }
+          appendIrcMessage(payload.new.hacker_tag, payload.new.message, payload.new.created_at);
         })
         .subscribe();
 

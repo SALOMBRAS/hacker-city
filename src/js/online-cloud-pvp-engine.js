@@ -1291,7 +1291,7 @@
         ch.subscribe(async (status) => {
           if (status === 'SUBSCRIBED') {
             this.syncStatus = 'synced';
-            this.trackRealtimePresence();
+            this.trackRealtimePresence(true);
             if (!isInstantOp) {
               this.publishDirectoryBeacon();
             }
@@ -1303,10 +1303,33 @@
       }
     }
 
-    trackRealtimePresence() {
+    _buildPresenceFingerprint(me) {
+      return [
+        me.userId,
+        me.publicIp,
+        me.pwdEpoch,
+        Math.floor((me.reputation || 0) / 25),
+        me.newbieProtected ? 1 : 0,
+        me.firewallVer,
+        me.hasherVer,
+        me.antivirusVer,
+        me.bestSoftVer,
+        me.clanTag || '',
+        Math.round((me.hardwareHealthPct ?? 100) / 5)
+      ].join('|');
+    }
+
+    trackRealtimePresence(force = false) {
       const me = this.buildMyPublicPeerDescriptor();
       this.broadcastLocalPresence();
       if (this.realtimeChannel) {
+        const now = Date.now();
+        const fp = this._buildPresenceFingerprint(me);
+        if (!force && fp === this._lastPresenceFp && (now - this._lastPresenceTrackAt) < 60000) {
+          return;
+        }
+        this._lastPresenceFp = fp;
+        this._lastPresenceTrackAt = now;
         try { this.realtimeChannel.track(me); } catch (e) {}
       }
     }
