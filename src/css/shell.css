@@ -794,19 +794,18 @@
 .mobile-drawer-close-btn,
 .hc-mobile-backdrop { display: none; }
 
-@media (max-width: 1460px) {
-  .topbar-stats { gap: 8px; }
+@media (max-width: 1480px) {
+  .topbar-stats { gap: 7px; flex: 1 1 auto; overflow-x: auto; scrollbar-width: none; }
+  .topbar-stats::-webkit-scrollbar { display: none; }
   .topbar-metric { padding: 4px 6px; gap: 6px; }
   .topbar-kbd { display: none; }
-}
-
-@media (max-width: 1320px) {
   .topbar-metric.hide-md { display: none; }
-  .topbar-stats { gap: 8px; }
+  .topbar-ip-omnibox { max-width: 175px; }
 }
 
-@media (max-width: 1260px) {
-  .topbar-metric.hide-sm { display: none; }
+@media (max-width: 1380px) {
+  .topbar-metric.hide-sm, .user-meta { display: none; }
+  .topbar-ip-omnibox { max-width: 145px; }
 }
 
 @media (max-width: 860px) {
