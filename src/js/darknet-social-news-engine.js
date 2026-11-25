@@ -138,6 +138,91 @@
           createdAt: 'Hoje · 02:00'
         }
       ]
+    },
+    {
+      id: 'th_br_01',
+      category: 'farpas',
+      title: 'Esqueceram IP moscando em log de empresa e já limpei a carteira kkk',
+      authorTag: 'vitinladrão',
+      authorSpec: 'carder',
+      pinned: false,
+      locked: false,
+      upvotes: 54,
+      votedBy: [],
+      views: 410,
+      createdAt: 'Hoje · 08:15',
+      posts: [
+        {
+          id: 'p_br_01_1',
+          authorTag: 'vitinladrão',
+          content: 'Rapaziada invade servidor grande e sai sem passar pano na /var/log/syslog. Peguei o rastro lá dentro, raspei tudo e sumi sem deixar meu IP!',
+          upvotes: 31,
+          votedBy: [],
+          createdAt: 'Hoje · 08:15'
+        },
+        {
+          id: 'p_br_01_2',
+          authorTag: 'josenacimento',
+          content: 'Por isso sempre uso proxy bounce e apago a log no último segundo antes de desconectar.',
+          upvotes: 16,
+          votedBy: [],
+          createdAt: 'Hoje · 08:29'
+        }
+      ]
+    },
+    {
+      id: 'th_br_02',
+      category: 'exploits',
+      title: 'Dica pros novatos: lavem o dinheiro sujo antes de tentar comprar peça!',
+      authorTag: 'hackerbr',
+      authorSpec: 'exploiter',
+      pinned: false,
+      locked: false,
+      upvotes: 47,
+      votedBy: [],
+      views: 365,
+      createdAt: 'Hoje · 09:10',
+      posts: [
+        {
+          id: 'p_br_02_1',
+          authorTag: 'hackerbr',
+          content: 'Quase caí na malha da Safenet tentando gastar nota suja direto na loja. Passem sempre na Vitrine de Lavagem primeiro pra limpar o saldo!',
+          upvotes: 29,
+          votedBy: [],
+          createdAt: 'Hoje · 09:10'
+        },
+        {
+          id: 'p_br_02_2',
+          authorTag: 'lulaladrão',
+          content: 'Com empresa offshore aberta a comissão pinga limpinha toda hora, recomendo demais.',
+          upvotes: 22,
+          votedBy: [],
+          createdAt: 'Hoje · 09:24'
+        }
+      ]
+    },
+    {
+      id: 'th_pf_01',
+      category: 'geral',
+      title: '[BOLETIM CYBER] Operação Rastro Limpo: intensificação de patrulha contra botnets',
+      authorTag: 'pf_monteiro',
+      authorSpec: 'sentinel',
+      pinned: true,
+      locked: false,
+      upvotes: 39,
+      votedBy: [],
+      views: 490,
+      createdAt: 'Hoje · 10:00',
+      posts: [
+        {
+          id: 'p_pf_01_1',
+          authorTag: 'pf_monteiro',
+          content: 'Cinco equipes táticas da Divisão Cyber estão em revezamento contínuo na rede. Operadores flagrados lavando lotes acima do limite entrarão na lista federal.',
+          upvotes: 24,
+          votedBy: [],
+          createdAt: 'Hoje · 10:00'
+        }
+      ]
     }
   ];
 
@@ -183,6 +268,7 @@
       this.news = [];
       this.activeCategory = 'geral';
       this.searchQuery = '';
+      this.authorFilterTag = null;
       this.activeThreadId = null;
       this.composeOpen = false;
       this.localBus = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('hc_forum_realtime_v1') : null;
@@ -220,7 +306,7 @@
     }
 
     storageKey() {
-      return 'HC_DARKNET_SOCIAL_STATE_V3';
+      return 'HC_DARKNET_SOCIAL_STATE_V4';
     }
 
     loadState() {
@@ -321,6 +407,75 @@
     // 1. FÓRUM DA REDE (winForum) — Voto Único, Busca, Exclusão Própria & Nuvem
     // =========================================================================
     openForumModal() {
+      if (typeof window.navTo === 'function') {
+        window.navTo('winForum');
+      }
+      this.renderForumUI();
+    }
+
+    clearAuthorFilter() {
+      this.authorFilterTag = null;
+      this.searchQuery = '';
+      this.activeThreadId = null;
+      this.renderForumUI();
+    }
+
+    openAuthorPublications(authorTagRaw) {
+      const cleanTag = String(authorTagRaw || '').replace(/^@/, '').trim();
+      if (!cleanTag) return this.openForumModal();
+
+      const tagLower = cleanTag.toLowerCase();
+      const hasExisting = this.threads.some((t) =>
+        String(t.authorTag || '').toLowerCase() === tagLower ||
+        (t.posts || []).some((p) => String(p.authorTag || '').toLowerCase() === tagLower)
+      );
+
+      // Se for um operador de IA / Policial / Delegado da rede sem tópico semeado ainda, gera sua publicação autêntica (zero IP!)
+      if (!hasExisting && window.botRegistry) {
+        const isDel = tagLower.startsWith('delegado_');
+        const matchedUnit = (window.botRegistry.bots || []).find((b) => b.handle.toLowerCase() === tagLower) ||
+          (window.botRegistry.getLawEnforcementUnits ? window.botRegistry.getLawEnforcementUnits().find((l) => l.handle.toLowerCase() === tagLower) : null);
+
+        if (matchedUnit || isDel) {
+          const isLaw = isDel || (matchedUnit && (matchedUnit.role === 'policial' || matchedUnit.role === 'delegado'));
+          const synthTitle = isLaw
+            ? `[PLANTÃO CYBER] Monitoramento forense assinado por @${cleanTag}`
+            : `Relato de operação na rede clandestina — por @${cleanTag}`;
+          const synthBody = isLaw
+            ? `Unidade @${cleanTag} em ronda ativa. Dossiês criptografados de suspeitos reincidentes foram encaminhados ao Mainframe Central.`
+            : `Mais um giro concluído sem deixar rastro em /var/log/syslog. Quem quiser fechar parceria de contrato ou clã, chama na caixa de mensagens (@${cleanTag})!`;
+
+          this.threads.unshift({
+            id: 'th_auto_' + tagLower.replace(/[^a-z0-9]/g, '_'),
+            category: isLaw ? 'geral' : 'farpas',
+            title: synthTitle,
+            authorTag: cleanTag,
+            authorSpec: isLaw ? 'sentinel' : 'exploiter',
+            pinned: false,
+            locked: false,
+            upvotes: 9 + (cleanTag.length % 19),
+            votedBy: [],
+            views: 64 + (cleanTag.length * 7),
+            createdAt: 'Hoje · Recente',
+            posts: [{
+              id: 'p_auto_' + tagLower.replace(/[^a-z0-9]/g, '_'),
+              authorTag: cleanTag,
+              content: synthBody,
+              upvotes: 6 + (cleanTag.length % 11),
+              votedBy: [],
+              createdAt: 'Hoje · Recente'
+            }]
+          });
+          this.saveState();
+        }
+      }
+
+      this.authorFilterTag = cleanTag;
+      this.activeCategory = 'geral';
+      this.searchQuery = '';
+      this.activeThreadId = null;
+      this.composeOpen = false;
+
       if (typeof window.navTo === 'function') {
         window.navTo('winForum');
       }
@@ -580,7 +735,13 @@
       }
 
       const qLower = this.searchQuery.trim().toLowerCase();
+      const authorLower = (this.authorFilterTag || '').trim().toLowerCase();
       const filtered = this.threads.filter((t) => {
+        if (authorLower) {
+          const byAuthor = String(t.authorTag || '').toLowerCase() === authorLower ||
+            (t.posts || []).some((p) => String(p.authorTag || '').toLowerCase() === authorLower);
+          if (!byAuthor) return false;
+        }
         const catOk = this.activeCategory === 'geral' || t.category === this.activeCategory;
         if (!catOk) return false;
         if (!qLower) return true;
@@ -617,6 +778,23 @@
 
       return `
         <div class="soft-frame" style="padding: 16px 18px;">
+          ${this.authorFilterTag ? `
+            <div class="hc-card" id="forumAuthorFilterBanner" style="margin-bottom:14px;padding:12px 16px;border-color:rgba(53,184,119,0.45);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+              <div>
+                <span class="hc-badge info">📄 PUBLICAÇÕES DO OPERADOR</span>
+                <strong style="margin-left:8px;font-size:14px;">@${esc(this.authorFilterTag)}</strong>
+                <span style="margin-left:8px;font-size:12px;color:var(--hc-text-3);">(${filtered.length} tópico${filtered.length === 1 ? '' : 's'} / participações)</span>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button type="button" class="hc-btn ghost sm" onclick="window.mailEngine.activeTab='compose';navTo('winMail');setTimeout(()=>{const el=document.getElementById('mailToInput');if(el)el.value='${esc(this.authorFilterTag)}';},60);">
+                  Enviar Mensagem
+                </button>
+                <button type="button" id="btnClearAuthorFilter" class="hc-btn primary sm" onclick="window.darknetSocialEngine.clearAuthorFilter()">
+                  ✕ Ver todas as publicações
+                </button>
+              </div>
+            </div>
+          ` : ''}
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--hc-border); padding-bottom: 10px; margin-bottom: 16px;">
             <div class="hc-tabs" style="border-bottom: 0;">
               ${Object.entries(CATEGORY_LABELS).map(([key, label]) => `
