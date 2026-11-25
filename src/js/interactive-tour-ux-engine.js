@@ -198,6 +198,23 @@
             background: rgba(255,255,255,0.06);
             color: #fff;
           }
+          #btnTourVoiceUnlock {
+            display: block;
+            width: 100%;
+            margin-top: 8px;
+            padding: 8px 10px;
+            border: 1px solid rgba(53, 184, 119, 0.55);
+            background: rgba(53, 184, 119, 0.16);
+            color: #5eead4;
+            border-radius: 7px;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+            animation: hcVoicePulse 1.4s ease-in-out infinite;
+          }
+          #btnTourVoiceUnlock[hidden] { display: none; }
+          @keyframes hcVoicePulse { 50% { box-shadow: 0 0 0 4px rgba(53, 184, 119, 0.25); } }
+          @media (prefers-reduced-motion: reduce) { #btnTourVoiceUnlock { animation: none; } }
           #hcTourVoiceWarn {
             margin-top: 8px;
             padding: 6px 9px;
@@ -355,6 +372,7 @@
             <p id="hcTourCardDesc"></p>
             <div id="hcTourActionHint"></div>
             <div id="hcTourVoiceWarn" role="status" hidden></div>
+            <button type="button" id="btnTourVoiceUnlock" hidden>🔊 Toque aqui para ouvir a narração</button>
             <div class="hc-tour-footer">
               <div class="hc-tour-dots" id="hcTourDots"></div>
               <div style="display:flex;gap:6px;">
@@ -378,6 +396,10 @@
         });
 
         document.getElementById('btnTourVoice').addEventListener('click', () => this.toggleVoice());
+        // play() direto no clique: o Safari só libera som dentro do próprio gesto.
+        document.getElementById('btnTourVoiceUnlock').addEventListener('click', () => {
+          if (this.voiceAudio) this.voiceAudio.play().catch(() => {});
+        });
         document.getElementById('btnTourSkip').addEventListener('click', () => this.skip());
         document.getElementById('btnTourPrev').addEventListener('click', () => this.prev());
         document.getElementById('btnTourNext').addEventListener('click', () => this.handleNextButton());
@@ -396,6 +418,8 @@
 
     stopVoice() {
       if (this.voiceAudio) this.voiceAudio.pause();
+      const unlockEl = document.getElementById('btnTourVoiceUnlock');
+      if (unlockEl) unlockEl.hidden = true;
     }
 
     // Texto falado pela narração. Fonte única: o navegador confere a versão do áudio com ele
@@ -455,14 +479,22 @@
           return;
         }
         if (!this.voiceEnabled() || (window.hackerAudio && window.hackerAudio.isMuted)) return;
-        if (!this.voiceAudio) this.voiceAudio = new Audio();
+        if (!this.voiceAudio) {
+          this.voiceAudio = new Audio();
+          this.voiceAudio.addEventListener('playing', () => {
+            const unlockEl = document.getElementById('btnTourVoiceUnlock');
+            if (unlockEl) unlockEl.hidden = true;
+          });
+        }
         const audio = this.voiceAudio;
         const src = `${VOICE_DIR}${entry.file}?v=${entry.version}`;
         audio.src = src;
-        // Autoplay barrado (tour aberto sem clique, ex.: página recarregada): a narração
-        // começa no primeiro toque do jogador.
+        // O navegador barra som antes do 1º toque na página (tour aberto direto no carregamento):
+        // mostra o botão "Toque aqui para ouvir" e também toca no primeiro toque do jogador.
         audio.play().catch((err) => {
           if (!err || err.name !== 'NotAllowedError') return;
+          const unlockEl = document.getElementById('btnTourVoiceUnlock');
+          if (unlockEl && this.isActive && audio.src.endsWith(src)) unlockEl.hidden = false;
           document.addEventListener('pointerdown', () => {
             if (this.isActive && this.voiceEnabled() && audio.paused && audio.src.endsWith(src)) audio.play().catch(() => {});
           }, { once: true });
