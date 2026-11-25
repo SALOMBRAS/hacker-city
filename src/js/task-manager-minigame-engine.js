@@ -140,6 +140,14 @@
       if (proc.onComplete) {
         try { proc.onComplete(proc); } catch (e) { console.error('Erro ao concluir processo:', e); }
       }
+      if (window.pwaAlertsEngine && typeof window.pwaAlertsEngine.triggerAlert === 'function') {
+        window.pwaAlertsEngine.triggerAlert('taskDone', {
+          title: '⚡ Ação Concluída na Fila!',
+          body: `${proc.title || 'Processo'}${proc.targetIp ? ` (${proc.targetIp})` : ''} finalizado.`,
+          winId: proc.returnWindowId || 'winTaskManager',
+          tag: 'task-done'
+        });
+      }
       this.syncWidgets();
 
       if (proc.returnWindowId && window.winManager && window.winManager.current === 'winTaskManager') {
