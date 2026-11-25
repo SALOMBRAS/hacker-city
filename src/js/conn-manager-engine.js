@@ -23,9 +23,31 @@
     constructor() {
       this.inboundSessions = [];
       this.outboundSessions = [];
+      this.reinvadeLocks = new Map(); // targetIp -> untilTimestampMs (2 min de prazo pro alvo trocar IP)
       this.channel = null;
       this.isModalOpen = false;
       this.init();
+    }
+
+    getReinvadeLockStatus(targetIp) {
+      if (!targetIp || !this.reinvadeLocks.has(targetIp)) return { locked: false, remSec: 0 };
+      const until = this.reinvadeLocks.get(targetIp);
+      const remMs = until - Date.now();
+      if (remMs <= 0) {
+        this.reinvadeLocks.delete(targetIp);
+        return { locked: false, remSec: 0 };
+      }
+      const remSec = Math.ceil(remMs / 1000);
+      return {
+        locked: true,
+        remSec,
+        message: `⏳ O alvo conseguiu cortar sua conexão! Ele tem 2 min para trocar de IP — se ele NÃO trocar o IP, você poderá invadir ${targetIp} novamente em ${remSec}s!`
+      };
+    }
+
+    setReinvadeLock(targetIp, durationMs = 120000) {
+      if (!targetIp) return;
+      this.reinvadeLocks.set(targetIp, Date.now() + Math.max(1000, durationMs));
     }
 
     init() {
@@ -154,84 +176,75 @@
       this.updateUI();
     }
 
-    async killSession(sessionId) {
-      const idx = this.inboundSessions.findIndex((s) => s.id === sessionId);
-      if (idx === -1) return;
+    async killSession(sessionId, actionKind = 'cut_cable', opts = {}) {
+      if (window.nineSystemsEngine && typeof window.nineSystemsEngine.attemptEmergencyDisconnect === 'function') {
+        return window.nineSystemsEngine.attemptEmergencyDisconnect(actionKind, { ...(opts || {}), sessionId });
+      }
+      return { success: false };
+    }
 
-      const victimSess = this.inboundSessions[idx];
-      this.inboundSessions.splice(idx, 1);
-
+    async forceDropInboundAfterRoulette(sessionId, originIp, actionKind = 'cut_cable') {
+      this.inboundSessions = this.inboundSessions.filter((s) => s.id !== sessionId && s.originIp !== originIp);
       if (window.audioEngine && typeof window.audioEngine.playErrorBuzz === 'function') {
         window.audioEngine.playErrorBuzz();
       }
-
       const payload = {
         event: 'session_kill',
         session_id: sessionId,
-        origin_ip: victimSess.originIp,
-        target_ip: this.getPlayerIp()
+        origin_ip: originIp,
+        target_ip: this.getPlayerIp(),
+        action_kind: actionKind,
+        reinvade_lock_ms: 120000
       };
       if (this.channel) this.channel.send({ type: 'broadcast', event: 'session_kill', payload });
       if (this.broadcastChannel) this.broadcastChannel.postMessage(payload);
-
       if (window.supabaseClient) {
         try {
           await window.supabaseClient.rpc('kill_active_peer_session', {
-            p_session_id: sessionId.includes('-') ? sessionId : '00000000-0000-0000-0000-000000000001',
+            p_session_id: String(sessionId || '').includes('-') ? sessionId : '00000000-0000-0000-0000-000000000001',
             p_caller_ip: this.getPlayerIp()
           });
         } catch (e) {}
       }
-
-      if (window.networkIdentity && typeof window.networkIdentity.addSystemLog === 'function') {
-        window.networkIdentity.addSystemLog(
-          `DEFESA ATIVA: Conexão de ${victimSess.originIp} encerrada pelo operador (Cortar Cabo).`,
-          'warning'
-        );
-      }
-
-      if (window.showToast) {
-        window.showToast(`Cabo cortado! Sessão de ${victimSess.originIp} derrubada com sucesso.`, 'success');
-      }
-
       this.updateUI();
     }
 
     handleOutboundKilled(payload) {
       const target = payload.target_ip;
-      const found = this.outboundSessions.find((s) => s.targetIp === target);
-      if (found) {
-        this.closeOutboundSession(target);
-        if (window.activeAttackSession) {
-          window.activeAttackSession.aborted = true;
-        }
-        if (window.audioEngine && typeof window.audioEngine.playErrorBuzz === 'function') {
-          window.audioEngine.playErrorBuzz();
-        }
-        if (window.showToast) {
-          window.showToast(`Conexão encerrada pelo alvo (${target}): o defensor cortou o cabo.`, 'danger');
-        }
+      const lockMs = Number(payload.reinvade_lock_ms || 120000);
+      this.setReinvadeLock(target, lockMs);
+      this.closeOutboundSession(target);
+      if (window.activeAttackSession) {
+        window.activeAttackSession.aborted = true;
+      }
+      if (window.internetEngine && typeof window.internetEngine.abortActiveInvasionByDefenderCut === 'function') {
+        window.internetEngine.abortActiveInvasionByDefenderCut(target);
+      }
+      if (window.audioEngine && typeof window.audioEngine.playErrorBuzz === 'function') {
+        window.audioEngine.playErrorBuzz();
+      }
+      if (window.showToast) {
+        window.showToast(`🔌 Conexão derrubada por ${target}! Ele tem 2 min para trocar de IP — se não trocar, você poderá invadir de novo em 2 min!`, 'danger');
       }
     }
 
     setupSimulatedIntrusions() {
       setInterval(() => {
-        if (this.inboundSessions.length === 0 && Math.random() < 0.35) {
-          const botIps = ['10.110.1.18', '10.110.2.14', '177.20.14.88', '198.51.100.41'];
-          const botAliases = ['NullByte_BR', 'Kuro_Phantom', 'Ransom_Crawler', 'GhostScanner_01'];
-          const pick = Math.floor(Math.random() * botIps.length);
-
+        if (this.inboundSessions.length === 0 && Math.random() < 0.25) {
+          const dayBots = (window.botScheduler && window.botScheduler.getCurrentDayBots()) || [];
+          const picked = dayBots.length > 0 ? dayBots[Math.floor(Math.random() * dayBots.length)] : { ip: '177.84.22.91', handle: 'hackerbr' };
           this.registerInboundSession({
             id: 'bot_bg_' + Date.now(),
-            originIp: botIps[pick],
-            originAlias: botAliases[pick],
+            originIp: picked.ip,
+            originAlias: picked.handle,
+            isBot: true,
             protocol: 'SSH',
             action: 'Tentando quebrar senha (' + (30 + Math.floor(Math.random() * 40)) + '%)',
             progressPct: 45,
             startedAt: nowTime()
           });
         }
-      }, 85000);
+      }, 95000);
     }
 
     syncSidebarBadge() {
@@ -284,9 +297,15 @@
                </tr>
              </thead>
              <tbody>
-               ${this.inboundSessions.map((s) => `
+               ${this.inboundSessions.map((s) => {
+                 const avail = (window.nineSystemsEngine && typeof window.nineSystemsEngine.getInvasionCutAvailability === 'function')
+                   ? window.nineSystemsEngine.getInvasionCutAvailability(s.id, s.originIp)
+                   : { canAttempt: true };
+                 const empCfg = (window.nineSystemsEngine && window.nineSystemsEngine.getEmergencyCutConfig('emp_pulse')) || { cost: 1200 };
+                 const vpsCfg = (window.nineSystemsEngine && window.nineSystemsEngine.getEmergencyCutConfig('vps_reroute')) || { cost: 3500 };
+                 return `
                  <tr>
-                   <td class="mono" style="color: var(--hc-danger-text); font-weight: 600;">${esc(s.originIp)}</td>
+                   <td class="mono" style="color: var(--hc-danger-text); font-weight: 600;">Rota oculta</td>
                    <td>
                      <span class="hc-badge danger" style="cursor:pointer;" data-player-tag="${esc(s.originAlias)}">${esc(s.originAlias)}</span>
                      <span class="mono" style="font-size:11px;color:var(--hc-text-3);margin-left:6px;">${esc(s.protocol)}</span>
@@ -296,16 +315,23 @@
                      <div class="hc-progress danger" style="margin-top:5px;max-width:220px;"><span style="width:${Math.min(100, Number(s.progressPct || 35))}%;"></span></div>
                    </td>
                    <td class="mono" style="color:var(--hc-text-3);font-size:12px;">${esc(s.startedAt)}</td>
-                   <td style="text-align:right;white-space:nowrap;">
-                     <button type="button" class="hc-btn danger sm kill-btn" onclick="window.connManagerEngine.killSession('${esc(s.id)}')">
-                       ${iconSvg('unplug')} Cortar cabo
-                     </button>
-                     <button type="button" class="hc-btn ghost sm" onclick="window.connManagerEngine.retaliateAgainst('${esc(s.originIp)}')">
-                       Investigar IP
-                     </button>
+                   <td style="text-align:right;">
+                     ${avail.canAttempt
+                       ? `<div style="display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap;">
+                            <button type="button" class="hc-btn danger sm kill-btn" onclick="window.connManagerEngine.killSession('${esc(s.id)}', 'cut_cable')">
+                              🔌 Cabo 20% (Grátis)
+                            </button>
+                            <button type="button" class="hc-btn ghost sm" style="border-color:#38bdf8;color:#7dd3fc;" onclick="window.connManagerEngine.killSession('${esc(s.id)}', 'emp_pulse')">
+                              ⚡ EMP 40% ($${empCfg.cost.toLocaleString('pt-BR')})
+                            </button>
+                            <button type="button" class="hc-btn ghost sm" style="border-color:#f59e0b;color:#fde68a;" onclick="window.connManagerEngine.killSession('${esc(s.id)}', 'vps_reroute')">
+                              🖥️ VPS 70% ($${vpsCfg.cost.toLocaleString('pt-BR')})
+                            </button>
+                          </div>`
+                       : `<span class="hc-badge danger" style="font-size:11px;">${esc(avail.reason || 'Tentativa já usada')}</span>`}
                    </td>
-                 </tr>
-               `).join('')}
+                 </tr>`;
+               }).join('')}
              </tbody>
            </table>`;
 
@@ -377,12 +403,13 @@
           </div>
           <div style="padding: 10px 18px; border-bottom: 1px solid var(--hc-border);">
             <details class="nds-rules-drawer">
-              <summary>📖 Regras de Funcionamento do Popover de Defesa Ativa de 15 Segundos</summary>
+              <summary>📖 Regras da Roleta Russa de Corte de Conexão &amp; Prazo de 2 Minutos para Trocar IP</summary>
               <ol class="nds-rules-list">
-                <li><strong>Gatilho &amp; Prazo de 15s:</strong> Abre automaticamente no canto superior direito quando alguém invade sua porta 22. Se você não reagir em <strong>15 segundos reais</strong>, o alerta fecha e o invasor prossegue normalmente.</li>
-                <li><strong>✂️ Cortar Cabo:</strong> Grátis e sem recarga — derruba o invasor na hora, mas o reset da placa <strong>pausa suas transferências por 15s</strong>.</li>
-                <li><strong>🔥 Desviar Ataque p/ VPS (SACRIFÍCIO TOTAL DA VPS):</strong> Exige ter pelo menos <strong>1 VPS comprada</strong> na sua frota. Salva 100% seu PC Principal, captura o IP real do invasor em <em>Senhas Descobertas</em> (+25% contra-ataque) e dá +45 pts na Temporada, <strong>MAS VOCÊ PERDE A VPS PERMANENTEMENTE (o invasor destrói ela junto com todas as peças montadas nela — NÃO existe opção de reformatar, tem que comprar e montar outra do zero!)</strong>.</li>
-                <li><strong>⚡ Pulso Reverso EMP:</strong> Frita o invasor na hora, porém aquece sua própria CPU em <strong>+12°C por 60s</strong> e entra em <strong>recarga de 3 minutos (180s)</strong>.</li>
+                <li><strong>Fim do Corte 100% Garantido (1 Tentativa por Invasão):</strong> Você só tem <strong>1 única tentativa</strong> para tentar derrubar uma invasão em andamento — se a roleta falhar, não é possível tentar de novo na mesma invasão!</li>
+                <li><strong>🔌 1. Puxar o Cabo (Grátis · 20% de chance):</strong> Não custa nada, mas só funciona em <strong>20%</strong> das vezes (e pausa suas transferências por 15s se der certo).</li>
+                <li><strong>⚡ 2. Pulso Reverso EMP ($ 1.200 HC · 40% de chance):</strong> Cobra <strong>$ 1.200 HC</strong> ao tentar (+12°C na CPU) e tem <strong>40%</strong> de chance de cancelar a invasão.</li>
+                <li><strong>🖥️ 3. Desvio via VPS ($ 3.500 HC · 70% de chance):</strong> Cobra ao tentar ($ 2.000 se já tiver VPS própria) e tem <strong>70%</strong> de chance de derrubar a conexão e rastrear o IP do invasor!</li>
+                <li><strong>⏱️ Prazo de 2 Minutos p/ Trocar o IP:</strong> Se conseguir cancelar a invasão, o atacante fica impedido de atacar seu IP por <strong>2 minutos</strong>. Se você <strong>NÃO comprar outro IP em 71.4.5.1</strong> dentro desses 2 minutos, ele poderá invadir de novo e o corte não funcionará novamente no mesmo IP!</li>
               </ol>
             </details>
           </div>
