@@ -243,10 +243,15 @@
       if (!Array.isArray(s.hijackedNodes)) s.hijackedNodes = [];
       if (typeof s.collectorStunnedUntil !== 'number') s.collectorStunnedUntil = 0;
 
-      // Defesa Ativa 15s & ZeroBin Vazamentos
+      // Defesa Ativa 15s (Roleta Russa 20%/40%/70% + Prazo 2 min p/ Trocar IP) & ZeroBin Vazamentos
       if (typeof s.honeypotCooldownUntil !== 'number') s.honeypotCooldownUntil = 0;
       if (typeof s.empCooldownUntil !== 'number') s.empCooldownUntil = 0;
       if (typeof s.netCutPausedUntil !== 'number') s.netCutPausedUntil = 0;
+      if (!s.attemptedInvasions || typeof s.attemptedInvasions !== 'object') s.attemptedInvasions = {};
+      if (!s.exhaustedCutByIpAttacker || typeof s.exhaustedCutByIpAttacker !== 'object') s.exhaustedCutByIpAttacker = {};
+      if (!s.ipEscapeDeadline || typeof s.ipEscapeDeadline !== 'object') {
+        s.ipEscapeDeadline = { active: false, myIp: '', attackerIp: '', attackerAlias: '', isBot: false, expiresAt: 0 };
+      }
       if (!s.verifiedLeakIds || typeof s.verifiedLeakIds !== 'object') s.verifiedLeakIds = {};
       if (!s.claimedLeakIds || typeof s.claimedLeakIds !== 'object') s.claimedLeakIds = {};
       if (!Array.isArray(s.customPastes)) s.customPastes = [];
@@ -1566,113 +1571,208 @@
     }
 
     // =========================================================================
-    // MECÂNICA #08: POPOVER DE DEFESA ATIVA DE 15 SEGUNDOS (CONTRA-MEDIDA AO VIVO)
+    // MECÂNICA #08: ROLETA RUSSA DE CORTE DE CONEXÃO (20% / 40% / 70%) + 2 MIN P/ TROCAR IP
     // =========================================================================
+    getEmergencyCutConfig(actionKind) {
+      const hasOwnVps = !!(window.lanServersEngine && typeof window.lanServersEngine.getSacrificeableVps === 'function' && window.lanServersEngine.getSacrificeableVps());
+      if (actionKind === 'cut_cable') return { key: 'cut_cable', label: 'Puxar o Cabo', chance: 0.20, cost: 0, pctLabel: '20%' };
+      if (actionKind === 'emp_pulse') return { key: 'emp_pulse', label: 'Pulso Reverso EMP', chance: 0.40, cost: 1200, pctLabel: '40%' };
+      if (actionKind === 'vps_reroute' || actionKind === 'honeypot') {
+        return { key: 'vps_reroute', label: 'Desvio via VPS', chance: 0.70, cost: hasOwnVps ? 2000 : 3500, pctLabel: '70%', hasOwnVps };
+      }
+      return null;
+    }
+
+    getInvasionCutAvailability(sessionId, attackerIp) {
+      this.ensureLoaded();
+      const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '';
+      if (myIp && attackerIp && this.state.exhaustedCutByIpAttacker[`${myIp}::${attackerIp}`]) {
+        return { canAttempt: false, code: 'IP_NOT_ROTATED_LOCK', reason: '🚫 Sem corte! Você não trocou seu IP nos 2 min após cancelar a invasão anterior.' };
+      }
+      if (sessionId && this.state.attemptedInvasions[sessionId]) {
+        return { canAttempt: false, code: 'ALREADY_ATTEMPTED_THIS_INVASION', prevAttempt: this.state.attemptedInvasions[sessionId], reason: '🎲 Tentativa única já gasta nesta invasão (falhou na roleta).' };
+      }
+      return { canAttempt: true, code: 'OK', reason: '' };
+    }
+
     triggerActiveDefensePopover(sessionMeta) {
       this.ensureLoaded();
       const attackerIp = (sessionMeta && sessionMeta.originIp) || '91.134.72.19';
       const alias = (sessionMeta && sessionMeta.originAlias) || 'nyx_0day';
-      const bunkerBonusSec = (window.topTenMechanics && typeof window.topTenMechanics.getActiveDefenseBonusSeconds === 'function')
-        ? Number(window.topTenMechanics.getActiveDefenseBonusSeconds() || 0)
-        : 0;
-      const totalWindowMs = (15 + bunkerBonusSec) * 1000;
-      this.activeDefenseAlert = {
-        attackerIp,
-        alias,
-        startedAt: Date.now(),
-        expiresAt: Date.now() + totalWindowMs,
-        windowSeconds: 15 + bunkerBonusSec
-      };
+      const sessionId = (sessionMeta && sessionMeta.id) || ('def_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6));
+      const bunkerSec = (window.topTenMechanics && typeof window.topTenMechanics.getActiveDefenseBonusSeconds === 'function')
+        ? Number(window.topTenMechanics.getActiveDefenseBonusSeconds() || 0) : 0;
+      const isBot = !!(sessionMeta && (sessionMeta.isBot || String(sessionId).startsWith('bot_') || String(sessionId).startsWith('sim_') || (window.botRegistry && window.botRegistry.getBotByIp(attackerIp))));
+      this.activeDefenseAlert = { sessionId, attackerIp, alias, isBot, startedAt: Date.now(), expiresAt: Date.now() + (15 + bunkerSec) * 1000, windowSeconds: 15 + bunkerSec };
       this.renderDefensePopoverDom();
       if (this._defenseTimer) clearInterval(this._defenseTimer);
       this._defenseTimer = setInterval(() => {
         if (!this.activeDefenseAlert || Date.now() >= this.activeDefenseAlert.expiresAt) {
           this.activeDefenseAlert = null;
           clearInterval(this._defenseTimer);
-          this.renderDefensePopoverDom();
-          return;
         }
         this.renderDefensePopoverDom();
       }, 250);
       return this.activeDefenseAlert;
     }
 
-    respondActiveDefense(actionKind) {
+    respondActiveDefense(actionKind, opts = {}) { return this.attemptEmergencyDisconnect(actionKind, opts); }
+
+    attemptEmergencyDisconnect(actionKind, opts = {}) {
       this.ensureLoaded();
-      if (!this.activeDefenseAlert) return { success: false, message: 'Nenhuma intrusão ativa no momento.' };
-      const attIp = this.activeDefenseAlert.attackerIp;
-      const attAlias = this.activeDefenseAlert.alias;
+      const cfg = this.getEmergencyCutConfig(actionKind);
+      if (!cfg) return { success: false, code: 'INVALID_ACTION', message: 'Opção de defesa inválida.' };
+      const targetSession = (opts && opts.sessionId && window.connManagerEngine)
+        ? (window.connManagerEngine.inboundSessions.find((s) => s.id === opts.sessionId) || null) : null;
+      const alertObj = this.activeDefenseAlert;
+      if (!targetSession && !alertObj) return { success: false, code: 'NO_ACTIVE_INVASION', message: 'Nenhuma intrusão ativa no momento.' };
 
-      if (actionKind === 'cut_cable') {
-        // Lado Bom: grátis e corta na hora. Lado Negativo: pausa rede própria por 15s!
-        this.state.netCutPausedUntil = Date.now() + 15000;
-        if (window.connManagerEngine) {
-          window.connManagerEngine.inboundSessions = [];
-          window.connManagerEngine.updateUI();
-        }
-        this.activeDefenseAlert = null;
-        this.save();
-        this.renderDefensePopoverDom();
-        const msg = `✂️ Cabo SSH cortado contra ${attIp}! (Contrapeso: reset da placa pausou transferências locais por 15s).`;
-        if (typeof window.showToast === 'function') window.showToast(msg);
-        return { success: true, action: 'cut_cable', message: msg };
+      const sessionId = (targetSession && targetSession.id) || (alertObj && alertObj.sessionId) || ('inv_' + Date.now());
+      const attIp = (targetSession && targetSession.originIp) || (alertObj && alertObj.attackerIp) || '0.0.0.0';
+      const attAlias = (targetSession && targetSession.originAlias) || (alertObj && alertObj.alias) || 'Invasor';
+      const isBotAttacker = !!((alertObj && alertObj.isBot) || String(sessionId).startsWith('bot_') || String(sessionId).startsWith('sim_') || (window.botRegistry && window.botRegistry.getBotByIp(attIp)));
+
+      const avail = this.getInvasionCutAvailability(sessionId, attIp);
+      if (!avail.canAttempt) {
+        if (typeof window.showToast === 'function') window.showToast(avail.reason);
+        return { success: false, code: avail.code, message: avail.reason };
       }
 
-      if (actionKind === 'honeypot') {
-        const sacVps = (window.lanServersEngine && typeof window.lanServersEngine.getSacrificeableVps === 'function')
-          ? window.lanServersEngine.getSacrificeableVps()
-          : null;
-        if (!sacVps) {
-          const msg = '🔒 VOCÊ NÃO POSSUI NENHUMA VPS PARA SACRIFICAR! Desviar invasão exige ter comprado uma VPS ($ 2.500+ Limpos), pois o invasor destrói a VPS permanentemente! Use Cortar Cabo ou Pulso EMP.';
+      if (cfg.cost > 0) {
+        if (this.getCleanBalance() < cfg.cost) {
+          const msg = `Saldo insuficiente! Tentar "${cfg.label}" (${cfg.pctLabel}) custa $ ${cfg.cost.toLocaleString('pt-BR')} HC na tentativa. Use Puxar o Cabo (Grátis · 20%)!`;
           if (typeof window.showToast === 'function') window.showToast(msg);
-          return { success: false, code: 'NO_VPS_TO_SACRIFICE', message: msg };
+          return { success: false, code: 'INSUFFICIENT_FUNDS', requiredCost: cfg.cost, message: msg };
         }
-
-        // PREÇO ALTÍSSIMO: O invasor entra na VPS e você PERDE ELA PERMANENTEMENTE (sem opção de reformatar — tem que comprar e montar outra!)
-        const wreck = window.lanServersEngine.sacrificeAndDestroyVps(attIp, attAlias);
-        if (window.hackedDb) {
-          window.hackedDb.upsertHost({
-            ip: attIp,
-            hostname: `Intruso Capturado (${attAlias})`,
-            kind: 'player',
-            analyzedHw: `Capturado no sacrifício irreversível de ${wreck ? wreck.label : 'VPS'} (+25% Bônus Contra-Ataque)`
-          });
-        }
-        if (typeof window.addLocalLog === 'function' && wreck) {
-          window.addLocalLog(
-            'VPS-DESTRUIDA',
-            `DESVIO DE EMERGÊNCIA: Ataque de ${attIp} (${attAlias}) desviado p/ ${wreck.label} (${wreck.ip}). A VPS e suas peças foram DESTRUÍDAS PERMANENTEMENTE (sem reformatação — compre e monte outra!).`,
-            'danger'
-          );
-        }
-        if (window.connManagerEngine) {
-          window.connManagerEngine.inboundSessions = [];
-          window.connManagerEngine.updateUI();
-        }
-        this.activeDefenseAlert = null;
-        this.awardSeasonPoints(45, 'honeypot_trap');
-        this.save();
-        this.renderDefensePopoverDom();
-        const msg = `💀🔥 Ataque desviado! Seu PC Principal foi salvo e o IP de ${attAlias} (${attIp}) foi capturado, MAS sua "${wreck ? wreck.label : 'VPS'}" foi DESTRUÍDA PERMANENTEMENTE (sem reformatação — compre e monte outra VPS)!`;
-        if (typeof window.showToast === 'function') window.showToast(msg);
-        return { success: true, action: 'honeypot', capturedIp: attIp, burnedVps: wreck, message: msg };
+        runAuth(() => {
+          if (window.currentWallet) window.currentWallet.balance = Math.max(0, +(Number(window.currentWallet.balance || 0) - cfg.cost).toFixed(2));
+        });
+        if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       }
 
-      if (actionKind === 'emp_pulse') {
+      if (cfg.key === 'emp_pulse') {
         this.state.empCooldownUntil = Date.now() + 180000;
-        this.state.thermals.empHeatUntil = Date.now() + 60000; // Contrapeso: +12°C na própria CPU!
-        if (window.connManagerEngine) {
-          window.connManagerEngine.inboundSessions = [];
-          window.connManagerEngine.updateUI();
-        }
-        this.activeDefenseAlert = null;
+        this.state.thermals.empHeatUntil = Date.now() + 60000;
+      }
+
+      const roll = (opts && typeof opts.forceRoll === 'number') ? opts.forceRoll : Math.random();
+      const rollSucceeded = roll < cfg.chance;
+      this.state.attemptedInvasions[sessionId] = { action: cfg.key, chance: cfg.chance, roll: +roll.toFixed(3), rollSucceeded, costPaid: cfg.cost, at: Date.now() };
+      const invKeys = Object.keys(this.state.attemptedInvasions);
+      if (invKeys.length > 40) delete this.state.attemptedInvasions[invKeys[0]];
+
+      if (!rollSucceeded) {
         this.save();
         this.renderDefensePopoverDom();
-        const msg = `⚡ Pulso Reverso EMP fritou o buffer de ${attIp}! (Contrapeso: sua CPU aqueceu +12°C por 60s).`;
-        if (typeof window.showToast === 'function') window.showToast(msg);
-        return { success: true, action: 'emp_pulse', message: msg };
+        if (window.connManagerEngine) window.connManagerEngine.updateUI();
+        const failCostTxt = cfg.cost > 0 ? ` (-$ ${cfg.cost.toLocaleString('pt-BR')} HC gastos na tentativa)` : '';
+        const failMsg = `🎲 ROLETA FALHOU (${cfg.pctLabel})! "${cfg.label}"${failCostTxt} NÃO derrubou ${attAlias}! Não é permitido tentar de novo nesta invasão.`;
+        if (typeof window.addLocalLog === 'function') window.addLocalLog('DEFESA-FALHOU', failMsg, 'danger');
+        if (typeof window.showToast === 'function') window.showToast(failMsg);
+        return { success: true, rollSucceeded: false, chance: cfg.chance, costPaid: cfg.cost, action: cfg.key, sessionId, message: failMsg };
       }
-      return { success: false };
+
+      if (cfg.key === 'cut_cable') this.state.netCutPausedUntil = Date.now() + 15000;
+      if (cfg.key === 'vps_reroute' && window.hackedDb) {
+        window.hackedDb.upsertHost({ ip: attIp, hostname: `Intruso Rastreado via VPS (${attAlias})`, kind: 'player', analyzedHw: 'IP capturado no desvio emergencial de VPS (70%)' });
+      }
+
+      const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '';
+      if (myIp && attIp) this.state.exhaustedCutByIpAttacker[`${myIp}::${attIp}`] = Date.now();
+      const expiresAt = Date.now() + 120000;
+      this.state.ipEscapeDeadline = { active: true, myIp, attackerIp: attIp, attackerAlias: attAlias, isBot: isBotAttacker, expiresAt };
+
+      if (window.connManagerEngine && typeof window.connManagerEngine.forceDropInboundAfterRoulette === 'function') {
+        window.connManagerEngine.forceDropInboundAfterRoulette(sessionId, attIp, cfg.key);
+      }
+      this.activeDefenseAlert = null;
+      this.save();
+      this.renderDefensePopoverDom();
+      this.syncIpEscapeBanner();
+      this.ensureEscapeCountdownLoop();
+
+      const okCostTxt = cfg.cost > 0 ? ` (-$ ${cfg.cost.toLocaleString('pt-BR')} HC)` : ' (Grátis)';
+      const okMsg = `✅ DEU CERTO (${cfg.pctLabel})! "${cfg.label}"${okCostTxt} derrubou ${attAlias}! Você tem 2 MINUTOS para TROCAR SEU IP em 71.4.5.1!`;
+      if (typeof window.addLocalLog === 'function') window.addLocalLog('DEFESA-SUCESSO-2M', okMsg, 'warning');
+      if (typeof window.showToast === 'function') window.showToast(okMsg);
+      return { success: true, rollSucceeded: true, chance: cfg.chance, costPaid: cfg.cost, escapeDeadlineMs: 120000, escapeExpiresAt: expiresAt, capturedIp: cfg.key === 'vps_reroute' ? attIp : null, action: cfg.key, sessionId, message: okMsg };
+    }
+
+    onPlayerIpRotated(oldIp, newIp) {
+      this.ensureLoaded();
+      if (oldIp) {
+        Object.keys(this.state.exhaustedCutByIpAttacker || {}).forEach((k) => {
+          if (k.startsWith(`${oldIp}::`)) delete this.state.exhaustedCutByIpAttacker[k];
+        });
+      }
+      if (this.state.ipEscapeDeadline && this.state.ipEscapeDeadline.active && (!oldIp || this.state.ipEscapeDeadline.myIp === oldIp)) {
+        this.state.ipEscapeDeadline = { active: false, myIp: newIp || '', attackerIp: '', attackerAlias: '', isBot: false, expiresAt: 0 };
+        if (typeof window.showToast === 'function') window.showToast('✅ IP trocado a tempo! O invasor perdeu sua rota e o prazo de 2 minutos foi encerrado.');
+      }
+      this.save();
+      this.syncIpEscapeBanner();
+    }
+
+    ensureEscapeCountdownLoop() {
+      if (this._escapeLoop) return;
+      this._escapeLoop = setInterval(() => {
+        if (!this.state || !this.state.ipEscapeDeadline || !this.state.ipEscapeDeadline.active) {
+          clearInterval(this._escapeLoop);
+          this._escapeLoop = null;
+          this.syncIpEscapeBanner();
+          return;
+        }
+        this.evaluateIpEscapeDeadline();
+        this.syncIpEscapeBanner();
+      }, 1000);
+    }
+
+    evaluateIpEscapeDeadline() {
+      this.ensureLoaded();
+      const d = this.state.ipEscapeDeadline;
+      if (!d || !d.active) return { expired: false };
+      const curIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '';
+      if (curIp && d.myIp && curIp !== d.myIp) {
+        this.onPlayerIpRotated(d.myIp, curIp);
+        return { expired: false, escaped: true };
+      }
+      if (Date.now() < d.expiresAt) return { expired: false };
+
+      const attIp = d.attackerIp;
+      const attAlias = d.attackerAlias || 'Invasor';
+      const wasBot = !!d.isBot;
+      this.state.ipEscapeDeadline.active = false;
+      this.save();
+      this.syncIpEscapeBanner();
+
+      const expMsg = `⏰ PRAZO DE 2 MIN ESGOTADO! Você NÃO trocou seu IP (${curIp}) — ${attAlias} já pode invadir seu PC novamente (sem novo corte neste IP)!`;
+      if (typeof window.addLocalLog === 'function') window.addLocalLog('PRAZO-IP-EXPIRADO', expMsg, 'danger');
+      if (typeof window.showToast === 'function') window.showToast(expMsg);
+      if (wasBot && window.connManagerEngine && typeof window.connManagerEngine.registerInboundSession === 'function') {
+        window.connManagerEngine.registerInboundSession({
+          id: 'bot_return_' + Date.now(), originIp: attIp, originAlias: attAlias, isBot: true, protocol: 'SSH',
+          action: 'Re-invadindo IP não trocado após 2 min!', progressPct: 65, startedAt: new Date().toLocaleTimeString('pt-BR')
+        });
+      }
+      return { expired: true, attackerIp: attIp, unrotatedIp: curIp };
+    }
+
+    syncIpEscapeBanner() {
+      if (typeof document === 'undefined' || !this.state) return;
+      let bar = document.getElementById('hcIpEscapeBanner');
+      const d = this.state.ipEscapeDeadline;
+      if (!d || !d.active || Date.now() >= d.expiresAt) { if (bar) bar.style.display = 'none'; return; }
+      if (!bar) {
+        bar = document.createElement('div');
+        bar.id = 'hcIpEscapeBanner';
+        bar.style.cssText = 'position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:9600;max-width:min(640px,94vw);background:linear-gradient(135deg,#2a0f14,#161b26);border:1px solid #ef4444;border-radius:10px;padding:10px 14px;box-shadow:0 12px 28px rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12.5px;color:#f8fafc;';
+        document.body.appendChild(bar);
+      }
+      const remSec = Math.max(0, Math.ceil((d.expiresAt - Date.now()) / 1000));
+      const mm = String(Math.floor(remSec / 60)).padStart(2, '0');
+      const ss = String(remSec % 60).padStart(2, '0');
+      bar.style.display = 'flex';
+      bar.innerHTML = `<div style="flex:1;min-width:190px;"><strong style="color:#fca5a5;">⏱️ TROQUE SEU IP EM ${mm}:${ss}!</strong><div style="font-size:11.5px;color:#cbd5e1;margin-top:2px;">Se não comprar outro IP em 71.4.5.1, <strong>${esc(d.attackerAlias)}</strong> poderá invadir de novo após 2 min (sem novo corte)!</div></div><button type="button" class="hc-btn primary sm" style="background:#dc2626;border-color:#ef4444;white-space:nowrap;" onclick="window.internetEngine.openIp('71.4.5.1')">Comprar Novo IP (71.4.5.1) →</button>`;
     }
 
     // =========================================================================
@@ -2208,45 +2308,51 @@
       const remMs = Math.max(0, a.expiresAt - Date.now());
       const maxMs = Math.max(1000, Number(a.windowSeconds || 15) * 1000);
       const pct = Math.min(100, Math.round((remMs / maxMs) * 100));
-      const sacVps = (window.lanServersEngine && typeof window.lanServersEngine.getSacrificeableVps === 'function')
-        ? window.lanServersEngine.getSacrificeableVps()
-        : null;
+      const avail = this.getInvasionCutAvailability(a.sessionId, a.attackerIp);
+      const empCfg = this.getEmergencyCutConfig('emp_pulse');
+      const vpsCfg = this.getEmergencyCutConfig('vps_reroute');
+      const disabledAttr = avail.canAttempt ? '' : 'disabled style="opacity:0.5;cursor:not-allowed;padding:8px 11px;"';
+      const padStyle = avail.canAttempt ? 'style="padding:8px 11px;"' : disabledAttr;
+
       pop.classList.add('open');
       pop.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-          <strong style="color:#fca5a5;font-size:13.5px;">🚨 ALGUÉM ESTÁ INVADINDO SEU PC!</strong>
+          <strong style="color:#fca5a5;font-size:13px;">🚨 INVASÃO EM CURSO · ROLETA DE CORTE</strong>
           <span class="mono hc-badge danger">${(remMs / 1000).toFixed(1)}s</span>
         </div>
-        <div style="font-size:12px;color:#e2e8f0;">
-          Invasor: <code class="mono">${esc(a.attackerIp)}</code> (${esc(a.alias)}) · Escolha rápido o que fazer:
+        <div style="font-size:11.5px;color:#e2e8f0;">
+          Operador: <strong>${esc(a.alias)}</strong> · 1 tentativa por invasão (se cortar, troque seu IP em 2 min!):
         </div>
         <div class="hc-def-bar-track"><div class="hc-def-bar-fill" style="width:${pct}%;"></div></div>
+        ${!avail.canAttempt
+          ? `<div style="padding:8px 10px;border-radius:8px;background:rgba(239,68,68,0.14);border:1px solid rgba(239,68,68,0.4);font-size:11.5px;color:#fca5a5;">${esc(avail.reason)}</div>`
+          : ''}
         <div style="display:flex;flex-direction:column;gap:7px;">
-          <button type="button" id="btnDefCutCable" class="hc-choice-row danger-opt" style="padding:8px 11px;"
+          <button type="button" id="btnDefCutCable" class="hc-choice-row danger-opt" ${padStyle}
             onclick="window.nineSystemsEngine.respondActiveDefense('cut_cable')">
             <span class="hc-choice-main">
-              <span class="hc-choice-title" style="color:#fca5a5;">✂️ 1. Cortar Cabo de Rede (Grátis)</span>
-              <span class="hc-choice-desc">Expulsa o invasor na hora, mas pausa sua internet por 15s.</span>
+              <span class="hc-choice-title" style="color:#fca5a5;">🔌 1. Puxar o Cabo (Grátis · 20% de chance)</span>
+              <span class="hc-choice-desc">Sem custo; 20% de chance de derrubar a conexão (pausa rede 15s).</span>
             </span>
-            <span class="hc-choice-cta" style="color:#fca5a5;">Cortar</span>
+            <span class="hc-choice-cta" style="color:#fca5a5;">20%</span>
           </button>
 
-          <button type="button" id="btnDefHoneypot" class="hc-choice-row warn-opt" style="padding:8px 11px;${!sacVps ? 'opacity:0.6;' : ''}"
-            onclick="window.nineSystemsEngine.respondActiveDefense('honeypot')">
-            <span class="hc-choice-main">
-              <span class="hc-choice-title" style="color:#fde68a;">${sacVps ? `🔥 2. Jogar Ataque p/ ${esc(sacVps.label)} (Perde a VPS!)` : '🔒 2. Jogar Ataque p/ VPS (Compre 1 VPS antes)'}</span>
-              <span class="hc-choice-desc">${sacVps ? 'Salva seu PC e descobre o IP dele, MAS destrói essa VPS de vez!' : 'Exige ter uma VPS ($ 2.500+) para sacrificar no desvio.'}</span>
-            </span>
-            <span class="hc-choice-cta" style="color:#fde68a;">${sacVps ? 'Desviar' : 'Sem VPS'}</span>
-          </button>
-
-          <button type="button" id="btnDefEmp" class="hc-choice-row info-opt" style="padding:8px 11px;"
+          <button type="button" id="btnDefEmp" class="hc-choice-row info-opt" ${padStyle}
             onclick="window.nineSystemsEngine.respondActiveDefense('emp_pulse')">
             <span class="hc-choice-main">
-              <span class="hc-choice-title" style="color:#7dd3fc;">⚡ 3. Dar Choque Reverso (+12°C no PC)</span>
-              <span class="hc-choice-desc">Derruba a conexão dele na hora, mas esquenta seu PC por 1 min.</span>
+              <span class="hc-choice-title" style="color:#7dd3fc;">⚡ 2. Pulso Reverso EMP ($ ${empCfg.cost.toLocaleString('pt-BR')} · 40% de chance)</span>
+              <span class="hc-choice-desc">Cobra ao tentar (+12°C na CPU); 40% de chance de cancelar a invasão.</span>
             </span>
-            <span class="hc-choice-cta" style="color:#7dd3fc;">Choque</span>
+            <span class="hc-choice-cta" style="color:#7dd3fc;">40%</span>
+          </button>
+
+          <button type="button" id="btnDefHoneypot" class="hc-choice-row warn-opt" ${padStyle}
+            onclick="window.nineSystemsEngine.respondActiveDefense('vps_reroute')">
+            <span class="hc-choice-main">
+              <span class="hc-choice-title" style="color:#fde68a;">🖥️ 3. Desvio na VPS ($ ${vpsCfg.cost.toLocaleString('pt-BR')} · 70% de chance)</span>
+              <span class="hc-choice-desc">Cobra ao tentar; 70% de chance de cortar a conexão e rastrear o invasor!</span>
+            </span>
+            <span class="hc-choice-cta" style="color:#fde68a;">70%</span>
           </button>
         </div>
       `;
@@ -2343,6 +2449,8 @@
       this._mainTimer = setInterval(() => {
         if (!window.currentProfile) return;
         this.processCompletedWashingJobs();
+        this.evaluateIpEscapeDeadline();
+        this.syncIpEscapeBanner();
         this.syncJailOverlay();
         this.syncHudBadges();
         if (window.winManager && window.winManager.current === 'winLaundering') {

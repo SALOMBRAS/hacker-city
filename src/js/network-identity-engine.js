@@ -2159,6 +2159,22 @@
       if (el) el.classList.remove('open');
     }
 
+    abortActiveInvasionByDefenderCut(targetIp) {
+      if (!targetIp) return;
+      if (this.currentIp === targetIp && this.isCracking) {
+        if (this.activeCrackPid && window.taskManager && typeof window.taskManager.cancel === 'function') {
+          window.taskManager.cancel(this.activeCrackPid);
+        }
+        this.isCracking = false;
+        this.activeCrackPid = null;
+        this.crackPct = 0;
+      }
+      if (this.activeSshIp === targetIp && typeof this.disconnectSsh === 'function') {
+        this.disconnectSsh(true);
+      }
+      this.render();
+    }
+
     // Abre o Mini-PC mostrando todos os quebradores/hashes disponíveis nas unidades HD, SSD e NVMe do computador do jogador!
     openCrackerMiniPc(driveFilter = null) {
       const host = this.resolveHost(this.currentIp);
@@ -2312,6 +2328,15 @@
       if (!host.online) {
         alert('Este host está OFFLINE no turno atual. Aguarde a próxima janela ou escolha um IP online.');
         return { started: false, code: 'HOST_OFFLINE' };
+      }
+      if (window.connManagerEngine && typeof window.connManagerEngine.getReinvadeLockStatus === 'function') {
+        const rl = window.connManagerEngine.getReinvadeLockStatus(host.ip);
+        if (rl.locked) {
+          if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+          if (typeof window.showToast === 'function') window.showToast(rl.message);
+          else alert(rl.message);
+          return { started: false, code: 'DEFENDER_CUT_2MIN_COOLDOWN', remSec: rl.remSec, message: rl.message };
+        }
       }
       if (window.progressionLocksEngine && typeof window.progressionLocksEngine.validateTargetBounceGate === 'function') {
         const bg = window.progressionLocksEngine.validateTargetBounceGate(host);
@@ -2478,6 +2503,15 @@
         if (typeof window.showToast === 'function') window.showToast(msg);
         else alert(msg);
         return { success: false, code: 'NEWBIE_PROTECTED', message: msg };
+      }
+      if (window.connManagerEngine && typeof window.connManagerEngine.getReinvadeLockStatus === 'function') {
+        const rl = window.connManagerEngine.getReinvadeLockStatus(host.ip);
+        if (rl.locked) {
+          if (window.hackerAudio) window.hackerAudio.playErrorBuzz();
+          if (typeof window.showToast === 'function') window.showToast(rl.message);
+          else alert(rl.message);
+          return { success: false, code: 'DEFENDER_CUT_2MIN_COOLDOWN', remSec: rl.remSec, message: rl.message };
+        }
       }
       if (host.kind === 'player' && window.progressiveUnlockEngine && typeof window.progressiveUnlockEngine.isNewbiePvpShieldActive === 'function' && window.progressiveUnlockEngine.isNewbiePvpShieldActive() && !(opts && opts.confirmedBreakShield)) {
         window.progressiveUnlockEngine.openBreakShieldConfirmModal(host.hostname, () => {
