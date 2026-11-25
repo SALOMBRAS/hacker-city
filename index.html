@@ -808,6 +808,7 @@
 
         <!-- Bloco 1 MMO: Identidade de Rede, IP Público Aleatório & Troca 1x/Semana -->
         <div id="profileIpCardMount"></div>
+        <div id="profileCrossSaveCardMount"></div>
         <div id="profilePwaCardMount"></div>
 
         <button class="btn-submit" style="background: var(--hc-border-strong); border-color: var(--hc-border-strong); margin-top: 1.25rem;" onclick="logoutCurrentSession()">
@@ -1971,6 +1972,9 @@
       if (window.onlineEngine) {
         window.onlineEngine.updateHudSyncChip();
         window.onlineEngine.scheduleSave(false);
+      }
+      if (window.crossSaveEngine && typeof window.crossSaveEngine.renderProfileCrossSaveCard === 'function') {
+        window.crossSaveEngine.renderProfileCrossSaveCard();
       }
       if (window.nineSystemsEngine) {
         window.nineSystemsEngine.syncHudBadges();
