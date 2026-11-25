@@ -28,6 +28,8 @@ ALTER TABLE public.security_cheat_audit_log ENABLE ROW LEVEL SECURITY;
 -- Remove leitura pública direta da tabela player_cloud_saves para que NINGUÉM possa dar
 -- SELECT em save_payload (senhas root, chaves BTC, contas bancárias) ou write_secret de outros jogadores!
 DROP POLICY IF EXISTS "Public read MMO directory" ON public.player_cloud_saves;
+DROP POLICY IF EXISTS "Diretorio publico de jogadores online e offline" ON public.player_cloud_saves;
+DROP POLICY IF EXISTS "Qualquer operador autenticado consulta diretorio publico" ON public.player_cloud_saves;
 DROP POLICY IF EXISTS "Owner only read own cloud save" ON public.player_cloud_saves;
 
 CREATE POLICY "Owner only read own cloud save"
