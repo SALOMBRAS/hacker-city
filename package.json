@@ -16,7 +16,8 @@
     "test:crosspwa": "NODE_PATH=../pague-on-old/node_modules node tests/verify-cross-save-and-pwa-e2e.js",
     "test:online": "NODE_PATH=../pague-on-old/node_modules node tests/verify-no-ip-leak-and-online-dashboard-e2e.js",
     "gerar:voz": "node scripts/gerar-audios-tutorial.mjs",
-    "test:voz": "node scripts/gerar-audios-tutorial.mjs --check"
+    "test:voz": "node scripts/gerar-audios-tutorial.mjs --check",
+    "test:avatar": "NODE_PATH=../pague-on-old/node_modules node tests/verify-avatar-picker-e2e.js"
   },
   "keywords": [
     "cyberpunk",
