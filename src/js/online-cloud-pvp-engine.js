@@ -27,9 +27,11 @@
     return h >>> 0;
   }
 
-  // Gera um IP público determinístico e único para contas reais de public.profiles que ainda não anunciaram IP próprio
+  const GLOBAL_PLAYER_RESET_EPOCH = '20261125_v2';
+
+  // Gera um IP público determinístico e único (rotacionado na época V3) para contas reais que ainda não anunciaram IP próprio
   function deterministicIpFromUserId(uid) {
-    let h = hash32('PLAYER_IP::' + uid);
+    let h = hash32('PLAYER_IP_V3_20261125::' + uid);
     let o1 = 14 + (h % 205);
     while (RESERVED_OCTETS.has(o1)) {
       o1 = ((o1 + 7) % 210) + 12;
@@ -266,29 +268,32 @@
       });
     }
 
-    // Operadores de IA marcados e exibidos 100% como Jogadores Reais (com sessões online/offline, clãs, reputação viva e defesas reais!)
+    // 30 Bots Hackers diários (inteligências variadas + nomes BR/meme) + 5 Policiais + 1 Delegado,
+    // variando organicamente a cada 10 minutos sem nunca travar em número fixo!
     getSimulatedPlayersList(onlyOnlineNow = false) {
       if (window.livingBotsEngine) window.livingBotsEngine.ensureInitialized();
       const clanPool = [null, null, '0DAY', 'ZTRC', 'KRNS', 'VRTX', null];
       const dayBots = (window.botScheduler && window.botScheduler.getCurrentDayBots()) || [];
+      const lawUnits = (window.botScheduler && typeof window.botScheduler.getCurrentDayLawEnforcement === 'function')
+        ? window.botScheduler.getCurrentDayLawEnforcement()
+        : [];
       const list = [];
 
       dayBots.forEach((b, idx) => {
         const liveStat = (window.livingBotsEngine && window.livingBotsEngine.botStats)
           ? window.livingBotsEngine.botStats.get(b.ip)
           : null;
-        const shiftOnline = window.botScheduler ? window.botScheduler.isBotOnline(b.ip) : true;
-        // Garante um lobby vivo com operadores entrando/saindo igual servidor MMO real (~12 online simultâneos)
-        const onlineNow = shiftOnline || (idx % 3 === 0);
+        const onlineNow = window.botScheduler ? window.botScheduler.isBotOnline(b.ip) : true;
         if (onlyOnlineNow && !onlineNow) return;
 
         const defVer = b.tier === 3 ? 2.5 : (b.tier === 2 ? 1.5 : 1.0);
-        const rep = liveStat ? liveStat.rep : (b.tier === 3 ? 3100 : (b.tier === 2 ? 1050 : 240));
+        const rep = liveStat ? liveStat.rep : (b.tier === 3 ? 3100 + idx * 45 : (b.tier === 2 ? 1050 + idx * 30 : 180 + idx * 18));
         const clanTag = b.tier >= 2 ? clanPool[idx % clanPool.length] : (idx % 5 === 0 ? '0DAY' : null);
 
         list.push({
           userId: 'plr_' + b.id,
           hackerTag: b.handle,
+          role: 'hacker',
           publicIp: b.ip,
           reputation: rep,
           firewallVer: defVer,
@@ -303,13 +308,33 @@
         });
       });
 
-      // Inclui também m4riposa e rookie_br como jogadores registrados na rede
-      const extraPlayers = [
-        { userId: 'plr_m4riposa', hackerTag: 'm4riposa', publicIp: '149.56.28.11', reputation: 8240, firewallVer: 1.5, hasherVer: 1.5, antivirusVer: 1.5, bestSoftVer: 4.5, ddosGbps: 11.2, clanTag: 'KRNS', onlineNow: true, isAiPlayer: true },
-        { userId: 'plr_rookie_br', hackerTag: 'rookie_br', publicIp: '177.84.19.62', reputation: 65, firewallVer: 1.0, hasherVer: 1.0, antivirusVer: 1.0, bestSoftVer: 1.0, ddosGbps: 0, clanTag: null, onlineNow: true, isAiPlayer: true }
-      ];
-      extraPlayers.forEach((ep) => {
-        if (!onlyOnlineNow || ep.onlineNow) list.push(ep);
+      // 5 Policiais Cibernéticos + 1 Delegado em exercício (variando turnos a cada 10 min!)
+      const activeDel = (window.nineSystemsEngine && typeof window.nineSystemsEngine.getActiveDelegate === 'function')
+        ? window.nineSystemsEngine.getActiveDelegate()
+        : null;
+
+      lawUnits.forEach((lw) => {
+        const onlineNow = window.botScheduler ? window.botScheduler.isBotOnline(lw.ip) : true;
+        if (onlyOnlineNow && !onlineNow) return;
+        const tag = (lw.role === 'delegado' && activeDel && activeDel.name)
+          ? ('delegado_' + String(activeDel.name).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, ''))
+          : lw.handle;
+        list.push({
+          userId: 'plr_' + lw.id,
+          hackerTag: tag,
+          role: lw.role, // 'policial' | 'delegado'
+          publicIp: lw.ip,
+          reputation: lw.reputation,
+          firewallVer: lw.defVer,
+          hasherVer: lw.defVer,
+          antivirusVer: lw.defVer,
+          bestSoftVer: +(lw.defVer + 0.5).toFixed(1),
+          ddosGbps: lw.role === 'delegado' ? 16.5 : 8.4,
+          clanTag: lw.clanTag,
+          lastAction: lw.role === 'delegado' ? 'Supervisionando Divisão Cyber' : 'Patrulha Forense na Rede',
+          onlineNow,
+          isAiPlayer: true
+        });
       });
 
       return list;
@@ -418,6 +443,7 @@
 
       const rawSnap = {
         v: 4,
+        resetEpoch: GLOBAL_PLAYER_RESET_EPOCH,
         savedAt: Date.now(),
         userId: uid,
         walletBalance: +(Number(window.currentWallet.balance || 0)).toFixed(2),
@@ -1073,6 +1099,69 @@
         }
       }
 
+      // Aplicar Época Global de Reset (2026-11-25): rotaciona IP antigo, zera despesas de jogadores reais e reinicia Tutorial do zero!
+      const sanitizeLegacySnapshot = (snapObj) => {
+        if (!snapObj || snapObj.resetEpoch === GLOBAL_PLAYER_RESET_EPOCH) return false;
+        const freshIp = window.networkIdentity ? window.networkIdentity.generateRandomPublicIp() : deterministicIpFromUserId(userId + '_v2');
+        const freshPwd = Math.random().toString(36).slice(2, 10);
+        const nowMs = Date.now();
+        snapObj.resetEpoch = GLOBAL_PLAYER_RESET_EPOCH;
+        snapObj.netId = {
+          publicIp: freshIp,
+          rootPassword: freshPwd,
+          pwdEpoch: ((snapObj.netId && snapObj.netId.pwdEpoch) || 1) + 1,
+          resetsCount: 0,
+          lastFreeResetAt: null,
+          history: []
+        };
+        snapObj.tour = { done: null, rewarded: snapObj.tour ? snapObj.tour.rewarded : null };
+        snapObj.tut = {
+          step: 1,
+          completed: false,
+          hostHacked: false,
+          fileExtracted: false,
+          virusPlanted: false,
+          logsCleaned: false
+        };
+        snapObj.billsPaid = { power: true, internet: true, rent: true, water: true };
+        snapObj.quitineteBilling = {
+          cycle: { lastEvalMs: nowMs, isPaused: false, pausedAtMs: null, wasPausedWhileAway: false, lastPlayerLoginMs: nowMs },
+          months: { power: 0, internet: 0, rent: 0, water: 0 }
+        };
+        if (Array.isArray(snapObj.hdb)) {
+          snapObj.hdb = snapObj.hdb.filter((e) => {
+            const ip = String((e && e.ip) || '');
+            return !ip.startsWith('10.110.') && !ip.startsWith('10.120.') && !ip.startsWith('10.130.') &&
+                   ip !== '149.56.28.11' && ip !== '91.134.72.19' && ip !== '177.84.19.62';
+          });
+        }
+        return true;
+      };
+
+      const localMigrated = sanitizeLegacySnapshot(localSnap);
+      const cloudMigrated = sanitizeLegacySnapshot(cloudSnap);
+      const browserResetMarker = `HC_GLOBAL_RESET_APPLIED_${GLOBAL_PLAYER_RESET_EPOCH}_${userId}`;
+      let needsTutorialRestart = false;
+
+      if (localMigrated || cloudMigrated || (!localStorage.getItem(browserResetMarker) && (localSnap || cloudSnap))) {
+        try {
+          localStorage.removeItem(`HC_SPOTLIGHT_TOUR_DONE_${userId}`);
+          localStorage.removeItem(`HC_TUTORIAL_${userId}`);
+          localStorage.removeItem(`HC_QUITINETE_STATE_${userId}`);
+          localStorage.removeItem('HC_QUITINETE_STATE');
+          localStorage.setItem(browserResetMarker, '1');
+        } catch (e) {}
+        if (window.spotlightTour && window.spotlightTour.statusByUid) {
+          delete window.spotlightTour.statusByUid[userId];
+        }
+        if (window.quitineteEngine && typeof window.quitineteEngine.resetAllRealPlayerBillsNow === 'function') {
+          window.quitineteEngine.resetAllRealPlayerBillsNow();
+        }
+        needsTutorialRestart = true;
+      } else {
+        try { localStorage.setItem(browserResetMarker, '1'); } catch (e) {}
+      }
+
       // Reconciliar Local e Nuvem com união monotônica anti-duplicação (PC <-> Celular)!
       let winner = localSnap;
       if (window.crossSaveEngine && typeof window.crossSaveEngine.mergeSnapshotsAntiDupe === 'function') {
@@ -1083,7 +1172,19 @@
 
       if (winner) {
         this.applyMasterSnapshot(winner, dbWalletBalance);
-        this.saveLocalSnapshotImmediate();
+        if (needsTutorialRestart) {
+          if (window.quitineteEngine && typeof window.quitineteEngine.resetAllRealPlayerBillsNow === 'function') {
+            window.quitineteEngine.resetAllRealPlayerBillsNow();
+          }
+          if (window.spotlightTour && !winner.tour?.done) {
+            delete window.spotlightTour.statusByUid[userId];
+            try { localStorage.removeItem(`HC_SPOTLIGHT_TOUR_DONE_${userId}`); } catch (e) {}
+            window.spotlightTour.maybeAutoStartForSession();
+          }
+          this.scheduleSave(true);
+        } else {
+          this.saveLocalSnapshotImmediate();
+        }
       } else {
         this.saveLocalSnapshotImmediate();
       }

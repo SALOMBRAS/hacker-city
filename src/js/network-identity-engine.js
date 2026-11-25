@@ -1301,10 +1301,10 @@
     }
   };
 
-  // Operadores VPC presentes na sub-rede pública (além dos jogadores reais carregados do Supabase)
+  // Operadores VPC presentes na sub-rede pública (além dos jogadores reais carregados do Supabase — IPs rotacionados!)
   const SEEDED_PLAYER_VPCS = {
-    '149.56.28.11': {
-      ip: '149.56.28.11',
+    '186.214.73.49': {
+      ip: '186.214.73.49',
       hostname: 'VPC Operador m4riposa',
       hacker_tag: 'm4riposa',
       reputation: 8240,
@@ -1323,8 +1323,8 @@
       cpuSpec: '4.000 MHz · 150 Mbps · AV v2.0',
       bankBalance: 340
     },
-    '91.134.72.19': {
-      ip: '91.134.72.19',
+    '179.108.52.91': {
+      ip: '179.108.52.91',
       hostname: 'VPC Operador nyx_0day',
       hacker_tag: 'nyx_0day',
       reputation: 1450,
@@ -1343,8 +1343,8 @@
       cpuSpec: '2.800 MHz · 80 Mbps · AV v1.5',
       bankBalance: 210
     },
-    '177.84.19.62': {
-      ip: '177.84.19.62',
+    '201.49.118.34': {
+      ip: '201.49.118.34',
       hostname: 'VPC Operador rookie_br',
       hacker_tag: 'rookie_br',
       reputation: 65, // < 100 REP -> Proteção de Iniciante!

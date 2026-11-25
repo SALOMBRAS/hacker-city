@@ -1447,7 +1447,7 @@
     plantFalseFlagOnHost(hostIp, framedTargetIpRaw) {
       this.ensureLoaded();
       if (!hostIp || !window.internetEngine) return { success: false, message: 'Nenhum servidor remoto selecionado.' };
-      const framedIp = String(framedTargetIpRaw || '').trim() || '149.56.28.11';
+      const framedIp = String(framedTargetIpRaw || '').trim() || '186.214.73.49';
       const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '';
       if (framedIp === myIp) {
         return { success: false, message: 'Escolha o IP de outro operador/bot para incriminar, não o seu próprio!' };
