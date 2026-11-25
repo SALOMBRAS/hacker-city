@@ -748,6 +748,7 @@
       this.battleFeed = [];
       this.initialized = false;
       this.lastPlayerHuntAt = 0;
+      this.traceFirstSeenMs = new Map(); // hostIp::myIp -> timestampMs da 1ª detecção na log
       this.startAutonomousLoop();
     }
 
@@ -831,22 +832,56 @@
       }
     }
 
-    // Bots SÓ descobrem o IP do jogador se ele esqueceu o IP gravado dentro do /var/log/syslog de outra máquina/jogador!
-    findPlayerIpInExternalLogs() {
+    markFreshTrace(hostIp, ip) {
+      const targetIp = ip || (window.networkIdentity ? window.networkIdentity.getPublicIp() : '');
+      if (!hostIp || !targetIp) return;
+      this.traceFirstSeenMs.set(`${hostIp}::${targetIp}`, Date.now());
+    }
+
+    clearTraceTimestamp(hostIp, ip) {
+      if (!hostIp) return;
+      if (ip) {
+        this.traceFirstSeenMs.delete(`${hostIp}::${ip}`);
+        return;
+      }
+      const prefix = `${hostIp}::`;
+      for (const k of Array.from(this.traceFirstSeenMs.keys())) {
+        if (k.startsWith(prefix)) this.traceFirstSeenMs.delete(k);
+      }
+    }
+
+    // Bots SÓ descobrem o IP do jogador se ele ESQUECEU o IP gravado dentro do /var/log/syslog de outra máquina por tempo suficiente!
+    // Enquanto o jogador acabou de logar (< 95s) ou ainda está operando dentro do host (até 120s), nenhum bot adivinha/raspa o IP na hora!
+    findPlayerIpInExternalLogs(requireMinAgeMs = 0) {
       if (!window.networkIdentity || !window.botAI || !window.botAI.syslogRegistry) return null;
       const myIp = window.networkIdentity.getPublicIp();
+      const now = Date.now();
+      const activeSshIp = (window.internetEngine && window.internetEngine.activeSshIp) || null;
       const exposedList = [];
+
       for (const [hostIp, lines] of window.botAI.syslogRegistry.entries()) {
         if (!hostIp || hostIp === myIp || hostIp === 'localhost') continue;
+        const key = `${hostIp}::${myIp}`;
         const match = (lines || []).find((l) => String(l).includes(myIp));
-        if (match) {
-          const hMeta = window.internetEngine ? window.internetEngine.resolveHost(hostIp) : null;
-          exposedList.push({
-            hostIp,
-            hostName: (hMeta && hMeta.hostname) || 'Servidor Remoto',
-            matchingLine: match
-          });
+        if (!match) {
+          this.traceFirstSeenMs.delete(key);
+          continue;
         }
+        if (!this.traceFirstSeenMs.has(key)) {
+          this.traceFirstSeenMs.set(key, now);
+        }
+        const ageMs = now - this.traceFirstSeenMs.get(key);
+        if (requireMinAgeMs > 0) {
+          const minRequired = (activeSshIp && activeSshIp === hostIp) ? Math.max(120000, requireMinAgeMs) : requireMinAgeMs;
+          if (ageMs < minRequired) continue;
+        }
+        const hMeta = window.internetEngine ? window.internetEngine.resolveHost(hostIp) : null;
+        exposedList.push({
+          hostIp,
+          hostName: (hMeta && hMeta.hostname) || 'Servidor Remoto',
+          matchingLine: match,
+          ageMs
+        });
       }
       if (exposedList.length === 0) return null;
       return exposedList[Math.floor(Math.random() * exposedList.length)];
@@ -921,10 +956,12 @@
       }
 
       const myIp = window.networkIdentity.getPublicIp();
-      const exposedTrace = this.findPlayerIpInExternalLogs();
+      // Em caçadas autônomas (forceHunt=false), exige que o rastro tenha ficado esquecido por >= 95s (nunca ataca em < 1 min após logar!)
+      const minTraceAgeMs = forceHunt ? 0 : 95000;
+      const exposedTrace = this.findPlayerIpInExternalLogs(minTraceAgeMs);
       const isWanted = window.safenetFbiEngine && (window.safenetFbiEngine.isIpWantedByFbi(myIp) || window.safenetFbiEngine.isIpOnSafenet(myIp));
 
-      // ZERO RADAR MÁGICO: Sem IP exposto em logs de outras máquinas e sem estar na lista pública Safenet/FBI -> NENHUM bot encontra seu IP!
+      // ZERO RADAR MÁGICO: Sem IP esquecido (>95s) em logs externas e sem estar na lista Safenet/FBI -> NENHUM bot encontra seu IP!
       if (!exposedTrace && !isWanted) {
         if (forceHunt && typeof window.showToast === 'function') {
           window.showToast(`Stealth 100%: Nenhum bot encontrou seu IP (${myIp}) porque ele não consta na log de nenhuma máquina externa!`);
@@ -933,22 +970,28 @@
           triggered: false,
           reason: 'NO_EXPOSED_IP_IN_LOGS',
           myIp,
-          message: `Nenhum bot ativo encontrou seu IP (${myIp}): zero rastros em logs de outras máquinas ou jogadores!`
+          message: `Nenhum bot ativo encontrou seu IP (${myIp}): zero rastros esquecidos em logs externas!`
         };
+      }
+
+      // Redução de 10% na inteligência/atenção dos bots hackers em background
+      if (!forceHunt && Math.random() < 0.10) {
+        return { triggered: false, reason: 'BOT_DISTRACTED_10PCT' };
       }
 
       const allBots = Array.from(this.botStats.values());
       let pool = allBots.filter((b) => b.tier >= 2);
       if (options.forceSloppyTier1) {
         pool = allBots.filter((b) => b.tier === 1);
-      } else if (!forceHunt && Math.random() < 0.25) {
+      } else if (!forceHunt && Math.random() < 0.38) {
         pool = allBots;
       }
       const hunter = pool[Math.floor(Math.random() * pool.length)] || allBots[0];
       if (!hunter) return { triggered: false };
 
-      const botCrackerVer = hunter.tier === 3 ? 2.5 : (hunter.tier === 2 ? 1.5 : 1.0);
-      const botExploitVer = hunter.tier === 3 ? 2.5 : (hunter.tier === 2 ? 1.5 : 1.0);
+      // Inteligência ofensiva dos bots hackers reduzida em 10% (2.2 / 1.3 / 0.9)
+      const botCrackerVer = hunter.tier === 3 ? 2.2 : (hunter.tier === 2 ? 1.3 : 0.9);
+      const botExploitVer = hunter.tier === 3 ? 2.2 : (hunter.tier === 2 ? 1.3 : 0.9);
       const defs = this.getPlayerDefensesStrict();
       const triggerCause = exposedTrace
         ? `coletou seu IP [${myIp}] esquecido na log de ${exposedTrace.hostName} [${exposedTrace.hostIp}]`
@@ -1002,7 +1045,7 @@
         ? true
         : (options.forceWipeMode === 'sloppy'
             ? false
-            : (hunter.tier === 3 ? true : (hunter.tier === 2 ? Math.random() < 0.80 : Math.random() < 0.30)));
+            : (hunter.tier === 3 ? Math.random() < 0.90 : (hunter.tier === 2 ? Math.random() < 0.70 : Math.random() < 0.20)));
 
       const visibleOriginLabel = wipesOwnLog ? `RASTRO APAGADO POR ${hunter.handle}` : hunter.ip;
 
@@ -1073,7 +1116,7 @@
       const bvb = this.simulateBotVsBotEvent();
       let hunt = null;
       const now = Date.now();
-      if (manualTrigger || now - this.lastPlayerHuntAt > 25000) {
+      if (manualTrigger || now - this.lastPlayerHuntAt > 75000) {
         this.lastPlayerHuntAt = now;
         hunt = this.attemptBotHuntOnPlayer(false);
       }

@@ -1655,16 +1655,19 @@
           const ddosHealth = window.ddosOverloadEngine ? window.ddosOverloadEngine.getTargetHealthPct(ip) : 100;
           const ddosFwPen = window.ddosOverloadEngine ? window.ddosOverloadEngine.getTargetFirewallPenalty(ip) : 0;
           const hMult = Math.max(0.25, ddosHealth / 100);
-          const cpuMhz = Math.max(200, Math.round((bot.hardware.cpuCores || 1) * (bot.hardware.cpuClock || 1.2) * 550 * hMult));
+          const isLawBot = bot.role === 'policial' || bot.role === 'delegado';
+          const intelMult = isLawBot ? 1.0 : 0.90; // -10% de inteligência nos bots hackers
+          const cpuMhz = Math.max(200, Math.round((bot.hardware.cpuCores || 1) * (bot.hardware.cpuClock || 1.2) * 550 * hMult * intelMult));
           const netMbps = Math.max(1, +( (bot.tier === 3 ? 250 : (bot.tier === 2 ? 35 : 3)) * hMult ).toFixed(1));
           const hddTotalMb = bot.tier === 3 ? 2048 : (bot.tier === 2 ? 520 : 180);
           const ramTotalMb = bot.tier === 3 ? 1024 : (bot.tier === 2 ? 384 : 128);
-          const avVer = bot.tier === 3 ? 2.5 : (bot.tier === 2 ? 1.5 : 1.0);
-          const baseDefVer = bot.tier === 3 ? 2.5 : (bot.tier === 2 ? 1.5 : 1.0);
+          const rawDefVer = isLawBot ? (bot.defVer || 4.0) : (bot.tier === 3 ? 2.5 : (bot.tier === 2 ? 1.5 : 1.0));
+          const avVer = isLawBot ? +rawDefVer.toFixed(1) : (Math.floor(rawDefVer * 9) / 10);
+          const baseDefVer = avVer;
           const dynBotMods = (window.topTenMechanics && typeof window.topTenMechanics.getHostDynamicDefenseModifiers === 'function')
             ? window.topTenMechanics.getHostDynamicDefenseModifiers(bot.ip)
             : { extraFw: 0, extraHasher: 0, cashMult: 1.0 };
-          const effFwVer = Math.max(1.0, +(baseDefVer - ddosFwPen + dynBotMods.extraFw).toFixed(1));
+          const effFwVer = Math.max(0.9, +(baseDefVer - ddosFwPen + dynBotMods.extraFw).toFixed(1));
           const effHasherVer = +(baseDefVer + dynBotMods.extraHasher).toFixed(1);
           const rawBal = bot.bankAccount ? bot.bankAccount.balance : 0;
           const scaledBal = rawBal > 0 ? Math.max(35, Math.round(rawBal * 0.22 * dynBotMods.cashMult)) : 0;
@@ -1831,8 +1834,14 @@
 
     appendServerLog(ip, line) {
       const arr = this.getServerLogs(ip);
-      arr.unshift(`[${new Date().toLocaleTimeString()}] ${line}`);
+      const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '';
+      const strLine = String(line || '');
+      const hadMyIpBefore = myIp ? arr.some((l) => String(l).includes(myIp)) : false;
+      arr.unshift(`[${new Date().toLocaleTimeString()}] ${strLine}`);
       if (arr.length > 50) arr.length = 50;
+      if (myIp && !hadMyIpBefore && strLine.includes(myIp) && window.livingBotsEngine && typeof window.livingBotsEngine.markFreshTrace === 'function') {
+        window.livingBotsEngine.markFreshTrace(ip, myIp);
+      }
       if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
     }
 
@@ -2729,6 +2738,10 @@
 
       if (window.botAI && window.botAI.syslogRegistry) {
         window.botAI.syslogRegistry.set(this.activeSshIp, newLines);
+        const myCurIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '';
+        if (myCurIp && !newLines.some((l) => l.includes(myCurIp)) && window.livingBotsEngine && typeof window.livingBotsEngine.clearTraceTimestamp === 'function') {
+          window.livingBotsEngine.clearTraceTimestamp(this.activeSshIp, myCurIp);
+        }
 
         const pending = window.botAI.pendingAttacks ? window.botAI.pendingAttacks.get(this.activeSshIp) : null;
         if (pending) {
