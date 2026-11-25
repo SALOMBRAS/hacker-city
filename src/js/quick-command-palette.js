@@ -160,6 +160,26 @@
           }
         },
         {
+          id: 'act_checkin',
+          badge: 'Diário',
+          title: '🎁 Abrir Central de Check-in Diário & Metas',
+          sub: 'Resgate os 7 Dias, Metas Sorteadas, Combo 3/3 e Marcos Mensais',
+          tags: 'checkin diario metas recompensas bau 7 dias',
+          run: () => {
+            if (window.dailyCheckinV2) window.dailyCheckinV2.openModal();
+          }
+        },
+        {
+          id: 'act_cross_save',
+          badge: 'Nuvem',
+          title: '☁️ Sincronizar Cross-Save PC ↔ Celular Agora',
+          sub: 'Puxa e salva imediatamente seu progresso unificado na nuvem',
+          tags: 'sincronizar nuvem cloud save pc celular cross',
+          run: () => {
+            if (window.crossSaveEngine) window.crossSaveEngine.syncNowManual();
+          }
+        },
+        {
           id: 'act_fullscreen',
           badge: 'Mobile / App',
           title: '📲 Instalar Aplicativo ou Alternar Tela Cheia',

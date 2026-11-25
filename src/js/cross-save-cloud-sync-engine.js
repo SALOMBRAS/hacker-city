@@ -195,6 +195,36 @@
       return { success: true, mode: pushRes && pushRes.mode ? pushRes.mode : 'synced' };
     }
 
+    renderProfileCrossSaveCard() {
+      const mount = document.getElementById('profileCrossSaveCardMount');
+      if (!mount) return;
+      const isCloud = this.isRealCloudAuthSession();
+      const devLbl = this.getDeviceBadge();
+      const lastSync = (window.onlineEngine && window.onlineEngine.lastSyncedAt) || this.lastReconcileSummary || 'Agora';
+
+      mount.innerHTML = `
+        <div class="hc-card" style="margin-top:12px;border-color:${isCloud ? 'rgba(53,184,119,0.45)' : 'var(--hc-border)'};">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <strong style="font-size:13px;color:#fff;">☁️ Cross-Save Real PC ↔ Celular</strong>
+            <span class="hc-badge ${isCloud ? 'success' : ''}" style="font-size:10.5px;">
+              ${isCloud ? '✓ Conta Nuvem Ativa' : 'Modo 1-Clique Local'} · ${devLbl}
+            </span>
+          </div>
+          <p style="margin:6px 0 8px;font-size:11.8px;color:var(--hc-text-2);line-height:1.4;">
+            ${isCloud
+              ? 'Seu progresso (Carteira, Dinheiro Sujo, Check-in 2.0, Metas, Escudo 24h, Estágios e Lab) sincroniza automaticamente entre PC e Celular com proteção anti-duplicação.'
+              : 'Você está em uma sessão rápida local. Para jogar no PC e continuar no Celular com o mesmo progresso, crie ou entre em uma conta com senha.'}
+          </p>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="font-size:11px;color:var(--hc-text-3);">Última sincronia: <strong style="color:var(--hc-text-2);">${lastSync}</strong></span>
+            <button type="button" id="btnManualCrossSaveSync" class="hc-btn primary sm" onclick="window.crossSaveEngine.syncNowManual()">
+              🔄 Sincronizar Agora (PC ↔ Celular)
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
     bindFocusListeners() {
       const maybeAutoPull = () => {
         if (document.hidden || !this.isRealCloudAuthSession()) return;
