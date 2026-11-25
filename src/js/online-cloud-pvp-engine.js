@@ -64,6 +64,9 @@
       this.livePvpFeed = [];             // histórico de eventos online na sessão
       this.processedPacketIds = new Set();
       this.cloudTablesAvailable = null;  // auto-detectado p/ evitar 404 repetidos
+      this.onlineSortMode = 'bounty';    // 'bounty' | 'rep' | 'alpha' (padrão: quem tem recompensa vai lá pra cima!)
+      this.onlineOnlyWanted = false;
+      this.onlineSearchQuery = '';
       this.initLocalCrossTabBus();
       this.bindLifecycleHooks();
     }
@@ -1923,80 +1926,154 @@
       chip.innerHTML = `<span style="width:6px;height:6px;border-radius:50%;background:${dotColor};display:inline-block;"></span><span>${esc(label)}</span>`;
     }
 
+    setOnlineFilterMode(sortMode, onlyWanted = null) {
+      if (sortMode) this.onlineSortMode = sortMode;
+      if (typeof onlyWanted === 'boolean') this.onlineOnlyWanted = onlyWanted;
+      this.renderOnlineHubUI();
+    }
+
+    setOnlineSearchQuery(q) {
+      this.onlineSearchQuery = String(q || '');
+      this.renderOnlineHubUI();
+    }
+
+    getOperatorHeadBountyUsd(peer) {
+      if (!peer) return 0;
+      const tagLower = String(peer.hackerTag || '').trim().toLowerCase();
+      let total = 0;
+      if (window.safenetFbiEngine && Array.isArray(window.safenetFbiEngine.fbiWantedList)) {
+        window.safenetFbiEngine.fbiWantedList.forEach((w) => {
+          if ((w.handle && String(w.handle).toLowerCase() === tagLower) || (peer.publicIp && w.ip === peer.publicIp)) {
+            total += Number(w.bountyCash || 0);
+          }
+        });
+      }
+      if (window.playerBountyEngine && typeof window.playerBountyEngine.getOpenBounties === 'function') {
+        window.playerBountyEngine.getOpenBounties().forEach((b) => {
+          if (b.targetTag && String(b.targetTag).toLowerCase() === tagLower) {
+            total += Number(b.rewardCash || 0);
+          }
+        });
+      }
+      return Math.round(total);
+    }
+
+    getOperatorStrengthInfo(peer) {
+      const rep = Number((peer && peer.reputation) || 100);
+      const fw = Number((peer && peer.firewallVer) || 1.0);
+      const bs = Number((peer && peer.bestSoftVer) || fw);
+      const lv = Math.max(1, Math.min(10, Math.round((fw + bs) * 0.75 + Math.log10(Math.max(10, rep)) * 1.15 - 1)));
+      const label = lv >= 9 ? 'Lendário' : (lv >= 7 ? 'Elite' : (lv >= 4 ? 'Operacional' : 'Iniciante'));
+      return { level: lv, label: `Força Nv. ${lv} (${label})` };
+    }
+
     renderOnlineHubUI(containerId = 'onlineAppBody') {
       const container = document.getElementById(containerId);
       if (!container) return;
 
       const me = this.buildMyPublicPeerDescriptor();
-      const onlinePlayers = this.getUnifiedOnlinePlayers();
-      const allPlayers = this.getUnifiedPlayerDirectory();
-
+      const rawOnline = this.getUnifiedOnlinePlayers();
       const isPeerShielded = (p) => Boolean((p.newbieShieldUntilMs && p.newbieShieldUntilMs > Date.now()) || (p.newbieProtected && (!p.newbieShieldUntilMs || p.newbieShieldUntilMs > Date.now())));
 
-      const onlineRows = onlinePlayers.map((p) => {
-        const shielded = isPeerShielded(p);
-        return `
-        <div class="online-player-row" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--hc-border);gap:10px;flex-wrap:wrap;font-size:0.83rem;">
-          <div>
-            <span class="hc-badge success" style="margin-right:6px;">● ONLINE · Jogador</span>
-            <strong>${esc(p.hackerTag)}</strong>
-            ${p.clanTag ? `<span class="hc-badge info" style="margin-left:6px;">[${esc(p.clanTag)}]</span>` : ''}
-            ${shielded ? `<span class="hc-badge info" style="margin-left:6px;">🛡️ Escudo 24h</span>` : ''}
-            <code style="color:var(--hc-accent-text);margin-left:8px;">${esc(p.publicIp)}</code>
-            <span style="color:var(--hc-text-3);font-size:0.76rem;margin-left:8px;">
-              ${(p.reputation || 100).toLocaleString('pt-BR')} REP · ${shielded ? 'Protegido (24h)' : `Escudo v${(p.firewallVer || 1).toFixed(1)}`}
-            </span>
-          </div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            <button type="button" class="hc-btn ${shielded ? 'ghost' : 'primary'} sm" onclick="window.internetEngine.openIp('${esc(p.publicIp)}', 'invadir')">${shielded ? '🛡️ Protegido' : 'Invadir PC'}</button>
-            <button type="button" class="hc-btn ghost sm" onclick="window.mailEngine.activeTab='compose';navTo('winMail');setTimeout(()=>{const el=document.getElementById('mailToInput');if(el)el.value='${esc(p.hackerTag)}';},60);">Enviar Mensagem</button>
-          </div>
-        </div>
-      `;
-      }).join('');
+      // Enriquecer operadores online (SEM NUNCA expor IP nem listar jogadores offline!)
+      const enriched = rawOnline.map((p) => {
+        const bountyUsd = this.getOperatorHeadBountyUsd(p);
+        const strength = this.getOperatorStrengthInfo(p);
+        return {
+          ...p,
+          bountyUsd,
+          strengthLevel: strength.level,
+          strengthLabel: strength.label,
+          shielded: isPeerShielded(p)
+        };
+      });
 
-      const directoryRows = allPlayers.slice(0, 28).map((p) => {
-        const shielded = isPeerShielded(p);
-        return `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--hc-border);gap:10px;flex-wrap:wrap;font-size:0.82rem;">
-          <div>
-            <span class="hc-badge ${p.onlineNow ? 'success' : ''}" style="margin-right:6px;">${p.onlineNow ? '● ONLINE' : '○ OFFLINE'}</span>
-            <strong>${esc(p.hackerTag)}</strong>
-            ${p.clanTag ? `<span class="hc-badge info" style="margin-left:6px;">[${esc(p.clanTag)}]</span>` : ''}
-            ${shielded ? `<span class="hc-badge info" style="margin-left:6px;">🛡️ Escudo 24h</span>` : ''}
-            <code style="color:var(--hc-accent-text);margin-left:8px;">${esc(p.publicIp)}</code>
-            <span style="color:var(--hc-text-3);font-size:0.75rem;margin-left:8px;">${(p.reputation || 100).toLocaleString('pt-BR')} REP · ${shielded ? 'Protegido (24h)' : `Cofre v${(p.hasherVer || 1).toFixed(1)}`}</span>
-          </div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${esc(p.publicIp)}')">Abrir PC</button>
-            <button type="button" class="hc-btn ${shielded ? 'ghost' : 'primary'} sm" onclick="window.internetEngine.openIp('${esc(p.publicIp)}', 'invadir')">${shielded ? '🛡️ Protegido' : 'Invadir PC'}</button>
-          </div>
-        </div>
-      `;
-      }).join('');
+      const q = (this.onlineSearchQuery || '').trim().toLowerCase();
+      let visibleList = enriched.filter((p) => {
+        if (this.onlineOnlyWanted && p.bountyUsd <= 0) return false;
+        if (!q) return true;
+        return String(p.hackerTag || '').toLowerCase().includes(q) ||
+               String(p.clanTag || '').toLowerCase().includes(q);
+      });
 
-      const feedRows = this.livePvpFeed.length === 0
-        ? `<div style="color:var(--hc-text-3);font-size:0.8rem;padding:8px 0;">Nenhuma invasão ou mensagem registrada nesta sessão ainda.</div>`
-        : this.livePvpFeed.slice(0, 10).map((f) => `
-            <div style="padding:6px 0;border-bottom:1px solid var(--hc-border);font-family:var(--hc-font-mono);font-size:0.77rem;">
-              <span style="color:var(--hc-text-3);">[${esc(f.at)}]</span>
-              <span class="hc-badge ${f.dir === 'IN' ? 'danger' : 'info'}" style="margin:0 6px;">${f.dir === 'IN' ? 'RECEBIDO' : 'ENVIADO'}</span>
-              <span>${esc(f.summary)}</span>
-            </div>
-          `).join('');
+      // Ordenação conforme filtro selecionado (padrão 'bounty': quem tem recompensa por cabeça vai lá pra cima!)
+      visibleList.sort((a, b) => {
+        if (this.onlineSortMode === 'alpha') {
+          return String(a.hackerTag || '').localeCompare(String(b.hackerTag || ''), 'pt-BR', { sensitivity: 'base' });
+        }
+        if (this.onlineSortMode === 'rep') {
+          if ((b.reputation || 0) !== (a.reputation || 0)) return (b.reputation || 0) - (a.reputation || 0);
+          return (b.bountyUsd || 0) - (a.bountyUsd || 0);
+        }
+        // 'bounty' (Padrão): quem tem recompensa vai pro topo, maior recompensa primeiro, depois reputação!
+        if ((b.bountyUsd > 0) !== (a.bountyUsd > 0)) return b.bountyUsd > 0 ? 1 : -1;
+        if (b.bountyUsd !== a.bountyUsd) return b.bountyUsd - a.bountyUsd;
+        return (b.reputation || 0) - (a.reputation || 0);
+      });
+
+      const wantedOnlineCount = enriched.filter((p) => p.bountyUsd > 0).length;
+      const policeOnlineCount = enriched.filter((p) => p.role === 'policial' || p.role === 'delegado').length;
+
+      const onlineRows = visibleList.length === 0
+        ? `<div style="padding:24px 16px;text-align:center;color:var(--hc-text-3);font-size:0.84rem;">Nenhum operador online encontrado com esse filtro agora.</div>`
+        : visibleList.map((p) => {
+            const roleBadge = p.role === 'delegado'
+              ? `<span class="hc-badge danger" style="margin-right:6px;">⭐ DELEGADO</span>`
+              : (p.role === 'policial'
+                  ? `<span class="hc-badge warning" style="margin-right:6px;">🚔 POLICIAL</span>`
+                  : `<span class="hc-badge success" style="margin-right:6px;">● ONLINE</span>`);
+
+            const clanHtml = p.clanTag
+              ? `<span class="hc-badge info" style="margin-left:6px;">Clã [${esc(p.clanTag)}]</span>`
+              : `<span style="color:var(--hc-text-3);font-size:0.75rem;margin-left:6px;">Sem clã</span>`;
+
+            const bountyHtml = p.bountyUsd > 0
+              ? `<span class="hc-badge danger" style="margin-left:8px;font-family:var(--hc-font-mono);">🎯 Recompensa: $ ${p.bountyUsd.toLocaleString('pt-BR')} HC</span>`
+              : '';
+
+            return `
+              <div class="online-player-row" style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:1px solid var(--hc-border);gap:10px;flex-wrap:wrap;font-size:0.83rem;background:${p.bountyUsd > 0 ? 'rgba(220,38,38,0.06)' : 'transparent'};">
+                <div style="display:flex;flex-direction:column;gap:4px;min-width:220px;">
+                  <div style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;">
+                    ${roleBadge}
+                    <strong style="font-size:0.9rem;color:var(--hc-text);">@${esc(p.hackerTag)}</strong>
+                    ${clanHtml}
+                    ${p.shielded ? `<span class="hc-badge info" style="margin-left:6px;">🛡️ Escudo 24h</span>` : ''}
+                    ${bountyHtml}
+                  </div>
+                  <div style="color:var(--hc-text-2);font-size:0.77rem;display:flex;gap:12px;flex-wrap:wrap;font-family:var(--hc-font-mono);">
+                    <span>🏆 <strong>${(p.reputation || 100).toLocaleString('pt-BR')} REP</strong></span>
+                    <span>⚡ ${esc(p.strengthLabel)}</span>
+                  </div>
+                </div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <button type="button" class="hc-btn primary sm" onclick="if(window.darknetSocialEngine) window.darknetSocialEngine.openAuthorPublications('${esc(p.hackerTag)}')">
+                    Ver Publicações
+                  </button>
+                  <button type="button" class="hc-btn ghost sm" onclick="window.mailEngine.activeTab='compose';navTo('winMail');setTimeout(()=>{const el=document.getElementById('mailToInput');if(el)el.value='${esc(p.hackerTag)}';},60);">
+                    Enviar Mensagem
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+      const myBlurredIp = (window.networkIdentity && typeof window.networkIdentity.renderBlurredMyIpHtml === 'function')
+        ? window.networkIdentity.renderBlurredMyIpHtml(me.publicIp)
+        : esc(me.publicIp);
 
       container.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:14px;">
-          <!-- Card de Status Cloud Save + Presença -->
-          <div class="hc-card" style="padding:1.15rem;border-color:rgba(53,184,119,0.4);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+          <!-- Card de Status Cloud Save (Sem expor IPs de terceiros!) -->
+          <div class="hc-card" style="padding:1.05rem 1.2rem;border-color:rgba(53,184,119,0.4);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
             <div>
-              <div class="hc-eyebrow">Save Automático Anti-F5 &amp; Nuvem (Zero Perda de Dados)</div>
-              <h3 style="font-size:1.05rem;margin:4px 0;">
-                Seu IP Atual: <code style="color:var(--hc-accent-text);">${esc(me.publicIp)}</code> ·
-                Estado do Save: <strong style="color:var(--hc-accent-text);">${this.syncStatus === 'synced' ? 'Nuvem + Navegador Sincronizados' : 'Salvo Instantaneamente (Anti-F5)'}</strong>
+              <div class="hc-eyebrow">Lobby em Tempo Real · Zero Vazamento de IP</div>
+              <h3 style="font-size:1rem;margin:4px 0;">
+                Seu IP Protegido: <span style="color:var(--hc-accent-text);">${myBlurredIp}</span> ·
+                Save: <strong style="color:var(--hc-accent-text);">${this.syncStatus === 'synced' ? 'Nuvem + Local Sincronizados' : 'Salvo Instantaneamente'}</strong>
               </h3>
-              <div style="font-size:0.8rem;color:var(--hc-text-2);">
-                Tudo salvo em tempo real (dinheiro, BTC, peças, programas ativos, carência, vírus, senhas descobertas, logs/farpas e missões) · Último save: ${esc(this.lastSyncedAt || 'agora')}
+              <div style="font-size:0.79rem;color:var(--hc-text-2);">
+                Os IPs das máquinas são secretos — encontre pistas em logs de servidores invadidos, contratos ou desmascarando dossiês no FBI.
               </div>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -2007,28 +2084,35 @@
             </div>
           </div>
 
-          <!-- Jogadores Online Agora (Humanos + IA unificados como Jogadores!) -->
+          <!-- Barra de Filtros & Ordenação -->
+          <div class="hc-card" style="padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+              <span style="font-size:0.76rem;color:var(--hc-text-3);font-weight:700;text-transform:uppercase;margin-right:4px;">Ordenar / Filtrar:</span>
+              <button type="button" id="btnOnlineSortBounty" class="hc-btn ${this.onlineSortMode === 'bounty' ? 'primary' : 'ghost'} sm" onclick="window.onlineEngine.setOnlineFilterMode('bounty')">
+                🎯 Recompensa (${wantedOnlineCount})
+              </button>
+              <button type="button" id="btnOnlineSortRep" class="hc-btn ${this.onlineSortMode === 'rep' ? 'primary' : 'ghost'} sm" onclick="window.onlineEngine.setOnlineFilterMode('rep')">
+                🏆 Nível de Reputação
+              </button>
+              <button type="button" id="btnOnlineSortAlpha" class="hc-btn ${this.onlineSortMode === 'alpha' ? 'primary' : 'ghost'} sm" onclick="window.onlineEngine.setOnlineFilterMode('alpha')">
+                🔤 Ordem Alfabética
+              </button>
+              <button type="button" id="btnOnlineToggleOnlyWanted" class="hc-btn ${this.onlineOnlyWanted ? 'primary' : 'ghost'} sm" onclick="window.onlineEngine.setOnlineFilterMode(null, !window.onlineEngine.onlineOnlyWanted)">
+                ${this.onlineOnlyWanted ? '✓ Só Procurados' : 'Só com Recompensa'}
+              </button>
+            </div>
+            <input type="search" id="onlineSearchInput" class="form-input" style="width:210px;font-size:0.8rem;padding:6px 10px;"
+              placeholder="Buscar @nick ou [CLÃ]..." value="${esc(this.onlineSearchQuery)}"
+              oninput="window.onlineEngine.setOnlineSearchQuery(this.value)">
+          </div>
+
+          <!-- Lista Exclusiva de Operadores Online Agora -->
           <div class="hc-card" id="onlinePlayersLiveCard" style="padding:0;overflow:hidden;">
             <div style="padding:11px 14px;border-bottom:1px solid var(--hc-border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-              <strong style="font-size:0.9rem;">🟢 Jogadores Online Agora (${onlinePlayers.length + 1} conectados na rede)</strong>
-              <span class="hc-badge success">Servidor Online Ao Vivo</span>
+              <strong style="font-size:0.9rem;">🟢 Operadores Online Agora (${rawOnline.length + 1} conectados · ${policeOnlineCount} autoridades em ronda)</strong>
+              <span class="hc-badge success">Rotação Orgânica 10m</span>
             </div>
             ${onlineRows}
-          </div>
-
-          <!-- Todos os Jogadores do Servidor -->
-          <div class="hc-card" id="onlinePlayersDirectoryCard" style="padding:0;overflow:hidden;">
-            <div style="padding:11px 14px;border-bottom:1px solid var(--hc-border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-              <strong style="font-size:0.9rem;">🌐 Todos os Jogadores Registrados (${allPlayers.length} operadores)</strong>
-              <span style="font-size:0.75rem;color:var(--hc-text-3);font-family:var(--hc-font-mono);">Online &amp; Offline</span>
-            </div>
-            ${directoryRows}
-          </div>
-
-          <!-- Telemetria de Pacotes PvP & Mail -->
-          <div class="hc-card" style="padding:1rem 1.15rem;">
-            <div class="hc-eyebrow" style="margin-bottom:6px;">Histórico de Invasões, Farpas em Logs &amp; Mensagens entre Jogadores</div>
-            ${feedRows}
           </div>
         </div>
       `;
