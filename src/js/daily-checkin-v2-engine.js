@@ -352,6 +352,9 @@
       }
       modal.style.display = 'flex';
       this.renderModalBody();
+      if (window.crossSaveEngine && typeof window.crossSaveEngine.pullAndReconcileFromCloud === 'function') {
+        window.crossSaveEngine.pullAndReconcileFromCloud(true);
+      }
     }
 
     closeModal() {
