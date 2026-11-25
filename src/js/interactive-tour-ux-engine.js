@@ -136,7 +136,8 @@
           }
           #hcTourPointerPill {
             position: absolute;
-            top: -28px;
+            top: auto;
+            bottom: -30px;
             left: 0;
             background: #35b877;
             color: #06130d;
@@ -148,9 +149,9 @@
             white-space: nowrap;
             box-shadow: 0 4px 14px rgba(0,0,0,0.55);
           }
-          #hcTourPointerPill.below {
-            top: auto;
-            bottom: -28px;
+          #hcTourPointerPill.above {
+            bottom: auto;
+            top: -30px;
           }
           #hcTourCard {
             position: fixed;
@@ -531,10 +532,12 @@
       if (!ring) return;
       ring.classList.add('nudge');
       if (pill) {
-        const prev = pill.textContent;
-        pill.textContent = '👆 Clique aqui dentro da luz!';
+        this._nudgingPill = true;
+        const isAbove = pill.classList.contains('above');
+        pill.textContent = isAbove ? '👇 Clique aqui dentro da luz!' : '👆 Clique aqui dentro da luz!';
         setTimeout(() => {
-          if (this.isActive) pill.textContent = prev;
+          this._nudgingPill = false;
+          if (this.isActive) this.repositionCurrentStep(true);
         }, 1100);
       }
       setTimeout(() => ring.classList.remove('nudge'), 450);
@@ -1046,7 +1049,8 @@
       const step = this.steps[this.stepIndex];
       if (!step) return;
       const target = this.resolveTargetElement(step);
-      const hitTarget = Boolean(target && target.contains(ev.target));
+      const extraSoftHit = step.id === 'running_ram_cooldown' && Boolean(ev.target.closest('#softwareExplorerMain'));
+      const hitTarget = Boolean((target && target.contains(ev.target)) || extraSoftHit);
 
       if (!step.requiresDirectClick) {
         if (hitTarget) {
@@ -1317,6 +1321,11 @@
       if (typeof step.onEnter === 'function') {
         step.onEnter();
       }
+      // Garante que nenhum submenu lateral fique esquecido aberto por cima da tela quando o passo não aponta para um subitem!
+      if (step.id !== 'open_software' && step.id !== 'open_browser') {
+        document.querySelectorAll('details.nav-topic[open]').forEach((d) => { d.open = false; });
+      }
+      this._lastCardLayoutKey = '';
       this._stepEnteredAt = Date.now();
       this._stepBaseline = this.readGameStepSignals();
 
@@ -1345,7 +1354,9 @@
         }).join('');
       }
 
-      this.repositionCurrentStep();
+      const cardEl = document.getElementById('hcTourCard');
+      if (cardEl) cardEl.scrollTop = 0;
+      this.repositionCurrentStep(true);
       requestAnimationFrame(() => {
         const target = this.resolveTargetElement(step);
         if (target) {
@@ -1354,13 +1365,19 @@
           } catch (e) {}
           this.bindDirectTargetInteraction(step, target);
         }
-        this.repositionCurrentStep();
+        this.repositionCurrentStep(true);
       });
     }
 
     resolveTargetElement(step) {
       if (!step) return null;
       const isCompact = window.innerWidth <= 860 || window.innerHeight <= 600;
+      if (step.id === 'running_ram_cooldown') {
+        const tabsBar = isCompact
+          ? (document.querySelector('#softwareExplorerMain .soft-tab-btn.active') || document.querySelector('#softwareExplorerMain .soft-tabs-bar'))
+          : document.querySelector('#softwareExplorerMain .soft-tabs-bar');
+        if (tabsBar && tabsBar.offsetWidth > 0) return tabsBar;
+      }
       if (step.id === 'choose_minipc_hash') {
         if (window.internetEngine && window.internetEngine.isCracking) {
           return document.getElementById('cardAttackBruteforce') || document.querySelector(step.selector);
@@ -1371,10 +1388,6 @@
         }
       }
       if (isCompact) {
-        if (step.id === 'running_ram_cooldown') {
-          const compactRam = document.querySelector('#softwareExplorerMain .soft-tab-btn.active') || document.querySelector('#softwareExplorerMain .soft-tabs-bar') || document.getElementById('runningProgramsPanel');
-          if (compactRam && compactRam.offsetWidth > 0) return compactRam;
-        }
         if (step.id === 'upload_virus_stage') {
           const upBtn = document.getElementById('btnUploadVirusStage') || document.getElementById('btnDeployRemoteVirus');
           if (upBtn && upBtn.offsetWidth > 0) return upBtn;
@@ -1402,7 +1415,7 @@
       this.boundClickHandler = null;
     }
 
-    repositionCurrentStep() {
+    repositionCurrentStep(forceCardMeasure = false) {
       const step = this.steps[this.stepIndex];
       if (!step) return;
 
@@ -1474,6 +1487,8 @@
         mRight.style.height = Math.max(0, hole.height) + 'px';
       }
 
+      // Pílula fica EMBAIXO apontando p/ CIMA (👆); só sobe p/ cima com 👇 se o alvo estiver colado no rodapé!
+      const putPillAbove = hole.bottom > vh - 38;
       if (ring) {
         if (hole.width > 0 && hole.height > 0) {
           ring.style.display = 'block';
@@ -1482,7 +1497,13 @@
           ring.style.width = hole.width + 'px';
           ring.style.height = hole.height + 'px';
           if (pill) {
-            pill.classList.toggle('below', hole.top < 36);
+            pill.classList.toggle('above', putPillAbove);
+            if (!this._nudgingPill) {
+              const baseLabel = step.pointerLabel || '👆 Clique aqui';
+              pill.textContent = putPillAbove
+                ? baseLabel.replace(/👆/g, '👇')
+                : baseLabel.replace(/👇/g, '👆');
+            }
             if (hole.left > vw * 0.45) {
               pill.style.left = 'auto';
               pill.style.right = '0px';
@@ -1497,12 +1518,20 @@
       }
 
       if (card) {
+        // Evita recalcular/zerar maxHeight a cada 140ms quando nada mudou (impede o scroll do card de pular pro início!)
+        const layoutKey = `${this.stepIndex}|${vw}x${vh}|${hole.top},${hole.left},${hole.width},${hole.height}`;
+        if (!forceCardMeasure && layoutKey === this._lastCardLayoutKey) {
+          return;
+        }
+        this._lastCardLayoutKey = layoutKey;
+
+        const savedScrollTop = card.scrollTop;
         card.style.maxHeight = '';
         const cw = card.offsetWidth || 405;
         const ch = card.offsetHeight || 205;
         const gap = 16;
-        const bottomGap = hole.top < 36 ? 38 : gap;
-        const topGap = 36;
+        const bottomGap = putPillAbove ? gap : 38;
+        const topGap = putPillAbove ? 38 : gap;
         const margin = 12;
 
         const spaceRight = vw - hole.right - gap - margin;
@@ -1557,6 +1586,9 @@
 
         card.style.left = Math.round(left) + 'px';
         card.style.top = Math.round(top) + 'px';
+        if (savedScrollTop > 0) {
+          card.scrollTop = savedScrollTop;
+        }
       }
     }
 

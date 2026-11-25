@@ -228,7 +228,74 @@ const IMG_DIR = path.resolve(__dirname, '../../reports/anti-ip-leak-mundo-vivo-d
     assert(!resetAudit.hdbIps.includes('10.110.1.18') && resetAudit.hdbIps.includes('203.17.88.40'), 'IPs antigos de bots devem ser limpos do Hacked DB');
     assert.strictEqual(resetAudit.strikes, 0, 'Zero strikes do IntegrityGuard');
 
-    console.log('✅ SUÍTE ANTI-IP-LEAK, BOTS BR 10M, DASHBOARD ONLINE & RESET REAL 100% APROVADA!', JSON.stringify({
+    // 6. Validar Pílula "👆 Clique aqui" ABAIXO do alvo, Passo 4 c/ menu fechado e sem reset de scroll, e Lavagem sem "(Bot)"
+    const UX_DIR = path.resolve(__dirname, '../../reports/correcoes-pilula-scroll-menu-e-lavagem-sem-bot/images');
+    fs.mkdirSync(UX_DIR, { recursive: true });
+
+    const step3PillCheck = await page.evaluate(() => {
+      window.DISABLE_AUTO_TOUR = false;
+      localStorage.removeItem('HC_DISABLE_AUTO_TOUR');
+      window.spotlightTour.start(true);
+      const openSoftIdx = window.spotlightTour.steps.findIndex((s) => s.id === 'open_software');
+      window.spotlightTour.goToStep(openSoftIdx >= 0 ? openSoftIdx : 1);
+      window.spotlightTour.repositionCurrentStep(true);
+      const rr = document.getElementById('hcTourRing').getBoundingClientRect();
+      const pr = document.getElementById('hcTourPointerPill').getBoundingClientRect();
+      const pillText = document.getElementById('hcTourPointerPill').innerText;
+      return {
+        pillBelowTarget: pr.top >= rr.bottom - 4,
+        pointsUp: pillText.includes('👆')
+      };
+    });
+    assert.strictEqual(step3PillCheck.pillBelowTarget, true, 'Pílula Clique aqui deve ficar ABAIXO do alvo iluminado');
+    assert.strictEqual(step3PillCheck.pointsUp, true, 'Pílula abaixo do alvo deve ter mão apontando para cima (👆)');
+    await new Promise((r) => setTimeout(r, 180));
+    await page.screenshot({ path: path.join(UX_DIR, '01-pilula-clique-aqui-abaixo-apontando-pra-cima.png') });
+
+    const step4Check = await page.evaluate(async () => {
+      const ramIdx = window.spotlightTour.steps.findIndex((s) => s.id === 'running_ram_cooldown');
+      window.spotlightTour.goToStep(ramIdx >= 0 ? ramIdx : 2);
+      await new Promise((r) => setTimeout(r, 200));
+      const openMenusOnStep4 = document.querySelectorAll('details.nav-topic[open]').length;
+      const card = document.getElementById('hcTourCard');
+      const nextBtn = document.getElementById('btnTourNext');
+      const cr = card.getBoundingClientRect();
+      const br = nextBtn.getBoundingClientRect();
+      const nextVisibleWithoutScroll = br.bottom <= cr.bottom + 2 && br.top >= cr.top - 2;
+
+      // Simular caixa com scroll e esperar 360ms (2+ ciclos de trackTimer) para garantir que scrollTop NÃO volta p/ 0!
+      card.style.maxHeight = '130px';
+      card.scrollTop = 45;
+      await new Promise((r) => setTimeout(r, 360));
+      const scrollPreserved = card.scrollTop > 20;
+      card.style.maxHeight = '';
+      window.spotlightTour.repositionCurrentStep(true);
+      return { openMenusOnStep4, nextVisibleWithoutScroll, scrollPreserved };
+    });
+    assert.strictEqual(step4Check.openMenusOnStep4, 0, 'Submenu lateral deve fechar sozinho ao entrar no Passo 4');
+    assert.strictEqual(step4Check.nextVisibleWithoutScroll, true, 'Botão Avançar no Passo 4 deve aparecer inteiro sem precisar scrollar no Desktop');
+    assert.strictEqual(step4Check.scrollPreserved, true, 'Scroll do card do tutorial NÃO pode voltar pro início sozinho');
+    await page.screenshot({ path: path.join(UX_DIR, '02-passo4-menu-fechado-e-card-inteiro-sem-bug-scroll.png') });
+
+    const launderCheck = await page.evaluate(async () => {
+      window.spotlightTour.finishTour(true);
+      await window.enterInstantOperatorMode('operador_vitrine');
+      window.spotlightTour.finishTour(true);
+      window.nineSystemsEngine.addDirtyMoney(1200, 'Teste Vitrine');
+      window.navTo('winLaundering');
+      window.nineSystemsEngine.renderLaunderingHub('launderingAppBody');
+      const txt = document.getElementById('launderingAppBody')?.innerText || '';
+      return {
+        hasDonoLabel: txt.includes('Dono:'),
+        hasBotWord: /\(\s*Bot\s*\)/i.test(txt) || /Bots completando/i.test(txt)
+      };
+    });
+    assert.strictEqual(launderCheck.hasDonoLabel, true, 'Vitrine de Lavagem deve exibir Dono: <nome>');
+    assert.strictEqual(launderCheck.hasBotWord, false, 'Vitrine de Lavagem NÃO deve mencionar (Bot) nem Bots');
+    await new Promise((r) => setTimeout(r, 180));
+    await page.screenshot({ path: path.join(UX_DIR, '03-vitrine-lavagem-apenas-nome-do-dono-sem-bot.png') });
+
+    console.log('✅ SUÍTE ANTI-IP-LEAK, BOTS BR 10M, DASHBOARD ONLINE & CORREÇÕES UX 100% APROVADA!', JSON.stringify({
       dayBotsCount: worldAudit.dayBotsCount,
       policeCount: worldAudit.policeCount,
       delegateCount: worldAudit.delegateCount,

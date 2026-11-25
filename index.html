@@ -966,7 +966,7 @@
       <div class="window-header">
         <div>
           <div class="window-title">Polícia, FBI & Mundo Vivo</div>
-          <p class="page-sub">Mira da Safenet, Lista Pública de Procurados do FBI com recompensas por DDoS e Bots Online jogando e se caçando em tempo real.</p>
+          <p class="page-sub">Mira da Safenet, Lista Pública de Procurados do FBI e recompensas em tempo real.</p>
         </div>
       </div>
       <div class="window-body" id="fbiAppBody"></div>
@@ -2884,21 +2884,9 @@
         } else {
           hackNetworkTarget(ip);
         }
-      } else if (cmd === 'bots') {
-        const tierFilter = parts[1] ? parseInt(parts[1]) : 0;
-        if (window.botScheduler) {
-          const dayBots = window.botScheduler.getCurrentDayBots();
-          appendCli('=== REDE DETERMINÍSTICA DE BOTS (ROTAÇÃO DIÁRIA: 30 BOTS) ===', 'var(--hc-accent-text)');
-          appendCli('HANDLE              TIER         IP REMOTO        HARDWARE / SO          STATUS', 'var(--hc-text-2)');
-          dayBots.forEach(b => {
-            if (tierFilter && b.tier !== tierFilter) return;
-            const isOnline = window.botScheduler.isBotOnline(b.ip);
-            const statusTxt = isOnline ? '[ONLINE]' : '[OFFLINE]';
-            const statusColor = isOnline ? 'var(--hc-success)' : 'var(--hc-text-3)';
-            appendCli(`${b.handle.padEnd(19)} ${b.tierName.padEnd(12)} ${b.ip.padEnd(16)} ${(b.hardware.cpuCores + 'c @ ' + b.hardware.cpuClock + 'GHz').padEnd(22)} ${statusTxt}`, statusColor);
-          });
-          appendCli("Dica: Para invadir com traceback ativo, use 'crack <ip>' ou abra o HC Cracker.", 'var(--hc-warning)');
-        }
+      } else if (cmd === 'bots' || cmd === 'online') {
+        navTo('winOnline');
+        appendCli('Abrindo Painel de Operadores Online (os IPs das máquinas são sigilosos — cace pistas em logs remotos!).', 'var(--hc-accent-text)');
       } else if (cmd === 'crack') {
         const ip = parts[1];
         openWindow('winCracker');
