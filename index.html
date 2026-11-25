@@ -269,7 +269,7 @@
         <button type="button" class="nav-item" id="navBtnHome" data-win="winHome" onclick="navTo('winHome')" title="Painel de operações">
           <i data-icon="layout-dashboard"></i><span class="nav-direct-label">Início</span>
         </button>
-        <button type="button" class="nav-quick-btn" data-win="winBrowser" onclick="navTo('winBrowser')" title="Internet &amp; IPs">
+        <button type="button" class="nav-quick-btn" id="navQuickBtnBrowser" data-win="winBrowser" onclick="navTo('winBrowser')" title="Internet &amp; IPs">
           <i data-icon="globe"></i><span class="nav-direct-label">Internet</span>
         </button>
         <button type="button" class="nav-quick-btn" data-win="winTaskManager" onclick="navTo('winTaskManager')" title="Fila de Ações">
@@ -3590,7 +3590,7 @@
             <button type="button" id="btnHomeStartTour" class="hc-btn ghost" style="border-color: var(--hc-border);" onclick="if(window.spotlightTour) window.spotlightTour.start(true);">
               ${HC.icon('help-circle')} Tour Guiado
             </button>
-            <button type="button" class="hc-btn ${(!window.progressiveUnlockEngine || window.progressiveUnlockEngine.isUnlocked('winOpsHub')) ? '' : 'primary'}" onclick="navTo('winBrowser')">
+            <button type="button" id="btnHomeOpenInternet" class="hc-btn ${(!window.progressiveUnlockEngine || window.progressiveUnlockEngine.isUnlocked('winOpsHub')) ? '' : 'primary'}" onclick="navTo('winBrowser')">
               ${HC.icon('globe')} Abrir Internet
             </button>
           </div>
@@ -3660,7 +3660,7 @@
                   <div style="font-size: 13.5px; font-weight: 600; margin-top: 2px;">${escapeHtml(step.status)}</div>
                 </div>
               </div>
-              <button type="button" class="hc-btn primary" onclick="${step.customOnclick ? step.customOnclick : `navTo('${step.go}')`}">
+              <button type="button" id="btnHomePrimaryStepCta" class="hc-btn primary" onclick="${step.customOnclick ? step.customOnclick : `navTo('${step.go}')`}">
                 ${escapeHtml(step.cta)} ${HC.icon('arrow-right')}
               </button>
             </div>

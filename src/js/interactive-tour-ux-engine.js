@@ -110,8 +110,9 @@
           }
           .hc-tour-mask {
             position: fixed;
-            background: rgba(5, 8, 13, 0.82);
-            backdrop-filter: blur(1.5px);
+            background: rgba(6, 10, 16, 0.36);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
             pointer-events: auto;
             transition: top .18s ease, left .18s ease, width .18s ease, height .18s ease;
           }
@@ -119,9 +120,9 @@
             position: fixed;
             z-index: 9402;
             pointer-events: none;
-            border: 2px solid #35b877;
+            border: 2.5px solid #35b877;
             border-radius: 10px;
-            box-shadow: 0 0 0 4px rgba(53, 184, 119, 0.24), 0 0 28px rgba(53, 184, 119, 0.55);
+            box-shadow: 0 0 0 5px rgba(53, 184, 119, 0.28), 0 0 30px rgba(53, 184, 119, 0.65), inset 0 0 18px rgba(53, 184, 119, 0.14);
             transition: top .18s ease, left .18s ease, width .18s ease, height .18s ease, transform .18s ease;
             animation: hcTourPulse 1.6s infinite ease-in-out;
           }
