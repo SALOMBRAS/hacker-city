@@ -1046,9 +1046,11 @@
         }
       }
 
-      // Escolher o snapshot mais recente entre Local e Nuvem!
+      // Reconciliar Local e Nuvem com união monotônica anti-duplicação (PC <-> Celular)!
       let winner = localSnap;
-      if (cloudSnap && (!localSnap || (cloudSnap.savedAt || 0) > (localSnap.savedAt || 0))) {
+      if (window.crossSaveEngine && typeof window.crossSaveEngine.mergeSnapshotsAntiDupe === 'function') {
+        winner = window.crossSaveEngine.mergeSnapshotsAntiDupe(localSnap, cloudSnap);
+      } else if (cloudSnap && (!localSnap || (cloudSnap.savedAt || 0) > (localSnap.savedAt || 0))) {
         winner = cloudSnap;
       }
 
