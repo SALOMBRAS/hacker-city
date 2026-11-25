@@ -480,8 +480,8 @@
               <div class="hc-stat-value" style="font-family:var(--hc-font-mono);color:var(--hc-accent-text);">${window.ddosOverloadEngine ? window.ddosOverloadEngine.getPlayerTotalDdosGbps() : myGbps} Gbps</div>
             </div>
             <div class="hc-card" style="padding:0.95rem 1.1rem;">
-              <div class="hc-stat-label">Jogadores &amp; Bots Ativos</div>
-              <div class="hc-stat-value">${window.livingBotsEngine ? window.livingBotsEngine.getOnlineBotsCount() : 30}</div>
+              <div class="hc-stat-label">Operadores Ativos</div>
+              <div class="hc-stat-value">${window.livingBotsEngine ? window.livingBotsEngine.getOnlineBotsCount() : 24}</div>
             </div>
           </div>
 
@@ -497,11 +497,11 @@
                 Mira da Safenet (${this.safenetList.length})
               </button>
               <button type="button" id="tabLiveBotsWorld" class="hc-btn sm ${this.activeTab === 'liveworld' ? 'primary' : 'ghost'}" onclick="window.safenetFbiEngine.activeTab='liveworld';window.safenetFbiEngine.renderUI();">
-                Bots Online, Caçadas &amp; Ranking Vivo
+                Movimentação &amp; Ranking Vivo
               </button>
             </div>
             <button type="button" id="btnTriggerWorldStep" class="hc-btn ghost sm" onclick="window.livingBotsEngine.simulateWorldStep(true)">
-              Simular Rodada de Bots Agora ↻
+              Atualizar Radar Agora ↻
             </button>
           </div>
 

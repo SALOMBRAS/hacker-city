@@ -71,25 +71,25 @@
     }
   };
 
-  // Pool de 15 Empresas de Bots para completar a rotação de 5 empresas a cada 1 hora real!
+  // Pool de 15 Empresas de Operadores da Rede para manter 5 opções ativas a cada 1 hora real!
   const SEEDED_BOT_COMPANIES = [
-    { id: 'bot_co_01', name: 'Lavanderia Brilho Rápido', ownerTag: 'Kuro_Phantom', isBot: true, tier: 1, feePct: 18 },
-    { id: 'bot_co_02', name: 'Auto Posto & Conveniência Sul', ownerTag: 'NullByte_BR', isBot: true, tier: 1, feePct: 20 },
+    { id: 'bot_co_01', name: 'Lavanderia Brilho Rápido', ownerTag: 'sombra_sp', isBot: true, tier: 1, feePct: 18 },
+    { id: 'bot_co_02', name: 'Auto Posto & Conveniência Sul', ownerTag: 'vitinladrão', isBot: true, tier: 1, feePct: 20 },
     { id: 'bot_co_03', name: 'Boate Eclipse Lounge VIP', ownerTag: 'm4riposa', isBot: true, tier: 2, feePct: 22 },
-    { id: 'bot_co_04', name: 'Exportadora Atlântico Cargo', ownerTag: 'ZeroDay_Valkyrie', isBot: true, tier: 3, feePct: 28 },
-    { id: 'bot_co_05', name: 'Holding Tubarão Cinza S.A.', ownerTag: 'Apex_Shadow', isBot: true, tier: 3, feePct: 45 },
+    { id: 'bot_co_04', name: 'Exportadora Atlântico Cargo', ownerTag: 'barao_offshore', isBot: true, tier: 3, feePct: 28 },
+    { id: 'bot_co_05', name: 'Holding Tubarão Cinza S.A.', ownerTag: 'tubarao_b3', isBot: true, tier: 3, feePct: 45 },
 
-    { id: 'bot_co_06', name: 'Estacionamento 24h Centro', ownerTag: 'ByteRunner_27', isBot: true, tier: 1, feePct: 17 },
-    { id: 'bot_co_07', name: 'Lan House Cyber Arena', ownerTag: 'Ghost_Viper', isBot: true, tier: 1, feePct: 21 },
+    { id: 'bot_co_06', name: 'Estacionamento 24h Centro', ownerTag: 'josenacimento', isBot: true, tier: 1, feePct: 17 },
+    { id: 'bot_co_07', name: 'Lan House Cyber Arena', ownerTag: 'hackerbr', isBot: true, tier: 1, feePct: 21 },
     { id: 'bot_co_08', name: 'Frota Rápida Expresso', ownerTag: 'nyx_0day', isBot: true, tier: 2, feePct: 24 },
-    { id: 'bot_co_09', name: 'Cassino Marítimo Internacional', ownerTag: 'Cipher_King', isBot: true, tier: 3, feePct: 31 },
-    { id: 'bot_co_10', name: 'Fundo Cartel Escorpião', ownerTag: 'Vortex_Lord', isBot: true, tier: 2, feePct: 58 },
+    { id: 'bot_co_09', name: 'Cassino Marítimo Internacional', ownerTag: 'doleiro_digital', isBot: true, tier: 3, feePct: 31 },
+    { id: 'bot_co_10', name: 'Fundo Cartel Escorpião', ownerTag: 'rei_do_laranja', isBot: true, tier: 2, feePct: 58 },
 
-    { id: 'bot_co_11', name: 'Lava-Jato Turbinado HC', ownerTag: 'Hex_Drifter', isBot: true, tier: 1, feePct: 19 },
-    { id: 'bot_co_12', name: 'Padaria & Distribuidora Real', ownerTag: 'Root_Ronin', isBot: true, tier: 1, feePct: 22 },
-    { id: 'bot_co_13', name: 'Eventos & Shows Metrópole', ownerTag: 'Neon_Specter', isBot: true, tier: 2, feePct: 25 },
-    { id: 'bot_co_14', name: 'Logística Transcontinental', ownerTag: 'Kraken_C2', isBot: true, tier: 3, feePct: 27 },
-    { id: 'bot_co_15', name: 'Offshore Barão Implacável', ownerTag: 'DarkBarao', isBot: true, tier: 3, feePct: 65 }
+    { id: 'bot_co_11', name: 'Lava-Jato Turbinado HC', ownerTag: 'malandro_root', isBot: true, tier: 1, feePct: 19 },
+    { id: 'bot_co_12', name: 'Padaria & Distribuidora Real', ownerTag: 'fantasma_rj', isBot: true, tier: 1, feePct: 22 },
+    { id: 'bot_co_13', name: 'Eventos & Shows Metrópole', ownerTag: 'coringa_011', isBot: true, tier: 2, feePct: 25 },
+    { id: 'bot_co_14', name: 'Logística Transcontinental', ownerTag: 'oraculo_br', isBot: true, tier: 3, feePct: 27 },
+    { id: 'bot_co_15', name: 'Offshore Barão Implacável', ownerTag: 'imperador_satoshi', isBot: true, tier: 3, feePct: 65 }
   ];
 
   const FBI_DELEGATES = [
@@ -1997,7 +1997,7 @@
                   <strong style="font-size:14.5px;">🧼 Empresas Abertas Nesta Hora (5 Opções · Troca em ${minsLeftHour}m)</strong>
                   <span class="hc-badge success">🌐 Vitrine Global MMO</span>
                 </div>
-                <div style="font-size:12px;color:var(--hc-text-2);">Empresas anunciadas por jogadores reais aparecem primeiro (+ Bots completando as 5 vagas). Taxa mínima <strong>17%</strong> · <strong>15 min reais</strong>.</div>
+                <div style="font-size:12px;color:var(--hc-text-2);">Empresas patrocinadas na vitrine aparecem primeiro na rotação horária. Taxa mínima <strong>17%</strong> · <strong>15 min reais</strong>.</div>
               </div>
               <div style="display:flex;align-items:center;gap:6px;">
                 <label style="font-size:12px;">Valor p/ Lavar:</label>
@@ -2033,7 +2033,7 @@
                 <div>
                   <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
                     <strong>${i + 1}. ${esc(c.name)}</strong>
-                    <span class="hc-badge ${c.isBot ? 'info' : 'success'}">Dono: ${esc(c.ownerTag)}${c.isBot ? ' (Bot)' : ' (Jogador)'}</span>
+                    <span class="hc-badge info">Dono: ${esc(c.ownerTag)}</span>
                     <span class="hc-badge ${c.feePct <= 20 ? 'success' : (c.feePct >= 45 ? 'danger' : 'warn')}">TAXA: ${c.feePct}%</span>
                     <span class="hc-badge info">Porte ${c.tier} · Máx ${fmtMoney(c.maxBatchUsd)}/vez</span>
                   </div>
