@@ -776,6 +776,7 @@
     startAutonomousLoop() {
       setInterval(() => {
         if (!window.currentProfile) return;
+        if (document.visibilityState === 'hidden') return;
         this.simulateWorldStep(false);
       }, 9500);
     }

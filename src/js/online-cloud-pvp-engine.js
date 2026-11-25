@@ -50,6 +50,10 @@
       this.lastSyncedAt = null;
       this.lastDbWalletBalance = null;
       this.saveTimer = null;
+      this._cloudPushInFlight = null;
+      this._queuedCloudFollowup = false;
+      this._lastPresenceFp = '';
+      this._lastPresenceTrackAt = 0;
       this.realtimeChannel = null;
       this.localBus = null;
       this.onlinePeers = new Map();      // userId -> peerMeta (ao vivo no Realtime / BroadcastChannel)
@@ -849,18 +853,40 @@
       this.saveLocalSnapshotImmediate();
 
       if (immediateCloud) {
-        clearTimeout(this.saveTimer);
+        if (this.saveTimer) {
+          clearTimeout(this.saveTimer);
+          this.saveTimer = null;
+        }
         this.pushSnapshotToCloud();
         return;
       }
 
-      clearTimeout(this.saveTimer);
+      // Coalesce passive autosaves in 12s windows (localStorage already saved synchronously above).
+      // For 50+ concurrent players this cuts Postgres RPC frequency by ~85% without risking F5 loss.
+      if (this.saveTimer) return;
       this.saveTimer = setTimeout(() => {
+        this.saveTimer = null;
+        if (document.visibilityState === 'hidden') return;
         this.pushSnapshotToCloud();
-      }, 1400);
+      }, 12000);
     }
 
     async pushSnapshotToCloud() {
+      if (this._cloudPushInFlight) {
+        this._queuedCloudFollowup = true;
+        return this._cloudPushInFlight;
+      }
+      this._cloudPushInFlight = this._executePushSnapshotToCloud().finally(() => {
+        this._cloudPushInFlight = null;
+        if (this._queuedCloudFollowup) {
+          this._queuedCloudFollowup = false;
+          this.scheduleSave(false);
+        }
+      });
+      return this._cloudPushInFlight;
+    }
+
+    async _executePushSnapshotToCloud() {
       const snap = this.saveLocalSnapshotImmediate();
       if (!snap) return { success: false };
 
@@ -934,8 +960,9 @@
         } catch (e) {}
       }
 
-      // 2) Fallback nativo p/ contas autenticadas via Supabase Auth (user_metadata + profiles & wallets)
-      if (!isInstantOp) {
+      // 2) Fallback nativo SOMENTE quando player_cloud_saves / sync_account_snapshot_secure não salvou
+      // (evita 50 jogadores regravando GoTrue auth.users JWT a cada autosave!).
+      if (!isInstantOp && !cloudSaved) {
         try {
           if (window.supabase.auth && typeof window.supabase.auth.updateUser === 'function') {
             const { error: uErr } = await window.supabase.auth.updateUser({
@@ -1264,7 +1291,7 @@
         ch.subscribe(async (status) => {
           if (status === 'SUBSCRIBED') {
             this.syncStatus = 'synced';
-            this.trackRealtimePresence();
+            this.trackRealtimePresence(true);
             if (!isInstantOp) {
               this.publishDirectoryBeacon();
             }
@@ -1276,10 +1303,33 @@
       }
     }
 
-    trackRealtimePresence() {
+    _buildPresenceFingerprint(me) {
+      return [
+        me.userId,
+        me.publicIp,
+        me.pwdEpoch,
+        Math.floor((me.reputation || 0) / 25),
+        me.newbieProtected ? 1 : 0,
+        me.firewallVer,
+        me.hasherVer,
+        me.antivirusVer,
+        me.bestSoftVer,
+        me.clanTag || '',
+        Math.round((me.hardwareHealthPct ?? 100) / 5)
+      ].join('|');
+    }
+
+    trackRealtimePresence(force = false) {
       const me = this.buildMyPublicPeerDescriptor();
       this.broadcastLocalPresence();
       if (this.realtimeChannel) {
+        const now = Date.now();
+        const fp = this._buildPresenceFingerprint(me);
+        if (!force && fp === this._lastPresenceFp && (now - this._lastPresenceTrackAt) < 60000) {
+          return;
+        }
+        this._lastPresenceFp = fp;
+        this._lastPresenceTrackAt = now;
         try { this.realtimeChannel.track(me); } catch (e) {}
       }
     }
