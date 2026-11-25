@@ -182,7 +182,9 @@
       if (window.dailyCheckinV2 && typeof window.dailyCheckinV2.syncTopbarBadge === 'function') {
         window.dailyCheckinV2.syncTopbarBadge();
       }
-      this.renderHomeRoutine();
+      if (typeof window.renderHome === 'function' && window.winManager && window.winManager.current === 'winHome') {
+        window.renderHome();
+      }
     }
 
     computeCurrentStockValue() {
