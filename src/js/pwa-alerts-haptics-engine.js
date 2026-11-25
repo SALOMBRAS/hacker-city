@@ -107,7 +107,103 @@
 
       return { sent: true, vibrated, notified: entry.notified, entry };
     }
+
+    async toggleNotifications() {
+      if (!this.isNotificationSupported()) {
+        if (typeof window.showToast === 'function') {
+          window.showToast('Seu navegador não suporta Notificações Nativas neste modo.');
+        }
+        return { enabled: false, reason: 'UNSUPPORTED' };
+      }
+      if (this.prefs.notificationsEnabled) {
+        this.prefs.notificationsEnabled = false;
+        this.savePrefs();
+        this.renderProfileControls();
+        if (typeof window.showToast === 'function') window.showToast('🔕 Alertas do sistema desativados.');
+        return { enabled: false };
+      }
+
+      let perm = Notification.permission;
+      if (perm === 'default') {
+        try { perm = await Notification.requestPermission(); } catch (e) {}
+      }
+      if (perm !== 'granted') {
+        if (typeof window.showToast === 'function') {
+          window.showToast('⚠️ Permissão de notificação bloqueada nas configurações do navegador.');
+        }
+        this.renderProfileControls();
+        return { enabled: false, reason: perm };
+      }
+
+      this.prefs.notificationsEnabled = true;
+      this.savePrefs();
+      this.renderProfileControls();
+      this.triggerAlert('test', {
+        title: '🔔 Alertas Táticos Ativados!',
+        body: 'Você será avisado sobre invasões, lavagens prontas e fim do Escudo.',
+        winId: 'winProfile',
+        forceOs: true,
+        cooldownMs: 0
+      });
+      if (typeof window.showToast === 'function') {
+        window.showToast('🔔 Alertas nativos de Invasão, Lavagem e Escudo ativados!');
+      }
+      return { enabled: true };
+    }
+
+    toggleHaptics() {
+      this.prefs.hapticsEnabled = !this.prefs.hapticsEnabled;
+      this.savePrefs();
+      if (this.prefs.hapticsEnabled) this.vibrate('test');
+      this.renderProfileControls();
+      if (typeof window.showToast === 'function') {
+        window.showToast(this.prefs.hapticsEnabled ? '📳 Vibração tátil mobile ativada!' : '📳 Vibração tátil desativada.');
+      }
+      return { enabled: this.prefs.hapticsEnabled };
+    }
+
+    sendTestAlert() {
+      const res = this.triggerAlert('test', {
+        title: '📡 Teste Operacional Hacker City',
+        body: 'Canal de alerta e vibração tátil funcionando em tempo real.',
+        winId: 'winConnManager',
+        forceOs: true,
+        cooldownMs: 0
+      });
+      if (typeof window.showToast === 'function') {
+        window.showToast('📡 Pulso tátil e alerta de teste disparados!');
+      }
+      return res;
+    }
+
+    renderProfileControls() {
+      const mount = document.getElementById('profilePwaAlertsSubMount');
+      if (!mount) return;
+      const notifOn = !!(this.prefs.notificationsEnabled && this.isNotificationSupported() && Notification.permission === 'granted');
+      const hapOn = !!this.prefs.hapticsEnabled;
+      mount.innerHTML = `
+        <div style="margin-top:6px;padding-top:8px;border-top:1px dashed var(--hc-border);display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11.5px;color:var(--hc-text-2);">
+            <strong>🔔 Central de Alertas &amp; Vibração:</strong> receba aviso se invadirem seu IP, lavagem terminar ou Escudo estiver acabando.
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button type="button" id="btnTogglePwaNotifications" class="hc-btn ${notifOn ? 'primary' : ''} sm" onclick="window.pwaAlertsEngine.toggleNotifications()">
+              ${notifOn ? '🔔 Alertas: Ligados' : '🔕 Ativar Alertas'}
+            </button>
+            <button type="button" id="btnTogglePwaHaptics" class="hc-btn ${hapOn ? 'primary' : ''} sm" onclick="window.pwaAlertsEngine.toggleHaptics()">
+              ${hapOn ? '📳 Vibração: Ligada' : '📴 Vibração: Off'}
+            </button>
+            <button type="button" id="btnTestPwaAlert" class="hc-btn ghost sm" onclick="window.pwaAlertsEngine.sendTestAlert()">
+              🧪 Testar Pulso
+            </button>
+          </div>
+        </div>
+      `;
+    }
   }
 
   window.pwaAlertsEngine = new PwaAlertsHapticsEngine();
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.pwaAlertsEngine) window.pwaAlertsEngine.renderProfileControls();
+  });
 })();
