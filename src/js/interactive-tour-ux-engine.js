@@ -114,7 +114,6 @@
             backdrop-filter: none;
             -webkit-backdrop-filter: none;
             pointer-events: auto;
-            transition: top .18s ease, left .18s ease, width .18s ease, height .18s ease;
           }
           #hcTourRing {
             position: fixed;
@@ -1346,6 +1345,7 @@
         }).join('');
       }
 
+      this.repositionCurrentStep();
       requestAnimationFrame(() => {
         const target = this.resolveTargetElement(step);
         if (target) {
