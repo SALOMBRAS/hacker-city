@@ -55,5 +55,21 @@ xdg-open http://localhost:8080/index.html
 
 ---
 
+## 🔊 Narração por Voz do Tour Guiado (Acessibilidade)
+
+Cada passo do Tour Guiado tem narração em MP3 (`assets/audio/tutorial/`), servida como arquivo estático: o jogador nunca dispara síntese de voz. O botão **🔊 Voz** no card liga/desliga a narração.
+
+`assets/audio/tutorial/manifest.json` registra a versão de cada passo (hash do texto, versão do áudio, modelo, voz e data). Se o texto de um passo mudar, ou entrar um passo novo, sem o áudio ser regenerado, o jogo **desliga a voz daquele passo** e mostra um aviso para o jogador avisar o desenvolvedor.
+
+```bash
+# Depois de mudar qualquer texto do tour: gera só os passos novos ou alterados
+OPENROUTER_API_KEY=... npm run gerar:voz
+
+# Confere se todos os passos têm narração em dia (sai 1 se faltar algum)
+npm run test:voz
+```
+
+---
+
 ## 🧑‍💻 Autor
 Desenvolvido por **[@SALOMBRAS](https://github.com/SALOMBRAS)**.

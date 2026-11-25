@@ -19,6 +19,7 @@
   const TOUR_REWARD_CASH = 500;
   const TOUR_REWARD_REP = 100;
   const TRAINING_IP = '198.51.100.42';
+  const VOICE_DIR = 'assets/audio/tutorial/';
 
   class InteractiveSpotlightTourEngine {
     constructor() {
@@ -197,6 +198,15 @@
             background: rgba(255,255,255,0.06);
             color: #fff;
           }
+          #hcTourVoiceWarn {
+            margin-top: 8px;
+            padding: 6px 9px;
+            border: 1px solid rgba(245, 158, 11, 0.45);
+            background: rgba(245, 158, 11, 0.12);
+            color: #fbbf24;
+            border-radius: 7px;
+            font-size: 11.5px;
+          }
           #hcTourCardTitle {
             font-size: 15.8px;
             font-weight: 700;
@@ -336,11 +346,15 @@
           <div id="hcTourCard" role="dialog" aria-modal="false" aria-labelledby="hcTourCardTitle">
             <div class="hc-tour-toprow">
               <span class="hc-tour-step-badge" id="hcTourStepCounter">Passo 1 de 12</span>
-              <button type="button" id="btnTourSkip" class="hc-tour-skip-btn">Pular Tutorial ✕</button>
+              <div style="display:flex;gap:6px;">
+                <button type="button" id="btnTourVoice" class="hc-tour-skip-btn" aria-pressed="true">🔊 Voz</button>
+                <button type="button" id="btnTourSkip" class="hc-tour-skip-btn">Pular Tutorial ✕</button>
+              </div>
             </div>
             <h3 id="hcTourCardTitle">Bem-vindo!</h3>
             <p id="hcTourCardDesc"></p>
             <div id="hcTourActionHint"></div>
+            <div id="hcTourVoiceWarn" role="status" hidden></div>
             <div class="hc-tour-footer">
               <div class="hc-tour-dots" id="hcTourDots"></div>
               <div style="display:flex;gap:6px;">
@@ -363,12 +377,114 @@
           }
         });
 
+        document.getElementById('btnTourVoice').addEventListener('click', () => this.toggleVoice());
         document.getElementById('btnTourSkip').addEventListener('click', () => this.skip());
         document.getElementById('btnTourPrev').addEventListener('click', () => this.prev());
         document.getElementById('btnTourNext').addEventListener('click', () => this.handleNextButton());
       }
 
+      this.syncVoiceButton();
       this.domReady = true;
+    }
+
+    voiceEnabled() {
+      if (this.voiceOn === undefined) {
+        try { this.voiceOn = localStorage.getItem('HC_TOUR_VOICE') !== '0'; } catch (e) { this.voiceOn = true; }
+      }
+      return this.voiceOn;
+    }
+
+    stopVoice() {
+      if (this.voiceAudio) this.voiceAudio.pause();
+    }
+
+    // Texto falado pela narração. Fonte única: o navegador confere a versão do áudio com ele
+    // e scripts/gerar-audios-tutorial.mjs gera os MP3 a partir dele.
+    speechText(step, idx) {
+      const clean = (html) => String(html || '')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&')
+        .replace(/[\p{Extended_Pictographic}️‍→←✕]/gu, '')
+        .replace(/\s&\s/g, ' e ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      const title = clean(step.title).replace(/^\d+\.\s*/, '');
+      return [`Passo ${idx + 1}: ${title}.`, clean(step.desc), clean(step.hint)].filter(Boolean).join(' ');
+    }
+
+    // FNV-1a 32 bits: identifica a versão do texto (detecta mudança; não é segurança).
+    textHash(text) {
+      let h = 0x811c9dc5;
+      for (const ch of text) {
+        h ^= ch.codePointAt(0);
+        h = Math.imul(h, 0x01000193) >>> 0;
+      }
+      return h.toString(16).padStart(8, '0');
+    }
+
+    loadVoiceManifest() {
+      if (!this.voiceManifestPromise) {
+        this.voiceManifestPromise = fetch(`${VOICE_DIR}manifest.json`, { cache: 'no-cache' })
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null)
+          .then((m) => {
+            if (!m) this.voiceManifestPromise = null; // offline/erro: tenta de novo no próximo passo
+            return m;
+          });
+      }
+      return this.voiceManifestPromise;
+    }
+
+    // Narração do passo (acessibilidade). Só toca o áudio gerado para ESTE texto: passo novo ou
+    // alterado sem áudio regenerado fica mudo e mostra o aviso para qualquer jogador.
+    playStepVoice(step) {
+      this.stopVoice();
+      const idx = this.stepIndex;
+      const warnEl = document.getElementById('hcTourVoiceWarn');
+      if (warnEl) warnEl.hidden = true;
+      this.loadVoiceManifest().then((manifest) => {
+        if (!manifest || !this.isActive || this.steps[this.stepIndex] !== step) return;
+        const entry = ((manifest[this.voiceTutorialId] || {}).steps || {})[step.id];
+        const hash = this.textHash(this.speechText(step, idx));
+        if (!entry || entry.hash !== hash) {
+          if (warnEl) {
+            warnEl.textContent = '🔇 Narração por voz desativada neste passo: o texto do tutorial mudou e o áudio ainda não foi atualizado. Por favor, avise o desenvolvedor.';
+            warnEl.hidden = false;
+          }
+          console.warn(`[Tour/voz] áudio desatualizado: tutorial=${this.voiceTutorialId} passo=${step.id} texto=${hash} manifesto=${entry ? entry.hash : 'ausente'}. Rode: npm run gerar:voz`);
+          return;
+        }
+        if (!this.voiceEnabled() || (window.hackerAudio && window.hackerAudio.isMuted)) return;
+        if (!this.voiceAudio) this.voiceAudio = new Audio();
+        const audio = this.voiceAudio;
+        const src = `${VOICE_DIR}${entry.file}?v=${entry.version}`;
+        audio.src = src;
+        // Autoplay barrado (tour aberto sem clique, ex.: página recarregada): a narração
+        // começa no primeiro toque do jogador.
+        audio.play().catch((err) => {
+          if (!err || err.name !== 'NotAllowedError') return;
+          document.addEventListener('pointerdown', () => {
+            if (this.isActive && this.voiceEnabled() && audio.paused && audio.src.endsWith(src)) audio.play().catch(() => {});
+          }, { once: true });
+        });
+      });
+    }
+
+    toggleVoice() {
+      this.voiceOn = !this.voiceEnabled();
+      try { localStorage.setItem('HC_TOUR_VOICE', this.voiceOn ? '1' : '0'); } catch (e) {}
+      this.syncVoiceButton();
+      if (this.voiceOn) this.playStepVoice(this.steps[this.stepIndex]);
+      else this.stopVoice();
+    }
+
+    syncVoiceButton() {
+      const btn = document.getElementById('btnTourVoice');
+      if (!btn) return;
+      const on = this.voiceEnabled();
+      btn.textContent = on ? '🔊 Voz' : '🔇 Voz';
+      btn.setAttribute('aria-pressed', String(on));
+      btn.setAttribute('aria-label', on ? 'Narração por voz ligada (clique para desligar)' : 'Narração por voz desligada (clique para ligar)');
     }
 
     nudgeSpotlight() {
@@ -812,6 +928,8 @@
       window.addEventListener('resize', this._onViewportChange);
     }
 
+    voiceTutorialId = 'tour-guiado';
+
     _onViewportChange = () => {
       if (this.isActive) this.repositionCurrentStep();
     };
@@ -830,6 +948,7 @@
 
     stop(statusValue = 'done') {
       this.cleanupListeners();
+      this.stopVoice();
       this.isActive = false;
       if (this.trackTimer) {
         clearInterval(this.trackTimer);
@@ -986,6 +1105,7 @@
       if (pillEl) pillEl.textContent = step.pointerLabel || '👆 Clique aqui';
       if (prevBtn) prevBtn.style.visibility = this.stepIndex === 0 ? 'hidden' : 'visible';
       if (nextBtn) nextBtn.textContent = step.nextLabel || 'Próximo →';
+      this.playStepVoice(step);
 
       if (dotsEl) {
         dotsEl.innerHTML = this.steps.map((_, i) => {
