@@ -295,11 +295,134 @@ const IMG_DIR = path.resolve(__dirname, '../../reports/anti-ip-leak-mundo-vivo-d
     await new Promise((r) => setTimeout(r, 180));
     await page.screenshot({ path: path.join(UX_DIR, '03-vitrine-lavagem-apenas-nome-do-dono-sem-bot.png') });
 
-    console.log('✅ SUÍTE ANTI-IP-LEAK, BOTS BR 10M, DASHBOARD ONLINE & CORREÇÕES UX 100% APROVADA!', JSON.stringify({
+    // 7. Validar Redução de 10% na Inteligência dos Bots Hackers e Proteção Contra Hack em < 1 min Antes de Apagar Logs!
+    const BAL_DIR = path.resolve(__dirname, '../../reports/nerf-10pct-bots-hackers-e-janela-logs/images');
+    fs.mkdirSync(BAL_DIR, { recursive: true });
+
+    const balanceAudit = await page.evaluate(() => {
+      // Garantir que o jogador NÃO esteja sob escudo iniciante para testar a janela real de caçada autônoma
+      window.integrityGuard.runAuthorized(() => {
+        window.currentProfile.reputation = 650;
+      });
+      if (window.progressiveUnlockEngine) {
+        window.progressiveUnlockEngine.isNewbiePvpShieldActive = () => false;
+      }
+
+      const dayBots = window.botScheduler.getCurrentDayBots();
+      const bT1 = dayBots.find((b) => b.tier === 1 && b.role === 'hacker');
+      const bT2 = dayBots.find((b) => b.tier === 2 && b.role === 'hacker');
+      const bT3 = dayBots.find((b) => b.tier === 3 && b.role === 'hacker');
+      const policeUnit = window.botScheduler.getCurrentDayLawEnforcement().find((u) => u.role === 'policial');
+
+      const hostT1 = window.internetEngine.resolveHost(bT1.ip);
+      const hostT2 = window.internetEngine.resolveHost(bT2.ip);
+      const hostT3 = window.internetEngine.resolveHost(bT3.ip);
+      const hostPol = window.internetEngine.resolveHost(policeUnit.ip);
+
+      // Testar contra-ataque direto ao invadir bot hacker Tier 3 / Tier 2 / Tier 1: nunca < 95s!
+      const attT3 = window.botAI.registerIntrusion(bT3.ip);
+      const attT2 = window.botAI.registerIntrusion(bT2.ip);
+      const attT1 = window.botAI.registerIntrusion(bT1.ip);
+      const delayT3 = attT3.delaySec;
+      const delayT2 = attT2.delaySec;
+      const delayT1 = attT1.delaySec;
+
+      // Abrir Meus Rastros (winLogs) para visualizar o cronômetro amplo (> 1m35s a 3m+) antes de limpar
+      window.navTo('winLogs');
+      if (typeof window.renderLogsPage === 'function') window.renderLogsPage();
+
+      // Apagar logs nos 3 bots -> deve abortar 100% os contra-ataques pendentes!
+      const abortedT3 = window.botAI.wipeLogs(bT3.ip);
+      const abortedT2 = window.botAI.wipeLogs(bT2.ip);
+      const abortedT1 = window.botAI.wipeLogs(bT1.ip);
+
+      // Agora simular login recém-feito (< 1 min) em máquina externa (203.17.88.40) ANTES de apagar a log!
+      const myIp = window.networkIdentity.getPublicIp();
+      window.botAI.wipeLogs('203.17.88.40');
+      window.internetEngine.activeSshIp = '203.17.88.40';
+      window.internetEngine.appendServerLog('203.17.88.40', `SSH LOGIN OK user=root src=${myIp}`);
+
+      // Nenhum bot caçador autônomo pode pescar esse IP recém-logado (< 95s / < 120s conectado)!
+      const prematureHuntWhileLogged = window.livingBotsEngine.attemptBotHuntOnPlayer(false);
+      window.internetEngine.activeSshIp = null;
+      const prematureHuntAt30s = window.livingBotsEngine.attemptBotHuntOnPlayer(false);
+
+      // Se o jogador limpar a log dentro de 1 min e logar de novo depois, o relógio zera de novo!
+      window.botAI.wipeLogs('203.17.88.40');
+      window.internetEngine.appendServerLog('203.17.88.40', `SSH LOGIN OK user=root src=${myIp}`);
+      const freshReloginHunt = window.livingBotsEngine.attemptBotHuntOnPlayer(false);
+
+      // E se o jogador REALMENTE esquecer a log lá por mais de 2 minutos (130s) após desconectar, aí sim fica exposto:
+      window.livingBotsEngine.traceFirstSeenMs.set(`203.17.88.40::${myIp}`, Date.now() - 130000);
+      const exposedAfter2MinForgotten = window.livingBotsEngine.findPlayerIpInExternalLogs(95000);
+      window.botAI.wipeLogs('203.17.88.40');
+
+      const modT1 = window.topTenMechanics?.getHostDynamicDefenseModifiers?.(bT1.ip)?.extraFw || 0;
+      const modT2 = window.topTenMechanics?.getHostDynamicDefenseModifiers?.(bT2.ip)?.extraFw || 0;
+      const modT3 = window.topTenMechanics?.getHostDynamicDefenseModifiers?.(bT3.ip)?.extraFw || 0;
+      const modPol = window.topTenMechanics?.getHostDynamicDefenseModifiers?.(policeUnit.ip)?.extraFw || 0;
+
+      return {
+        fwT1: +(hostT1.firewallVer - modT1).toFixed(1),
+        fwT2: +(hostT2.firewallVer - modT2).toFixed(1),
+        fwT3: +(hostT3.firewallVer - modT3).toFixed(1),
+        fwPolice: +(hostPol.firewallVer - modPol).toFixed(1),
+        policeExpected: policeUnit.defVer,
+        softCrackerT1: bT1.softwareList.find((s) => s.name === 'cracker').version,
+        softCrackerT3: bT3.softwareList.find((s) => s.name === 'cracker').version,
+        delayT3,
+        delayT2,
+        delayT1,
+        abortedAll: abortedT3 && abortedT2 && abortedT1,
+        prematureHuntWhileLogged,
+        prematureHuntAt30s,
+        freshReloginHunt,
+        exposedAfter2MinForgotten: Boolean(exposedAfter2MinForgotten && exposedAfter2MinForgotten.hostIp === '203.17.88.40'),
+        sampleBotIp: bT2.ip,
+        strikes: window.integrityGuard ? window.integrityGuard.cheatStrikes : 0
+      };
+    });
+
+    assert.strictEqual(balanceAudit.fwT1, 0.9, 'Firewall de Bot Hacker Tier 1 deve ser reduzido em 10% (0.9)');
+    assert.strictEqual(balanceAudit.fwT2, 1.3, 'Firewall de Bot Hacker Tier 2 deve ser reduzido em 10% (1.3)');
+    assert.strictEqual(balanceAudit.fwT3, 2.2, 'Firewall de Bot Hacker Tier 3 deve ser reduzido em 10% (2.2)');
+    assert.strictEqual(balanceAudit.fwPolice, balanceAudit.policeExpected, 'Polícia Cibernética deve manter 100% da defesa sem nerf');
+    assert.strictEqual(balanceAudit.softCrackerT1, '0.9', 'Cracker de Bot Hacker Tier 1 reduzido em 10% (0.9)');
+    assert.strictEqual(balanceAudit.softCrackerT3, '6.7', 'Cracker de Bot Hacker Tier 3 reduzido em 10% (6.7)');
+    assert(balanceAudit.delayT3 >= 95, `Bot Hacker Tier 3 nunca pode contra-atacar em < 1 min (delayT3=${balanceAudit.delayT3}s)`);
+    assert(balanceAudit.delayT2 >= 135, `Bot Hacker Tier 2 deve dar >= 135s para limpar log (delayT2=${balanceAudit.delayT2}s)`);
+    assert(balanceAudit.delayT1 >= 180, `Bot Hacker Tier 1 deve dar >= 180s para limpar log (delayT1=${balanceAudit.delayT1}s)`);
+    assert.strictEqual(balanceAudit.abortedAll, true, 'Apagar logs deve cancelar 100% dos contra-ataques agendados');
+    assert.strictEqual(balanceAudit.prematureHuntWhileLogged.triggered, false, 'Nenhum bot pode caçar o jogador enquanto acabou de logar via SSH (< 120s)');
+    assert.strictEqual(balanceAudit.prematureHuntWhileLogged.reason, 'NO_EXPOSED_IP_IN_LOGS', 'Rastro recente deve ser invisível aos caçadores');
+    assert.strictEqual(balanceAudit.prematureHuntAt30s.triggered, false, 'Nenhum bot pode caçar rastro com menos de 95s após login');
+    assert.strictEqual(balanceAudit.freshReloginHunt.triggered, false, 'Re-logar após limpar log deve ganhar nova janela limpa de >= 95s');
+    assert.strictEqual(balanceAudit.exposedAfter2MinForgotten, true, 'Rastro esquecido por > 2 min após sair continua rastreável normalmente');
+    assert.strictEqual(balanceAudit.strikes, 0, 'Zero strikes do IntegrityGuard');
+
+    // Capturar tela com janela segura de contra-ataque (> 95s a 180s) em Meus Rastros e tela de Bot Hacker (-10% inteligência)
+    await page.evaluate((botIp) => {
+      window.botAI.registerIntrusion(botIp);
+      window.navTo('winLogs');
+      if (typeof window.renderLogsPage === 'function') window.renderLogsPage();
+    }, balanceAudit.sampleBotIp);
+    await new Promise((r) => setTimeout(r, 180));
+    await page.screenshot({ path: path.join(BAL_DIR, '01-janela-segura-mais-de-95s-para-apagar-logs.png') });
+
+    await page.evaluate((botIp) => {
+      window.botAI.wipeLogs(botIp);
+      window.navTo('winInternet');
+      window.internetEngine.openIp(botIp, 'invadir');
+    }, balanceAudit.sampleBotIp);
+    await new Promise((r) => setTimeout(r, 220));
+    await page.screenshot({ path: path.join(BAL_DIR, '02-bot-hacker-inteligencia-reduzida-10pct-internet.png') });
+
+    console.log('✅ SUÍTE ANTI-IP-LEAK, BOTS BR 10M, DASHBOARD ONLINE, UX & NERF -10% BOTS HACKERS 100% APROVADA!', JSON.stringify({
       dayBotsCount: worldAudit.dayBotsCount,
       policeCount: worldAudit.policeCount,
       delegateCount: worldAudit.delegateCount,
-      countsAcross10m: worldAudit.countsAcross10m,
+      fwHackers: [balanceAudit.fwT1, balanceAudit.fwT2, balanceAudit.fwT3],
+      delaysSec: [balanceAudit.delayT3, balanceAudit.delayT2, balanceAudit.delayT1],
       resetNewIp: resetAudit.newIp,
       pendingBillsAfter: resetAudit.pendingBillsAfter
     }));

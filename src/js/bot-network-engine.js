@@ -162,9 +162,9 @@ class BotNetworkRegistry {
           activeShift: (i - 1) % 4,
           phaseSeed: this._hashId(id + '::' + handle),
           softwareList: [
-            { name: 'firewall', version: tier === 1 ? '2.0' : (tier === 2 ? '4.5' : '9.0') },
-            { name: 'hasher', version: tier === 1 ? '1.5' : (tier === 2 ? '3.2' : '8.0') },
-            { name: 'cracker', version: tier === 1 ? '1.0' : (tier === 2 ? '3.0' : '7.5') }
+            { name: 'firewall', version: tier === 1 ? '1.8' : (tier === 2 ? '4.0' : '8.1') },
+            { name: 'hasher', version: tier === 1 ? '1.3' : (tier === 2 ? '2.9' : '7.2') },
+            { name: 'cracker', version: tier === 1 ? '0.9' : (tier === 2 ? '2.7' : '6.7') }
           ],
           vfsFiles: {
             'passwords.txt': `Credencial Admin: root / adm_bot#${i * 13}\nBanco: HC-${tier === 1 ? 'MED' : (tier === 2 ? 'HIGH' : 'SUP')}-${String(i).padStart(4, '0')}\n`,
@@ -351,15 +351,18 @@ class TracebackEngine {
   setTarget(bot) {
     this.targetBot = bot;
     const tier = bot ? bot.tier : 1;
+    const isLawUnit = Boolean(bot && (bot.role === 'policial' || bot.role === 'delegado'));
+    const traceSlowMult = isLawUnit ? 1.0 : 1.12; // Bots hackers têm -10% de inteligência no contra-rastreio ativo
+    const crackEaseMult = isLawUnit ? 1.0 : 0.90;
     if (tier === 1) {
-      this.baseDuration = 75.0;
-      this.crackDuration = 26.0;
+      this.baseDuration = +(75.0 * traceSlowMult).toFixed(1);
+      this.crackDuration = +(26.0 * crackEaseMult).toFixed(1);
     } else if (tier === 2) {
-      this.baseDuration = 42.0;
-      this.crackDuration = 36.0;
+      this.baseDuration = +(42.0 * traceSlowMult).toFixed(1);
+      this.crackDuration = +(36.0 * crackEaseMult).toFixed(1);
     } else {
-      this.baseDuration = 20.0; // Letal
-      this.crackDuration = 45.0;
+      this.baseDuration = +(20.0 * traceSlowMult).toFixed(1);
+      this.crackDuration = +(45.0 * crackEaseMult).toFixed(1);
     }
     this.recalculateDuration();
   }
@@ -459,28 +462,43 @@ class BotAIService {
     const bot = reg ? reg.getBotByIp(botIp) : null;
     const tier = bot ? bot.tier : 1;
 
-    // Gravar nos logs internos do bot
+    // Gravar nos logs internos do bot (e iniciar cronômetro fresco caso o IP ainda não constasse)
     if (!this.syslogRegistry.has(botIp)) {
       this.syslogRegistry.set(botIp, []);
     }
-    this.syslogRegistry.get(botIp).push(`[${new Date().toLocaleTimeString()}] INTRUSION src=${activeIp} dest=${botIp} exploit=OK`);
+    const curLines = this.syslogRegistry.get(botIp);
+    const alreadyHadIp = curLines.some((l) => String(l).includes(activeIp));
+    curLines.push(`[${new Date().toLocaleTimeString()}] INTRUSION src=${activeIp} dest=${botIp} exploit=OK`);
+    if (!alreadyHadIp && window.livingBotsEngine && typeof window.livingBotsEngine.markFreshTrace === 'function') {
+      window.livingBotsEngine.markFreshTrace(botIp, activeIp);
+    }
 
     if (typeof window.addLocalLog === 'function') {
       window.addLocalLog('SSH/EXPLOIT', `Acesso root em ${bot ? bot.handle : 'Host'} [${botIp}] — seu IP (${activeIp}) ficou em /var/log/syslog`, 'warning');
     }
 
-    let delaySec = 15;
+    // Janela justa de operação (> 1m35s a 3m+) para o jogador agir e apagar a log sem tomar contra-ataque em < 1 min!
+    // Inteligência dos bots hackers reduzida em 10% (policiais/delegado mantêm reação tática de 90s).
+    const isLawUnit = Boolean(bot && (bot.role === 'policial' || bot.role === 'delegado'));
+    let delaySec = 150;
     let attackType = "light_theft";
 
-    if (tier === 1) {
-      delaySec = 20; // Médio: 20s para demonstração interativa web (ou 3h simuladas)
+    if (isLawUnit) {
+      delaySec = 90;
+      attackType = tier >= 3 ? "ddos_and_ransomware" : "bank_drain_and_vminer";
+    } else if (tier === 1) {
+      delaySec = 180; // 3 minutos reais
       attackType = "light_theft";
     } else if (tier === 2) {
-      delaySec = 10; // Alto: 10s (ou 15m)
+      delaySec = 135; // 2 min e 15s reais
       attackType = "bank_drain_and_vminer";
     } else {
-      delaySec = 0; // Super Alto: imediato
+      delaySec = 95;  // 1 min e 35s reais (nunca imediato!)
       attackType = "ddos_and_ransomware";
+    }
+    // Redução de 10% na atenção/inteligência de alguns bots hackers (+45s extras quando distraídos)
+    if (!isLawUnit && ((bot && (bot.phaseSeed % 10) === 0) || Math.random() < 0.10)) {
+      delaySec += 45;
     }
 
     const attackData = {
@@ -531,6 +549,9 @@ class BotAIService {
       this.syslogRegistry.set(botIp, []);
       hadTrace = true;
     }
+    if (window.livingBotsEngine && typeof window.livingBotsEngine.clearTraceTimestamp === 'function') {
+      window.livingBotsEngine.clearTraceTimestamp(botIp);
+    }
     const hadPending = this.pendingAttacks.has(botIp);
     if (hadPending) {
       this.pendingAttacks.delete(botIp);
@@ -569,9 +590,12 @@ class BotAIService {
       }
     }
 
-    // VERIFICAÇÃO ESTRITA DE DEFESA: Firewall.fwl & Hasher.hash do jogador vs Software do Bot!
+    // VERIFICAÇÃO ESTRITA DE DEFESA: Firewall.fwl & Hasher.hash do jogador vs Software do Bot (-10% nos bots hackers)!
+    const botUnit = window.botRegistry ? window.botRegistry.getBotByIp(botIp) : null;
+    const isLaw = Boolean(botUnit && (botUnit.role === 'policial' || botUnit.role === 'delegado'));
     const tier = att ? att.tier : 1;
-    const botSoftVer = tier === 3 ? 2.5 : (tier === 2 ? 1.5 : 1.0);
+    const rawSoftVer = tier === 3 ? 2.5 : (tier === 2 ? 1.5 : 1.0);
+    const botSoftVer = isLaw ? rawSoftVer : (Math.floor(rawSoftVer * 9) / 10);
     const myFwl = window.softwareEngine ? window.softwareEngine.getSoftwareVersion('firewall') : 1.0;
     const myHash = window.softwareEngine ? window.softwareEngine.getSoftwareVersion('hasher') : 1.0;
     const hasDdosCert = window.universityEngine ? window.universityEngine.hasCert(5) : false;
@@ -593,8 +617,10 @@ class BotAIService {
 
     if (window.hackerAudio) window.hackerAudio.playInvasionAlert();
 
-    // Comportamento realista: bots experientes (Tier 3 = 100%, Tier 2 = 80%, Tier 1 = 35%) apagam o próprio IP da sua log e deixam uma farpa!
-    const wipesOwnLog = tier === 3 ? true : (tier === 2 ? Math.random() < 0.80 : Math.random() < 0.35);
+    // Inteligência de limpeza de rastro reduzida em 10% nos bots hackers (Tier 3 = 90%, Tier 2 = 70%, Tier 1 = 25%)!
+    const wipesOwnLog = isLaw
+      ? true
+      : (tier === 3 ? Math.random() < 0.90 : (tier === 2 ? Math.random() < 0.70 : Math.random() < 0.25));
     const originForMalware = wipesOwnLog ? `RASTRO APAGADO POR ${handle}` : botIp;
 
     const writeBotBreachLog = (stolenVal, malwareLabel) => {
