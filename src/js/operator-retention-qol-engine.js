@@ -90,6 +90,16 @@
       if (!s.dailyGoalsDone || typeof s.dailyGoalsDone !== 'object') s.dailyGoalsDone = {};
       if (!s.dailyGoalsClaimed || typeof s.dailyGoalsClaimed !== 'object') s.dailyGoalsClaimed = {};
       if (typeof s.routineCollapsed !== 'boolean') s.routineCollapsed = false;
+      if (typeof s.freezeTokens !== 'number') s.freezeTokens = 0;
+      if (typeof s.cpuBoostUntil !== 'number') s.cpuBoostUntil = 0;
+      if (typeof s.monthlyKey !== 'string') s.monthlyKey = '';
+      if (typeof s.monthlyCheckinCount !== 'number') s.monthlyCheckinCount = 0;
+      if (!s.monthlyMilestonesClaimed || typeof s.monthlyMilestonesClaimed !== 'object') s.monthlyMilestonesClaimed = {};
+      if (typeof s.comboClaimedDay !== 'string') s.comboClaimedDay = '';
+      if (typeof s.rerolledDay !== 'string') s.rerolledDay = '';
+      if (typeof s.activeDailyGoalsDay !== 'string') s.activeDailyGoalsDay = '';
+      if (!Array.isArray(s.activeDailyGoalIds)) s.activeDailyGoalIds = [];
+      if (typeof s.lastTrustedClaimEpoch !== 'number') s.lastTrustedClaimEpoch = 0;
       return s;
     }
 
@@ -106,11 +116,73 @@
       return this.state;
     }
 
-    save() {
+    save(silentCloud = false, immediateCloud = false) {
       if (!this.state) return;
       try {
         localStorage.setItem(this.storageKey(), JSON.stringify(this.state));
       } catch (e) {}
+      if (!silentCloud && window.onlineEngine && typeof window.onlineEngine.scheduleSave === 'function') {
+        window.onlineEngine.scheduleSave(!!immediateCloud);
+      }
+    }
+
+    getSnapshotState() {
+      this.ensureLoaded();
+      return JSON.parse(JSON.stringify(this.state));
+    }
+
+    applySnapshotState(snap) {
+      if (!snap || typeof snap !== 'object') return;
+      const uid = (window.currentProfile && window.currentProfile.id) || 'guest';
+      const prev = this.ensureLoaded(uid);
+      const inc = this.normalizeState(snap);
+
+      // Merge monotônico anti-duplicação PC <-> Celular
+      const merged = { ...prev, ...inc };
+      const prevClaim = String(prev.lastSupplyClaimDay || '');
+      const incClaim = String(inc.lastSupplyClaimDay || '');
+      if (prevClaim > incClaim) {
+        merged.lastSupplyClaimDay = prevClaim;
+        merged.supplyStreakDay = prev.supplyStreakDay;
+      } else if (incClaim > prevClaim) {
+        merged.lastSupplyClaimDay = incClaim;
+        merged.supplyStreakDay = inc.supplyStreakDay;
+      } else {
+        merged.supplyStreakDay = Math.max(Number(prev.supplyStreakDay || 1), Number(inc.supplyStreakDay || 1));
+      }
+
+      if (prev.monthlyKey && prev.monthlyKey === inc.monthlyKey) {
+        merged.monthlyCheckinCount = Math.max(Number(prev.monthlyCheckinCount || 0), Number(inc.monthlyCheckinCount || 0));
+        merged.monthlyMilestonesClaimed = { ...(prev.monthlyMilestonesClaimed || {}), ...(inc.monthlyMilestonesClaimed || {}) };
+      } else if ((prev.monthlyKey || '') > (inc.monthlyKey || '')) {
+        merged.monthlyKey = prev.monthlyKey;
+        merged.monthlyCheckinCount = prev.monthlyCheckinCount;
+        merged.monthlyMilestonesClaimed = { ...(prev.monthlyMilestonesClaimed || {}) };
+      }
+
+      const bestGoalsDay = String(prev.dailyGoalsDay || '') >= String(inc.dailyGoalsDay || '') ? prev.dailyGoalsDay : inc.dailyGoalsDay;
+      merged.dailyGoalsDay = bestGoalsDay;
+      merged.dailyGoalsDone = {
+        ...(prev.dailyGoalsDay === bestGoalsDay ? prev.dailyGoalsDone : {}),
+        ...(inc.dailyGoalsDay === bestGoalsDay ? inc.dailyGoalsDone : {})
+      };
+      merged.dailyGoalsClaimed = {
+        ...(prev.dailyGoalsDay === bestGoalsDay ? prev.dailyGoalsClaimed : {}),
+        ...(inc.dailyGoalsDay === bestGoalsDay ? inc.dailyGoalsClaimed : {})
+      };
+
+      merged.comboClaimedDay = String(prev.comboClaimedDay || '') > String(inc.comboClaimedDay || '') ? prev.comboClaimedDay : inc.comboClaimedDay;
+      merged.rerolledDay = String(prev.rerolledDay || '') > String(inc.rerolledDay || '') ? prev.rerolledDay : inc.rerolledDay;
+      merged.cpuBoostUntil = Math.max(Number(prev.cpuBoostUntil || 0), Number(inc.cpuBoostUntil || 0));
+      merged.lastTrustedClaimEpoch = Math.max(Number(prev.lastTrustedClaimEpoch || 0), Number(inc.lastTrustedClaimEpoch || 0));
+
+      this.userId = uid;
+      this.state = this.normalizeState(merged);
+      this.save(true, false);
+      if (window.dailyCheckinV2 && typeof window.dailyCheckinV2.syncTopbarBadge === 'function') {
+        window.dailyCheckinV2.syncTopbarBadge();
+      }
+      this.renderHomeRoutine();
     }
 
     computeCurrentStockValue() {
@@ -460,12 +532,11 @@
       });
 
       st.dailyGoalsClaimed[goalId] = true;
-      this.save();
+      this.save(false, true);
       if (window.dailyCheckinV2) {
         window.dailyCheckinV2.syncTopbarBadge();
         window.dailyCheckinV2.rerenderIfOpen();
       }
-      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       if (typeof window.renderHome === 'function') window.renderHome();
       const msg = `💵 Meta "${goal.title}" resgatada: +$${cashOut} Limpos e +${repOut} REP!`;
