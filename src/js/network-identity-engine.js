@@ -210,25 +210,46 @@
       return this.state.rootPassword;
     }
 
-    getWeeklyResetStatus() {
+    getCurrentWeekBucket(nowMs = Date.now()) {
+      const d = new Date(nowMs);
+      const dayUtc = d.getUTCDay();
+      const diffToMonday = dayUtc === 0 ? 6 : (dayUtc - 1);
+      const monMs = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - diffToMonday, 0, 0, 0, 0);
+      const nextMonMs = monMs + (7 * 24 * 60 * 60 * 1000);
+      return {
+        weekKey: new Date(monMs).toISOString().slice(0, 10),
+        monMs,
+        nextMonMs,
+        msUntilNextWeek: Math.max(0, nextMonMs - nowMs)
+      };
+    }
+
+    getWeeklyResetStatus(nowMs = Date.now()) {
       this.ensureForProfile(window.currentProfile);
-      const now = Date.now();
-      const last = this.state.lastFreeResetAt;
-      const canResetFree = !last || (now >= last + WEEK_MS);
-      const msRemaining = canResetFree ? 0 : Math.max(0, (last + WEEK_MS) - now);
-      // Taxa emergencial pesada: $ 50.000 HC na 1ª emergência após gastar a semanal grátis, +$ 25.000 por reincidência (teto $ 250.000 HC)
-      const paidCost = Math.min(250000, 50000 + (25000 * Math.max(0, (this.state.resetsCount || 1) - 1)));
+      const WEEKLY_PRICES = [2500, 10000, 35000];
+      const MAX_WEEKLY = 3;
+      const bucket = this.getCurrentWeekBucket(nowMs);
+      const sameWeek = this.state.paidWeekKey === bucket.weekKey;
+      const usedThisWeek = sameWeek ? Math.max(0, Math.min(MAX_WEEKLY, Number(this.state.weeklyPaidCount || 0))) : 0;
+      const remainingThisWeek = Math.max(0, MAX_WEEKLY - usedThisWeek);
+      const canBuyMoreThisWeek = remainingThisWeek > 0;
+      const paidCost = canBuyMoreThisWeek ? WEEKLY_PRICES[usedThisWeek] : WEEKLY_PRICES[MAX_WEEKLY - 1];
       const paidCostFmt = paidCost.toLocaleString('pt-BR');
 
       return {
-        canResetFree,
-        msRemaining,
-        formattedRemaining: this.formatDuration(msRemaining),
-        nextFreeDateStr: last ? new Date(last + WEEK_MS).toLocaleString('pt-BR') : 'Disponível agora',
+        canResetFree: false,
+        canBuyMoreThisWeek,
+        usedThisWeek,
+        maxPerWeek: MAX_WEEKLY,
+        remainingThisWeek,
+        weekKey: bucket.weekKey,
+        msRemaining: bucket.msUntilNextWeek,
+        formattedRemaining: this.formatDuration(bucket.msUntilNextWeek),
+        nextFreeDateStr: new Date(bucket.nextMonMs).toLocaleString('pt-BR'),
         paidCost,
         paidCostFmt,
+        priceSchedule: WEEKLY_PRICES,
         resetsCount: this.state.resetsCount || 0,
-        lastFreeResetAt: last,
         history: this.state.history || []
       };
     }
@@ -244,112 +265,114 @@
       return `${mins}m`;
     }
 
-    async resetPublicIp(allowPaid = false) {
+    async resetPublicIp(allowPaid = true, nowOverrideMs = null) {
       this.ensureForProfile(window.currentProfile);
-      const status = this.getWeeklyResetStatus();
+      const evalNow = typeof nowOverrideMs === 'number' ? nowOverrideMs : Date.now();
+      const status = this.getWeeklyResetStatus(evalNow);
       const oldIp = this.state.publicIp;
 
-      if (!status.canResetFree && !allowPaid) {
+      if (!status.canBuyMoreThisWeek) {
         return {
           success: false,
-          code: 'COOLDOWN_ACTIVE',
-          requiredCost: status.paidCost,
+          code: 'WEEKLY_LIMIT_REACHED',
+          usedThisWeek: status.usedThisWeek,
+          maxPerWeek: status.maxPerWeek,
           formattedRemaining: status.formattedRemaining,
-          message: `Sua troca gratuita semanal já foi usada! Próxima grátis em ${status.formattedRemaining} (ou pague $ ${status.paidCostFmt} HC para troca emergencial imediata).`
+          message: `🚫 Limite semanal atingido (${status.usedThisWeek}/${status.maxPerWeek} IPs comprados nesta semana)! O limite e o preço inicial ($ 2.500 HC) só voltam quando virar a semana (em ${status.formattedRemaining}).`
         };
       }
 
-      if (!status.canResetFree && allowPaid) {
-        if (!window.currentWallet || parseFloat(window.currentWallet.balance) < status.paidCost) {
-          return {
-            success: false,
-            code: 'INSUFFICIENT_FUNDS',
-            message: `Saldo insuficiente! A troca emergencial antes de 7 dias custa $ ${status.paidCostFmt} HC.`
-          };
-        }
+      if (!window.currentWallet || parseFloat(window.currentWallet.balance) < status.paidCost) {
+        return {
+          success: false,
+          code: 'INSUFFICIENT_FUNDS',
+          requiredCost: status.paidCost,
+          usedThisWeek: status.usedThisWeek,
+          message: `Saldo insuficiente! O ${status.usedThisWeek + 1}º IP desta semana custa $ ${status.paidCostFmt} HC.`
+        };
       }
 
       let newIp = null;
-      let wasFree = status.canResetFree;
-      let costPaid = wasFree ? 0 : status.paidCost;
+      let costPaid = status.paidCost;
+      let nextUsedCount = status.usedThisWeek + 1;
+      let nextWeekKey = status.weekKey;
 
-      // 1. Tentar RPC oficial no PostgreSQL primeiro (se migration aplicada na nuvem)
-      if (window.supabase && typeof window.supabase.rpc === 'function' && window.currentProfile) {
+      const applyAuthorizedWallet = (newBal) => {
+        const fn = () => {
+          if (window.currentWallet) window.currentWallet.balance = Math.max(0, +Number(newBal).toFixed(2));
+        };
+        if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') window.integrityGuard.runAuthorized(fn);
+        else fn();
+      };
+
+      if (window.supabase && typeof window.supabase.rpc === 'function' && window.currentProfile && !nowOverrideMs) {
         try {
-          const { data, error } = await window.supabase.rpc('reset_player_ip', { p_force_paid: !!allowPaid });
+          if (window.onlineEngine && window.onlineEngine._saveTimer && typeof window.onlineEngine.saveMasterSnapshotToCloudNow === 'function') {
+            clearTimeout(window.onlineEngine._saveTimer);
+            window.onlineEngine._saveTimer = null;
+            await window.onlineEngine.saveMasterSnapshotToCloudNow();
+          }
+          const { data, error } = await window.supabase.rpc('reset_player_ip', { p_force_paid: true });
           if (!error && data && data.success) {
             newIp = data.new_ip;
-            wasFree = !!data.was_free;
-            costPaid = Number(data.cost || 0);
-            if (data.new_balance != null && window.currentWallet) {
-              window.currentWallet.balance = Number(data.new_balance);
-            }
-            if (data.next_free_at) {
-              this.state.lastFreeResetAt = new Date(data.next_free_at).getTime() - WEEK_MS;
-            }
-          } else if (!wasFree && allowPaid) {
-            // Cobrança real via RPC existente buy_black_market_item caso reset_player_ip ainda não tenha sido colado no SQL Editor
-            const { data: bData } = await window.supabase.rpc('buy_black_market_item', {
-              p_item_type: 'isp_emergency_ip_reset',
-              p_cost: costPaid
-            });
-            if (bData && bData.new_balance !== undefined && window.currentWallet) {
-              window.currentWallet.balance = Number(bData.new_balance);
-            } else if (window.currentWallet) {
-              window.currentWallet.balance = Math.max(0, parseFloat(window.currentWallet.balance) - costPaid);
-            }
+            costPaid = Number(data.cost || costPaid);
+            if (data.used_this_week != null) nextUsedCount = Number(data.used_this_week);
+            if (data.week_key) nextWeekKey = data.week_key;
+            if (data.new_balance != null) applyAuthorizedWallet(data.new_balance);
+          } else if (data && data.code === 'WEEKLY_LIMIT_REACHED') {
+            this.state.paidWeekKey = status.weekKey;
+            this.state.weeklyPaidCount = 3;
+            this.save();
+            return { success: false, code: 'WEEKLY_LIMIT_REACHED', usedThisWeek: 3, maxPerWeek: 3, message: data.message };
+          } else {
+            applyAuthorizedWallet(parseFloat(window.currentWallet.balance) - costPaid);
           }
         } catch (e) {
-          if (!wasFree && allowPaid && window.currentWallet) {
-            window.currentWallet.balance = Math.max(0, parseFloat(window.currentWallet.balance) - costPaid);
-          }
+          applyAuthorizedWallet(parseFloat(window.currentWallet.balance) - costPaid);
         }
-      } else if (!wasFree && allowPaid && window.currentWallet) {
-        window.currentWallet.balance = Math.max(0, parseFloat(window.currentWallet.balance) - costPaid);
+      } else if (window.currentWallet) {
+        applyAuthorizedWallet(parseFloat(window.currentWallet.balance) - costPaid);
       }
 
       if (!newIp) {
         const exclude = new Set([oldIp]);
         (this.state.history || []).forEach((h) => { exclude.add(h.from); exclude.add(h.to); });
         newIp = this.generateRandomPublicIp(exclude);
-        if (wasFree) {
-          this.state.lastFreeResetAt = Date.now();
-        }
       }
 
       this.state.publicIp = newIp;
+      this.state.paidWeekKey = nextWeekKey;
+      this.state.weeklyPaidCount = nextUsedCount;
       this.state.resetsCount = (this.state.resetsCount || 0) + 1;
       this.state.history = [
         {
           from: oldIp,
           to: newIp,
-          at: new Date().toLocaleString('pt-BR'),
-          mode: wasFree ? 'Cota Gratuita Semanal (7d)' : `Emergencial ($ ${costPaid} HC)`
+          at: new Date(evalNow).toLocaleString('pt-BR'),
+          mode: `Compra ${nextUsedCount}/3 da Semana ($ ${costPaid.toLocaleString('pt-BR')} HC)`
         },
         ...(this.state.history || []).slice(0, 9)
       ];
       this.save();
 
       if (window.currentProfile) {
-        window.currentProfile.public_ip = newIp;
-        window.currentProfile.reputation = (window.currentProfile.reputation || 0) + 50;
+        const grantProfile = () => {
+          window.currentProfile.public_ip = newIp;
+          window.currentProfile.reputation = (window.currentProfile.reputation || 0) + 50;
+        };
+        if (window.integrityGuard && typeof window.integrityGuard.runAuthorized === 'function') window.integrityGuard.runAuthorized(grantProfile);
+        else grantProfile();
       }
 
-      // Efeitos reais de gameplay (inspirado em HE Process::RESET_IP):
-      // 1. Derrubar sessões SSH abertas que usavam o gateway antigo
       if (window.internetEngine && window.internetEngine.activeSshIp) {
         window.internetEngine.disconnectSsh(true);
       }
-      // 2. Registrar no /var/log/auth.log local
       if (typeof window.addLocalLog === 'function') {
-        window.addLocalLog(
-          'ISP-DHCP',
-          `IP público alterado de ${oldIp} para ${newIp} (${wasFree ? 'Grátis 1x/semana' : '-$ ' + costPaid + ' HC'}) [+50 REP]`,
-          'success'
-        );
+        window.addLocalLog('ISP-DHCP', `IP público comprado (${nextUsedCount}/3 na semana): ${oldIp} → ${newIp} (-$ ${costPaid.toLocaleString('pt-BR')} HC) [+50 REP]`, 'success');
       }
-      if (window.safenetFbiEngine) {
-        window.safenetFbiEngine.onPlayerIpChanged(oldIp, newIp);
+      if (window.safenetFbiEngine) window.safenetFbiEngine.onPlayerIpChanged(oldIp, newIp);
+      if (window.nineSystemsEngine && typeof window.nineSystemsEngine.onPlayerIpRotated === 'function') {
+        window.nineSystemsEngine.onPlayerIpRotated(oldIp, newIp);
       }
       if (window.onlineEngine) {
         window.onlineEngine.trackRealtimePresence();
@@ -358,17 +381,19 @@
       }
       if (window.hackerAudio) window.hackerAudio.playCashChime();
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
-      if (window.internetEngine && window.winManager && window.winManager.current === 'winBrowser') {
+      if (window.internetEngine && window.winManager && (window.winManager.current === 'winBrowser' || window.winManager.current === 'winInternet')) {
         window.internetEngine.render();
       }
 
       return {
         success: true,
-        wasFree,
+        wasFree: false,
         cost: costPaid,
+        usedThisWeek: nextUsedCount,
+        maxPerWeek: 3,
         oldIp,
         newIp,
-        message: `Novo IP público atribuído pelo provedor! Passe o mouse sobre Seu IP para visualizar (${wasFree ? 'Troca semanal gratuita utilizada' : 'Taxa $ ' + costPaid + ' HC'}).`
+        message: `Novo IP comprado (${nextUsedCount}/3 nesta semana por $ ${costPaid.toLocaleString('pt-BR')} HC)!`
       };
     }
 
@@ -422,15 +447,13 @@
               <div class="hc-eyebrow">Identidade de Rede & Provedor (HC Telecom ISP)</div>
               <div style="display: flex; align-items: center; gap: 0.6rem; margin-top: 0.25rem; flex-wrap: wrap;">
                 <span style="font-family: var(--hc-font-mono); font-size: 1.15rem; font-weight: 700; color: var(--hc-accent-text);">${this.renderBlurredMyIpHtml(ip, true)}</span>
-                ${st.canResetFree
-                  ? '<span class="hc-badge success">1 troca grátis disponível (1x/semana)</span>'
-                  : `<span class="hc-badge warn">Próxima grátis em ${esc(st.formattedRemaining)}</span>`}
+                <span class="hc-badge ${st.canBuyMoreThisWeek ? 'warn' : 'danger'}">${st.usedThisWeek}/${st.maxPerWeek} IPs comprados na semana · Vira em ${esc(st.formattedRemaining)}</span>
               </div>
             </div>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-              ${st.canResetFree
-                ? `<button type="button" class="hc-btn primary sm" onclick="window.handleIpResetAction(false, this)">Trocar IP Agora (Grátis)</button>`
-                : `<button type="button" class="hc-btn sm" style="border-color: var(--hc-warning); color: var(--hc-warning);" onclick="window.handleIpResetAction(true, this)">Troca Emergencial ($ ${st.paidCostFmt} HC)</button>`}
+              ${st.canBuyMoreThisWeek
+                ? `<button type="button" class="hc-btn primary sm" onclick="window.handleIpResetAction(true, this)">Comprar IP (${st.usedThisWeek + 1}/3 · $ ${st.paidCostFmt})</button>`
+                : `<button type="button" class="hc-btn sm" disabled style="opacity:0.6;cursor:not-allowed;">Limite 3/3 da Semana Atingido</button>`}
               <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('71.4.5.1')">Abrir Provedor ISP</button>
             </div>
           </div>
@@ -3204,15 +3227,23 @@
                   <div style="margin-top: 0.35rem; font-size: 0.85rem; color: var(--hc-text-2);">Seu IP Público Atual <span style="font-size: 0.75rem; color: var(--hc-text-3);">(passe o mouse p/ revelar)</span>:</div>
                   <div id="ispCurrentMyIpBox" style="font-family: var(--hc-font-mono); font-size: 1.5rem; font-weight: 700; color: var(--hc-accent-text); margin: 0.15rem 0 0.5rem;">${window.networkIdentity.renderBlurredMyIpHtml(myIp, true)}</div>
                   <div style="font-size: 0.82rem; color: var(--hc-text-2);">
-                    Política Oficial: <strong>1 troca de IP 100% gratuita a cada 7 dias</strong>. Ao renovar seu IP, rastros antigos deixados em servidores alheios perdem a rota até você e você some do Hacked Database de inimigos!
+                    Limite Semanal: <strong>máximo de 3 IPs comprados por semana</strong> com valor escalonado a cada compra:
+                    <strong>1º IP = $ 2.500 HC</strong> → <strong>2º IP = $ 10.000 HC</strong> → <strong>3º IP = $ 35.000 HC</strong>.
+                    O contador e o valor <strong>só voltam para $ 2.500 HC quando vira a semana</strong> (em <strong>${esc(st.formattedRemaining)}</strong>)!
+                  </div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+                    ${st.priceSchedule.map((p, idx) => {
+                      const bought = idx < st.usedThisWeek;
+                      const current = idx === st.usedThisWeek && st.canBuyMoreThisWeek;
+                      return `<span class="hc-badge ${bought ? '' : (current ? 'warn' : 'info')}" style="${bought ? 'text-decoration:line-through;opacity:0.55;' : ''}">${idx + 1}º IP: $ ${p.toLocaleString('pt-BR')}${bought ? ' (Usado)' : (current ? ' (Atual)' : '')}</span>`;
+                    }).join('')}
                   </div>
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 8px; min-width: 240px;">
-                  ${st.canResetFree
-                    ? `<span class="hc-badge success" style="align-self: flex-start;">Cota Semanal Grátis Liberada</span>
-                       <button type="button" id="btnIspFreeReset" class="hc-btn primary" onclick="window.handleIpResetAction(false, this)">Trocar Meu IP Agora (GRÁTIS)</button>`
-                    : `<span class="hc-badge warn" style="align-self: flex-start;">Próxima grátis em ${esc(st.formattedRemaining)}</span>
-                       <button type="button" id="btnIspPaidReset" class="hc-btn" style="border-color: var(--hc-warning); color: var(--hc-warning);" onclick="window.handleIpResetAction(true, this)">Troca Emergencial Imediata ($ ${st.paidCostFmt} HC)</button>`}
+                <div style="display: flex; flex-direction: column; gap: 8px; min-width: 250px;">
+                  <span class="hc-badge ${st.canBuyMoreThisWeek ? 'warn' : 'danger'}" style="align-self: flex-start;">Cota Semanal: ${st.usedThisWeek}/${st.maxPerWeek} comprados · Vira em ${esc(st.formattedRemaining)}</span>
+                  ${st.canBuyMoreThisWeek
+                    ? `<button type="button" id="btnIspPaidReset" class="hc-btn primary" onclick="window.handleIpResetAction(true, this)">Comprar ${st.usedThisWeek + 1}º IP da Semana ($ ${st.paidCostFmt} HC)</button>`
+                    : `<button type="button" id="btnIspLimitReached" class="hc-btn" disabled style="opacity:0.6;cursor:not-allowed;border-color:var(--hc-danger);color:var(--hc-danger-text);">🚫 Limite 3/3 da Semana Esgotado</button>`}
                   <button type="button" class="hc-btn ghost sm" onclick="window.handleRootPwdReset()">Rotacionar Senha Root (${esc(myPwd)})</button>
                 </div>
               </div>

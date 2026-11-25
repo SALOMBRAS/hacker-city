@@ -2724,11 +2724,11 @@
           appendCli(`=== IDENTIDADE DE REDE (PROVEDOR HC TELECOM ISP) ===`, 'var(--hc-accent-text)');
           appendCli(`  Seu IP Público Atual : ${myIp}`, 'var(--hc-success)');
           appendCli(`  Senha Root Local     : ${window.networkIdentity.getRootPassword()}`, 'var(--hc-text)');
-          appendCli(`  Troca Grátis Semanal : ${st.canResetFree ? 'DISPONÍVEL AGORA (use resetip ou visite 71.4.5.1)' : 'Próxima grátis em ' + st.formattedRemaining + ' (Emergencial: $ ' + (st.paidCostFmt || st.paidCost) + ' HC)'}`, st.canResetFree ? 'var(--hc-success)' : 'var(--hc-warning)');
+          appendCli(`  Cota Semanal de IPs  : ${st.usedThisWeek}/${st.maxPerWeek} comprados (${st.canBuyMoreThisWeek ? 'Próximo: $ ' + st.paidCostFmt + ' HC' : 'LIMITE 3/3 ESGOTADO — vira em ' + st.formattedRemaining})`, st.canBuyMoreThisWeek ? 'var(--hc-warning)' : 'var(--hc-danger)');
         }
       } else if (cmd === 'resetip') {
         if (window.networkIdentity) {
-          window.networkIdentity.resetPublicIp(false).then((res) => {
+          window.networkIdentity.resetPublicIp(true).then((res) => {
             if (res.success) {
               appendCli(`[ISP-DHCP] ${res.message}`, 'var(--hc-success)');
             } else {
@@ -3620,9 +3620,9 @@
           <div class="hc-stat-cell clickable" id="homeMyIpCell" onclick="window.internetEngine.openIp('71.4.5.1')" data-tip-title="Seu IP protegido" data-tip-meta="Provedor ISP" data-tip-desc="Os últimos 7 dígitos ficam ocultos automaticamente. Passe o mouse por cima para ver ou clique para renovar no Provedor ISP.">
             <div class="hc-stat-label">Seu IP</div>
             <div class="hc-stat-value" style="color: var(--hc-accent-text);">${(window.networkIdentity && window.networkIdentity.renderBlurredMyIpHtml) ? window.networkIdentity.renderBlurredMyIpHtml(myIp) : escapeHtml(myIp)}</div>
-            <div class="hc-stat-sub ${ipStatus.canResetFree ? 'ok' : ''}">
+            <div class="hc-stat-sub ${ipStatus.canBuyMoreThisWeek ? 'ok' : 'danger'}">
               ${HC.icon('shield')}
-              <span>${ipStatus.canResetFree ? 'Troca grátis disponível' : `Troca em ${escapeHtml(ipStatus.formattedRemaining)}`}</span>
+              <span>${ipStatus.canBuyMoreThisWeek ? `${ipStatus.usedThisWeek || 0}/3 IPs na semana ($ ${ipStatus.paidCostFmt})` : `Limite 3/3 (vira em ${escapeHtml(ipStatus.formattedRemaining)})`}</span>
             </div>
           </div>
         </div>
