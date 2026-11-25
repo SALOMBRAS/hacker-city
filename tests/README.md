@@ -20,6 +20,9 @@ NODE_PATH=../pague-on-old/node_modules node tests/verify-retention-pwa-pvp-ideas
 
 # 6. Check-in Diário 2.0: Modal Dedicado, Dias 1–7 Escaláveis, Reroll, Combo 3/3, Freeze & Mensal (PRs #103 a #112)
 NODE_PATH=../pague-on-old/node_modules node tests/verify-daily-checkin-v2-e2e.js
+
+# 7. Cross-Save Real PC ↔ Celular (Anti-Duplicação) & PWA Nativo (/sw.js, WebAPK PNGs, Alertas & Vibração) (PRs #114 a #122)
+NODE_PATH=../pague-on-old/node_modules node tests/verify-cross-save-and-pwa-e2e.js
 ```
 
 Critérios obrigatórios em todas as execuções:
