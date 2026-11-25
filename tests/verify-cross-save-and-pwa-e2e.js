@@ -155,16 +155,25 @@ function assert(cond, msg) {
       const r3 = a.sendTestAlert();
       const hasNotifBtn = !!document.getElementById('btnTogglePwaNotifications');
       const hasHapBtn = !!document.getElementById('btnTogglePwaHaptics');
+
+      // Valida filtro de saldo Realtime (PR #123: ignora valor igual, avisa só em aumento ou redução)
+      const curBal = Number(window.currentWallet.balance);
+      const sameToastFired = window.handleRealtimeWalletPayload({ new: { balance: curBal } });
+      const upToastFired = window.handleRealtimeWalletPayload({ new: { balance: curBal + 50 } });
+      const downToastFired = window.handleRealtimeWalletPayload({ new: { balance: curBal } });
+
       return {
         sentAll: !!(r1.sent && r2.sent && r3.sent),
         intrusionLen: Array.isArray(p1) ? p1.length : 0,
         launderLen: Array.isArray(p2) ? p2.length : 0,
         uiReady: hasNotifBtn && hasHapBtn,
+        realtimeFilterOk: sameToastFired === false && upToastFired === true && downToastFired === true,
         cheatStrikes: window.integrityGuard ? window.integrityGuard.cheatStrikes : 0
       };
     });
 
     assert(alertsAudit.sentAll && alertsAudit.intrusionLen === 5 && alertsAudit.launderLen === 3 && alertsAudit.uiReady, 'Motor de Alertas/Vibração falhou');
+    assert(alertsAudit.realtimeFilterOk, 'Filtro de aviso Realtime de saldo falhou');
     assert(alertsAudit.cheatStrikes === 0, 'IntegrityGuard acusou violação');
     console.log('✅ [4/4] Central de Alertas Nativos & Vibração Tátil Mobile validada em Minha Conta (0 strikes)!');
 

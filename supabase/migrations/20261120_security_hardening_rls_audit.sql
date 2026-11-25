@@ -280,8 +280,8 @@ BEGIN
 
   IF auth.uid() IS NOT NULL THEN
     BEGIN
-      UPDATE public.wallets SET balance = v_safe_bal WHERE user_id = auth.uid();
-      UPDATE public.profiles SET reputation = v_safe_rep, heat_level = v_safe_heat, updated_at = now() WHERE id = auth.uid();
+      UPDATE public.wallets SET balance = v_safe_bal WHERE user_id = auth.uid() AND balance IS DISTINCT FROM v_safe_bal;
+      UPDATE public.profiles SET reputation = v_safe_rep, heat_level = v_safe_heat, updated_at = now() WHERE id = auth.uid() AND (reputation IS DISTINCT FROM v_safe_rep OR heat_level IS DISTINCT FROM v_safe_heat);
     EXCEPTION WHEN undefined_table THEN
       NULL;
     END;
