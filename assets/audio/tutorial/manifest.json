@@ -1,0 +1,132 @@
+{
+  "tour-guiado": {
+    "steps": {
+      "my_ip": {
+        "file": "my_ip.mp3",
+        "hash": "28e78e8b",
+        "version": 1,
+        "model": "elevenlabs/eleven-v4",
+        "voice": "alice",
+        "chars": 439,
+        "generatedAt": "2026-11-25"
+      },
+      "topic_pc": {
+        "file": "topic_pc.mp3",
+        "hash": "48f4cc49",
+        "version": 1,
+        "model": "elevenlabs/eleven-v4",
+        "voice": "alice",
+        "chars": 306,
+        "generatedAt": "2026-11-25"
+      },
+      "open_software": {
+        "file": "open_software.mp3",
+        "hash": "f1702441",
+        "version": 1,
+        "model": "elevenlabs/eleven-v4",
+        "voice": "alice",
+        "chars": 282,
+        "generatedAt": "2026-11-25"
+      },
+      "running_ram_cooldown": {
+        "file": "running_ram_cooldown.mp3",
+        "hash": "2f4ffd5f",
+        "version": 1,
+        "model": "elevenlabs/eleven-v4",
+        "voice": "alice",
+        "chars": 351,
+        "generatedAt": "2026-11-25"
+      },
+      "topic_net": {
+        "file": "topic_net.mp3",
+        "hash": "dbcf389a",
+        "version": 1,
+        "model": "elevenlabs/eleven-v4",
+        "voice": "alice",
+        "chars": 258,
+        "generatedAt": "2026-11-25"
+      },
+      "open_browser": {
+        "file": "open_browser.mp3",
+        "hash": "19329da2",
+        "version": 1,
+        "model": "elevenlabs/eleven-v4",
+        "voice": "alice",
+        "chars": 235,
+        "generatedAt": "2026-11-25"
+      },
+      "compare_defenses": {
+        "file": "compare_defenses.mp3",
+        "hash": "dcf05293",
+        "version": 1,
+        "model": "elevenlabs/eleven-v4",
+        "voice": "alice",
+        "chars": 293,
+        "generatedAt": "2026-11-25"
+      },
+      "crack_password": {
+        "file": "crack_password.mp3",
+        "hash": "d82a9d55",
+        "version": 1,
+        "model": "elevenlabs/eleven-v4",
+        "voice": "alice",
+        "chars": 211,
+        "generatedAt": "2026-11-25"
+      },
+      "choose_minipc_hash": {
+        "file": "choose_minipc_hash.mp3",
+        "hash": "900f3177",
+        "version": 1,
+        "model": "elevenlabs/eleven-v4",
+        "voice": "alice",
+        "chars": 273,
+        "generatedAt": "2026-11-25"
+      },
+      "upload_virus_stage": {
+        "file": "upload_virus_stage.mp3",
+        "hash": "b6bf8a57",
+        "version": 1,
+        "model": "elevenlabs/eleven-v4",
+        "voice": "alice",
+        "chars": 298,
+        "generatedAt": "2026-11-25"
+      },
+      "execute_staged_virus": {
+        "file": "execute_staged_virus.mp3",
+        "hash": "4282ac83",
+        "version": 1,
+        "model": "elevenlabs/eleven-v4",
+        "voice": "alice",
+        "chars": 269,
+        "generatedAt": "2026-11-25"
+      },
+      "back_to_logs_tab": {
+        "file": "back_to_logs_tab.mp3",
+        "hash": "1e635bf1",
+        "version": 1,
+        "model": "elevenlabs/eleven-v4",
+        "voice": "alice",
+        "chars": 278,
+        "generatedAt": "2026-11-25"
+      },
+      "wipe_log_and_taunt": {
+        "file": "wipe_log_and_taunt.mp3",
+        "hash": "0b0629ec",
+        "version": 1,
+        "model": "elevenlabs/eleven-v4",
+        "voice": "alice",
+        "chars": 324,
+        "generatedAt": "2026-11-25"
+      },
+      "dirty_vs_clean_economy": {
+        "file": "dirty_vs_clean_economy.mp3",
+        "hash": "1731b4da",
+        "version": 1,
+        "model": "elevenlabs/eleven-v4",
+        "voice": "alice",
+        "chars": 426,
+        "generatedAt": "2026-11-25"
+      }
+    }
+  }
+}
