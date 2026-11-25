@@ -226,6 +226,41 @@ const assert = require('assert');
   const strikes = await page.evaluate(() => window.integrityGuard ? window.integrityGuard.cheatStrikes : 0);
   assert.strictEqual(strikes, 0, 'IntegrityGuard deve registrar 0 strikes durante toda a suíte mobile');
 
-  console.log('✅ SUÍTE MOBILE E2E APROVADA (8 Resoluções Mobile/Paisagem/Tablet + 14 Passos do Tour + 0 Strikes)!');
+  // 5. Menu Lateral Exclusivo no Desktop (PR #124: abrir novo submenu fecha o anterior sem empilhar)
+  const deskPage = await browser.newPage();
+  await deskPage.evaluateOnNewDocument(() => {
+    window.DISABLE_AUTO_TOUR = true;
+    localStorage.setItem('HC_DISABLE_AUTO_TOUR', '1');
+  });
+  await deskPage.setViewport({ width: 1366, height: 860, isMobile: false });
+  await deskPage.goto('http://localhost:8080/hacker-city-web/index.html', { waitUntil: 'networkidle2', timeout: 30000 });
+  await deskPage.evaluate(async () => {
+    await window.enterInstantOperatorMode('FlyoutCheck');
+  });
+  await new Promise((r) => setTimeout(r, 250));
+
+  for (const sumId of ['navSummary_pc', 'navSummary_net', 'navSummary_money', 'navSummary_social', 'navSummary_career']) {
+    await deskPage.click('#' + sumId);
+    await new Promise((r) => setTimeout(r, 90));
+    const flyState = await deskPage.evaluate(() => {
+      const openTopics = Array.from(document.querySelectorAll('details.nav-topic[open]')).map((d) => d.id);
+      const visibleSubs = Array.from(document.querySelectorAll('.nav-sublist')).filter((s) => getComputedStyle(s).display !== 'none');
+      return { openTopics, visibleCount: visibleSubs.length };
+    });
+    assert.strictEqual(flyState.openTopics.length, 1, `Mais de 1 menu aberto após clicar em ${sumId}: ${flyState.openTopics.join(',')}`);
+    assert.strictEqual(flyState.visibleCount, 1, `Mais de 1 .nav-sublist visível após clicar em ${sumId}`);
+  }
+
+  await deskPage.click('.topbar');
+  await new Promise((r) => setTimeout(r, 80));
+  const afterOutside = await deskPage.evaluate(() => ({
+    openCount: document.querySelectorAll('details.nav-topic[open]').length,
+    visibleCount: Array.from(document.querySelectorAll('.nav-sublist')).filter((s) => getComputedStyle(s).display !== 'none').length
+  }));
+  assert.strictEqual(afterOutside.openCount, 0, 'Clicar fora deveria fechar todos os submenus');
+  assert.strictEqual(afterOutside.visibleCount, 0, 'Nenhum .nav-sublist deve continuar visível após clicar fora');
+  await deskPage.close();
+
+  console.log('✅ SUÍTE MOBILE & FLYOUT EXCLUSIVO APROVADA (8 Resoluções + Flyout Único Desktop + 14 Passos Tour + 0 Strikes)!');
   await browser.close();
 })();
