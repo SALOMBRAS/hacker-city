@@ -558,7 +558,7 @@
         {
           id: 'my_ip',
           selector: '#hudMyIpChip',
-          pointerLabel: '👀 Seu IP + Escudo 24h',
+          pointerLabel: '👆 Toque aqui (Seu IP + Escudo 24h)',
           requiresDirectClick: false,
           title: '1. Seu IP Protegido & Escudo Iniciante (24h)',
           desc: 'Esse número no topo é a <strong>placa do seu PC</strong> na rede (passe o mouse ou toque para revelar os últimos 7 dígitos). Nas suas <strong>primeiras 24 horas reais</strong>, seu <strong>Escudo Iniciante de 24h</strong> impede invasões e DDoS de outros jogadores (cai na hora se você atacar um jogador real)!',
@@ -613,7 +613,7 @@
           id: 'running_ram_cooldown',
           selector: '#softwareExplorerMain',
           fallbackSelector: '#runningProgramsPanel',
-          pointerLabel: '👀 Programas na RAM & Disco',
+          pointerLabel: '👆 Toque aqui p/ avançar',
           requiresDirectClick: false,
           title: '4. Defesas na Memória vs. Ataques no Disco',
           desc: 'Defesas como <strong>Firewall</strong> e <strong>Hasher</strong> ficam ligadas na sua Memória RAM (1 de cada por vez). Já o <strong>Quebrador de Senha</strong> roda direto do seu disco quando você ataca!',
@@ -678,7 +678,7 @@
         {
           id: 'compare_defenses',
           selector: '#inetHostDefenseCompareBox',
-          pointerLabel: '👀 Compare a Força!',
+          pointerLabel: '👆 Confira e toque p/ avançar!',
           requiresDirectClick: false,
           title: '7. Regra nº 1: Seu Quebrador Alcança a Defesa Dele?',
           desc: '<strong>Sempre confira este quadro antes de atacar!</strong> Você só quebra a senha se o seu <strong>Quebrador (Cracker)</strong> tiver versão maior ou igual ao <strong>Firewall</strong> e ao <strong>Hasher</strong> da vítima.',
@@ -915,7 +915,7 @@
           id: 'dirty_vs_clean_economy',
           selector: '#hudDirtyCashBadge',
           fallbackSelector: '#hudWalletMoney',
-          pointerLabel: '🩸 Notas Sujas!',
+          pointerLabel: '👆 Toque aqui p/ Concluir (+$500)!',
           requiresDirectClick: false,
           title: '14. Regra de Ouro: Dinheiro Sujo vs. Dinheiro Limpo!',
           desc: 'Olhe no topo: entraram <strong>🩸 $ 600 Sujos</strong>! Dinheiro de invasão e vírus vem <strong>Sujo</strong> — se tentar forçar notas sujas para comprar Peças ou Cursos, a polícia prende você! Por isso o menu <strong>Dinheiro & Vida → Lavar Dinheiro</strong> acabou de abrir com o selo <strong>NOVO</strong>.',
@@ -957,11 +957,16 @@
       const root = document.getElementById('hcSpotlightRoot');
       if (root) root.classList.add('active');
 
+      document.removeEventListener('click', this._onDocCaptureClick, true);
+      document.addEventListener('click', this._onDocCaptureClick, true);
+
       this.goToStep(0);
 
       if (this.trackTimer) clearInterval(this.trackTimer);
       this.trackTimer = setInterval(() => {
-        if (this.isActive) this.repositionCurrentStep();
+        if (!this.isActive) return;
+        this.checkAutoStateCompletion();
+        this.repositionCurrentStep();
       }, 140);
 
       window.addEventListener('resize', this._onViewportChange);
@@ -971,6 +976,191 @@
 
     _onViewportChange = () => {
       if (this.isActive) this.repositionCurrentStep();
+    };
+
+    readGameStepSignals() {
+      const ie = window.internetEngine;
+      const se = window.softwareEngine;
+      const myIp = window.networkIdentity && typeof window.networkIdentity.getPublicIp === 'function'
+        ? window.networkIdentity.getPublicIp()
+        : '';
+      const trainingLogs = (window.botAI && typeof window.botAI.getLogs === 'function')
+        ? (window.botAI.getLogs(TRAINING_IP) || [])
+        : [];
+      const hasMyIpInTrainingLog = Boolean(myIp && trainingLogs.some((line) => String(line || '').includes(myIp)));
+      return {
+        win: (window.winManager && window.winManager.current) || '',
+        topicPcOpen: Boolean(document.getElementById('navTopic_pc')?.open),
+        topicNetOpen: Boolean(document.getElementById('navTopic_net')?.open),
+        onTrainingBrowser: Boolean((window.winManager && window.winManager.current === 'winBrowser') && ie && ie.currentIp === TRAINING_IP),
+        miniPcOrCracking: Boolean(ie && (ie.miniPcOpen || ie.isCracking || ie.activeSshIp === TRAINING_IP)),
+        rootOnTraining: Boolean(ie && ie.activeSshIp === TRAINING_IP),
+        stagedCount: se && typeof se.getStagedVirusesOnIp === 'function' ? se.getStagedVirusesOnIp(TRAINING_IP).length : 0,
+        runningCount: se && typeof se.getRemoteVirusesOnIp === 'function' ? se.getRemoteVirusesOnIp(TRAINING_IP).length : 0,
+        sshSubTab: (ie && ie.sshSubTab) || '',
+        hasMyIpInTrainingLog
+      };
+    }
+
+    checkAutoStateCompletion() {
+      if (!this.isActive || !this._stepBaseline) return;
+      if (Date.now() - (this._stepEnteredAt || 0) < 160) return;
+      const step = this.steps[this.stepIndex];
+      if (!step) return;
+      const b = this._stepBaseline;
+      const cur = this.readGameStepSignals();
+
+      if (step.id === 'topic_pc' && !b.topicPcOpen && cur.topicPcOpen) {
+        this.goToStep(this.stepIndex + 1);
+      } else if (step.id === 'open_software' && b.win !== 'winSoftware' && cur.win === 'winSoftware') {
+        this.goToStep(this.stepIndex + 1);
+      } else if (step.id === 'topic_net' && !b.topicNetOpen && cur.topicNetOpen) {
+        this.goToStep(this.stepIndex + 1);
+      } else if ((step.id === 'open_browser' || step.id === 'start_first_invasion') && (b.win !== 'winBrowser' && cur.win === 'winBrowser')) {
+        if (window.internetEngine && window.internetEngine.currentIp !== TRAINING_IP) {
+          window.internetEngine.disconnectSsh(true);
+          window.internetEngine.openIp(TRAINING_IP, 'invadir');
+        }
+        this.goToStep(this.stepIndex + 1);
+      } else if (step.id === 'crack_password' && !b.miniPcOrCracking && cur.miniPcOrCracking) {
+        this.goToStepById(cur.rootOnTraining ? 'upload_virus_stage' : 'choose_minipc_hash');
+      } else if (step.id === 'choose_minipc_hash' && !b.rootOnTraining && cur.rootOnTraining) {
+        this.goToStepById('upload_virus_stage');
+      } else if (step.id === 'upload_virus_stage' && b.stagedCount === 0 && cur.stagedCount > 0) {
+        this.goToStepById('execute_staged_virus');
+      } else if (step.id === 'execute_staged_virus' && b.runningCount === 0 && cur.runningCount > 0) {
+        this.goToStep(this.stepIndex + 1);
+      } else if (step.id === 'back_to_logs_tab' && b.sshSubTab !== 'logs' && cur.sshSubTab === 'logs') {
+        this.goToStep(this.stepIndex + 1);
+      } else if (step.id === 'wipe_log_and_taunt' && b.hasMyIpInTrainingLog && !cur.hasMyIpInTrainingLog) {
+        this.grantDirtyTourSampleOnce();
+        this.goToStepById('dirty_vs_clean_economy');
+      }
+    }
+
+    // Delegação global em capture=true: clicar na área iluminada ou executar a ação do passo
+    // avança imediatamente para o próximo (interrompendo o áudio atual sem precisar clicar no card!).
+    _onDocCaptureClick = (ev) => {
+      if (!this.isActive || !ev.target || typeof ev.target.closest !== 'function') return;
+      if (ev.target.closest('#hcTourCard') || ev.target.closest('.hc-tour-mask')) return;
+
+      const step = this.steps[this.stepIndex];
+      if (!step) return;
+      const target = this.resolveTargetElement(step);
+      const hitTarget = Boolean(target && target.contains(ev.target));
+
+      if (!step.requiresDirectClick) {
+        if (hitTarget) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          this.handleNextButton();
+        }
+        return;
+      }
+
+      if (!hitTarget) return;
+
+      if (step.id === 'topic_pc') {
+        setTimeout(() => {
+          const d = document.getElementById('navTopic_pc');
+          if (d) d.open = true;
+          if (this.isActive && this.currentStepId() === 'topic_pc') this.goToStep(this.stepIndex + 1);
+        }, 65);
+        return;
+      }
+
+      if (step.id === 'open_software') {
+        setTimeout(() => {
+          if (this.isActive && this.currentStepId() === 'open_software') this.goToStep(this.stepIndex + 1);
+        }, 75);
+        return;
+      }
+
+      if (step.id === 'topic_net') {
+        setTimeout(() => {
+          const d = document.getElementById('navTopic_net');
+          if (d) d.open = true;
+          if (this.isActive && this.currentStepId() === 'topic_net') this.goToStep(this.stepIndex + 1);
+        }, 65);
+        return;
+      }
+
+      if (step.id === 'open_browser' || step.id === 'start_first_invasion') {
+        setTimeout(() => {
+          if (window.internetEngine) {
+            window.internetEngine.disconnectSsh(true);
+            window.internetEngine.openIp(TRAINING_IP, 'invadir');
+          }
+          if (this.isActive && (this.currentStepId() === 'open_browser' || this.currentStepId() === 'start_first_invasion')) {
+            this.goToStep(this.stepIndex + 1);
+          }
+        }, 75);
+        return;
+      }
+
+      if (step.id === 'crack_password') {
+        const clickedBruteBtn = ev.target.closest('#btnInetBruteforce');
+        if (!clickedBruteBtn && window.internetEngine && !window.internetEngine.miniPcOpen) {
+          window.internetEngine.openCrackerMiniPc('all');
+        }
+        setTimeout(() => {
+          if (this.isActive && this.currentStepId() === 'crack_password') {
+            this.goToStepById('choose_minipc_hash');
+          }
+        }, 75);
+        return;
+      }
+
+      if (step.id === 'choose_minipc_hash') {
+        const clickedBtn = ev.target.closest('button');
+        if (clickedBtn && (clickedBtn.id === 'btnMiniPcUseBest' || String(clickedBtn.getAttribute('onclick') || '').includes('confirmBruteforceWithHash'))) {
+          const hintEl = document.getElementById('hcTourActionHint');
+          if (hintEl) {
+            hintEl.innerHTML = '⏳ <strong>Boa! Quebrando a senha...</strong> Assim que chegar em 100%, avançamos sozinhos!';
+          }
+          this.startWatchingAsyncStep('crack');
+        }
+        return;
+      }
+
+      if (step.id === 'upload_virus_stage') {
+        const clickedBtn = ev.target.closest('button');
+        if (clickedBtn && (clickedBtn.id === 'btnUploadVirusStage' || clickedBtn.id === 'btnDeployRemoteVirus')) {
+          const hintEl = document.getElementById('hcTourActionHint');
+          if (hintEl) {
+            hintEl.innerHTML = '⏳ <strong>Subindo o vírus pro PC da vítima...</strong> Aguarde chegar em 100%!';
+          }
+          this.startWatchingAsyncStep('upload_stage');
+        }
+        return;
+      }
+
+      if (step.id === 'execute_staged_virus') {
+        const clickedBtn = ev.target.closest('button');
+        if (clickedBtn && clickedBtn.id.startsWith('btnExecStagedVirus_')) {
+          setTimeout(() => {
+            if (this.isActive && this.currentStepId() === 'execute_staged_virus') this.goToStep(this.stepIndex + 1);
+          }, 120);
+        }
+        return;
+      }
+
+      if (step.id === 'back_to_logs_tab') {
+        setTimeout(() => {
+          if (this.isActive && this.currentStepId() === 'back_to_logs_tab') this.goToStep(this.stepIndex + 1);
+        }, 90);
+        return;
+      }
+
+      if (step.id === 'wipe_log_and_taunt') {
+        const clickedBtn = ev.target.closest('button');
+        if (clickedBtn && (clickedBtn.id === 'btnQuickWipeAndTaunt' || clickedBtn.id === 'btnSaveRemoteSyslog' || clickedBtn.id === 'btnWipeAllRemoteLogs')) {
+          setTimeout(() => {
+            this.grantDirtyTourSampleOnce();
+            if (this.isActive && this.currentStepId() === 'wipe_log_and_taunt') this.goToStepById('dirty_vs_clean_economy');
+          }, 120);
+        }
+      }
     };
 
     cleanupListeners() {
@@ -987,6 +1177,7 @@
 
     stop(statusValue = 'done') {
       this.cleanupListeners();
+      document.removeEventListener('click', this._onDocCaptureClick, true);
       this.stopVoice();
       this.isActive = false;
       if (this.trackTimer) {
@@ -1127,6 +1318,8 @@
       if (typeof step.onEnter === 'function') {
         step.onEnter();
       }
+      this._stepEnteredAt = Date.now();
+      this._stepBaseline = this.readGameStepSignals();
 
       const counterEl = document.getElementById('hcTourStepCounter');
       const titleEl = document.getElementById('hcTourCardTitle');
@@ -1203,110 +1396,10 @@
     }
 
     bindDirectTargetInteraction(step, targetEl) {
-      if (!step.requiresDirectClick || !targetEl) return;
-
-      this.boundTargetEl = targetEl;
-      this.boundClickHandler = (ev) => {
-        if (!this.isActive) return;
-
-        if (step.id === 'topic_pc') {
-          setTimeout(() => {
-            const d = document.getElementById('navTopic_pc');
-            if (d) d.open = true;
-            if (this.isActive && this.currentStepId() === 'topic_pc') this.goToStepById('open_software');
-          }, 80);
-          return;
-        }
-
-        if (step.id === 'open_software') {
-          setTimeout(() => {
-            if (this.isActive && this.currentStepId() === 'open_software') this.goToStepById('running_ram_cooldown');
-          }, 100);
-          return;
-        }
-
-        if (step.id === 'topic_net') {
-          setTimeout(() => {
-            const d = document.getElementById('navTopic_net');
-            if (d) d.open = true;
-            if (this.isActive && this.currentStepId() === 'topic_net') this.goToStepById('open_browser');
-          }, 80);
-          return;
-        }
-
-        if (step.id === 'open_browser') {
-          setTimeout(() => {
-            if (window.internetEngine) {
-              window.internetEngine.disconnectSsh(true);
-              window.internetEngine.openIp(TRAINING_IP, 'invadir');
-            }
-            if (this.isActive && this.currentStepId() === 'open_browser') this.goToStepById('compare_defenses');
-          }, 100);
-          return;
-        }
-
-        if (step.id === 'crack_password') {
-          setTimeout(() => {
-            if (this.isActive && this.currentStepId() === 'crack_password') {
-              this.goToStepById('choose_minipc_hash');
-            }
-          }, 90);
-          return;
-        }
-
-        if (step.id === 'choose_minipc_hash') {
-          const clickedBtn = ev.target && ev.target.closest ? ev.target.closest('button') : null;
-          if (clickedBtn && (clickedBtn.id === 'btnMiniPcUseBest' || String(clickedBtn.getAttribute('onclick') || '').includes('confirmBruteforceWithHash'))) {
-            const hintEl = document.getElementById('hcTourActionHint');
-            if (hintEl) {
-              hintEl.innerHTML = '⏳ <strong>Boa! Quebrando a senha em segundo plano...</strong> Aguarde chegar em 100% que o próximo passo abre sozinho!';
-            }
-            this.startWatchingAsyncStep('crack');
-          }
-          return;
-        }
-
-        if (step.id === 'upload_virus_stage') {
-          const clickedBtn = ev.target && ev.target.closest ? ev.target.closest('button') : null;
-          if (clickedBtn && (clickedBtn.id === 'btnUploadVirusStage' || clickedBtn.id === 'btnDeployRemoteVirus')) {
-            const hintEl = document.getElementById('hcTourActionHint');
-            if (hintEl) {
-              hintEl.innerHTML = '⏳ <strong>Subindo o arquivo do vírus pro PC da vítima...</strong> Aguarde chegar em 100%!';
-            }
-            this.startWatchingAsyncStep('upload_stage');
-          }
-          return;
-        }
-
-        if (step.id === 'execute_staged_virus') {
-          const clickedBtn = ev.target && ev.target.closest ? ev.target.closest('button') : null;
-          if (clickedBtn && clickedBtn.id.startsWith('btnExecStagedVirus_')) {
-            setTimeout(() => {
-              if (this.isActive && this.currentStepId() === 'execute_staged_virus') this.goToStepById('back_to_logs_tab');
-            }, 180);
-          }
-          return;
-        }
-
-        if (step.id === 'back_to_logs_tab') {
-          setTimeout(() => {
-            if (this.isActive && this.currentStepId() === 'back_to_logs_tab') this.goToStepById('wipe_log_and_taunt');
-          }, 120);
-          return;
-        }
-
-        if (step.id === 'wipe_log_and_taunt') {
-          const clickedBtn = ev.target && ev.target.closest ? ev.target.closest('button') : null;
-          if (clickedBtn && (clickedBtn.id === 'btnQuickWipeAndTaunt' || clickedBtn.id === 'btnSaveRemoteSyslog' || clickedBtn.id === 'btnWipeAllRemoteLogs')) {
-            setTimeout(() => {
-              this.grantDirtyTourSampleOnce();
-              if (this.isActive) this.goToStepById('dirty_vs_clean_economy');
-            }, 180);
-          }
-        }
-      };
-
-      targetEl.addEventListener('click', this.boundClickHandler, false);
+      // Delegado via _onDocCaptureClick (capture=true) + checkAutoStateCompletion:
+      // funciona mesmo se o alvo for re-renderizado ou se o áudio estiver tocando!
+      this.boundTargetEl = targetEl || null;
+      this.boundClickHandler = null;
     }
 
     repositionCurrentStep() {
