@@ -12,7 +12,29 @@
     constructor() {
       this.deferredPrompt = null;
       this.installed = false;
+      this.swRegistration = null;
+      this.swReady = false;
       this.bindEvents();
+      this.registerServiceWorker();
+    }
+
+    async registerServiceWorker() {
+      if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return null;
+      try {
+        const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+        this.swRegistration = reg;
+        this.swReady = true;
+        navigator.serviceWorker.addEventListener('message', (ev) => {
+          const msg = ev.data || {};
+          if (msg.type === 'HC_SW_NAVIGATE' && msg.winId && typeof window.navTo === 'function') {
+            window.navTo(msg.winId);
+          }
+        });
+        this.renderProfileCard();
+        return reg;
+      } catch (e) {
+        return null;
+      }
     }
 
     bindEvents() {
@@ -98,6 +120,12 @@
           return { outcome: 'native_prompt_shown' };
         } catch (e) {}
       }
+      if (typeof Navigator !== 'undefined' && typeof Navigator.prototype.install === 'function') {
+        try {
+          navigator.install().then(() => this.renderProfileCard()).catch(() => {});
+          return { outcome: 'web_install_api_invoked' };
+        } catch (e) {}
+      }
       this.openInstallGuideModal();
       return { outcome: 'guide_opened' };
     }
@@ -152,20 +180,34 @@
       this.renderProfileCard();
     }
 
+    getServiceWorkerStatus() {
+      const hasSw = typeof navigator !== 'undefined' && 'serviceWorker' in navigator;
+      const controlled = !!(hasSw && navigator.serviceWorker.controller);
+      return {
+        supported: hasSw,
+        registered: !!this.swReady,
+        controlled
+      };
+    }
+
     renderProfileCard() {
       const mount = document.getElementById('profilePwaCardMount');
       if (!mount) return;
       const standalone = this.isStandalone();
       const fsActive = this.isFullscreen();
       const canNativePrompt = !!this.deferredPrompt;
+      const swStat = this.getServiceWorkerStatus();
       mount.innerHTML = `
         <div style="margin-top:0.85rem;padding:0.8rem;border-radius:8px;background:var(--hc-inset);border:1px solid var(--hc-border);display:flex;flex-direction:column;gap:0.55rem;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-            <strong style="font-size:0.82rem;color:#fff;">📲 Modo Aplicativo &amp; Tela Cheia</strong>
-            <span class="hc-badge ${standalone ? 'success' : ''}" style="font-size:10.5px;">${standalone ? 'App Instalado' : (canNativePrompt ? 'Pronto p/ Instalar' : 'Web / Mobile')}</span>
+            <strong style="font-size:0.82rem;color:#fff;">📲 PWA Nativo &amp; Tela Cheia</strong>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;">
+              ${swStat.registered ? `<span class="hc-badge success" style="font-size:10px;">✓ SW Cache Ativo</span>` : ''}
+              <span class="hc-badge ${standalone ? 'success' : ''}" style="font-size:10.5px;">${standalone ? 'App Instalado' : (canNativePrompt ? 'Pronto p/ Instalar' : 'WebAPK Pronto')}</span>
+            </div>
           </div>
           <div style="font-size:0.76rem;color:var(--hc-text-2);line-height:1.4;">
-            Jogue sem barras do navegador no celular ou computador e acesse seus processos em 1 toque.
+            WebAPK nativo com Service Worker ativo, boot rápido no 4G e modo sem barras do navegador.
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
             <button type="button" id="btnProfileInstallPwa" class="hc-btn primary sm" onclick="window.pwaHelper.promptInstallApp()">
@@ -175,8 +217,12 @@
               ⛶ <span class="js-pwa-fs-label">${fsActive ? 'Sair da Tela Cheia' : 'Tela Cheia'}</span>
             </button>
           </div>
+          <div id="profilePwaAlertsSubMount"></div>
         </div>
       `;
+      if (window.pwaAlertsEngine && typeof window.pwaAlertsEngine.renderProfileControls === 'function') {
+        window.pwaAlertsEngine.renderProfileControls();
+      }
     }
 
     applyShortcutDeepLinkAfterLogin() {
