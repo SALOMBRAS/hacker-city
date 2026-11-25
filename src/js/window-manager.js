@@ -38,9 +38,16 @@ class WindowManager {
         return;
       }
 
-      if (window.spotlightTour && window.spotlightTour.isActive) return;
+      const tourStepId = (window.spotlightTour && window.spotlightTour.isActive && typeof window.spotlightTour.currentStepId === 'function')
+        ? window.spotlightTour.currentStepId()
+        : '';
+      const tourNeedsSubmenuOpen = tourStepId === 'open_software' || tourStepId === 'open_browser';
+      if (tourNeedsSubmenuOpen && ev.target && ev.target.closest && ev.target.closest('#hcTourCard')) return;
+
       const inTopic = ev.target && ev.target.closest ? ev.target.closest('details.nav-topic') : null;
-      if (!inTopic) {
+      if (!inTopic && !tourNeedsSubmenuOpen) {
+        this.closeAllFlyouts();
+      } else if (!inTopic && tourNeedsSubmenuOpen && !(ev.target && ev.target.closest && ev.target.closest('.hc-tour-mask'))) {
         this.closeAllFlyouts();
       }
     }, true);
@@ -222,8 +229,11 @@ class WindowManager {
       window.nineSystemsEngine.renderLaunderingHub('launderingAppBody');
     }
 
-    // Fecha o flyout após escolher um destino (a menos que o Tour esteja guiando o menu)
-    if (!(window.spotlightTour && window.spotlightTour.isActive)) {
+    // Fecha sempre o flyout ao abrir uma nova página (exceto se o passo atual do Tour apontar para dentro do próprio flyout)
+    const activeTourStep = (window.spotlightTour && window.spotlightTour.isActive && typeof window.spotlightTour.currentStepId === 'function')
+      ? window.spotlightTour.currentStepId()
+      : '';
+    if (activeTourStep !== 'open_software' && activeTourStep !== 'open_browser') {
       this.closeAllFlyouts();
       this.setMobileSidebarOpen(false);
     }
