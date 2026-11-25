@@ -1297,6 +1297,10 @@
       sessionStorage.setItem(lastBeaconKey, compact);
 
       try {
+        if (window.supabase.auth && typeof window.supabase.auth.getSession === 'function') {
+          const { data: sData } = await window.supabase.auth.getSession();
+          if (!sData || !sData.session || !window.currentProfile) return;
+        }
         await window.supabase.from('chat_messages').insert({
           user_id: window.currentProfile.id,
           hacker_tag: window.currentProfile.hacker_tag,

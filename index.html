@@ -1684,10 +1684,10 @@
         }
 
         showToast(`Conta autenticada com sucesso! Inicializando mainframe...`);
-        setTimeout(async () => {
-          await loadUserSession(data.user.id);
-          saveRecentLogin({ email: email, tag: tag });
-        }, 1200);
+        saveRecentLogin({ email: email, tag: tag });
+        await loadUserSession(data.user.id);
+        btn.disabled = false;
+        btn.innerText = 'Criar conta';
 
       } catch (err) {
         alert('Erro ao registrar no Supabase: ' + (err.message || err));
@@ -1734,6 +1734,8 @@
         showToast('Credenciais autenticadas no Supabase!');
         await loadUserSession(data.user.id);
         saveRecentLogin({ email: targetEmail, tag: currentProfile ? currentProfile.hacker_tag : targetEmail });
+        btn.disabled = false;
+        btn.innerText = 'Entrar';
 
       } catch (err) {
         alert('Falha na autenticação: ' + (err.message || err));
@@ -1742,8 +1744,30 @@
       }
     }
 
-    // Carregar Sessão do Usuário
+    let _hcLoadingSessionPromise = null;
+    let _hcLoadedSessionUid = null;
+    let _hcAuthEpoch = 0;
+    let _hcWalletChannel = null;
+    let _hcIrcChannel = null;
+
+    function resetAuthFormButtons() {
+      const regBtn = document.getElementById('btnRegisterSubmit');
+      if (regBtn) { regBtn.disabled = false; regBtn.innerText = 'Criar conta'; }
+      const logBtn = document.getElementById('btnLoginSubmit');
+      if (logBtn) { logBtn.disabled = false; logBtn.innerText = 'Entrar'; }
+    }
+
+    // Carregar Sessão do Usuário (Idempotente / Single-Flight + Protegido contra Logout concorrente)
     async function loadUserSession(userId) {
+      if (!userId) return;
+      if (_hcLoadedSessionUid === userId && currentProfile && currentProfile.id === userId) {
+        return;
+      }
+      if (_hcLoadingSessionPromise) {
+        return _hcLoadingSessionPromise;
+      }
+      const myEpoch = _hcAuthEpoch;
+      _hcLoadingSessionPromise = (async () => {
       try {
         // Carrega Perfil
         const { data: prof, error: pErr } = await supabase
@@ -1752,6 +1776,7 @@
           .eq('id', userId)
           .single();
 
+        if (myEpoch !== _hcAuthEpoch) return;
         if (pErr) throw pErr;
         currentProfile = prof;
 
@@ -1762,6 +1787,7 @@
           .eq('user_id', userId)
           .single();
 
+        if (myEpoch !== _hcAuthEpoch) return;
         if (wErr) throw wErr;
         currentWallet = wal;
         if (window.integrityGuard) window.integrityGuard.protectSessionObjects(currentProfile, currentWallet);
@@ -1780,6 +1806,7 @@
         if (window.onlineEngine) {
           await window.onlineEngine.hydrateSessionAndConnect(userId, wal.balance);
         }
+        if (myEpoch !== _hcAuthEpoch || !currentProfile || !currentWallet) return;
         if (window.quitineteEngine) {
           window.quitineteEngine.onPlayerEnteredGame();
         }
@@ -1791,6 +1818,8 @@
         initCheckersBoard();
         setupRealtimeSubscriptions();
 
+        _hcLoadedSessionUid = userId;
+        resetAuthFormButtons();
         openWindow('winHome');
         if (window.operatorRetentionEngine) window.operatorRetentionEngine.onSessionEntered();
         if (window.pwaHelper) window.pwaHelper.applyShortcutDeepLinkAfterLogin();
@@ -1799,9 +1828,17 @@
         if (window.spotlightTour) window.spotlightTour.maybeAutoStartForSession();
 
       } catch (e) {
-        console.error('Erro ao carregar sessão:', e);
-        showToast('Erro ao sincronizar com o banco de dados.');
+        if (myEpoch === _hcAuthEpoch) {
+          console.error('Erro ao carregar sessão:', e);
+          showToast('Erro ao sincronizar com o banco de dados.');
+        }
+      } finally {
+        if (myEpoch === _hcAuthEpoch) {
+          _hcLoadingSessionPromise = null;
+        }
       }
+      })();
+      return _hcLoadingSessionPromise;
     }
 
     // Modo Entrada Instantânea em 1 Clique (Zero atrito de OTP + persiste no F5 e suporta múltiplas abas PvP!)
@@ -2210,17 +2247,37 @@
       }
     }
 
+    function cleanupRealtimeSubscriptions() {
+      if (!supabase) return;
+      if (_hcWalletChannel) {
+        try { supabase.removeChannel(_hcWalletChannel); } catch (e) {}
+        _hcWalletChannel = null;
+      }
+      if (_hcIrcChannel) {
+        try { supabase.removeChannel(_hcIrcChannel); } catch (e) {}
+        _hcIrcChannel = null;
+      }
+    }
+
     // Configurar WebSockets em Tempo Real (Supabase Realtime)
     function setupRealtimeSubscriptions() {
+      if (!supabase || !currentWallet) return;
+      cleanupRealtimeSubscriptions();
+
       // 1. Ouvir atualizações da carteira (quando outro jogador manda dinheiro para você)
-      supabase.channel('my-wallet-channel')
+      _hcWalletChannel = supabase.channel('my-wallet-channel-' + currentWallet.id)
         .on('postgres_changes', { 
           event: 'UPDATE', 
           schema: 'public', 
           table: 'wallets', 
           filter: `id=eq.${currentWallet.id}` 
         }, (payload) => {
-          currentWallet.balance = payload.new.balance;
+          if (!currentWallet) return;
+          if (window.integrityGuard) {
+            window.integrityGuard.runAuthorized(() => { currentWallet.balance = payload.new.balance; });
+          } else {
+            currentWallet.balance = payload.new.balance;
+          }
           updateHudDisplays();
           showToast(`Saldo atualizado via Realtime: $ ${parseFloat(payload.new.balance).toFixed(2)} HC`);
           loadBankTransactions();
@@ -2228,7 +2285,7 @@
         .subscribe();
 
       // 2. Ouvir novas mensagens no chat IRC (filtrando exclusivamente o canal público 'global' e roteando pacotes 'hc_pvp'!)
-      supabase.channel('irc-global-channel')
+      _hcIrcChannel = supabase.channel('irc-global-channel-' + currentWallet.id)
         .on('postgres_changes', { 
           event: 'INSERT', 
           schema: 'public', 
@@ -2352,16 +2409,18 @@
 
     // Histórico de Transações do Banco
     async function loadBankTransactions() {
-      if (!currentWallet) return;
+      const myAcc = currentWallet && currentWallet.account_number;
       const hist = document.getElementById('bankTxHistory');
+      if (!myAcc || !hist) return;
       
       const { data, error } = await supabase
         .from('transactions')
         .select('*')
-        .or(`from_account.eq.${currentWallet.account_number},to_account.eq.${currentWallet.account_number}`)
+        .or(`from_account.eq.${myAcc},to_account.eq.${myAcc}`)
         .order('created_at', { ascending: false })
         .limit(15);
 
+      if (!currentWallet || currentWallet.account_number !== myAcc) return;
       if (!data || data.length === 0) {
         hist.innerHTML = '<div style="color: var(--hc-text-3);">Nenhuma transação registrada ainda.</div>';
         return;
@@ -2370,7 +2429,7 @@
       hist.innerHTML = '';
       data.forEach(tx => {
         const div = document.createElement('div');
-        const isIncome = tx.to_account === currentWallet.account_number;
+        const isIncome = tx.to_account === myAcc;
         const color = isIncome ? 'var(--green-safe)' : 'var(--hc-danger)';
         const sign = isIncome ? '+' : '-';
         const time = new Date(tx.created_at).toLocaleTimeString();
@@ -3837,12 +3896,26 @@
       if (window.onlineEngine) {
         window.onlineEngine.saveLocalSnapshotImmediate();
       }
+      if (window.spotlightTour && typeof window.spotlightTour.stop === 'function') {
+        try { window.spotlightTour.stop('paused'); } catch (e) {}
+      }
+      if (window.dailyCheckinV2 && typeof window.dailyCheckinV2.closeModal === 'function') {
+        try { window.dailyCheckinV2.closeModal(); } catch (e) {}
+      }
+      if (window.quickCommandPalette && typeof window.quickCommandPalette.close === 'function') {
+        try { window.quickCommandPalette.close(); } catch (e) {}
+      }
+      _hcAuthEpoch += 1;
+      _hcLoadedSessionUid = null;
+      _hcLoadingSessionPromise = null;
+      currentProfile = null;
+      currentWallet = null;
+      cleanupRealtimeSubscriptions();
+      resetAuthFormButtons();
       try { localStorage.removeItem('HC_ACTIVE_INSTANT_SESSION'); } catch (e) {}
       if (supabase && supabase.auth) {
         try { await supabase.auth.signOut(); } catch (e) {}
       }
-      currentProfile = null;
-      currentWallet = null;
       document.getElementById('desktopEnvironment').style.display = 'none';
       document.getElementById('authOverlay').style.display = 'flex';
       switchAuthTab('login');
@@ -3854,10 +3927,10 @@
       HC.hydrateIcons();
       // Escuta mudanças de auth (ex: clique no link de ativação vindo do e-mail que redireciona com hash/code)
       if (supabase && supabase.auth) {
-        supabase.auth.onAuthStateChange(async (event, session) => {
-          if (event === 'SIGNED_IN' && session) {
+        supabase.auth.onAuthStateChange((event, session) => {
+          if (event === 'SIGNED_IN' && session && (window.location.hash.includes('access_token') || window.location.search.includes('code='))) {
             showToast('Autenticação confirmada via link! Carregando terminal...');
-            await loadUserSession(session.user.id);
+            setTimeout(() => loadUserSession(session.user.id), 60);
           }
         });
       }
