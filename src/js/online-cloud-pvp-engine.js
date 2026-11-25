@@ -1465,6 +1465,16 @@
       }
 
       // VALIDAÇÃO KERNEL LOCAL DO DEFENSOR (Firewall.fwl & Hasher.hash):
+      if (!silentReplay && ['PVP_INTRUSION', 'PVP_VIRUS_PLANT', 'PVP_DRAIN_WALLET', 'PVP_DDOS_DAMAGE'].includes(pkt.kind) && (isForMeByIp || isForMeById || isForMeByTag)) {
+        if (window.pwaAlertsEngine && typeof window.pwaAlertsEngine.triggerAlert === 'function') {
+          window.pwaAlertsEngine.triggerAlert('intrusion', {
+            title: '🚨 Alerta de Intrusão no seu IP!',
+            body: `${pkt.senderTag || pkt.visibleIp || 'Operador remoto'} disparou ${pkt.kind.replace('PVP_', '')} contra sua máquina.`,
+            winId: 'winConnManager',
+            tag: `pvp-in-${pkt.kind}`
+          });
+        }
+      }
       // Se meu Firewall.fwl (ou Hasher.hash) for mais forte que o software usado pelo atacante humano, BLOQUEIA no ato!
       if (['PVP_INTRUSION', 'PVP_VIRUS_PLANT', 'PVP_DRAIN_WALLET', 'PVP_EDIT_LOG'].includes(pkt.kind) && isForMeByIp && window.softwareEngine) {
         const myFw = window.softwareEngine.getSoftwareVersion('firewall');

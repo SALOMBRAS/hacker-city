@@ -664,6 +664,18 @@
       }
       badge.style.display = 'inline-flex';
       badge.textContent = `🛡️ ${st.formattedRemaining}`;
+      if (st.remainingMs > 0 && st.remainingMs <= 15 * 60 * 1000 && !this._shield15mWarned) {
+        this._shield15mWarned = true;
+        if (window.pwaAlertsEngine && typeof window.pwaAlertsEngine.triggerAlert === 'function') {
+          window.pwaAlertsEngine.triggerAlert('shieldExpiring', {
+            title: '🛡️ Escudo de 24h Expirando em 15 min!',
+            body: 'Atualize seu Firewall e apague seus rastros antes que o PvP abra.',
+            winId: 'winSoftware',
+            tag: 'shield-15m',
+            forceOs: true
+          });
+        }
+      }
     }
 
     renderBeginnerHomeGuideHtml() {

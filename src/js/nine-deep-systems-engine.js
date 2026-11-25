@@ -1134,6 +1134,14 @@
         if (typeof window.showToast === 'function') {
           window.showToast(`💵 Lavagem concluída (15 min)! +${fmtMoney(totalReleased)} em DINHEIRO LIMPO creditados na sua conta!`);
         }
+        if (window.pwaAlertsEngine && typeof window.pwaAlertsEngine.triggerAlert === 'function') {
+          window.pwaAlertsEngine.triggerAlert('launderDone', {
+            title: '💵 Lavagem de Dinheiro Concluída!',
+            body: `+${fmtMoney(totalReleased)} Limpos já estão disponíveis na sua conta bancária.`,
+            winId: 'winLaundering',
+            tag: 'launder-done'
+          });
+        }
       }
       return totalReleased;
     }
