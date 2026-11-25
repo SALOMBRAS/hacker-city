@@ -26,9 +26,10 @@ class PseudoRNG {
 }
 
 class BotNetworkRegistry {
-  constructor(seed = 0x48433231) {
+  constructor(seed = 0x52455354) {
     this.rng = new PseudoRNG(seed);
     this.bots = [];
+    this.lawEnforcement = [];
     this.botsById = new Map();
     this.botsByIp = new Map();
     this.botsByTier = { 1: [], 2: [], 3: [] };
@@ -36,22 +37,100 @@ class BotNetworkRegistry {
     this.initCatalog();
   }
 
+  _hashId(str) {
+    let h = 2166136261 >>> 0;
+    const s = String(str || '');
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619) >>> 0;
+    }
+    return h >>> 0;
+  }
+
+  _nextScatteredIp(usedIps) {
+    const firstOctets = [177, 179, 186, 187, 189, 191, 200, 201, 138, 168, 170, 143];
+    const staticReserved = new Set([
+      '187.22.5.60', '189.40.7.12', '203.17.88.40', '198.51.100.42',
+      '186.214.73.49', '179.108.52.91', '201.49.118.34'
+    ]);
+    for (let guard = 0; guard < 500; guard++) {
+      const o1 = firstOctets[this.rng.rangeInt(0, firstOctets.length - 1)];
+      const o2 = this.rng.rangeInt(11, 251);
+      const o3 = this.rng.rangeInt(11, 251);
+      const o4 = this.rng.rangeInt(12, 252);
+      const ip = `${o1}.${o2}.${o3}.${o4}`;
+      if (!usedIps.has(ip) && !staticReserved.has(ip)) {
+        usedIps.add(ip);
+        return ip;
+      }
+    }
+    const fallback = `179.${this.rng.rangeInt(20, 240)}.${this.rng.rangeInt(20, 240)}.${this.rng.rangeInt(20, 240)}`;
+    usedIps.add(fallback);
+    return fallback;
+  }
+
   initCatalog() {
-    const handles = {
-      1: ["NullPointer", "GlitchFox", "BitShifter", "SubNetRider", "HexDrifter", "PacketGhost", "ByteRunner", "ScriptKiddo", "EchoPulse", "VoltShadow"],
-      2: ["CipherGhost", "DarkVector", "NeuroHacker", "ValkyrieSec", "QuantumWraith", "ZeroDay_X", "IronDaemon", "ShadowPhreak", "CoreBreaker", "NeonPhantom"],
-      3: ["ApexOverlord", "ChronosProtocol", "LeviathanSec", "OdinCluster", "GhostInTheKernel", "NeuralDominion", "TitanPayload", "AbsoluteZero", "BlackHoleSec", "SolarisPrime"]
+    const usedIps = new Set();
+
+    // 70 nomes únicos por nível de inteligência (BR, cotidiano e memes — zero sufixo robótico!)
+    const tierHandles = {
+      1: [
+        'josenacimento', 'hackerbr', 'vitinladrão', 'lulaladrão', 'enzogamer2011',
+        'juninhodograu', 'calabreso_xp', 'boleto_falso', 'pix_fantasma', 'tiozao_do_zap',
+        'flavinhodopneu', 'ze_gotinha_root', 'cleitinho_ssh', 'nego_ney_404', 'pastel_de_flango',
+        'chico_moedas_btc', 'pedrinho_lanhouse', 'agostinho_carrara', 'marcos_jeeps', 'betinho_proxy',
+        'caio_do_ modem'.replace(/\s+/g, ''), 'duduzinho_br', 'gordinho_do_pc', 'rafa_baiano', 'matheus_sp011',
+        'lukinhas_rj', 'tiago_formata_pc', 'vini_malvadeza', 'renatinho_wifi', 'zé_pequeno_net',
+        'cabecao_linux', 'tonhao_da_firma', 'biel_quebra_senha', 'kaua_script', 'jorginho_244',
+        'carlinhos_cavalo', 'manoel_gomes_blue', 'caneta_azul_sec', 'toguro_mansao', 'casimiro_cortes',
+        'smzinho_rage', 'paulinhooloko_br', 'xaropinho_ratinho', 'serjão_foguetes', 'ednaldo_pereira',
+        'galo_cego_ip', 'jeremias_muito_louco', 'jailson_mendes_oco', 'rodrigo_faro_danca', 'craque_neto_pao',
+        'vampeta_cambalhota', 'ronaldinho_bruxo', 'adriano_imperador', 'romario_peixe', 'amaral_coveiro',
+        'seu_madruga_72', 'kiko_tesouro', 'chaves_do_8', 'barriga_aluguel', 'jooj_natu',
+        'faisca_curto', 'gato_net_oficial', 'sky_gato_hd', 'desbloqueio_xbox', 'windows_ativado',
+        'baixa_memoria_ram', 'clicou_ganhou', 'principe_nigeriano', 'urubu_do_pix', 'farao_dos_bitcoins'
+      ],
+      2: [
+        'sombra_sp', 'fantasma_rj', 'ratao_da_rede', 'mago_do_pix', 'tranca_rua_sec',
+        'caos_brasilia', 'tubarao_b3', 'coringa_011', 'barao_offshore', 'malandro_root',
+        'vampiro_curitiba', 'lobo_guarulhos', 'zero_rastro_br', 'ninja_faria_lima', 'pirata_anhanguera',
+        'falcao_noturno', 'cangaceiro_digital', 'rei_do_laranja', 'espectro_sul', 'viper_paulista',
+        'carcara_sombrio', 'boto_cor_de_rosa', 'saci_de_rede', 'curupira_reverso', 'jararaca_hex',
+        'sucuri_payload', 'onca_pintada_sec', 'gaviao_fiel_01', 'urutu_cruzeiro', 'cascavel_binaria',
+        'ferreiro_de_exploits', 'mercenario_bh', 'fantasma_do_porto', 'operador_mooca', 'hacker_da_lapa',
+        'sombra_de_recife', 'barao_de_manaus', 'corsario_santos', 'contrabandista_foz', 'doleiro_digital',
+        'contador_fantasma', 'advogado_porta', 'despachante_dark', 'laranja_premium', 'nota_fria_ltda',
+        'shell_de_padaria', 'tunel_congonhas', 'ponte_rio_niteroi', 'viaduto_do_cha', 'beco_diagonal_br',
+        'submundo_021', 'frequencia_pirata', 'radio_clandestina', 'antena_parabolica', 'cabo_submarino',
+        'fibra_cortada', 'pacote_perdido', 'porta_22_aberta', 'forca_bruta_br', 'quebra_cofre_sp',
+        'assaltante_de_banco', 'mestre_dos_clones', 'cartao_infinito', ' maquininha_adulterada'.trim(), 'chupa_cabra_atm',
+        'trojan_bancario', 'kl_boleto_br', 'engenharia_social', 'falso_gerente', 'central_fantasma'
+      ],
+      3: [
+        'oraculo_br', 'ceifador_kernel', 'soberano_0day', 'xandao_firewall', 'imperador_satoshi',
+        'leviata_tropical', 'fantasma_planalto', 'protocolo_carcara', 'abismo_binario', 'tita_submarino',
+        'arquiteto_da_matrix', 'deus_ex_tupiniquim', 'senhor_das_botnets', 'zero_absoluto_br', 'eclipse_federal',
+        'espectro_supremo', 'general_cyber_br', 'marechal_root', 'almirante_darknet', 'comendador_offshore',
+        'fantasma_de_itaipu', 'nucleo_angra_3', 'satelite_amazonia', 'radar_cindacta', 'cripto_ soberano'.replace(/\s+/g, ''),
+        'monarca_invisivel', 'juiz_do_submundo', 'carrasco_de_logs', 'devorador_de_ram', 'apocalipse_bgp',
+        'sequestrador_dns', 'quebra_rsa_4096', 'mestre_polimorfico', 'engenheiro_ring0', 'fantasma_bios',
+        'sombra_inviolavel', 'lenda_de_sao_paulo', 'terror_dos_bancos', 'fantasma_do_bacen', 'dreno_bilionario',
+        'rei_das_cayman', 'barao_de_zurique', 'sindicato_zero', 'cupula_invisivel', 'ordem_do_silicio',
+        'legiao_fantasma', 'vanguarda_preta', 'esquadrao_zero_day', 'celula_fantasma', 'operacao_ouro_preto',
+        'tempestade_solar_br', 'pulso_eletromagnetico', 'apagao_nacional', 'curto_circuito_geral', 'colapso_da_bolsa',
+        'baleia_de_bitcoin', 'minerador_industrial', 'fazenda_clandestina', 'usina_fantasma', 'bunker_subterraneo',
+        'cofre_suico_root', 'chave_mestra_global', 'oraculo_invisivel', 'sentinela_imortal', 'guardiao_do_caos',
+        'ultimo_chefe_br', 'pesadelo_da_pf', 'intocavel_001', 'fantasma_sem_ip', 'lenda_urbana_hc'
+      ]
     };
 
-    // 70 Bots Médios (Tier 1), 70 Altos (Tier 2), 70 Super Altos (Tier 3) = 210 Total
+    // 70 Bots Tier 1, 70 Tier 2, 70 Tier 3 = 210 Total (30 por dia: 10 de cada inteligência!)
     for (let tier = 1; tier <= 3; tier++) {
       for (let i = 1; i <= 70; i++) {
-        const tierPrefix = tier === 1 ? "med" : (tier === 2 ? "high" : "super");
+        const tierPrefix = tier === 1 ? 'med' : (tier === 2 ? 'high' : 'super');
         const id = `bot_${tierPrefix}_${String(i).padStart(2, '0')}`;
-        const namePrefix = handles[tier][(i - 1) % handles[tier].length];
-        const handle = `${namePrefix}_${String(i).padStart(2, '0')}`;
-        const subnet = tier === 1 ? "110" : (tier === 2 ? "120" : "130");
-        const ip = `10.${subnet}.${tier}.${10 + i}`;
+        const handle = tierHandles[tier][(i - 1) % tierHandles[tier].length];
+        const ip = this._nextScatteredIp(usedIps);
 
         const hardware = {
           cpuCores: tier === 1 ? 4 : (tier === 2 ? 8 : 24),
@@ -61,34 +140,36 @@ class BotNetworkRegistry {
           netMbps: tier === 1 ? 40 : (tier === 2 ? 200 : 1000)
         };
 
-        const bankBalance = tier === 1 
-          ? this.rng.rangeInt(250, 1500) 
+        const bankBalance = tier === 1
+          ? this.rng.rangeInt(250, 1500)
           : (tier === 2 ? this.rng.rangeInt(5000, 25000) : this.rng.rangeInt(50000, 200000));
 
         const bot = {
           id,
           handle,
+          role: 'hacker',
           tier,
-          tierName: tier === 1 ? "Tier I Médio" : (tier === 2 ? "Tier II Alto" : "Tier III Super Alto"),
+          tierName: tier === 1 ? 'Iniciante / Rua' : (tier === 2 ? 'Operacional / Blackhat' : 'Elite / APT'),
           ip,
           hardware,
           bankAccount: {
             accountNum: `HC-${tier === 1 ? 'MED' : (tier === 2 ? 'HIGH' : 'SUP')}-${String(i).padStart(4, '0')}`,
             password: `bot_pass_${this.rng.rangeInt(1000, 9999)}`,
             balance: bankBalance,
-            bankIp: "10.40.10.5"
+            bankIp: '10.40.10.5'
           },
-          activeDay: (i - 1) % 7, // 0: Dom a 6: Sáb (exatamente 10 por dia por tier)
-          activeShift: (i - 1) % 4, // 0: Madrugada, 1: Manhã, 2: Tarde, 3: Noite
+          activeDay: (i - 1) % 7,
+          activeShift: (i - 1) % 4,
+          phaseSeed: this._hashId(id + '::' + handle),
           softwareList: [
-            { name: "firewall", version: tier === 1 ? "2.0" : (tier === 2 ? "4.5" : "9.0") },
-            { name: "hasher", version: tier === 1 ? "1.5" : (tier === 2 ? "3.2" : "8.0") },
-            { name: "cracker", version: tier === 1 ? "1.0" : (tier === 2 ? "3.0" : "7.5") }
+            { name: 'firewall', version: tier === 1 ? '2.0' : (tier === 2 ? '4.5' : '9.0') },
+            { name: 'hasher', version: tier === 1 ? '1.5' : (tier === 2 ? '3.2' : '8.0') },
+            { name: 'cracker', version: tier === 1 ? '1.0' : (tier === 2 ? '3.0' : '7.5') }
           ],
           vfsFiles: {
-            "passwords.txt": `Credencial Admin: root / adm_bot#${i * 13}\nBanco: HC-${tier === 1 ? 'MED' : (tier === 2 ? 'HIGH' : 'SUP')}-${String(i).padStart(4, '0')}\n`,
-            "notes.txt": `Operações sigilosas do cluster ${handle}. Não divulgar IP ${ip}.\n`,
-            "intel.dat": `[CHAVE PRIVADA RSA 4096-BIT]\n${btoa(handle + '_' + ip).substring(0, 32)}\n`
+            'passwords.txt': `Credencial Admin: root / adm_bot#${i * 13}\nBanco: HC-${tier === 1 ? 'MED' : (tier === 2 ? 'HIGH' : 'SUP')}-${String(i).padStart(4, '0')}\n`,
+            'notes.txt': `Operações sigilosas do operador ${handle}.\n`,
+            'intel.dat': `[CHAVE PRIVADA RSA 4096-BIT]\n${btoa(unescape(encodeURIComponent(handle + '_' + ip))).substring(0, 32)}\n`
           }
         };
 
@@ -98,6 +179,54 @@ class BotNetworkRegistry {
         this.botsByTier[tier].push(bot);
       }
     }
+
+    // Garante que os 4 nomes icônicos de meme/BR citados pelo jogador também façam parte garantida da rotação diária de qualquer dia!
+    this.featuredDailyHandles = ['josenacimento', 'hackerbr', 'vitinladrão', 'lulaladrão'];
+
+    // 5 Policiais Cibernéticos + 1 Delegado Chefe (com rotação orgânica de plantão a cada 10 min!)
+    const lawSpecs = [
+      { id: 'law_pol_01', handle: 'pf_monteiro', role: 'policial', clanTag: 'PF-CYBER', rep: 4600, tier: 3, defVer: 4.5 },
+      { id: 'law_pol_02', handle: 'agente_pecanha', role: 'policial', clanTag: 'PF-CYBER', rep: 3250, tier: 2, defVer: 3.5 },
+      { id: 'law_pol_03', handle: 'inspetor_tavares', role: 'policial', clanTag: 'PF-CYBER', rep: 4950, tier: 3, defVer: 5.0 },
+      { id: 'law_pol_04', handle: 'perito_camargo', role: 'policial', clanTag: 'PF-CYBER', rep: 4100, tier: 3, defVer: 4.0 },
+      { id: 'law_pol_05', handle: 'agente_antunes', role: 'policial', clanTag: 'PF-CYBER', rep: 3780, tier: 2, defVer: 3.5 },
+      { id: 'law_del_01', handle: 'delegado_silva', role: 'delegado', clanTag: 'DELEGADO', rep: 9800, tier: 3, defVer: 8.5 }
+    ];
+
+    lawSpecs.forEach((lw, idx) => {
+      const ip = this._nextScatteredIp(usedIps);
+      const unit = {
+        id: lw.id,
+        handle: lw.handle,
+        role: lw.role,
+        clanTag: lw.clanTag,
+        reputation: lw.rep,
+        tier: lw.tier,
+        tierName: lw.role === 'delegado' ? 'Delegado Chefe Cyber' : 'Polícia Cibernética',
+        ip,
+        defVer: lw.defVer,
+        phaseSeed: this._hashId(lw.id + '::LAW'),
+        hardware: { cpuCores: 16, cpuClock: 4.4, ramGb: 64, storageGb: 8000, netMbps: 1000 },
+        bankAccount: {
+          accountNum: `PF-GOV-990${idx + 1}`,
+          password: `pf_sec_${this.rng.rangeInt(1000, 9999)}`,
+          balance: this.rng.rangeInt(8000, 35000),
+          bankIp: '10.40.10.5'
+        },
+        softwareList: [
+          { name: 'firewall', version: String(lw.defVer) },
+          { name: 'hasher', version: String(lw.defVer) },
+          { name: 'cracker', version: String(Math.max(2.0, lw.defVer - 0.5)) }
+        ],
+        vfsFiles: {
+          'mandados_sigilosos.txt': `Divisão de Crimes Cibernéticos — Oficial @${lw.handle}.\n`,
+          'relatorio_plantao.txt': `Monitoramento ativo de lavagem ilícita e rastros em logs.\n`
+        }
+      };
+      this.lawEnforcement.push(unit);
+      this.botsById.set(unit.id, unit);
+      this.botsByIp.set(ip, unit);
+    });
   }
 
   getBotByIp(ip) {
@@ -112,13 +241,17 @@ class BotNetworkRegistry {
     return this.bots;
   }
 
+  getLawEnforcementUnits() {
+    return this.lawEnforcement || [];
+  }
+
   getBotsByTier(tier) {
     return this.botsByTier[tier] || [];
   }
 
   searchBots(query) {
     const q = query.toLowerCase().trim();
-    return this.bots.filter(b => b.handle.toLowerCase().includes(q) || b.ip.includes(q));
+    return this.bots.filter(b => b.handle.toLowerCase().includes(q));
   }
 }
 
@@ -127,8 +260,23 @@ class BotScheduler {
     this.registry = registry;
   }
 
+  // Retorna exatamente 30 Bots Hackers para o dia (10 Tier 1, 10 Tier 2, 10 Tier 3),
+  // garantindo presença dos nomes brasileiros/memes icônicos na rotação do dia!
   getActiveBotsForDay(dayOfWeek) {
-    return this.registry.bots.filter(b => b.activeDay === dayOfWeek);
+    const base = this.registry.bots.filter(b => b.activeDay === dayOfWeek);
+    const featured = (this.registry.featuredDailyHandles || [])
+      .map(h => this.registry.bots.find(b => b.handle === h))
+      .filter(Boolean);
+
+    const out = [...base];
+    featured.forEach((fb, idx) => {
+      if (!out.some(x => x.id === fb.id)) {
+        // Substitui um slot Tier 1 do dia para manter exatamente 30 bots hackers no dia!
+        const t1Idx = out.findIndex((x, k) => x.tier === 1 && k >= idx && !featured.some(f => f.id === x.id));
+        if (t1Idx >= 0) out[t1Idx] = fb;
+      }
+    });
+    return out.slice(0, 30);
   }
 
   getCurrentDayBots() {
@@ -136,15 +284,46 @@ class BotScheduler {
     return this.getActiveBotsForDay(day);
   }
 
-  isBotOnline(botIp) {
-    const bot = this.registry.getBotByIp(botIp);
-    if (!bot) return false;
-    const now = new Date();
-    const day = now.getDay();
-    const hour = now.getHours();
-    const currentShift = Math.floor(hour / 6); // 0: 0-5, 1: 6-11, 2: 12-17, 3: 18-23
+  getCurrentDayLawEnforcement() {
+    return this.registry.getLawEnforcementUnits();
+  }
 
-    return bot.activeDay === day && bot.activeShift === currentShift;
+  // Variação orgânica a cada 10 minutos (com defasagem individual de fase para entrar um e sair outro aos poucos,
+  // nunca ficando travado em 35/36 online fixos!).
+  isUnitOnlineAt(unit, nowMs = Date.now()) {
+    if (!unit) return false;
+    const TEN_MIN_MS = 10 * 60 * 1000;
+    const globalSlot = Math.floor(nowMs / TEN_MIN_MS);
+    const phaseOffsetMs = ((unit.phaseSeed || 0) % 10) * 60 * 1000;
+    const unitSlot = Math.floor((nowMs + phaseOffsetMs) / TEN_MIN_MS);
+
+    // Ocupação alvo da janela de 10 min oscila entre ~56% e ~86% (ex: ora 20 online, ora 27, ora 31)
+    const waveHash = Math.imul((globalSlot ^ 0x9e3779b9) >>> 0, 1664525) >>> 0;
+    const targetPct = 56 + (waveHash % 31); // 56..86%
+
+    const rollHash = Math.imul(((unit.phaseSeed || 1) ^ Math.imul(unitSlot + 17, 2246822519)) >>> 0, 3266489917) >>> 0;
+    const roll = rollHash % 100;
+
+    if (unit.role === 'delegado') {
+      // Delegado entra e sai em rondas (presente ~62% das janelas de 10 min)
+      return roll < 62;
+    }
+    if (unit.role === 'policial') {
+      // Dos 5 policiais, sempre há entre 2 e 5 de plantão variando a cada 10 min (~68% cada)
+      return roll < 68;
+    }
+    return roll < targetPct;
+  }
+
+  isBotOnline(botIp, nowMs = Date.now()) {
+    const unit = this.registry.getBotByIp(botIp);
+    if (!unit) return false;
+    if (unit.role === 'policial' || unit.role === 'delegado') {
+      return this.isUnitOnlineAt(unit, nowMs);
+    }
+    const dayBots = this.getCurrentDayBots();
+    if (!dayBots.some(b => b.ip === botIp)) return false;
+    return this.isUnitOnlineAt(unit, nowMs);
   }
 }
 
@@ -501,11 +680,7 @@ class BotnetC2Engine {
     this.profile = "ghost"; // "ghost" (1.0x), "overclock" (3.5x), "ddos" (0.0x)
     this.multiplier = 1.0;
     this.accumulatedProfits = 0.0;
-    this.slaves = [
-      { ip: "10.110.1.18", handle: "NullPointer_08", tier: 1, baseRate: 0.35 },
-      { ip: "10.120.2.24", handle: "CipherGhost_14", tier: 2, baseRate: 1.20 },
-      { ip: "10.130.3.36", handle: "ValkyrieSec_26", tier: 3, baseRate: 3.50 }
-    ];
+    this.slaves = [];
 
     this.initTicker();
   }
@@ -602,13 +777,25 @@ function renderCrackerUI(containerId = 'crackerAppBody', initialTargetIp = null)
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  const dayBots = window.botScheduler.getCurrentDayBots();
-  const selectedIp = initialTargetIp || (dayBots.length > 0 ? dayBots[0].ip : "10.110.1.11");
-  const selectedBot = window.botRegistry.getBotByIp(selectedIp) || dayBots[0];
+  // Nunca listar bots desconhecidos: exibe apenas IPs já descobertos pelo jogador no Caderno (Hacked DB)!
+  const discoveredEntries = (window.hackedDb && typeof window.hackedDb.getAll === 'function')
+    ? window.hackedDb.getAll()
+    : [];
+  const discoveredBots = discoveredEntries
+    .map(e => window.botRegistry.getBotByIp(e.ip))
+    .filter(Boolean);
+
+  const selectedIp = initialTargetIp || (discoveredBots.length > 0 ? discoveredBots[0].ip : '198.51.100.42');
+  const selectedBot = window.botRegistry.getBotByIp(selectedIp) || {
+    ip: selectedIp,
+    handle: selectedIp === '198.51.100.42' ? 'PC de Treino' : 'Host Descoberto',
+    tier: 1,
+    tierName: 'Alvo Descoberto'
+  };
   window.traceEngine.setTarget(selectedBot);
 
-  let optionsHtml = '';
-  dayBots.forEach(b => {
+  let optionsHtml = `<option value="198.51.100.42" ${selectedIp === '198.51.100.42' ? 'selected' : ''}>PC de Treino [198.51.100.42]</option>`;
+  discoveredBots.forEach(b => {
     const isSel = b.ip === selectedIp ? 'selected' : '';
     optionsHtml += `<option value="${b.ip}" ${isSel}>${b.handle} [${b.ip}] — ${b.tierName}</option>`;
   });
