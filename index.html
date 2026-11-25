@@ -2265,12 +2265,43 @@
       }
     }
 
+    window.handleRealtimeWalletPayload = function (payload) {
+      if (!currentWallet || !payload || !payload.new || payload.new.balance == null) return false;
+      const prevBal = +(Number(currentWallet.balance || 0)).toFixed(2);
+      const nextBal = +(Number(payload.new.balance || 0)).toFixed(2);
+      const delta = +(nextBal - prevBal).toFixed(2);
+
+      // Só atualiza e exibe aviso se o saldo realmente aumentou ou diminuiu (evita loop em sync de mesmo valor)
+      if (Math.abs(delta) < 0.01) {
+        return false;
+      }
+
+      if (window.integrityGuard) {
+        window.integrityGuard.runAuthorized(() => { currentWallet.balance = nextBal; });
+      } else {
+        currentWallet.balance = nextBal;
+      }
+      if (window.onlineEngine) {
+        window.onlineEngine.lastDbWalletBalance = nextBal;
+      }
+      document.getElementById('hudWalletMoney').innerText = fmtMoney(currentWallet.balance);
+      const bankBalEl = document.getElementById('bankDisplayBalance');
+      if (bankBalEl) bankBalEl.innerText = `$ ${nextBal.toFixed(2)} HC`;
+      if (typeof renderHome === 'function' && window.winManager && window.winManager.current === 'winHome') {
+        renderHome();
+      }
+      const sign = delta > 0 ? '+' : '-';
+      showToast(`💸 Saldo ${delta > 0 ? 'aumentou' : 'reduziu'} (${sign}$ ${Math.abs(delta).toFixed(2)}): $ ${nextBal.toFixed(2)} HC`);
+      loadBankTransactions();
+      return true;
+    };
+
     // Configurar WebSockets em Tempo Real (Supabase Realtime)
     function setupRealtimeSubscriptions() {
       if (!supabase || !currentWallet) return;
       cleanupRealtimeSubscriptions();
 
-      // 1. Ouvir atualizações da carteira (quando outro jogador manda dinheiro para você)
+      // 1. Ouvir atualizações da carteira (quando outro jogador/aparelho altera seu saldo real)
       _hcWalletChannel = supabase.channel('my-wallet-channel-' + currentWallet.id)
         .on('postgres_changes', { 
           event: 'UPDATE', 
@@ -2278,15 +2309,7 @@
           table: 'wallets', 
           filter: `id=eq.${currentWallet.id}` 
         }, (payload) => {
-          if (!currentWallet) return;
-          if (window.integrityGuard) {
-            window.integrityGuard.runAuthorized(() => { currentWallet.balance = payload.new.balance; });
-          } else {
-            currentWallet.balance = payload.new.balance;
-          }
-          updateHudDisplays();
-          showToast(`Saldo atualizado via Realtime: $ ${parseFloat(payload.new.balance).toFixed(2)} HC`);
-          loadBankTransactions();
+          window.handleRealtimeWalletPayload(payload);
         })
         .subscribe();
 
