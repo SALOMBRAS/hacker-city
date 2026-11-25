@@ -800,10 +800,12 @@
       if (snap.tour) {
         if (window.spotlightTour) {
           if (snap.tour.done) window.spotlightTour.statusByUid[uid] = snap.tour.done;
+          else delete window.spotlightTour.statusByUid[uid];
           if (snap.tour.rewarded) window.spotlightTour.rewardedByUid[uid] = snap.tour.rewarded;
         }
         try {
           if (snap.tour.done) localStorage.setItem(`HC_SPOTLIGHT_TOUR_DONE_${uid}`, snap.tour.done);
+          else localStorage.removeItem(`HC_SPOTLIGHT_TOUR_DONE_${uid}`);
           if (snap.tour.rewarded) localStorage.setItem(`HC_SPOTLIGHT_TOUR_REWARDED_${uid}`, snap.tour.rewarded);
         } catch (e) {}
       }
