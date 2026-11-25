@@ -153,8 +153,8 @@
       return st;
     }
 
-    saveState() {
-      if (window.operatorRetentionEngine) window.operatorRetentionEngine.save();
+    saveState(immediateCloud = true) {
+      if (window.operatorRetentionEngine) window.operatorRetentionEngine.save(false, immediateCloud);
       this.syncTopbarBadge();
     }
 

@@ -532,12 +532,11 @@
       });
 
       st.dailyGoalsClaimed[goalId] = true;
-      this.save();
+      this.save(false, true);
       if (window.dailyCheckinV2) {
         window.dailyCheckinV2.syncTopbarBadge();
         window.dailyCheckinV2.rerenderIfOpen();
       }
-      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
       if (typeof window.updateHudDisplays === 'function') window.updateHudDisplays();
       if (typeof window.renderHome === 'function') window.renderHome();
       const msg = `💵 Meta "${goal.title}" resgatada: +$${cashOut} Limpos e +${repOut} REP!`;
