@@ -12,7 +12,29 @@
     constructor() {
       this.deferredPrompt = null;
       this.installed = false;
+      this.swRegistration = null;
+      this.swReady = false;
       this.bindEvents();
+      this.registerServiceWorker();
+    }
+
+    async registerServiceWorker() {
+      if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return null;
+      try {
+        const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+        this.swRegistration = reg;
+        this.swReady = true;
+        navigator.serviceWorker.addEventListener('message', (ev) => {
+          const msg = ev.data || {};
+          if (msg.type === 'HC_SW_NAVIGATE' && msg.winId && typeof window.navTo === 'function') {
+            window.navTo(msg.winId);
+          }
+        });
+        this.renderProfileCard();
+        return reg;
+      } catch (e) {
+        return null;
+      }
     }
 
     bindEvents() {
@@ -96,6 +118,12 @@
             }).catch(() => {});
           }
           return { outcome: 'native_prompt_shown' };
+        } catch (e) {}
+      }
+      if (typeof Navigator !== 'undefined' && typeof Navigator.prototype.install === 'function') {
+        try {
+          navigator.install().then(() => this.renderProfileCard()).catch(() => {});
+          return { outcome: 'web_install_api_invoked' };
         } catch (e) {}
       }
       this.openInstallGuideModal();
