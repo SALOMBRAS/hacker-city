@@ -1405,8 +1405,79 @@
     }
 
     switchTab(tabKey) {
-      this.activeTab = ['workbench', 'creations', 'codex'].includes(tabKey) ? tabKey : 'workbench';
+      this.activeTab = ['workbench', 'creations', 'codex', 'research'].includes(tabKey) ? tabKey : 'workbench';
       this.renderUI();
+    }
+
+    openForSoftwareUpgrade(softKey = 'cracker') {
+      this.ensureLoaded();
+      this.highlightedResearchSoftKey = softKey || 'cracker';
+      this.activeTab = 'research';
+      if (window.progressiveUnlockEngine) {
+        window.progressiveUnlockEngine.ensureLoaded();
+        window.progressiveUnlockEngine.state.everUnlocked.winVirusLab = true;
+        window.progressiveUnlockEngine.save();
+        if (typeof window.progressiveUnlockEngine.syncAllSidebarItems === 'function') {
+          window.progressiveUnlockEngine.syncAllSidebarItems();
+        }
+      }
+      if (typeof window.navTo === 'function') window.navTo('winVirusLab');
+      this.renderUI();
+    }
+
+    renderResearchToolsHtml() {
+      if (!window.softwareEngine) return '<div class="hc-card" style="padding:18px;">Carregando programas...</div>';
+      const se = window.softwareEngine;
+      se.ensureLoaded();
+      const keys = ['cracker', 'exploit_ssh', 'exploit_ftp', 'firewall', 'hasher', 'antivirus', 'seeker', 'hider'];
+      const focusKey = this.highlightedResearchSoftKey || '';
+      const cards = keys.map((k) => {
+        const def = se.getDefinition(k);
+        const cur = se.state.inventory[k] || { owned: false, versionInt: 0, licensed: true };
+        if (!def) return '';
+        const owned = !!(cur.owned && cur.versionInt > 0);
+        const curVerStr = owned ? se.fmtVer(cur.versionInt) : 'Não baixado';
+        const maxVer = def.maxVerInt || 100;
+        const stepVer = k === 'analyzer' ? 10 : 5;
+        const nextVerStr = se.fmtVer(Math.min(maxVer, (cur.versionInt || 10) + stepVer));
+        const isMax = owned && cur.versionInt >= maxVer;
+        const needsLicense = owned && cur.licensed === false;
+        const licCost = needsLicense ? se.getLicenseCost(k) : 0;
+        const upgCost = owned && !isMax ? se.getResearchCost(k) : 0;
+        const isFocused = focusKey === k;
+        let btnHtml = '';
+        if (!owned) {
+          const dlIp = (k === 'exploit_ssh' || k === 'exploit_ftp') ? '185.220.101.9' : (k === 'seeker' || k === 'hider' ? '109.64.200.10' : '33.8.2.71');
+          btnHtml = `<button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${dlIp}')">📍 Buscar v1.0 (${dlIp}) →</button>`;
+        } else if (isMax) {
+          btnHtml = `<span class="hc-badge success">Versão Máxima (${curVerStr})</span>`;
+        } else if (needsLicense) {
+          btnHtml = `<button type="button" id="btnLabLic_${k}" class="hc-btn sm" style="border-color:var(--hc-warning);color:var(--hc-warning);" onclick="window.softwareEngine.buyLicense('${k}');window.virusLabEngine.renderUI();">🔑 Registrar Licença ($ ${licCost.toLocaleString('pt-BR')})</button>`;
+        } else {
+          btnHtml = `<button type="button" id="btnLabUpg_${k}" class="hc-btn primary sm" onclick="window.softwareEngine.researchUpgrade('${k}').then((r)=>{if(r&&window.showToast)window.showToast(r.message);window.virusLabEngine.renderUI();})">🔬 Evoluir p/ ${nextVerStr} ($ ${upgCost.toLocaleString('pt-BR')})</button>`;
+        }
+        return `
+          <div class="hc-card" id="vlabResearchCard_${k}" style="padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-color:${isFocused ? 'var(--hc-accent)' : 'var(--hc-border)'};background:${isFocused ? 'rgba(53,184,119,0.09)' : 'var(--hc-surface)'};">
+            <div style="min-width:190px;flex:1;">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <strong style="font-size:13.5px;color:var(--hc-text);">${esc(def.friendlyTitle || def.filename)}</strong>
+                <span class="mono" style="font-size:11.5px;color:var(--hc-text-3);">${esc(def.filename)}</span>
+                <span class="hc-badge ${owned ? 'info' : ''}">${esc(curVerStr)}</span>
+                ${isFocused ? '<span class="hc-badge success">🎯 Recomendado p/ seu Alvo</span>' : ''}
+              </div>
+              <div style="font-size:12px;color:var(--hc-text-2);margin-top:3px;">${esc(def.desc || '')}</div>
+            </div>
+            <div>${btnHtml}</div>
+          </div>`;
+      }).join('');
+      return `
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="hc-card" style="padding:14px 16px;border-color:rgba(56,189,248,0.4);background:rgba(14,24,38,0.85);">
+            <div class="hc-eyebrow" style="color:#7dd3fc;">Bancada de Pesquisa &amp; Evolução de Programas</div>
+            <div style="font-size:13px;color:var(--hc-text-2);margin-top:4px;">Quando não houver mais enigmas dando versões superiores, evolua aqui seu <strong>Cracker</strong>, <strong>Exploits</strong> e <strong>Defesas</strong> de <code>+0.5 em +0.5</code> até <code>v10.0</code>!</div>
+          </div>
+          ${cards}
+        </div>`;
     }
 
     renderUI(mountId = 'virusLabAppBody') {
@@ -1421,6 +1492,8 @@
       let mainHtml = '';
       if (this.activeTab === 'workbench') {
         mainHtml = this.renderWorkbenchHtml(lvl);
+      } else if (this.activeTab === 'research') {
+        mainHtml = this.renderResearchToolsHtml();
       } else if (this.activeTab === 'creations') {
         mainHtml = this.renderCreationsHtml();
       } else {
@@ -1436,7 +1509,13 @@
               aria-selected="${this.activeTab === 'workbench' ? 'true' : 'false'}"
               onclick="window.virusLabEngine.switchTab('workbench')">
               ${window.HC ? HC.icon('code-2') : ''}
-              <span>Bancada de Código (3 Rounds)</span>
+              <span>Bancada de Vírus (3 Rounds)</span>
+            </button>
+            <button type="button" role="tab" id="vlabTabResearch" class="vlab-tab-btn"
+              aria-selected="${this.activeTab === 'research' ? 'true' : 'false'}"
+              onclick="window.virusLabEngine.switchTab('research')">
+              ${window.HC ? HC.icon('flask-conical') : ''}
+              <span>🔬 Evoluir Programas (P&amp;D)</span>
             </button>
             <button type="button" role="tab" id="vlabTabCreations" class="vlab-tab-btn"
               aria-selected="${this.activeTab === 'creations' ? 'true' : 'false'}"

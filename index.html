@@ -3476,6 +3476,9 @@
       const tutInfo = window.tutorialEngine ? window.tutorialEngine.getCurrentStepInfo() : { completed: true };
       const activeMsn = (window.missionsEngine && window.missionsEngine.ensureLoaded().activeMission) || null;
       const activeDyn = (window.dynamicContractsEngine && Array.isArray(window.dynamicContractsEngine.activeContracts) && window.dynamicContractsEngine.activeContracts[0]) || null;
+      const blindIpExposed = typeof window.isPlayerIpExposedAnywhere === 'function' ? window.isPlayerIpExposedAnywhere() : false;
+      const dirtyReady = (window.nineSystemsEngine && typeof window.nineSystemsEngine.getDirtyBalance === 'function') ? window.nineSystemsEngine.getDirtyBalance() : 0;
+      const harvestQuick = window.softwareEngine ? window.softwareEngine.getPendingHarvestSummary() : { virusCount: 0, cashReady: 0 };
 
       let step;
       if (!tutInfo.completed) {
@@ -3487,6 +3490,36 @@
           status: `Etapa ${tutInfo.step} de 6`,
           cta: tutInfo.cta,
           customOnclick: 'window.tutorialEngine.getCurrentStepInfo().action()'
+        };
+      } else if (blindIpExposed) {
+        step = {
+          tag: '⚠️ Alerta de Segurança',
+          title: 'Seu IP está exposto em alguma log na rede!',
+          hirer: 'Detector Cego (Local Oculto)',
+          reward: 'Evita contra-ataque e FBI',
+          status: 'Volte onde entrou ou troque de IP',
+          cta: 'Ver Alerta de Exposição',
+          customOnclick: 'window.openBlindExposedIpNotice()'
+        };
+      } else if (harvestQuick.cashReady >= 150) {
+        step = {
+          tag: '💰 Lucro Pronto',
+          title: `Coletar ${fmtMoney(harvestQuick.cashReady)} gerados pelos seus vírus`,
+          hirer: `${harvestQuick.virusCount} vírus ativos`,
+          reward: `+${fmtMoney(harvestQuick.cashReady)}`,
+          status: 'Pronto para recolher',
+          cta: 'Coletar Agora',
+          customOnclick: 'window.handleCollectViruses()'
+        };
+      } else if (dirtyReady >= 250) {
+        step = {
+          tag: '🧼 Dinheiro Sujo Parado',
+          title: `Lavar ${fmtMoney(dirtyReady)} em notas sujas antes de comprar itens`,
+          hirer: 'Vitrine de Lavagem',
+          reward: 'Converte p/ Dinheiro Limpo',
+          status: '15 min p/ limpar',
+          cta: 'Ir Lavar Dinheiro',
+          go: 'winLaundering'
         };
       } else if (activeMsn) {
         step = {
