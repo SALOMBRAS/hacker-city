@@ -2091,16 +2091,12 @@
           ` : ''}
 
           <div class="nds-card emerald">
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
               <div>
-                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                  <strong style="font-size:14.5px;">🧼 Empresas Abertas Nesta Hora (5 Opções · Troca em ${minsLeftHour}m)</strong>
-                  <span class="hc-badge success">🌐 Vitrine Global MMO</span>
-                </div>
-                <div style="font-size:12px;color:var(--hc-text-2);">Empresas patrocinadas na vitrine aparecem primeiro na rotação horária. Taxa mínima <strong>17%</strong> · <strong>15 min reais</strong>.</div>
+                <strong style="font-size:14.5px;">🧼 Escolha onde lavar (15 min · troca em ${minsLeftHour}m)</strong>
               </div>
               <div style="display:flex;align-items:center;gap:6px;">
-                <label style="font-size:12px;">Valor p/ Lavar:</label>
+                <label style="font-size:12px;">Valor:</label>
                 <input type="number" id="launderAmtInput" class="hc-input mono" style="width:125px;height:34px;" min="100" step="500" value="${Math.min(5000, Math.max(500, Math.round(dirty || 2500)))}">
               </div>
             </div>
@@ -2108,41 +2104,22 @@
             ${this.state.myCompany ? `
               <div class="nds-row" style="border-color:#35b877;background:rgba(53,184,119,0.08);">
                 <div>
-                  <strong style="color:#6ee7b7;">🏢 ${esc(this.state.myCompany.name)} (Sua Empresa · Porte ${this.state.myCompany.tier})</strong>
-                  <div style="font-size:11.5px;color:var(--hc-text-2);">Sua taxa interna: só ${LAUNDERING_TIERS[this.state.myCompany.tier].selfTaxPct}% · Limite: ${fmtMoney(LAUNDERING_TIERS[this.state.myCompany.tier].maxBatchUsd)}/vez · 15 min reais</div>
+                  <strong style="color:#6ee7b7;">🏢 ${esc(this.state.myCompany.name)} (Sua Empresa · Taxa ${LAUNDERING_TIERS[this.state.myCompany.tier].selfTaxPct}%)</strong>
                 </div>
-                <button type="button" id="btnLaunderOwnCompany" class="hc-btn primary sm" onclick="window.nineSystemsEngine.startLaunderingBatch('MY_OWN_COMPANY', document.getElementById('launderAmtInput')?.value)">Lavar na Minha Empresa</button>
+                <button type="button" id="btnLaunderOwnCompany" class="hc-btn primary sm" onclick="window.nineSystemsEngine.startLaunderingBatch('MY_OWN_COMPANY', document.getElementById('launderAmtInput')?.value)">Lavar Aqui</button>
               </div>
             ` : ''}
 
-            <div style="margin:8px 0;padding:10px 12px;border-radius:8px;background:#081119;border:1px solid rgba(56,189,248,0.32);font-size:11.8px;color:var(--hc-text-2);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-              <div>
-                <strong style="color:#7dd3fc;">🎁 Vantagens Extras de Ter Sua Empresa:</strong>
-                Porte 1 ($ 50 mil) = <strong>10% desconto em Peças/Fontes + vende até $ 5 mil/dia de BTC Limpo</strong> ·
-                Porte 2 ($ 150 mil) = <strong>20% desconto na Internet/VPS + 1 salto grátis na rota</strong> ·
-                Porte 3 ($ 400 mil) = <strong>sem taxa de 2% no Banco + Cofre Suíço a 1,5% + $ 15 mil/dia BTC Limpo</strong>!
-              </div>
-              <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button type="button" class="hc-btn ghost sm" onclick="navTo('winVirusLab')">🧬 Ganhar $ 18 mil no Lab →</button>
-                <button type="button" class="hc-btn ghost sm" onclick="navTo('winOpsHub');window.ecosystemHub.switchTab('stocks');">📉 Lucrar Limpo na Bolsa →</button>
-              </div>
-            </div>
-
             ${five.map((c, i) => `
               <div class="nds-row" style="border-color:${c.feePct <= 20 ? 'rgba(53,184,119,0.45)' : (c.feePct >= 45 ? 'rgba(229,83,75,0.4)' : '#1e2938')};">
-                <div>
-                  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-                    <strong>${i + 1}. ${esc(c.name)}</strong>
-                    <span class="hc-badge info">Dono: ${esc(c.ownerTag)}</span>
-                    <span class="hc-badge ${c.feePct <= 20 ? 'success' : (c.feePct >= 45 ? 'danger' : 'warn')}">TAXA: ${c.feePct}%</span>
-                    <span class="hc-badge info">Porte ${c.tier} · Máx ${fmtMoney(c.maxBatchUsd)}/vez</span>
-                  </div>
-                  <div style="font-size:11.5px;color:var(--hc-text-2);margin-top:3px;">
-                    Tempo de lavagem: <strong>15 min da vida real</strong> · ${c.feePct}% fica de lucro para ${esc(c.ownerTag)}.
-                  </div>
+                <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                  <strong>${i + 1}. ${esc(c.name)}</strong>
+                  <span class="hc-badge info">Dono: ${esc(c.ownerTag)}</span>
+                  <span class="hc-badge ${c.feePct <= 20 ? 'success' : (c.feePct >= 45 ? 'danger' : 'warn')}">Taxa ${c.feePct}%</span>
+                  <span class="mono" style="font-size:11.5px;color:var(--hc-text-3);">Máx ${fmtMoney(c.maxBatchUsd)}</span>
                 </div>
                 <button type="button" id="btnLaunderCo_${i}" class="hc-btn ${c.feePct <= 22 ? 'primary' : 'ghost'} sm" onclick="window.nineSystemsEngine.startLaunderingBatch('${c.id}', document.getElementById('launderAmtInput')?.value)">
-                  Lavar Aqui (${c.feePct}%)
+                  Lavar (${c.feePct}%)
                 </button>
               </div>
             `).join('')}
@@ -2237,34 +2214,21 @@
         <div class="nds-shell">
           <div class="nds-dual-wallet">
             <div class="nds-wallet-box clean">
-              <span style="font-size:11px;color:#6ee7b7;font-weight:700;text-transform:uppercase;">💵 Dinheiro Limpo &amp; Legalizado</span>
-              <strong class="mono" style="font-size:22px;color:#6ee7b7;">${fmtMoney(clean)}</strong>
-              <span style="font-size:11.5px;color:var(--hc-text-2);">Aceito p/ Comprar Empresa ($50K+), Anunciar ($10K), Licenças P2P e Hardware!</span>
+              <span style="font-size:11px;color:#6ee7b7;font-weight:700;text-transform:uppercase;">💵 Dinheiro Limpo</span>
+              <strong class="mono" style="font-size:21px;color:#6ee7b7;">${fmtMoney(clean)}</strong>
             </div>
             <div class="nds-wallet-box dirty">
-              <span style="font-size:11px;color:#fca5a5;font-weight:700;text-transform:uppercase;">🩸 Dinheiro Sujo (De Invasões &amp; Saques)</span>
-              <strong class="mono" style="font-size:22px;color:#fca5a5;">${fmtMoney(dirty)}</strong>
-              <span style="font-size:11.5px;color:#fbbf24;">Obrigatório lavar em 1 das 5 empresas (15 min reais). Gastar sujo = Polícia na cola &amp; Prisão!</span>
+              <span style="font-size:11px;color:#fca5a5;font-weight:700;text-transform:uppercase;">🩸 Dinheiro Sujo</span>
+              <strong class="mono" style="font-size:21px;color:#fca5a5;">${fmtMoney(dirty)}</strong>
             </div>
           </div>
 
           <div class="nds-tabs">
-            <button type="button" id="ndsTab_vitrine" class="nds-tab-btn ${this.activeLaunderingTab === 'vitrine' ? 'active' : ''}" onclick="window.nineSystemsEngine.activeLaunderingTab='vitrine'; window.nineSystemsEngine.renderLaunderingHub();">🧼 Vitrine 5 Empresas/1h</button>
-            <button type="button" id="ndsTab_ads" class="nds-tab-btn ${this.activeLaunderingTab === 'ads' ? 'active' : ''}" onclick="window.nineSystemsEngine.activeLaunderingTab='ads'; window.nineSystemsEngine.renderLaunderingHub();">📢 Anunciar ($10K · ${q.length}/15 Vagas)</button>
-            <button type="button" id="ndsTab_company" class="nds-tab-btn ${this.activeLaunderingTab === 'company' ? 'active' : ''}" onclick="window.nineSystemsEngine.activeLaunderingTab='company'; window.nineSystemsEngine.renderLaunderingHub();">🏢 3 Portes ($50K/$150K/$400K) &amp; Risco</button>
-            <button type="button" id="ndsTab_p2p" class="nds-tab-btn ${this.activeLaunderingTab === 'p2p' ? 'active' : ''}" onclick="window.nineSystemsEngine.activeLaunderingTab='p2p'; window.nineSystemsEngine.renderLaunderingHub();">🧬 Mercado P2P (Cepas do Lab)</button>
+            <button type="button" id="ndsTab_vitrine" class="nds-tab-btn ${this.activeLaunderingTab === 'vitrine' ? 'active' : ''}" onclick="window.nineSystemsEngine.activeLaunderingTab='vitrine'; window.nineSystemsEngine.renderLaunderingHub();">🧼 Lavar Agora</button>
+            <button type="button" id="ndsTab_ads" class="nds-tab-btn ${this.activeLaunderingTab === 'ads' ? 'active' : ''}" onclick="window.nineSystemsEngine.activeLaunderingTab='ads'; window.nineSystemsEngine.renderLaunderingHub();">📢 Anunciar (${q.length}/15)</button>
+            <button type="button" id="ndsTab_company" class="nds-tab-btn ${this.activeLaunderingTab === 'company' ? 'active' : ''}" onclick="window.nineSystemsEngine.activeLaunderingTab='company'; window.nineSystemsEngine.renderLaunderingHub();">🏢 Minha Empresa</button>
+            <button type="button" id="ndsTab_p2p" class="nds-tab-btn ${this.activeLaunderingTab === 'p2p' ? 'active' : ''}" onclick="window.nineSystemsEngine.activeLaunderingTab='p2p'; window.nineSystemsEngine.renderLaunderingHub();">🧬 Mercado P2P</button>
           </div>
-
-          <details class="nds-rules-drawer">
-            <summary>📖 Regras Completas da Lavagem de Dinheiro (Moeda, 3 Portes, 5/1h, 15 Vagas $10K, 15 Min &amp; Prisão)</summary>
-            <ol class="nds-rules-list">
-              <li><strong>Dinheiro Sujo vs. Limpo:</strong> Drenos de servidores (&ge; $ 100), bancos NPC/Bots, Hijacks e ZeroBin caem como <strong>Dinheiro Sujo</strong>. Comprar empresa, anunciar ($ 10K), licenças P2P e peças aceitam <strong>100% Dinheiro Limpo</strong> — no início você obrigatoriamente lava nas empresas de outros jogadores/Bots!</li>
-              <li><strong>Os 3 Portes (100% Dinheiro Limpo):</strong> <strong>Porte 1 ($ 50.000)</strong> lava até <strong>$ 5.000/vez</strong> por jogador (alvará $ 250 às 12h); <strong>Porte 2 ($ 150.000)</strong> lava até <strong>$ 15.000/vez</strong> (alvará $ 600); <strong>Porte 3 ($ 400.000)</strong> lava até <strong>$ 50.000/vez</strong> (alvará $ 1.400). Evoluir cobra só a diferença!</li>
-              <li><strong>Espera Real &amp; Trava por Empresa:</strong> Cada lote leva exatos <strong>15 minutos da vida real</strong> p/ limpar, e cada empresa só processa 1 remessa ativa sua por vez (mas você pode usar outras das 5 empresas simultaneamente).</li>
-              <li><strong>Vitrine 5/Hora &amp; Fila de 15 Vagas ($ 10.000 = 3h Reais):</strong> A cada <strong>1h real</strong> aparecem <strong>5 empresas diferentes</strong> (anúncios de jogadores + Bots preenchendo vagas livres). Anunciar sua empresa custa <strong>$ 10.000 Limpos</strong> na fila de <strong>15 vagas</strong> (3h × 5 empresas).</li>
-              <li><strong>Taxa Livre (&ge; 17% s/ Teto) &amp; Prisão:</strong> Piso obrigatório de <strong>17%</strong> e sem teto máximo (cobrar caro demais afasta clientes e perde os $ 10K do anúncio!). Tentar gastar Dinheiro Sujo direto: <strong>1ª vez = Polícia na cola (Heat 4/5)</strong>; <strong>2ª vez (ou 1ª c/ Sterling) = Prisão Federal</strong> (confisca o valor sujo, tira -15% pts da Temporada e tranca 60s até pagar Fiança Limpa).</li>
-            </ol>
-          </details>
 
           ${tabBody}
         </div>

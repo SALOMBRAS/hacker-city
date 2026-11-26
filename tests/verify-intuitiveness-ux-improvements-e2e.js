@@ -189,6 +189,42 @@ const IMG_DIR = path.resolve(__dirname, '../../reports/melhorias-intuitivas-aler
     await new Promise((r) => setTimeout(r, 180));
     await page.screenshot({ path: path.join(IMG_DIR, '05-programas-etiquetas-claras-ram-ataque-virus.png') });
 
+    // 5. Validar Despoluição Visual (Zero mural duplicado de 13 cards, Laboratório limpo em 1 coluna, Lavagem enxuta e Home limpa)
+    const CLEAN_DIR = path.resolve(__dirname, '../../reports/interface-limpa-despoluida-e-intuitiva/images');
+    fs.mkdirSync(CLEAN_DIR, { recursive: true });
+
+    const declutterAudit = await page.evaluate(() => {
+      const hasDuplicateDiscoverWall = !!document.getElementById('softwareDiscoverCardsSection');
+      const tempChipHiddenWhenCool = document.getElementById('hudTempBadge')?.style.display === 'none';
+      const crackerHasUselessRunBtn = !!document.getElementById('btnToggleInstall_cracker');
+      return { hasDuplicateDiscoverWall, tempChipHiddenWhenCool, crackerHasUselessRunBtn };
+    });
+    assert.strictEqual(declutterAudit.hasDuplicateDiscoverWall, false, 'Mural duplicado de 13 cards embaixo de Programas deve ser removido');
+    assert.strictEqual(declutterAudit.tempChipHiddenWhenCool, true, 'Temperatura fria (<55°C) não deve poluir a barra do topo');
+    assert.strictEqual(declutterAudit.crackerHasUselessRunBtn, false, 'Cracker automático não deve ter botão inútil de engrenagem');
+    await page.screenshot({ path: path.join(CLEAN_DIR, '01-programas-agrupado-limpo-sem-mural-duplicado.png') });
+
+    await page.evaluate(() => { window.navTo('winHome'); window.renderHome(); });
+    await new Promise((r) => setTimeout(r, 150));
+    await page.screenshot({ path: path.join(CLEAN_DIR, '02-home-inicio-limpo-focado-no-proximo-passo.png') });
+
+    await page.evaluate(() => { window.navTo('winInternet'); window.internetEngine.openIp('77.3.9.21', 'invadir'); });
+    await new Promise((r) => setTimeout(r, 150));
+    await page.screenshot({ path: path.join(CLEAN_DIR, '03-internet-aba-invadir-limpa-2-botoes-claros.png') });
+
+    await page.evaluate(() => { window.virusLabEngine.openForSoftwareUpgrade('cracker'); });
+    await new Promise((r) => setTimeout(r, 150));
+    await page.screenshot({ path: path.join(CLEAN_DIR, '04-laboratorio-evoluir-programas-1-coluna-limpa.png') });
+
+    await page.evaluate(() => {
+      window.nineSystemsEngine.addDirtyMoney(1200, 'Vitrine Limpa');
+      window.navTo('winLaundering');
+      window.nineSystemsEngine.activeLaunderingTab = 'vitrine';
+      window.nineSystemsEngine.renderLaunderingHub();
+    });
+    await new Promise((r) => setTimeout(r, 150));
+    await page.screenshot({ path: path.join(CLEAN_DIR, '05-lavagem-de-dinheiro-direta-sem-textao.png') });
+
     console.log('✅ SUÍTE MELHORIAS INTUITIVAS (ALERTA CEGO S/ LOCAL + ROTA PRO LABORATÓRIO + SSH 1 CLIQUE + ETIQUETAS) 100% APROVADA!', JSON.stringify({
       leakedSecretHost: blindAlertAudit.leakedSecretHost,
       routedToLab: labRouteAudit.winAfterClick,

@@ -1429,6 +1429,16 @@
       if (!window.softwareEngine) return '<div class="hc-card" style="padding:18px;">Carregando programas...</div>';
       const se = window.softwareEngine;
       se.ensureLoaded();
+      const shortHints = {
+        cracker: 'Quebra a senha do alvo para entrar.',
+        exploit_ssh: 'Invade sem senha pela porta SSH.',
+        exploit_ftp: 'Invade sem senha pela porta FTP.',
+        firewall: 'Bloqueia invasões contra o seu PC.',
+        hasher: 'Protege a senha do seu PC.',
+        antivirus: 'Remove vírus instalados no seu PC.',
+        seeker: 'Encontra arquivos e cofres escondidos.',
+        hider: 'Esconde seus programas e vírus.'
+      };
       const keys = ['cracker', 'exploit_ssh', 'exploit_ftp', 'firewall', 'hasher', 'antivirus', 'seeker', 'hider'];
       const focusKey = this.highlightedResearchSoftKey || '';
       const cards = keys.map((k) => {
@@ -1448,36 +1458,28 @@
         let btnHtml = '';
         if (!owned) {
           const dlIp = (k === 'exploit_ssh' || k === 'exploit_ftp') ? '185.220.101.9' : (k === 'seeker' || k === 'hider' ? '109.64.200.10' : '33.8.2.71');
-          btnHtml = `<button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${dlIp}')">📍 Buscar v1.0 (${dlIp}) →</button>`;
+          btnHtml = `<button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('${dlIp}')">📍 Baixar v1.0 →</button>`;
         } else if (isMax) {
-          btnHtml = `<span class="hc-badge success">Versão Máxima (${curVerStr})</span>`;
+          btnHtml = `<span class="hc-badge success">Máximo (${curVerStr})</span>`;
         } else if (needsLicense) {
-          btnHtml = `<button type="button" id="btnLabLic_${k}" class="hc-btn sm" style="border-color:var(--hc-warning);color:var(--hc-warning);" onclick="window.softwareEngine.buyLicense('${k}');window.virusLabEngine.renderUI();">🔑 Registrar Licença ($ ${licCost.toLocaleString('pt-BR')})</button>`;
+          btnHtml = `<button type="button" id="btnLabLic_${k}" class="hc-btn sm" style="border-color:var(--hc-warning);color:var(--hc-warning);" onclick="window.softwareEngine.buyLicense('${k}');window.virusLabEngine.renderUI();">🔑 Licença ($ ${licCost.toLocaleString('pt-BR')})</button>`;
         } else {
-          btnHtml = `<button type="button" id="btnLabUpg_${k}" class="hc-btn primary sm" onclick="window.softwareEngine.researchUpgrade('${k}').then((r)=>{if(r&&window.showToast)window.showToast(r.message);window.virusLabEngine.renderUI();})">🔬 Evoluir p/ ${nextVerStr} ($ ${upgCost.toLocaleString('pt-BR')})</button>`;
+          btnHtml = `<button type="button" id="btnLabUpg_${k}" class="hc-btn primary sm" onclick="window.softwareEngine.researchUpgrade('${k}').then((r)=>{if(r&&window.showToast)window.showToast(r.message);window.virusLabEngine.renderUI();})">Evoluir p/ ${nextVerStr} ($ ${upgCost.toLocaleString('pt-BR')})</button>`;
         }
         return `
-          <div class="hc-card" id="vlabResearchCard_${k}" style="padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-color:${isFocused ? 'var(--hc-accent)' : 'var(--hc-border)'};background:${isFocused ? 'rgba(53,184,119,0.09)' : 'var(--hc-surface)'};">
-            <div style="min-width:190px;flex:1;">
+          <div class="hc-card" id="vlabResearchCard_${k}" style="padding:11px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-color:${isFocused ? 'var(--hc-accent)' : 'var(--hc-border)'};background:${isFocused ? 'rgba(53,184,119,0.09)' : 'var(--hc-surface)'};">
+            <div style="min-width:180px;flex:1;">
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                 <strong style="font-size:13.5px;color:var(--hc-text);">${esc(def.friendlyTitle || def.filename)}</strong>
-                <span class="mono" style="font-size:11.5px;color:var(--hc-text-3);">${esc(def.filename)}</span>
                 <span class="hc-badge ${owned ? 'info' : ''}">${esc(curVerStr)}</span>
-                ${isFocused ? '<span class="hc-badge success">🎯 Recomendado p/ seu Alvo</span>' : ''}
+                ${isFocused ? '<span class="hc-badge success">🎯 Recomendado</span>' : ''}
               </div>
-              <div style="font-size:12px;color:var(--hc-text-2);margin-top:3px;">${esc(def.desc || '')}</div>
+              <div style="font-size:12px;color:var(--hc-text-3);margin-top:2px;">${esc(shortHints[k] || '')}</div>
             </div>
             <div>${btnHtml}</div>
           </div>`;
       }).join('');
-      return `
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <div class="hc-card" style="padding:14px 16px;border-color:rgba(56,189,248,0.4);background:rgba(14,24,38,0.85);">
-            <div class="hc-eyebrow" style="color:#7dd3fc;">Bancada de Pesquisa &amp; Evolução de Programas</div>
-            <div style="font-size:13px;color:var(--hc-text-2);margin-top:4px;">Quando não houver mais enigmas dando versões superiores, evolua aqui seu <strong>Cracker</strong>, <strong>Exploits</strong> e <strong>Defesas</strong> de <code>+0.5 em +0.5</code> até <code>v10.0</code>!</div>
-          </div>
-          ${cards}
-        </div>`;
+      return `<div style="display:flex;flex-direction:column;gap:8px;">${cards}</div>`;
     }
 
     renderUI(mountId = 'virusLabAppBody') {
@@ -1531,16 +1533,14 @@
             </button>
           </div>
 
-          <div class="vlab-layout">
-            <div role="tabpanel" aria-labelledby="${this.activeTab === 'workbench' ? 'vlabTabWorkbench' : (this.activeTab === 'creations' ? 'vlabTabCreations' : 'vlabTabCodex')}">
-              ${window.topTenMechanics && typeof window.topTenMechanics.renderLabRelicsAndCommissionBannerHtml === 'function'
-                ? window.topTenMechanics.renderLabRelicsAndCommissionBannerHtml()
+          <div class="vlab-layout" style="${this.activeTab === 'research' ? 'grid-template-columns:1fr;' : ''}">
+            <div role="tabpanel" aria-labelledby="${this.activeTab === 'workbench' ? 'vlabTabWorkbench' : (this.activeTab === 'research' ? 'vlabTabResearch' : (this.activeTab === 'creations' ? 'vlabTabCreations' : 'vlabTabCodex'))}">
+              ${this.activeTab === 'workbench' && window.topTenMechanics && typeof window.topTenMechanics.renderLabRelicsAndCommissionBannerHtml === 'function'
+                ? `<details class="nds-rules-drawer" style="margin-bottom:10px;"><summary>🧬 Missão Extra: Encomenda de $ 18.000 &amp; Blocos Secretos</summary><div style="margin-top:8px;">${window.topTenMechanics.renderLabRelicsAndCommissionBannerHtml()}</div></details>`
                 : ''}
               ${mainHtml}
             </div>
-            <aside class="vlab-side-stack" aria-label="Progresso e Escala Regressiva do Laboratório">
-              ${sideHtml}
-            </aside>
+            ${this.activeTab !== 'research' ? `<aside class="vlab-side-stack" aria-label="Progresso do Laboratório">${sideHtml}</aside>` : ''}
           </div>
         </div>
       `;

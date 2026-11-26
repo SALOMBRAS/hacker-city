@@ -3666,45 +3666,42 @@
         subContent = `
           <div id="remoteLogEditorBox" style="display:flex;flex-direction:column;gap:8px;">
             <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
-              <div>
-                <strong style="font-size: 0.88rem;">Rastros de Acesso neste PC <span style="font-family:var(--hc-font-mono);font-size:0.78rem;color:var(--hc-text-3);">(${esc(host.ip)}:/var/log/syslog)</span></strong>
-                <div style="font-size: 0.78rem; color: ${myIpExposed ? 'var(--hc-danger-text)' : 'var(--hc-text-2)'};">
-                  ${myIpExposed
-                    ? `⚠️ CUIDADO: Seu endereço (${window.networkIdentity.renderBlurredMyIpHtml(myIp, true)}) está anotado abaixo! Apague antes de sair para ninguém te rastrear!`
-                    : `✅ Limpo! Seu endereço (${window.networkIdentity.renderBlurredMyIpHtml(myIp, true)}) não aparece mais nos rastros deste PC.`}
-                </div>
+              <div style="font-size: 0.82rem; color: ${myIpExposed ? 'var(--hc-danger-text)' : 'var(--hc-accent-text)'}; font-weight:600;">
+                ${myIpExposed ? '⚠️ Seu IP está anotado abaixo — apague antes de sair!' : '✅ Seu IP já foi removido desta log.'}
               </div>
               <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                <button type="button" id="btnWipeAllRemoteLogs" class="hc-btn ghost sm" onclick="document.getElementById('remoteSyslogTextarea').value=''; window.internetEngine.saveEditedRemoteLogs();">Apagar Comum (Fica rastro 5m)</button>
-                ${window.nineSystemsEngine ? `
-                  <button type="button" id="btnSevenPassShredRemote" class="hc-btn sm" style="border-color:var(--hc-danger);color:var(--hc-danger-text);" onclick="window.nineSystemsEngine.executeSevenPassShred('${esc(host.ip)}'); document.getElementById('remoteSyslogTextarea').value='';">🔥 Apagar de Vez (Sem rastro)</button>
-                  <button type="button" id="btnScanMagneticShadowRemote" class="hc-btn ghost sm" onclick="const r = window.nineSystemsEngine.scanMagneticShadowsOnHost('${esc(host.ip)}'); const bx = document.getElementById('remoteMagShadowResultBox'); if (bx) { bx.style.display='block'; bx.innerHTML = r.shadows && r.shadows.length ? r.shadows.map(s => '🔬 Rastro Apagado Encontrado: <code>' + s.subnetPrefix + '</code> (apagado às ' + s.wipedAt + ')').join('<br>') : r.message; }">🔬 Procurar Rastro Apagado</button>
-                ` : ''}
-                <button type="button" id="btnSaveRemoteSyslog" class="hc-btn primary sm" onclick="window.internetEngine.saveEditedRemoteLogs()">Salvar Alteração</button>
+                <button type="button" id="btnWipeAllRemoteLogs" class="hc-btn ghost sm" onclick="document.getElementById('remoteSyslogTextarea').value=''; window.internetEngine.saveEditedRemoteLogs();">Zerar Tudo</button>
+                <button type="button" id="btnSaveRemoteSyslog" class="hc-btn primary sm" onclick="window.internetEngine.saveEditedRemoteLogs()">Salvar Log</button>
               </div>
             </div>
-            <div id="remoteMagShadowResultBox" style="display:none;padding:8px 10px;background:#0d1520;border:1px solid #2b3e57;border-radius:7px;font-size:12px;color:#7dd3fc;"></div>
 
-            <!-- Barra Rápida: Apagar Próprio IP & Deixar Farpa / Recado para o Alvo! -->
-            <div id="remoteTauntQuickBar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 10px;background:var(--hc-inset);border:1px solid rgba(216,155,56,0.35);border-radius:7px;">
-              <input type="text" id="remoteTauntMsgInput" class="form-input" style="flex:1;min-width:240px;font-family:var(--hc-font-mono);font-size:0.77rem;" value="${esc(defaultTaunt)}" placeholder="Escreva uma farpa/aviso p/ deixar na log do alvo sem seu IP...">
+            <div id="remoteTauntQuickBar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:7px 10px;background:var(--hc-inset);border:1px solid var(--hc-border);border-radius:7px;">
+              <input type="text" id="remoteTauntMsgInput" class="form-input" style="flex:1;min-width:210px;font-family:var(--hc-font-mono);font-size:0.76rem;" value="${esc(defaultTaunt)}" placeholder="Recado opcional p/ deixar sem seu IP...">
               <button type="button" id="btnQuickWipeAndTaunt" class="hc-btn sm" style="border-color:var(--hc-warning);color:var(--hc-warning);" onclick="window.internetEngine.applyQuickTauntToRemoteLog()">
-                🔥 Apagar Meu IP &amp; Deixar Farpa
+                🔥 Apagar Meu IP &amp; Deixar Recado
               </button>
             </div>
 
-            <!-- Culpar Outro IP na Safenet! -->
-            ${window.ecosystemHub ? `
-              <div id="remoteFalseFlagBar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:8px 10px;background:var(--hc-inset);border:1px solid rgba(53,184,119,0.32);border-radius:7px;">
-                <span style="font-size:0.77rem;color:var(--hc-text-2);">🎭 <strong>Culpar Outro IP:</strong> apaga seu IP e coloca o IP de um rival no lugar para a polícia ir atrás dele:</span>
-                <input type="text" id="falseFlagTargetIpInput" class="form-input" style="width:155px;font-family:var(--hc-font-mono);font-size:0.77rem;" value="149.56.28.11" placeholder="IP p/ incriminar">
-                <button type="button" id="btnPlantFalseFlag" class="hc-btn primary sm" onclick="window.ecosystemHub.plantFalseFlagOnHost('${esc(host.ip)}', document.getElementById('falseFlagTargetIpInput')?.value)">
-                  🎭 Colocar IP Falso
-                </button>
-              </div>
-            ` : ''}
-
             <textarea id="remoteSyslogTextarea" class="ssh-syslog-editor" spellcheck="false">${esc(logs.join('\n'))}</textarea>
+
+            <details class="nds-rules-drawer">
+              <summary>⚙️ Opções Avançadas (Culpar outro IP · Apagar sem sombra)</summary>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  ${window.nineSystemsEngine ? `
+                    <button type="button" id="btnSevenPassShredRemote" class="hc-btn sm" style="border-color:var(--hc-danger);color:var(--hc-danger-text);" onclick="window.nineSystemsEngine.executeSevenPassShred('${esc(host.ip)}'); document.getElementById('remoteSyslogTextarea').value='';">🔥 Apagar sem Sombra (Shred)</button>
+                    <button type="button" id="btnScanMagneticShadowRemote" class="hc-btn ghost sm" onclick="const r = window.nineSystemsEngine.scanMagneticShadowsOnHost('${esc(host.ip)}'); const bx = document.getElementById('remoteMagShadowResultBox'); if (bx) { bx.style.display='block'; bx.innerHTML = r.shadows && r.shadows.length ? r.shadows.map(s => '🔬 Rastro Recuperado: <code>' + s.subnetPrefix + '</code> (' + s.wipedAt + ')').join('<br>') : r.message; }">🔬 Procurar Rastro Apagado</button>
+                  ` : ''}
+                </div>
+                <div id="remoteMagShadowResultBox" style="display:none;padding:8px 10px;background:#0d1520;border:1px solid #2b3e57;border-radius:7px;font-size:12px;color:#7dd3fc;"></div>
+                ${window.ecosystemHub ? `
+                  <div id="remoteFalseFlagBar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                    <input type="text" id="falseFlagTargetIpInput" class="form-input" style="width:155px;font-family:var(--hc-font-mono);font-size:0.77rem;" value="149.56.28.11" placeholder="IP p/ incriminar">
+                    <button type="button" id="btnPlantFalseFlag" class="hc-btn ghost sm" onclick="window.ecosystemHub.plantFalseFlagOnHost('${esc(host.ip)}', document.getElementById('falseFlagTargetIpInput')?.value)">🎭 Colocar IP Falso</button>
+                  </div>
+                ` : ''}
+              </div>
+            </details>
           </div>
         `;
       } else if (this.sshSubTab === 'files') {
@@ -4594,27 +4591,27 @@
       return `
         <div class="inet-attack-wrap">
           ${inlineAttackBars}
-          ${window.topTenMechanics && typeof window.topTenMechanics.renderInvadirEliteTacticalStripHtml === 'function'
-            ? window.topTenMechanics.renderInvadirEliteTacticalStripHtml(host)
-            : ''}
 
-          <div class="inet-attack-heading">Escolha seu método de ataque:</div>
+          <!-- Resumo limpo em 1 linha no topo (mantém #inetHostDefenseCompareBox para o Tour) -->
+          <div id="inetHostDefenseCompareBox" class="hc-card" style="padding: 9px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--hc-inset);">
+            <div style="font-size: 12px; color: var(--hc-text-2);">
+              Defesa do alvo: <strong class="mono">Firewall v${reqFwl.toFixed(1)}</strong> · <strong class="mono">Hasher v${reqHasher.toFixed(1)}</strong>
+            </div>
+            ${saved
+              ? `<span class="hc-badge success" style="cursor:pointer;" onclick="window.internetEngine.switchTab('entrar')">Senha salva: ${esc(saved.password)} →</span>`
+              : `<span class="hc-badge ${canEnterSomehow ? 'success' : 'warning'}">${canEnterSomehow ? '✓ Você consegue invadir' : 'Alvo mais forte'}</span>`}
+          </div>
 
           <div class="inet-attack-grid">
             <div class="inet-attack-card ${canBruteforce ? 'ready' : ''}" id="cardAttackBruteforce">
               <div class="inet-attack-icon">${HC.icon('key-round', 'lg')}</div>
-              <strong style="font-size: 15px; color: var(--hc-text);">Ataque força-bruta</strong>
+              <strong style="font-size: 15px; color: var(--hc-text);">Quebrar Senha</strong>
               <div class="inet-attack-reqs">
-                <span title="Seu melhor Hash/Cracker no disco vs Exigido" style="color: ${canBruteforce ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};">
-                  ${HC.icon('key-round')} ${crcVer > 0 ? crcVer.toFixed(1) : '0.0'} / ${reqBfMin.toFixed(1)}
+                <span style="color: ${canBruteforce ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};">
+                  Seu Cracker: ${crcVer > 0 ? 'v' + crcVer.toFixed(1) : '0.0'} (pede v${reqBfMin.toFixed(1)})
                 </span>
               </div>
-              <div style="font-size: 12px; color: var(--hc-text-3); min-height: 32px;">
-                ${canBruteforce
-                  ? `Roda em 2º plano · Escolha qual hash usar (HD/SSD/NVMe)`
-                  : (crcVer <= 0 ? 'Baixe um Cracker no Download Center' : `Requer Cracker v${reqBfMin.toFixed(1)} ou superior`)}
-              </div>
-              <button type="button" id="btnInetBruteforce" class="hc-btn ${canBruteforce ? 'primary' : ''} block" onclick="window.internetEngine.startBruteforce()">
+              <button type="button" id="btnInetBruteforce" class="hc-btn ${canBruteforce ? 'primary' : ''} block" style="margin-top:8px;" onclick="window.internetEngine.startBruteforce()">
                 Quebrar senha
               </button>
               ${!canBruteforce ? (() => {
@@ -4625,18 +4622,14 @@
 
             <div class="inet-attack-card ${canAnyExp ? 'ready' : ''}" id="cardAttackExploit">
               <div class="inet-attack-icon">${HC.icon('terminal', 'lg')}</div>
-              <strong style="font-size: 15px; color: var(--hc-text);">Ataque exploit</strong>
+              <strong style="font-size: 15px; color: var(--hc-text);">Invadir sem Senha (Exploit)</strong>
               <div class="inet-attack-reqs">
                 <span style="color: ${canFtpExp ? 'var(--hc-accent-text)' : 'var(--hc-text-3)'};">FTP ${ftpVer > 0 ? ftpVer.toFixed(1) : '0.0'}</span>
                 <span>·</span>
                 <span style="color: ${canSshExp ? 'var(--hc-accent-text)' : 'var(--hc-text-3)'};">SSH ${sshVer > 0 ? sshVer.toFixed(1) : '0.0'}</span>
+                <span style="color:var(--hc-text-3);"> (pede v${reqFwl.toFixed(1)})</span>
               </div>
-              <div style="font-size: 12px; color: var(--hc-text-3); min-height: 32px;">
-                ${canAnyExp
-                  ? `Entra sem senha após rodar o Port scan`
-                  : `Requer Exploit v${reqFwl.toFixed(1)}+ e Port scan`}
-              </div>
-              <button type="button" id="btnInetExploit" class="hc-btn ${canAnyExp ? 'primary' : ''} block" onclick="window.internetEngine.startExploitAttack()">
+              <button type="button" id="btnInetExploit" class="hc-btn ${canAnyExp ? 'primary' : ''} block" style="margin-top:8px;" onclick="window.internetEngine.startExploitAttack()">
                 Explorar brecha
               </button>
               ${!canAnyExp ? (() => {
@@ -4646,48 +4639,33 @@
             </div>
           </div>
 
-          <div class="inet-portscan-bar">
-            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-              <span class="mono" style="font-size: 12.5px; font-weight: 600; color: var(--hc-text); display: inline-flex; align-items: center; gap: 6px;">
-                ${HC.icon('radar')} Port scan · v${scanVer.toFixed(1)}
-              </span>
-              <span class="mono" style="font-size: 11.5px; color: var(--hc-text-3);">
-                ${!portScanActive
-                  ? 'Desligado na memória'
-                  : (scanned
-                      ? `21/ftp ${canFtpExp ? 'aberta' : 'FW v' + reqFwl.toFixed(1)} · 22/ssh ${canSshExp ? 'aberta' : 'FW v' + reqFwl.toFixed(1)}`
-                      : 'Portas ainda não escaneadas')}
-              </span>
-            </div>
-            <button type="button" id="btnInetPortScan" class="hc-btn sm" onclick="window.internetEngine.runPortScan()">Rodar port scan</button>
-          </div>
-
-          <!-- Resumo compacto de defesa do alvo (mantém #inetHostDefenseCompareBox para o Tour) -->
-          <div id="inetHostDefenseCompareBox" class="hc-card" style="padding: 11px 15px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--hc-inset);">
-            <div style="font-size: 12px; color: var(--hc-text-2);">
-              Defesa do alvo: <strong class="mono">Firewall v${reqFwl.toFixed(1)}</strong> · <strong class="mono">Hasher v${reqHasher.toFixed(1)}</strong> · <strong class="mono">${targetAv > 0 ? 'AV v' + targetAv.toFixed(1) : 'Sem AV'}</strong>
-            </div>
-            ${saved
-              ? `<span class="hc-badge success" style="cursor:pointer;" onclick="window.internetEngine.switchTab('entrar')">Senha salva: ${esc(saved.password)} →</span>`
-              : `<span class="hc-badge ${canEnterSomehow ? 'success' : 'warning'}">${canEnterSomehow ? 'Alcance compatível' : 'Defesa superior'}</span>`}
-          </div>
-
-          ${window.ddosOverloadEngine ? (() => {
-            const myDdosGbps = window.ddosOverloadEngine.getPlayerTotalDdosGbps();
-            const reqDdosGbps = window.ddosOverloadEngine.getTargetMitigationGbps(host);
-            const targetHwPct = window.ddosOverloadEngine.getTargetHealthPct(host.ip);
-            const canDdos = myDdosGbps >= reqDdosGbps;
-            return `
-              <div id="cardAttackDdosOverload" class="hc-card" style="padding: 11px 15px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--hc-inset);">
-                <div style="font-size: 12px; color: var(--hc-text-2);">
-                  <strong>Sobrecarga DDoS</strong> · Seu poder: <span class="mono" style="color:${canDdos ? 'var(--hc-accent-text)' : 'var(--hc-text)'};">${myDdosGbps} Gbps</span> / Mitigação <span class="mono">${reqDdosGbps} Gbps</span> (Saúde ${targetHwPct}%)
+          <details class="nds-rules-drawer" ${canAnyExp && !scanned ? 'open' : ''}>
+            <summary>⚙️ Mais opções (Port Scan · DDoS · Ataque Silencioso)</summary>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+              <div class="inet-portscan-bar">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                  <span class="mono" style="font-size: 12px; font-weight: 600;">Port scan v${scanVer.toFixed(1)}</span>
+                  <span class="mono" style="font-size: 11.5px; color: var(--hc-text-3);">
+                    ${!portScanActive ? 'Desligado na RAM' : (scanned ? `21/ftp · 22/ssh mapeadas` : 'Não escaneado')}
+                  </span>
                 </div>
-                <button type="button" id="btnInetLaunchDdosStrike" class="hc-btn ${canDdos ? 'danger' : 'ghost'} sm" onclick="window.ddosOverloadEngine.launchDdosOverloadOnHost('${esc(host.ip)}')">
-                  Disparar DDoS
-                </button>
+                <button type="button" id="btnInetPortScan" class="hc-btn sm" onclick="window.internetEngine.runPortScan()">Rodar port scan</button>
               </div>
-            `;
-          })() : ''}
+              ${window.ddosOverloadEngine ? (() => {
+                const myDdosGbps = window.ddosOverloadEngine.getPlayerTotalDdosGbps();
+                const reqDdosGbps = window.ddosOverloadEngine.getTargetMitigationGbps(host);
+                const canDdos = myDdosGbps >= reqDdosGbps;
+                return `
+                  <div id="cardAttackDdosOverload" class="hc-card" style="padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--hc-inset);">
+                    <span style="font-size: 12px; color: var(--hc-text-2);"><strong>DDoS:</strong> ${myDdosGbps} / ${reqDdosGbps} Gbps</span>
+                    <button type="button" id="btnInetLaunchDdosStrike" class="hc-btn ${canDdos ? 'danger' : 'ghost'} sm" onclick="window.ddosOverloadEngine.launchDdosOverloadOnHost('${esc(host.ip)}')">Disparar DDoS</button>
+                  </div>`;
+              })() : ''}
+              ${window.topTenMechanics && typeof window.topTenMechanics.renderInvadirEliteTacticalStripHtml === 'function'
+                ? window.topTenMechanics.renderInvadirEliteTacticalStripHtml(host)
+                : ''}
+            </div>
+          </details>
         </div>
       `;
     }
