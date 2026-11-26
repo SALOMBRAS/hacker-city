@@ -50,6 +50,7 @@
   </style>
   <link rel="stylesheet" href="src/css/ecosystem-hub.css">
   <link rel="stylesheet" href="src/css/nine-deep-systems.css">
+  <link rel="stylesheet" href="src/css/avatar-picker.css">
 
   <!-- Modular Core Scripts -->
   <script src="src/js/audio-synth.js"></script>
@@ -91,6 +92,8 @@
   <script src="src/js/daily-checkin-v2-engine.js"></script>
   <script src="src/js/daily-checkin-days-1to7.js"></script>
   <script src="src/js/cross-save-cloud-sync-engine.js"></script>
+  <script src="src/js/avatar-catalog.js"></script>
+  <script src="src/js/avatar-picker-engine.js"></script>
   <script src="src/js/quick-command-palette.js"></script>
 </head>
 <body>
@@ -1952,6 +1955,7 @@
       document.getElementById('hudHeatLevel').innerText = `Nv.${currentProfile.heat_level}`;
       if (window.dailyCheckinV2) window.dailyCheckinV2.syncTopbarBadge();
       document.getElementById('hudAvatar').innerText = (currentProfile.hacker_tag || '?').slice(0, 2).toUpperCase();
+      if (window.avatarPicker) window.avatarPicker.paintAll();
 
       // Hacker Bank
       document.getElementById('bankDisplayAcc').innerText = currentWallet.account_number;
@@ -3851,6 +3855,9 @@
       }
       if (window.quickCommandPalette && typeof window.quickCommandPalette.close === 'function') {
         try { window.quickCommandPalette.close(); } catch (e) {}
+      }
+      if (window.avatarPicker && typeof window.avatarPicker.close === 'function') {
+        try { window.avatarPicker.close(); } catch (e) {}
       }
       _hcAuthEpoch += 1;
       _hcLoadedSessionUid = null;

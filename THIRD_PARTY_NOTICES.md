@@ -49,3 +49,15 @@ Os arquivos `.woff2` em `src/fonts/` são distribuídos sem modificação (via `
 O desenho da interface (barra lateral, painéis, tabela de processos, minigames em modal) toma como
 referência o **Zero Traced** (<https://zerotraced.com>), usado com autorização do autor. Nenhum
 código nem imagem do Zero Traced é copiado: o CSS e os componentes são implementação própria.
+
+## Retratos de perfil
+
+Os retratos em `assets/avatars/` foram gerados por IA no **Higgsfield** (<https://higgsfield.ai>),
+nos modelos Z Image e Nano Banana, a partir de descrições em texto. Nenhuma imagem de terceiros foi
+enviada como referência, e o tratamento (corte, níveis, tinta e papel do jogo) é feito por
+`scripts/avatares/montar_avatares.py`. O prompt de cada retrato está em `scripts/avatares/retratos.json`.
+
+- A central de ajuda do Higgsfield diz que a empresa não reivindica a propriedade das imagens geradas
+  e não restringe o uso comercial delas, em nenhum plano (consultada em 25/11/2026):
+  <https://higgsfield.ai/creator-hub/help-center/account-and-privacy/who-owns-my-generations-and-can-i-use-them-commercially>.
+- Os retratos não têm marca d'água.

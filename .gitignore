@@ -6,3 +6,5 @@ yarn-debug.log*
 yarn-error.log*
 .vercel
 supabase/.temp/
+# URLs de download dos retratos gerados: levam o identificador da conta (scripts/avatares/montar_avatares.py)
+scripts/avatares/origens.local.txt

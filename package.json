@@ -18,7 +18,8 @@
     "test:roleta": "NODE_PATH=../pague-on-old/node_modules node tests/verify-roulette-cut-2min-ip-3x-week-e2e.js",
     "test:intuitivo": "NODE_PATH=../pague-on-old/node_modules node tests/verify-intuitiveness-ux-improvements-e2e.js",
     "gerar:voz": "node scripts/gerar-audios-tutorial.mjs",
-    "test:voz": "node scripts/gerar-audios-tutorial.mjs --check"
+    "test:voz": "node scripts/gerar-audios-tutorial.mjs --check",
+    "test:avatar": "NODE_PATH=../pague-on-old/node_modules node tests/verify-avatar-picker-e2e.js"
   },
   "keywords": [
     "cyberpunk",

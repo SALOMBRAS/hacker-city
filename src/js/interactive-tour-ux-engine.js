@@ -87,6 +87,18 @@
 
       setTimeout(() => {
         if (!window.currentProfile || this.isActive || this.hasCompletedOrSkipped()) return;
+        // Jogador novo escolhe a foto de perfil antes do tutorial (avatar-picker-engine.js).
+        const picker = window.avatarPicker;
+        if (picker && picker.needsChoice()) {
+          picker.open({
+            mode: 'onboarding',
+            onClose: (reason) => {
+              if (reason === 'cancelado') return; // logout com a tela aberta: não começa o tutorial
+              if (window.currentProfile && !this.isActive && !this.hasCompletedOrSkipped()) this.start(false);
+            }
+          });
+          return;
+        }
         this.start(false);
       }, 550);
     }

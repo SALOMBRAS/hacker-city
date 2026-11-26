@@ -23,6 +23,9 @@ NODE_PATH=../pague-on-old/node_modules node tests/verify-daily-checkin-v2-e2e.js
 
 # 7. Cross-Save Real PC ↔ Celular (Anti-Duplicação) & PWA Nativo (/sw.js, WebAPK PNGs, Alertas & Vibração) (PRs #114 a #122)
 NODE_PATH=../pague-on-old/node_modules node tests/verify-cross-save-and-pwa-e2e.js
+
+# 8. Foto de Perfil entre o Cadastro e o Tutorial (Catálogo × Arquivos, Troca no Perfil, Celular; bloqueia o Supabase)
+NODE_PATH=../pague-on-old/node_modules node tests/verify-avatar-picker-e2e.js
 ```
 
 Critérios obrigatórios em todas as execuções:
