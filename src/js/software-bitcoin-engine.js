@@ -4071,6 +4071,10 @@
         // 2) Aplicativos principais instalados no disco
         const connectedRemoteIp = window.internetEngine && window.internetEngine.activeSshIp ? window.internetEngine.activeSshIp : null;
 
+        const ramRows = [];
+        const autoToolRows = [];
+        const virusRows = [];
+
         allSoftOrder.forEach((k) => {
           const st = this.state.inventory[k];
           const def = SOFTWARE_DEFINITIONS[k];
@@ -4096,6 +4100,7 @@
             ? `Em execução v${(runVer / 10).toFixed(1)} · ${drvLabel}`
             : (isHidden ? `Escondido v${Number(st.hiddenWithVer).toFixed(1)} · ${drvLabel}` : `v${verStr} · ${drvLabel}`);
 
+          const isAutoTool = !!(def.onDemandTool || (def.category !== 'system' && def.category !== 'virus'));
           let runIconBtnHtml = '';
           if (def.category === 'virus') {
             if (connectedRemoteIp) {
@@ -4107,6 +4112,8 @@
                   ${HC.icon('upload')}
                 </button>`;
             }
+          } else if (isAutoTool && k !== 'antivirus') {
+            runIconBtnHtml = '';
           } else if (tr) {
             runIconBtnHtml = `
               <button type="button" class="soft-icon-act" disabled aria-label="Aguardando transição"
@@ -4132,14 +4139,14 @@
           } else {
             runIconBtnHtml = `
               <button type="button" id="btnToggleInstall_${k}" class="soft-icon-act ic-run" aria-label="Rodar ${esc(def.filename)}"
-                data-tip-title="Rodar programa" data-tip-meta="2º plano"
-                data-tip-desc="Rodar ${esc(def.friendlyTitle)} (${verStr}) e deixá-lo ativo em segundo plano no seu PC."
+                data-tip-title="${k === 'antivirus' ? 'Escanear PC agora' : 'Ligar na memória'}" data-tip-meta="${k === 'antivirus' ? 'Limpeza' : '2º plano'}"
+                data-tip-desc="${esc(def.friendlyTitle)} (${verStr})."
                 onclick="window.softwareEngine.startSoftwareViaTaskManager('soft', '${k}')">
                 ${HC.icon('settings')}
               </button>`;
           }
 
-          tableRows.push(`
+          const rowHtml = `
             <tr class="${isRunning ? 'row-running' : ''} ${isHidden ? 'row-hidden' : ''}">
               <td class="soft-col-icon">
                 <span class="soft-mini-glyph kind-${def.iconKind || 'attack'}"
@@ -4152,11 +4159,7 @@
                   data-tip-title="${esc(def.friendlyTitle)}" data-tip-meta="${esc(stateLabel)}" data-tip-desc="${esc(def.desc)}">
                   ${isRunning ? '<span class="soft-run-dot"></span>' : ''}
                   <span>${esc(def.filename)}</span>
-                  ${def.category === 'virus'
-                    ? `<span class="hc-badge warn" style="font-size:10px;padding:1px 6px;margin-left:5px;">🦠 Enviar p/ Vítimas</span><span class="hc-badge info" style="font-size:10px;padding:1px 6px;margin-left:4px;">${esc(this.getVirusEffectShortLabel(k, st.versionInt))}</span>`
-                    : (def.onDemandTool || def.category !== 'system'
-                        ? `<span class="hc-badge" style="font-size:10px;padding:1px 6px;margin-left:5px;color:#7dd3fc;border-color:rgba(56,189,248,0.35);">⚔️ Automático ao Invadir/Usar</span>`
-                        : `<span class="hc-badge ${isRunning ? 'success' : ''}" style="font-size:10px;padding:1px 6px;margin-left:5px;">🛡️ Fica Ligado na RAM</span>`)}
+                  ${def.category === 'virus' ? `<span class="hc-badge info" style="font-size:10px;padding:1px 6px;margin-left:5px;">${esc(this.getVirusEffectShortLabel(k, st.versionInt))}</span>` : ''}
                   ${st.customLabStrain ? `<span class="hc-badge success" style="font-size:10px;padding:1px 5px;margin-left:4px;" title="Cepa ${esc(st.customLabStrain.strainName)}">LAB</span>` : ''}
                   ${isHidden ? `<span style="font-size:11px;color:var(--hc-text-3);">(oculto)</span>` : ''}
                 </span>
@@ -4199,8 +4202,21 @@
                 </div>
               </td>
             </tr>
-          `);
+          `;
+          if (def.category === 'virus') virusRows.push(rowHtml);
+          else if (isAutoTool) autoToolRows.push(rowHtml);
+          else ramRows.push(rowHtml);
         });
+
+        if (ramRows.length > 0) {
+          tableRows.push(`<tr class="soft-group-header"><td colspan="5">🛡️ Proteção do PC · Fica Ligado na RAM</td></tr>`, ...ramRows);
+        }
+        if (autoToolRows.length > 0) {
+          tableRows.push(`<tr class="soft-group-header"><td colspan="5">⚔️ Ferramentas · Automático ao Invadir/Usar</td></tr>`, ...autoToolRows);
+        }
+        if (virusRows.length > 0) {
+          tableRows.push(`<tr class="soft-group-header"><td colspan="5">🦠 Seus Vírus · Enviar p/ Vítimas</td></tr>`, ...virusRows);
+        }
 
         // 3) Cópias auxiliares de Hash / Cracker guardadas nas unidades (HD / SSD / NVMe)
         (this.state.extraCopies || []).forEach((cp) => {
@@ -4437,18 +4453,6 @@
 
             ${bodySectionHtml}
           </div>
-
-          ${this.activeTab === 'inventory' && unownedAllKeys.length > 0 ? `
-            <section class="soft-discover-section" id="softwareDiscoverCardsSection">
-              <div class="soft-discover-header">
-                <div>
-                  <div class="hc-eyebrow">Catálogo da Rede · Ainda Não Encontrados (${unownedAllKeys.length})</div>
-                  <div style="font-size:12.5px;color:var(--hc-text-3);margin-top:2px;">Outros aplicativos e vírus existentes no mundo para você descobrir explorando servidores e enigmas.</div>
-                </div>
-              </div>
-              ${this.renderDiscoverCardsHtml(unownedAllKeys)}
-            </section>
-          ` : ''}
         </div>
       `;
     }
