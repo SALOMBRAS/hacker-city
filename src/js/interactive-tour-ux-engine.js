@@ -568,116 +568,37 @@
 
     buildSteps() {
       return [
-        // PASSO 1 (idx 0)
+        // PASSO 1 (idx 0) — SEU IP & ESCUDO 24H
         {
           id: 'my_ip',
           selector: '#hudMyIpChip',
           pointerLabel: '👆 Toque aqui (Seu IP + Escudo 24h)',
           requiresDirectClick: false,
-          title: '1. Seu IP Protegido & Escudo Iniciante (24h)',
-          desc: 'Esse número no topo é a <strong>placa do seu PC</strong> na rede (passe o mouse ou toque para revelar os últimos 7 dígitos). Nas suas <strong>primeiras 24 horas reais</strong>, seu <strong>Escudo Iniciante de 24h</strong> impede invasões e DDoS de outros jogadores (cai na hora se você atacar um jogador real)!',
-          hint: '💡 Suas contas do Esconderijo fecham às <strong>12:00</strong> (1h real = 1 dia; acumulam no máx. 3 meses e pausam sozinhas se você ficar offline).',
-          nextLabel: 'Entendi, Próximo →',
+          title: '1. Seu IP & Escudo Iniciante (24h)',
+          desc: 'Bem-vindo ao Hacker City! Esse número no topo é o endereço do seu PC. Nas primeiras 24 horas reais seu <strong>Escudo Iniciante</strong> impede invasões de outros jogadores.',
+          hint: '👆 Toque no seu IP iluminado para partirmos direto para sua 1ª invasão!',
+          nextLabel: 'Bora Invadir →',
           onEnter: () => {
+            this.ensureMobileDrawerIfNeeded(false);
             if (typeof window.navTo === 'function') window.navTo('winHome');
             document.querySelectorAll('details.nav-topic').forEach((d) => { d.open = false; });
           }
         },
-        // PASSO 2 (idx 1)
+        // PASSO 2 (idx 1) — DIRETO PARA A 1ª INVASÃO!
         {
-          id: 'topic_pc',
-          selector: '#navSummary_pc',
-          pointerLabel: '👆 Clique neste tópico',
+          id: 'start_first_invasion',
+          selector: '#btnHomeOpenInternet',
+          fallbackSelector: '#navQuickBtnBrowser',
+          pointerLabel: '👆 Clique em Abrir Internet!',
           requiresDirectClick: true,
-          title: '2. Menu Progressivo (Destrava Aos Poucos!)',
-          desc: 'Para não poluir sua tela com 27 sistemas de uma vez, o menu lateral começa enxuto e <strong>libera novas telas automaticamente</strong> (com selo verde <strong>NOVO</strong>) conforme você avança!',
-          hint: '👆 <strong>Clique em "Meu Computador"</strong> (veteranos podem liberar tudo em <em>Minha Conta → Mostrar Todo o Menu</em>).',
-          nextLabel: 'Abrir Meu Computador →',
-          onEnter: () => {
-            const d = document.getElementById('navTopic_pc');
-            if (d) d.open = false;
-            this.ensureMobileDrawerIfNeeded(true);
-          },
-          triggerAction: () => {
-            const d = document.getElementById('navTopic_pc');
-            if (d) d.open = true;
-          }
-        },
-        // PASSO 3 (idx 2)
-        {
-          id: 'open_software',
-          selector: 'button.nav-item[data-win="winSoftware"]',
-          pointerLabel: '👆 Clique aqui',
-          requiresDirectClick: true,
-          title: '3. Seus Programas & Peças do PC',
-          desc: 'Aqui você controla seus programas de ataque/defesa e melhora as peças do computador (sempre degrau por degrau, cuidando da temperatura e da Fonte de Energia!).',
-          hint: '👆 <strong>Clique em "Programas & Proteção"</strong> para ver como funciona a força dos seus programas!',
-          nextLabel: 'Abrir Programas →',
-          onEnter: () => {
-            const d = document.getElementById('navTopic_pc');
-            if (d) d.open = true;
-            this.ensureMobileDrawerIfNeeded(true);
-          },
-          triggerAction: () => {
-            if (typeof window.navTo === 'function') window.navTo('winSoftware');
-          }
-        },
-        // PASSO 4
-        {
-          id: 'running_ram_cooldown',
-          selector: '#softwareExplorerMain',
-          fallbackSelector: '#runningProgramsPanel',
-          pointerLabel: '👆 Toque aqui p/ avançar',
-          requiresDirectClick: false,
-          title: '4. Defesas na Memória vs. Ataques no Disco',
-          desc: 'Defesas como <strong>Firewall</strong> e <strong>Hasher</strong> ficam ligadas na sua Memória RAM (1 de cada por vez). Já o <strong>Quebrador de Senha</strong> roda direto do seu disco quando você ataca!',
-          hint: '💡 Mais adiante (em <strong>500 REP / Curso #4</strong>) também abre aqui o <strong>Laboratório de Vírus</strong> para criar seus próprios vírus e cumprir encomendas de <strong>$ 18.000 Limpos</strong>!',
-          nextLabel: 'Entendi! Vamos Invadir →',
+          title: '2. Direto para Sua 1ª Invasão!',
+          desc: 'Sem enrolação: vamos invadir seu primeiro computador na prática! Abrindo a Internet, já vamos mirar no alvo de treino <code>198.51.100.42</code>.',
+          hint: '👆 Clique em <strong>"Abrir Internet"</strong> no botão iluminado!',
+          nextLabel: 'Abrir Alvo de Treino →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
-            if (window.winManager && window.winManager.current !== 'winSoftware') {
-              if (typeof window.navTo === 'function') window.navTo('winSoftware');
-            }
-            if (window.softwareEngine) {
-              window.softwareEngine.activeTab = 'inventory';
-              window.softwareEngine.renderUI('softwareAppBody');
-            }
-          }
-        },
-        // PASSO 5
-        {
-          id: 'topic_net',
-          selector: '#navSummary_net',
-          pointerLabel: '👆 Clique neste tópico',
-          requiresDirectClick: true,
-          title: '5. Explorar & Invadir na Prática',
-          desc: 'Agora vamos fazer sua <strong>1ª invasão completa</strong>: comparar a força dos programas, quebrar a senha, plantar seu 1º vírus, limpar seu IP e ganhar sua 1ª amostra de <strong>Dinheiro Sujo</strong>!',
-          hint: '👆 <strong>Clique em "Explorar & Invadir"</strong> na barra lateral!',
-          nextLabel: 'Abrir Explorar & Invadir →',
-          onEnter: () => {
-            const d = document.getElementById('navTopic_net');
-            if (d) d.open = false;
-            this.ensureMobileDrawerIfNeeded(true);
-          },
-          triggerAction: () => {
-            const d = document.getElementById('navTopic_net');
-            if (d) d.open = true;
-          }
-        },
-        // PASSO 6
-        {
-          id: 'open_browser',
-          selector: 'button.nav-item[data-win="winBrowser"]',
-          pointerLabel: '👆 Clique em Navegar por IPs',
-          requiresDirectClick: true,
-          title: '6. Abrir a Internet do Jogo',
-          desc: 'É por aqui (ou pelo atalho <strong>Internet</strong> no topo do menu) que você entra em qualquer IP de empresa, banco, fórum secreto ou outro jogador!',
-          hint: '👆 <strong>Clique em "Navegar por IPs"</strong> para mirarmos no computador de treino!',
-          nextLabel: 'Abrir Internet →',
-          onEnter: () => {
-            const d = document.getElementById('navTopic_net');
-            if (d) d.open = true;
-            this.ensureMobileDrawerIfNeeded(true);
+            if (typeof window.navTo === 'function') window.navTo('winHome');
+            document.querySelectorAll('details.nav-topic').forEach((d) => { d.open = false; });
           },
           triggerAction: () => {
             if (window.internetEngine) {
@@ -688,16 +609,16 @@
             }
           }
         },
-        // PASSO 7 — COMPARAR FORÇA DOS APLICATIVOS DA VÍTIMA!
+        // PASSO 3 (idx 2) — COMPARAR FORÇA DA VÍTIMA!
         {
           id: 'compare_defenses',
           selector: '#inetHostDefenseCompareBox',
           pointerLabel: '👆 Confira e toque p/ avançar!',
           requiresDirectClick: false,
-          title: '7. Regra nº 1: Seu Quebrador Alcança a Defesa Dele?',
-          desc: '<strong>Sempre confira este quadro antes de atacar!</strong> Você só quebra a senha se o seu <strong>Quebrador (Cracker)</strong> tiver versão maior ou igual ao <strong>Firewall</strong> e ao <strong>Hasher</strong> da vítima.',
-          hint: '✅ Seu Quebrador é <code>v1.0</code> e a defesa dele também é <code>v1.0</code> — alcance 100% liberado!',
-          nextLabel: 'Boa! Quebrar Senha →',
+          title: '3. Confira a Defesa Antes de Atacar',
+          desc: 'Regra principal: você só invade se o seu <strong>Quebrador</strong> tiver versão igual ou maior que o <strong>Firewall</strong> e o <strong>Hasher</strong> do alvo.',
+          hint: '✅ Tudo empatado em <code>v1.0</code>! Toque neste quadro iluminado para continuar.',
+          nextLabel: 'Quebrar Senha →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
             if (window.internetEngine) {
@@ -707,16 +628,16 @@
             }
           }
         },
-        // PASSO 8 — CLICAR EM QUEBRAR SENHA PARA ABRIR O MINI-PC!
+        // PASSO 4 (idx 3) — CLICAR EM QUEBRAR SENHA!
         {
           id: 'crack_password',
           selector: '#btnInetBruteforce',
           fallbackSelector: '#cardAttackBruteforce',
           pointerLabel: '👆 Clique em Quebrar senha!',
           requiresDirectClick: true,
-          title: '8. Iniciar Quebra de Senha',
-          desc: 'Não precisa abrir o Quebrador antes na memória: basta clicar em <strong>Quebrar senha</strong> para escolher qual versão do seu disco você quer usar!',
-          hint: '🔑 <strong>Clique em "Quebrar senha"</strong> na área iluminada!',
+          title: '4. Quebrar a Senha do Alvo',
+          desc: 'Clique em <strong>Quebrar senha</strong> para abrir seus programas de ataque e invadir essa máquina.',
+          hint: '🔑 Clique em <strong>"Quebrar senha"</strong> na área iluminada!',
           nextLabel: 'Abrir Quebrador →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
@@ -739,16 +660,16 @@
             }
           }
         },
-        // PASSO 9 — ESCOLHER QUAL QUEBRADOR USAR NO MINI-PC!
+        // PASSO 5 (idx 4) — ESCOLHER CRACKER v1.0 NO MINI-PC!
         {
           id: 'choose_minipc_hash',
           selector: '#miniPcCrackerWindow',
           fallbackSelector: '#btnMiniPcUseBest',
           pointerLabel: '👆 Escolha o Cracker v1.0!',
           requiresDirectClick: true,
-          title: '9. Escolha o Quebrador Mais Forte (v1.0)',
-          desc: 'Veja as versões guardadas no seu PC: o <code>v0.5</code> não alcança a defesa, mas o <code>Cracker.crc v1.0</code> quebra fácil! Processadores melhores diminuem os segundos de espera.',
-          hint: '👆 <strong>Clique em "Usar este"</strong> no <code>Cracker.crc v1.0</code> e aguarde chegar em 100%!',
+          title: '5. Escolha o Quebrador v1.0',
+          desc: 'O <code>v0.5</code> não alcança a defesa, mas o <code>Cracker.crc v1.0</code> quebra fácil! Processadores melhores deixam tudo mais rápido.',
+          hint: '👆 Clique em <strong>"Usar este"</strong> no <code>Cracker.crc v1.0</code> e aguarde 100%!',
           nextLabel: 'Usar Cracker v1.0 →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
@@ -780,17 +701,17 @@
             this.startWatchingAsyncStep('crack');
           }
         },
-        // PASSO 10 — SUBIR O VÍRUS PRO PC DA VÍTIMA (UPLOAD)!
+        // PASSO 6 (idx 5) — SUBIR O VÍRUS PRO PC DA VÍTIMA!
         {
           id: 'upload_virus_stage',
           selector: '#remoteVirusDeployCard',
           fallbackSelector: '#btnUploadVirusStage',
           pointerLabel: '👆 Clique em 1️⃣ Subir pro PC da Vítima!',
           requiresDirectClick: true,
-          title: '10. Enviar Seu Vírus pro Disco da Vítima (1ª Parte)',
-          desc: 'Entramos como <strong>root</strong>! Você pode roubar programas melhores da vítima clicando em <strong>Baixar</strong> ou plantar vírus para gerar renda passiva (que entra como <strong>🩸 Dinheiro Sujo</strong>).',
-          hint: '📤 <strong>Clique em "1️⃣ Subir pro PC da Vítima"</strong> para enviar sua amostra <code>Spam.vspam (v1.0)</code>!',
-          nextLabel: '1️⃣ Subir Vírus Agora →',
+          title: '6. Envie Seu 1º Vírus pro Alvo',
+          desc: 'Entramos como <strong>root</strong>! Vírus plantados geram renda passiva em <strong>🩸 Dinheiro Sujo</strong>. Primeiro envie o arquivo pro disco dele.',
+          hint: '📤 Clique em <strong>"1️⃣ Subir pro PC da Vítima"</strong>!',
+          nextLabel: '1️⃣ Subir Vírus →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
             if (window.internetEngine) window.internetEngine.closeCrackerMiniPc();
@@ -827,16 +748,16 @@
             this.startWatchingAsyncStep('upload_stage');
           }
         },
-        // PASSO 11 — EXECUTAR O VÍRUS NO PC DA VÍTIMA!
+        // PASSO 7 (idx 6) — EXECUTAR O VÍRUS NA MEMÓRIA DA VÍTIMA!
         {
           id: 'execute_staged_virus',
           selector: '#stagedVirusesBox',
           fallbackSelector: '#btnExecStagedVirus_vspam',
           pointerLabel: '👆 Clique em 2️⃣ Executar no PC da Vítima!',
           requiresDirectClick: true,
-          title: '11. Executando o Vírus na Memória da Vítima (2ª Etapa)',
-          desc: 'Subir o arquivo só colocou o <code>/root/Spam.vspam</code> no disco da vítima — <strong>ele ainda está parado</strong>! Se você sair sem rodar, ele não gera dinheiro.',
-          hint: '▶️ <strong>Clique em "2️⃣ ▶ Executar no PC da Vítima"</strong> para ativá-lo na memória dela!',
+          title: '7. Ative o Vírus na Memória',
+          desc: 'Subir o arquivo só guardou o vírus no disco. Para começar a render dinheiro, você precisa executá-lo!',
+          hint: '▶️ Clique em <strong>"2️⃣ ▶ Executar no PC da Vítima"</strong>!',
           nextLabel: '2️⃣ Executar Vírus →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
@@ -870,15 +791,15 @@
             }
           }
         },
-        // PASSO 12 — VOLTAR NA ABA DE LOGS DA VÍTIMA!
+        // PASSO 8 (idx 7) — ABRIR LOGS DA VÍTIMA!
         {
           id: 'back_to_logs_tab',
           selector: '#btnSshSubTabLogs',
-          pointerLabel: '👆 Volte p/ Logs da Vítima!',
+          pointerLabel: '👆 Abra a aba Logs da Vítima!',
           requiresDirectClick: true,
-          title: '12. Cuidado: Entrar, Subir e Rodar Gravaram Seu IP!',
-          desc: 'Seu vírus já está ativo! <strong>MAS ATENÇÃO:</strong> cada passo dentro do PC alheio anota seu IP na aba Logs — se esquecer lá, a polícia ou rivais contra-atacam você!',
-          hint: '⚠️ <strong>Sempre limpe a log por último!</strong> Clique em <strong>"Logs (/var/log/syslog) ⚠️"</strong>!',
+          title: '8. Cuidado: Seu IP Ficou Gravado!',
+          desc: 'Tudo que você faz no PC invadido grava seu IP nos registros dele. Se sair sem apagar, a polícia ou rivais encontram você!',
+          hint: '⚠️ Clique na aba <strong>"Logs (/var/log/syslog) ⚠️"</strong> iluminada!',
           nextLabel: 'Abrir Logs da Vítima →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
@@ -896,16 +817,16 @@
             }
           }
         },
-        // PASSO 13 — APAGAR RASTROS + DEIXAR FARPA + RECEBER 1º DINHEIRO SUJO!
+        // PASSO 9 (idx 8) — APAGAR RASTRO & SAQUEAR!
         {
           id: 'wipe_log_and_taunt',
           selector: '#remoteTauntQuickBar',
           fallbackSelector: '#remoteLogEditorBox',
           pointerLabel: '👆 Apague seu IP & Deixe Farpa!',
           requiresDirectClick: true,
-          title: '13. Apague Todos os Seus Rastros & Saqueie!',
-          desc: 'Olhe na caixa abaixo: lá estão seus <strong>3 rastros</strong> com seu IP! Contra rivais fortes você também usará o <strong>Triturador 7-Passos</strong> para apagar até a sombra magnética do disco.',
-          hint: '🔥 <strong>Clique em "Apagar Meu IP & Deixar Farpa"</strong> para limpar seu rastro e receber <strong>+$ 600 em 🩸 Dinheiro Sujo</strong> da invasão!',
+          title: '9. Apague Seu Rastro e Saqueie!',
+          desc: 'Sempre apague seu IP por último antes de sair! Aqui você limpa todas as pistas com um clique e garante o saque da invasão.',
+          hint: '🔥 Clique em <strong>"Apagar Meu IP & Deixar Farpa"</strong> para ganhar <strong>+$ 600 Sujos</strong>!',
           nextLabel: 'Limpar IP & Saquear →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);
@@ -924,16 +845,16 @@
             this.goToStepById('dirty_vs_clean_economy');
           }
         },
-        // PASSO 14 — DINHEIRO SUJO vs. DINHEIRO LIMPO & VITRINE DE LAVAGEM!
+        // PASSO 10 (idx 9) — DINHEIRO SUJO vs. DINHEIRO LIMPO!
         {
           id: 'dirty_vs_clean_economy',
           selector: '#hudDirtyCashBadge',
           fallbackSelector: '#hudWalletMoney',
           pointerLabel: '👆 Toque aqui p/ Concluir (+$500)!',
           requiresDirectClick: false,
-          title: '14. Regra de Ouro: Dinheiro Sujo vs. Dinheiro Limpo!',
-          desc: 'Olhe no topo: entraram <strong>🩸 $ 600 Sujos</strong>! Dinheiro de invasão e vírus vem <strong>Sujo</strong> — se tentar forçar notas sujas para comprar Peças ou Cursos, a polícia prende você! Por isso o menu <strong>Dinheiro & Vida → Lavar Dinheiro</strong> acabou de abrir com o selo <strong>NOVO</strong>.',
-          hint: '🧼 Clique em <strong>Concluir (+$ 500 Limpos)</strong> para receber seu bônus legalizado e depois lave seus $ 600 Sujos na <strong>Vitrine Global de Lavagem</strong>!',
+          title: '10. Dinheiro Sujo vs. Dinheiro Limpo!',
+          desc: 'Entraram <strong>🩸 $ 600 Sujos</strong> no topo! Dinheiro de invasão precisa passar em <strong>Dinheiro &amp; Vida, em Lavar Dinheiro,</strong> antes de comprar peças ou cursos.',
+          hint: '🧼 Toque nas <strong>Notas Sujas</strong> iluminadas para concluir e ganhar <strong>+$ 500 Limpos</strong>!',
           nextLabel: 'Concluir (+$ 500 Limpos) →',
           onEnter: () => {
             this.ensureMobileDrawerIfNeeded(false);

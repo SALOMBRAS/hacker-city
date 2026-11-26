@@ -55,18 +55,18 @@ const IMG_DIR = path.resolve(__dirname, '../../reports/novo-treinamento-unificad
     await new Promise((r) => setTimeout(r, 250));
     await page.screenshot({ path: path.join(IMG_DIR, '01-universidade-grade-sincronizada-e-aulas.png') });
 
-    // 2. Validar Tour Guiado Spotlight de 14 Passos (Passo 1 Escudo <200 REP, Passo 4 sem erro do Lab, Passo 14 Sujo vs Limpo)
+    // 2. Validar Tour Guiado Direto p/ 1ª Invasão (10 Passos Conversacionais: Passo 1 Escudo 24h -> Passo 2 Invasão Direta 198.51.100.42 -> Passo 10 Sujo vs Limpo)
     const tourStep1 = await page.evaluate(() => {
       window.spotlightTour.start(true);
       const step0Title = document.getElementById('hcTourCardTitle')?.innerText || '';
-      const step4Obj = window.spotlightTour.steps[3];
+      const step2Obj = window.spotlightTour.steps[1];
       return {
         totalSteps: window.spotlightTour.steps.length,
         step0Title,
-        step4Fixed: !step4Obj.desc.includes('logo abaixo no menu') && step4Obj.hint.includes('500 REP')
+        goesDirectToInvasion: step2Obj && step2Obj.id === 'start_first_invasion' && step2Obj.desc.includes('198.51.100.42')
       };
     });
-    assert(tourStep1.totalSteps === 14 && tourStep1.step0Title.includes('Escudo Iniciante') && tourStep1.step4Fixed, 'Spotlight Tour must have 14 updated steps');
+    assert(tourStep1.totalSteps === 10 && tourStep1.step0Title.includes('Escudo Iniciante') && tourStep1.goesDirectToInvasion, 'Spotlight Tour must have 10 streamlined steps going straight to 1st invasion');
     await new Promise((r) => setTimeout(r, 250));
     await page.screenshot({ path: path.join(IMG_DIR, '02-tour-passo1-escudo-iniciante.png') });
 
