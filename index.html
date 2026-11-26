@@ -515,6 +515,12 @@
               </span>
             </div>
           </div>
+          <button type="button" id="hudExposedTraceBadge" class="hc-btn danger sm" style="display:none;height:32px;padding:0 10px;font-size:11.5px;font-weight:700;white-space:nowrap;"
+            onclick="window.openBlindExposedIpNotice()"
+            data-tip-title="Alerta de IP Exposto" data-tip-meta="Segurança"
+            data-tip-desc="Seu IP ficou gravado em alguma log na rede! O alerta avisa apenas que está exposto, sem revelar em qual máquina.">
+            ⚠️ IP Exposto
+          </button>
 
           <div class="topbar-metric clickable" onclick="navTo('winBank')" title="Saldo bancário">
             <i data-icon="wallet"></i>
@@ -1291,17 +1297,13 @@
       const subEl = document.getElementById('logsPageSubtitle');
       if (subEl) subEl.innerHTML = `Gerencie o arquivo <code>/var/log/syslog</code> do seu computador (${blurredIp}) e verifique rastros esquecidos na rede.`;
 
-      const remoteTraces = [];
+      let hasAnyRemoteExposure = false;
       if (window.botAI && window.botAI.syslogRegistry) {
         window.botAI.syslogRegistry.forEach((lines, ip) => {
-          if (ip === myIp) return;
-          const pending = window.botAI.pendingAttacks ? window.botAI.pendingAttacks.get(ip) : null;
-          const meaningfulLines = (lines || []).filter((l) => !l.includes('systemd[1]: sshd.service initialized'));
-          if (meaningfulLines.length > 0 || pending) {
-            const bot = window.botRegistry ? window.botRegistry.getBotByIp(ip) : null;
-            const hostMeta = (!bot && window.internetEngine) ? window.internetEngine.resolveHost(ip) : null;
-            remoteTraces.push({ ip, bot, hostMeta, lines: meaningfulLines, pending });
-          }
+          if (!ip || ip === myIp || ip === 'localhost' || hasAnyRemoteExposure) return;
+          const exposedHere = (lines || []).some((l) => String(l).includes(myIp));
+          const hasPending = !!(window.botAI.pendingAttacks && window.botAI.pendingAttacks.has(ip));
+          if (exposedHere || hasPending) hasAnyRemoteExposure = true;
         });
       }
 
@@ -1315,65 +1317,32 @@
         .join('\n');
 
       const tab = window.activeLogsSubTab || 'editor';
-      const safePct = remoteTraces.length === 0 ? 100 : Math.max(15, 100 - remoteTraces.length * 30);
+      const safePct = hasAnyRemoteExposure ? 35 : 100;
       const r = 46;
       const cCirc = +(2 * Math.PI * r).toFixed(2);
       const offset = +(cCirc - (safePct / 100) * cCirc).toFixed(2);
-      const strokeColor = remoteTraces.length === 0 ? '#35b877' : '#e5534b';
+      const strokeColor = hasAnyRemoteExposure ? '#e5534b' : '#35b877';
 
       let mainColHtml = '';
 
       if (tab === 'remote') {
-        const rows = remoteTraces.length === 0
-          ? `<tr><td colspan="4" style="text-align:center;padding:34px 16px;color:var(--hc-accent-text);">✓ Nenhum servidor remoto possui o seu IP (${blurredIp}) gravado no momento.</td></tr>`
-          : remoteTraces.map((t) => {
-              const titleLabel = t.bot ? t.bot.handle : ((t.hostMeta && t.hostMeta.hostname) || 'Servidor Remoto');
-              const statusTxt = t.pending ? `Retaliação ${t.pending.timeLeft}s` : 'IP Exposto';
-              return `
-                <tr>
-                  <td class="soft-col-icon">
-                    <span class="soft-mini-glyph kind-virus" data-tip-title="${escapeHtml(titleLabel)}" data-tip-meta="${escapeHtml(t.ip)}" data-tip-desc="${escapeHtml(t.lines[0] || 'Seu IP consta no arquivo /var/log/syslog deste alvo.')}">
-                      ${ic('shield-alert')}
-                    </span>
-                  </td>
-                  <td>
-                    <span class="soft-name-trigger" tabindex="0" data-tip-title="${escapeHtml(titleLabel)}" data-tip-meta="${escapeHtml(t.ip)}" data-tip-desc="${escapeHtml(t.lines.join(' | '))}">
-                      <strong style="color:var(--hc-danger-text);">${escapeHtml(t.ip)}</strong>
-                      <span style="font-family:var(--hc-font-sans);color:var(--hc-text-2);">${escapeHtml(titleLabel)}</span>
-                    </span>
-                  </td>
-                  <td class="soft-col-size" style="width:130px;"><span class="hc-badge danger">${escapeHtml(statusTxt)}</span></td>
-                  <td class="soft-col-acts">
-                    <div class="soft-icon-actions">
-                      <button type="button" class="soft-icon-act ic-info" aria-label="Abrir SSH em ${escapeHtml(t.ip)}"
-                        data-tip-title="Entrar via SSH" data-tip-meta="${escapeHtml(t.ip)}"
-                        data-tip-desc="Abrir terminal remoto do servidor para revisar o arquivo de log."
-                        onclick="window.internetEngine.openIp('${t.ip}', 'entrar')">${ic('terminal')}</button>
-                      <button type="button" class="soft-icon-act ic-del" aria-label="Apagar rastro em ${escapeHtml(t.ip)}"
-                        data-tip-title="Apagar meu IP agora" data-tip-meta="rmlog"
-                        data-tip-desc="Limpar imediatamente seu rastro em ${escapeHtml(t.ip)}:/var/log/syslog."
-                        onclick="wipeRemoteLogFromUI('${t.ip}')">${ic('trash-2')}</button>
-                    </div>
-                  </td>
-                </tr>
-              `;
-            }).join('');
-
-        mainColHtml = `
-          <div class="soft-table-wrap" role="region" aria-label="Rastros esquecidos em servidores remotos">
-            <table class="soft-table clean-hw-table">
-              <thead>
-                <tr>
-                  <th class="soft-col-icon"></th>
-                  <th>Servidor c/ Seu IP Gravado</th>
-                  <th class="soft-col-size" style="width:130px;">Risco</th>
-                  <th class="soft-col-acts">Ações</th>
-                </tr>
-              </thead>
-              <tbody>${rows}</tbody>
-            </table>
-          </div>
-        `;
+        mainColHtml = hasAnyRemoteExposure
+          ? `<div class="hc-card" id="blindExposedIpCard" style="padding:24px 20px;border-color:var(--hc-danger);background:rgba(229,83,75,0.08);">
+               <span class="hc-badge danger">⚠️ SEU IP ESTÁ EXPOSTO NA REDE</span>
+               <h3 style="margin:10px 0 6px;font-size:16px;color:var(--hc-danger-text);">Seu endereço IP ficou esquecido em alguma log externa!</h3>
+               <p style="margin:0 0 14px;font-size:13px;color:var(--hc-text-2);line-height:1.5;">
+                 Este sensor informa <strong>apenas que o seu IP atual está exposto</strong> — ele <strong>não revela em qual máquina ou servidor</strong> você esqueceu de limpar.
+                 Lembre-se dos últimos IPs em que você entrou pelo Navegador para ir lá apagar a log, ou compre um novo IP no Provedor ISP (<code>71.4.5.1</code>).
+               </p>
+               <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                 <button type="button" class="hc-btn primary sm" onclick="navTo('winInternet')">🌐 Abrir Navegador</button>
+                 <button type="button" class="hc-btn ghost sm" onclick="window.internetEngine.openIp('71.4.5.1')">🛡️ Ir p/ Provedor ISP (71.4.5.1)</button>
+               </div>
+             </div>`
+          : `<div class="hc-card" id="blindCleanIpCard" style="padding:28px 20px;text-align:center;border-color:rgba(53,184,119,0.35);">
+               <strong style="color:var(--hc-accent-text);font-size:15px;">✓ Seu IP atual (${blurredIp}) está limpo na rede</strong>
+               <p style="margin:6px 0 0;font-size:12.5px;color:var(--hc-text-2);">Nenhum rastro ativo do seu endereço IP foi detectado em logs externas no momento.</p>
+             </div>`;
       } else if (tab === 'events') {
         const rows = window.systemLogs.length === 0
           ? `<tr><td colspan="4" style="text-align:center;padding:34px 16px;color:var(--hc-text-3);">Nenhum evento registrado em /var/log/syslog.</td></tr>`
@@ -1434,10 +1403,10 @@
       } else {
         mainColHtml = `
           <div style="display:flex;flex-direction:column;gap:10px;">
-            ${remoteTraces.length > 0 ? `
+            ${hasAnyRemoteExposure ? `
               <div class="soft-feedback-banner" style="background:rgba(208,68,58,0.16);border-color:rgba(229,83,75,0.45);color:#ff9b95;">
-                <span>⚠️ Atenção: seu IP (${blurredIp}) ainda consta na log de ${remoteTraces.length} servidor(es) remoto(s)!</span>
-                <button type="button" class="hc-btn sm" style="background:var(--hc-danger);border-color:var(--hc-danger);color:#fff;opacity:1;" onclick="window.switchLogsSubTab('remote')">Ver &amp; Limpar →</button>
+                <span>⚠️ Atenção: seu IP (${blurredIp}) está exposto em alguma log externa na rede!</span>
+                <button type="button" class="hc-btn sm" style="background:var(--hc-danger);border-color:var(--hc-danger);color:#fff;opacity:1;" onclick="window.switchLogsSubTab('remote')">Ver Alerta →</button>
               </div>
             ` : ''}
             ${(window.nineSystemsEngine && typeof window.nineSystemsEngine.getActiveShadowCount === 'function' && window.nineSystemsEngine.getActiveShadowCount('localhost') > 0) ? `
@@ -1482,7 +1451,7 @@
                 ${ic('activity')} <span>Eventos (${window.systemLogs.length})</span>
               </button>
               <button type="button" class="soft-tab-btn ${tab === 'remote' ? 'active' : ''}" onclick="window.switchLogsSubTab('remote')">
-                ${ic('radar')} <span>Rastros na Rede (${remoteTraces.length})</span>
+                ${ic('radar')} <span>Status na Rede (${hasAnyRemoteExposure ? '⚠️ Exposto' : 'Limpo'})</span>
               </button>
             </div>
           </div>
@@ -1498,18 +1467,18 @@
                   <circle cx="58" cy="58" r="${r}" fill="none" stroke="#222832" stroke-width="8"></circle>
                   <circle cx="58" cy="58" r="${r}" fill="none" stroke="${strokeColor}" stroke-width="8"
                     stroke-linecap="round" stroke-dasharray="${cCirc}" stroke-dashoffset="${offset}" transform="rotate(-90 58 58)"></circle>
-                  <text x="58" y="63" text-anchor="middle" fill="#ebeff4" font-family="var(--hc-font-mono)" font-size="17" font-weight="700">${remoteTraces.length === 0 ? 'Limpo' : remoteTraces.length + ' Alvo'}</text>
+                  <text x="58" y="63" text-anchor="middle" fill="#ebeff4" font-family="var(--hc-font-mono)" font-size="16" font-weight="700">${hasAnyRemoteExposure ? 'Exposto' : 'Limpo'}</text>
                 </svg>
                 <div class="soft-donut-title">Status de Exposição</div>
                 <div class="soft-donut-numbers">
-                  <span class="${remoteTraces.length === 0 ? 'used' : 'total'}">${remoteTraces.length === 0 ? '0 IPs expostos' : `${remoteTraces.length} rastro(s) ativo(s)`}</span>
+                  <span class="${!hasAnyRemoteExposure ? 'used' : 'total'}">${!hasAnyRemoteExposure ? 'IP limpo' : 'IP exposto (local oculto)'}</span>
                 </div>
               </div>
 
               <div class="soft-bays-box">
                 <div class="soft-bay-row" id="logsSideMyIpRow"><span>Meu IP</span><span style="color:var(--hc-accent-text);">${blurredIp}</span></div>
                 <div class="soft-bay-row"><span>Linhas Locais</span><span>${window.systemLogs.length}</span></div>
-                <div class="soft-bay-row"><span>Rastros Externos</span><span style="color:${remoteTraces.length === 0 ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};">${remoteTraces.length}</span></div>
+                <div class="soft-bay-row"><span>Exposição Externa</span><span style="color:${!hasAnyRemoteExposure ? 'var(--hc-accent-text)' : 'var(--hc-danger-text)'};">${!hasAnyRemoteExposure ? 'Limpo' : '⚠️ Sim'}</span></div>
               </div>
 
               <div class="soft-tool-tiles">
@@ -1915,6 +1884,34 @@
       if (window.spotlightTour) window.spotlightTour.maybeAutoStartForSession();
     }
 
+    window.isPlayerIpExposedAnywhere = function () {
+      if (!window.networkIdentity || !window.botAI || !window.botAI.syslogRegistry) return false;
+      const myIp = window.networkIdentity.getPublicIp();
+      if (!myIp) return false;
+      for (const [hostIp, lines] of window.botAI.syslogRegistry.entries()) {
+        if (!hostIp || hostIp === myIp || hostIp === 'localhost') continue;
+        if ((lines || []).some((l) => String(l).includes(myIp))) return true;
+        if (window.botAI.pendingAttacks && window.botAI.pendingAttacks.has(hostIp)) return true;
+      }
+      return false;
+    };
+
+    window.syncExposedIpHudBadge = function () {
+      const btn = document.getElementById('hudExposedTraceBadge');
+      if (!btn) return;
+      const exposed = window.isPlayerIpExposedAnywhere();
+      btn.style.display = exposed ? 'inline-flex' : 'none';
+    };
+
+    window.openBlindExposedIpNotice = function () {
+      window.activeLogsSubTab = 'remote';
+      navTo('winLogs');
+      if (typeof window.renderLogsPage === 'function') window.renderLogsPage();
+      if (typeof showToast === 'function') {
+        showToast('⚠️ Seu IP está exposto em alguma log! Lembre-se de onde entrou para apagar (o alerta não revela o local).');
+      }
+    };
+
     function updateHudDisplays() {
       if (!currentProfile || !currentWallet) return;
 
@@ -1925,6 +1922,7 @@
         if (ipEl) ipEl.innerHTML = window.networkIdentity.renderBlurredMyIpHtml(myIp);
         window.networkIdentity.renderProfileIpCard('profileIpCardMount');
       }
+      window.syncExposedIpHudBadge();
       if (window.skillTreeEngine) {
         document.getElementById('hudSpecialtyBadge').innerText = window.skillTreeEngine.getFullBadge(currentProfile.specialty, currentProfile.reputation);
       } else {
