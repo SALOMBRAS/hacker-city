@@ -1865,6 +1865,7 @@
       if (myIp && !hadMyIpBefore && strLine.includes(myIp) && window.livingBotsEngine && typeof window.livingBotsEngine.markFreshTrace === 'function') {
         window.livingBotsEngine.markFreshTrace(ip, myIp);
       }
+      if (typeof window.syncExposedIpHudBadge === 'function') window.syncExposedIpHudBadge();
       if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
     }
 
@@ -2750,13 +2751,85 @@
       return true;
     }
 
-    disconnectSsh(silent = false) {
+    disconnectSsh(silent = false, forceLeave = false) {
+      if (!silent && !forceLeave && this.activeSshIp && !(window.spotlightTour && window.spotlightTour.isActive)) {
+        const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '';
+        const logs = this.getServerLogs(this.activeSshIp) || [];
+        if (myIp && logs.some((l) => String(l).includes(myIp))) {
+          this.openDirtyLogExitModal(this.activeSshIp);
+          return false;
+        }
+      }
+      this.closeDirtyLogExitModal();
       this.activeSshIp = null;
       this.activeSshRole = 'root';
       if (!silent) {
         if (typeof window.showToast === 'function') window.showToast('Sessão remota encerrada.');
         this.render();
       }
+      return true;
+    }
+
+    closeDirtyLogExitModal() {
+      const m = typeof document !== 'undefined' ? document.getElementById('hcDirtyExitModal') : null;
+      if (m) m.remove();
+    }
+
+    openDirtyLogExitModal(hostIp) {
+      if (typeof document === 'undefined') return;
+      this.closeDirtyLogExitModal();
+      const wrap = document.createElement('div');
+      wrap.id = 'hcDirtyExitModal';
+      wrap.style.cssText = 'position:fixed;inset:0;z-index:9800;background:rgba(5,9,15,0.75);display:grid;place-items:center;padding:16px;';
+      wrap.innerHTML = `
+        <div class="hc-card" style="max-width:440px;width:100%;padding:20px;border-color:var(--hc-danger);background:#121822;">
+          <span class="hc-badge danger">⚠️ SEU IP AINDA ESTÁ NA LOG</span>
+          <h3 style="margin:10px 0 6px;font-size:16px;color:#fff;">Limpar seu rastro antes de sair?</h3>
+          <p style="margin:0 0 16px;font-size:13px;color:var(--hc-text-2);line-height:1.5;">
+            Seu endereço IP ainda consta no arquivo <code>/var/log/syslog</code> desta máquina (<code>${esc(hostIp)}</code>). Se sair sem apagar, bots ou rivais poderão rastrear você!
+          </p>
+          <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;">
+            <button type="button" id="btnLeaveWithoutWipe" class="hc-btn ghost sm" onclick="window.internetEngine.disconnectSsh(false, true)">Sair Sem Limpar</button>
+            <button type="button" id="btnWipeAndLeaveSafe" class="hc-btn primary sm" onclick="window.internetEngine.quickWipeMyIpOnCurrentSsh(true)">🧹 Limpar Meu IP e Sair Seguro</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(wrap);
+    }
+
+    quickWipeMyIpOnCurrentSsh(andDisconnect = false) {
+      if (!this.activeSshIp) return false;
+      const targetIp = this.activeSshIp;
+      const myIp = window.networkIdentity ? window.networkIdentity.getPublicIp() : '';
+      const prevLines = this.getServerLogs(targetIp) || [];
+      const keptLines = prevLines.filter((l) => !(myIp && String(l).includes(myIp)));
+      if (window.botAI && window.botAI.syslogRegistry) {
+        window.botAI.syslogRegistry.set(targetIp, keptLines);
+        if (window.botAI.pendingAttacks) window.botAI.pendingAttacks.delete(targetIp);
+      }
+      if (myIp && window.livingBotsEngine && typeof window.livingBotsEngine.clearTraceTimestamp === 'function') {
+        window.livingBotsEngine.clearTraceTimestamp(targetIp, myIp);
+      }
+      if (window.tutorialEngine) window.tutorialEngine.notifyLogsSaved(targetIp, keptLines);
+      if (window.dynamicContractsEngine) window.dynamicContractsEngine.onGameAction('wipe_log', targetIp);
+      if (window.nineSystemsEngine && typeof window.nineSystemsEngine.recordSimpleLogWipe === 'function') {
+        window.nineSystemsEngine.recordSimpleLogWipe(targetIp);
+      }
+      if (window.operatorRetentionEngine && typeof window.operatorRetentionEngine.recordDailyGoalProgress === 'function') {
+        window.operatorRetentionEngine.recordDailyGoalProgress('ghost_wipe');
+      }
+      if (typeof window.syncExposedIpHudBadge === 'function') window.syncExposedIpHudBadge();
+      if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+      this.closeDirtyLogExitModal();
+      if (andDisconnect) {
+        this.disconnectSsh(true, true);
+        if (typeof window.showToast === 'function') window.showToast(`✅ Rastro limpo em ${targetIp} e sessão encerrada com segurança!`);
+        this.render();
+        return true;
+      }
+      if (typeof window.showToast === 'function') window.showToast(`✅ Seu IP foi removido da log de ${targetIp}!`);
+      this.render();
+      return true;
     }
 
     applyQuickTauntToRemoteLog() {
@@ -2865,6 +2938,7 @@
       }
       if (window.hackerAudio) window.hackerAudio.playKeyClick();
       if (window.onlineEngine) window.onlineEngine.scheduleSave(false);
+      if (typeof window.syncExposedIpHudBadge === 'function') window.syncExposedIpHudBadge();
       if (typeof window.showToast === 'function') {
         window.showToast(`Syslog remoto de ${this.activeSshIp} reescrito com sucesso!`);
       }
@@ -3882,11 +3956,11 @@
               <td class="soft-col-size">${esc(f.size || (f.sizeMb ? f.sizeMb + ' MB' : '1 MB'))}</td>
               <td class="soft-col-acts">
                 <div class="soft-icon-actions">
-                  <button type="button" id="btnReadFile_${safeId}" class="soft-icon-act ic-dl" aria-label="${f.canSteal || f.missionId ? 'Baixar' : 'Ler'} ${esc(f.name)}"
-                    data-tip-title="${f.canSteal || f.missionId ? 'Download do arquivo' : 'Ler arquivo'}"
+                  <button type="button" id="btnReadFile_${safeId}" class="soft-icon-act ic-info" aria-label="Ler ${esc(f.name)}"
+                    data-tip-title="Abrir e ler ${esc(f.name)}"
                     data-tip-desc="${esc(f.content)}"
                     onclick="window.handleRemoteFileAction('${esc(host.ip)}', '${esc(f.name)}', 'read')">
-                    ${HC.icon('download')}
+                    ${HC.icon('eye')}
                   </button>
                   ${f.canDelete
                     ? `<button type="button" id="btnDeleteFile_${safeId}" class="soft-icon-act ic-del" aria-label="Excluir ${esc(f.name)}"
@@ -3994,11 +4068,11 @@
                      <select id="remoteVirusSelect" class="hc-input mono" style="flex: 1; min-width: 220px; height: 34px; font-size: 12px;">
                        ${virusOpts.map((vo) => `<option value="${vo.key}">${esc(vo.filename)} (${vo.versionStr}) — ${esc(vo.extraLabel)}</option>`).join('')}
                      </select>
-                     <button type="button" id="btnUploadVirusStage" class="hc-btn primary sm" ${upJob ? 'disabled' : ''} onclick="window.internetEngine.stageSelectedVirusToCurrentHost()">
-                       ${upJob ? 'Subindo...' : '1️⃣ Subir pro PC da Vítima'}
+                     <button type="button" id="btnDeployRemoteVirus" class="hc-btn primary sm" ${upJob ? 'disabled' : ''} onclick="window.internetEngine.deploySelectedVirusToCurrentHost()">
+                       ${upJob ? 'Enviando...' : '🚀 Enviar e Rodar Vírus (1 Clique)'}
                      </button>
-                     <button type="button" id="btnDeployRemoteVirus" class="hc-btn ghost sm" ${upJob ? 'disabled' : ''} onclick="window.internetEngine.deploySelectedVirusToCurrentHost()">
-                       Subir + Rodar
+                     <button type="button" id="btnUploadVirusStage" class="hc-btn ghost sm" ${upJob ? 'disabled' : ''} onclick="window.internetEngine.stageSelectedVirusToCurrentHost()">
+                       Só Subir pro Disco
                      </button>
                    </div>`}
 
@@ -4160,6 +4234,8 @@
       const hasCctvTab = window.cctvEngine && window.cctvEngine.hostSupportsCctv(host);
       const activeCctvMsn = (window.missionsEngine && window.missionsEngine.ensureLoaded().activeMission);
       const cctvBadgeAlert = !!(activeCctvMsn && activeCctvMsn.type === 'cctv_hack' && activeCctvMsn.targetIp === host.ip);
+      const hasMyVirusHere = window.softwareEngine ? window.softwareEngine.getRemoteVirusesOnIp(host.ip).length > 0 : false;
+      const lootDone = (host.bankBalance || 0) <= 0 || this.drainedNpcIps.has(host.ip);
 
       return `
         <div>
@@ -4169,8 +4245,8 @@
               <span style="font-family: var(--hc-font-mono); font-size: 0.84rem;">${esc(role)}@${esc(host.ip)}:~#</span>
             </div>
             <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-              <button type="button" id="btnSshSubTabLogs" class="hc-btn sm ${this.sshSubTab === 'logs' ? 'primary' : 'ghost'}" onclick="window.internetEngine.sshSubTab='logs'; window.internetEngine.render();">Logs (/var/log/syslog)${myIpExposed ? ' ⚠️' : ''}</button>
               <button type="button" id="btnSshSubTabFiles" class="hc-btn sm ${this.sshSubTab === 'files' ? 'primary' : 'ghost'}" onclick="window.internetEngine.sshSubTab='files'; window.internetEngine.render();">Vírus, Carteira &amp; Arquivos</button>
+              <button type="button" id="btnSshSubTabLogs" class="hc-btn sm ${this.sshSubTab === 'logs' ? 'primary' : 'ghost'}" onclick="window.internetEngine.sshSubTab='logs'; window.internetEngine.render();">Logs (/var/log/syslog)${myIpExposed ? ' ⚠️' : ''}</button>
               ${hasCctvTab ? `
                 <button type="button" id="btnSshSubTabCctv" class="hc-btn sm ${this.sshSubTab === 'cctv' ? 'primary' : 'ghost'}"
                   style="${this.sshSubTab !== 'cctv' ? 'border-color:rgba(53,184,119,0.5);color:var(--hc-accent-text);' : ''}"
@@ -4179,9 +4255,23 @@
                 </button>
               ` : ''}
               <button type="button" id="btnSshSubTabHw" class="hc-btn sm ${this.sshSubTab === 'hw' ? 'primary' : 'ghost'}" onclick="window.internetEngine.sshSubTab='hw'; window.internetEngine.render();">Hardware &amp; Analyzer</button>
-              <button type="button" class="hc-btn ghost sm" style="color: var(--hc-danger-text);" onclick="window.internetEngine.disconnectSsh()">Desconectar</button>
+              <button type="button" id="btnDisconnectSshMain" class="hc-btn ghost sm" style="color: var(--hc-danger-text);" onclick="window.internetEngine.disconnectSsh()">Desconectar</button>
             </div>
           </div>
+
+          <div id="sshStepChecklistBar" style="margin:0 0 12px;padding:9px 12px;border-radius:8px;background:var(--hc-inset);border:1px solid ${myIpExposed ? 'rgba(229,83,75,0.45)' : 'rgba(53,184,119,0.35)'};display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+              <span style="color:${lootDone ? 'var(--hc-accent-text)' : 'var(--hc-text-2)'};cursor:pointer;" onclick="window.internetEngine.sshSubTab='files';window.internetEngine.render();">${lootDone ? '✓' : '①'} Saquear / Arquivos</span>
+              <span style="color:var(--hc-text-3);">›</span>
+              <span style="color:${hasMyVirusHere ? 'var(--hc-accent-text)' : 'var(--hc-text-2)'};cursor:pointer;" onclick="window.internetEngine.sshSubTab='files';window.internetEngine.render();">${hasMyVirusHere ? '✓' : '②'} Plantar Vírus</span>
+              <span style="color:var(--hc-text-3);">›</span>
+              <strong style="color:${myIpExposed ? 'var(--hc-danger-text)' : 'var(--hc-accent-text)'};">${myIpExposed ? '③ ⚠️ Seu IP está na Log desta máquina!' : '✓ ③ Rastro Limpo — Seguro Sair!'}</strong>
+            </div>
+            ${myIpExposed
+              ? `<button type="button" id="btnQuickWipeMyIpTop" class="hc-btn sm" style="background:var(--hc-danger);border-color:var(--hc-danger);color:#fff;font-weight:700;" onclick="window.internetEngine.quickWipeMyIpOnCurrentSsh(false)">🧹 Limpar Meu IP Agora (1 Clique)</button>`
+              : `<span class="hc-badge success">Sem seu IP aqui</span>`}
+          </div>
+
           ${subContent}
         </div>
       `;
@@ -4746,6 +4836,48 @@
     }
   };
 
+  window.openRemoteTxtReaderModal = function (ip, fileName) {
+    if (typeof document === 'undefined' || !window.internetEngine) return;
+    const host = window.internetEngine.resolveHost(ip);
+    const dyn = window.missionsEngine ? window.missionsEngine.getMissionFilesForHost(ip) : [];
+    const notes = (window.internetEngine.remoteCustomNotes && window.internetEngine.remoteCustomNotes.get(ip)) || [];
+    const all = [...notes, ...dyn, ...((host && host.files) || [])];
+    const found = all.find((x) => x.name === fileName);
+    if (!found) return;
+    document.getElementById('hcTxtReaderModal')?.remove();
+    const content = String(found.content || '');
+    const ipsInText = Array.from(new Set((content.match(/\b\d{1,3}(?:\.\d{1,3}){3}\b/g) || []).filter((x) => x !== ip)));
+    const wrap = document.createElement('div');
+    wrap.id = 'hcTxtReaderModal';
+    wrap.style.cssText = 'position:fixed;inset:0;z-index:9800;background:rgba(5,9,15,0.75);display:grid;place-items:center;padding:16px;';
+    wrap.onclick = (e) => { if (e.target === wrap) wrap.remove(); };
+    wrap.innerHTML = `
+      <div class="hc-card" style="max-width:520px;width:100%;padding:18px 20px;background:#111722;border-color:var(--hc-border-strong);">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;">
+          <strong class="mono" style="font-size:14px;color:var(--hc-accent-text);">📄 ${esc(fileName)} <span style="color:var(--hc-text-3);font-size:11.5px;">(${esc(ip)})</span></strong>
+          <button type="button" class="hc-btn ghost sm" onclick="document.getElementById('hcTxtReaderModal')?.remove()">Fechar ✕</button>
+        </div>
+        <pre id="hcTxtReaderPre" style="margin:0 0 12px;padding:12px;border-radius:8px;background:var(--hc-inset);border:1px solid var(--hc-border);color:var(--hc-text);font-family:var(--hc-font-mono);font-size:12.5px;white-space:pre-wrap;word-break:break-word;max-height:240px;overflow:auto;"></pre>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;align-items:center;">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            ${ipsInText.slice(0, 3).map((tip) => `<button type="button" class="hc-btn ghost sm" onclick="document.getElementById('hcTxtReaderModal')?.remove();window.internetEngine.openIp('${esc(tip)}')">🌐 Abrir ${esc(tip)} →</button>`).join('')}
+          </div>
+          <button type="button" id="btnCopyTxtContent" class="hc-btn primary sm">📋 Copiar Conteúdo</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(wrap);
+    const pre = document.getElementById('hcTxtReaderPre');
+    if (pre) pre.textContent = content;
+    const copyBtn = document.getElementById('btnCopyTxtContent');
+    if (copyBtn) {
+      copyBtn.onclick = () => {
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(content).catch(() => {});
+        if (typeof window.showToast === 'function') window.showToast(`Conteúdo de ${fileName} copiado!`);
+      };
+    }
+  };
+
   window.handleRemoteFileAction = function (ip, fileName, actionKind) {
     let msnRes = null;
     if (window.missionsEngine) {
@@ -4755,11 +4887,14 @@
       window.showToast(
         actionKind === 'delete'
           ? `Arquivo ${fileName} deletado de ${ip}! Lembre-se de limpar o syslog!`
-          : `Arquivo ${fileName} extraído de ${ip}! Lembre-se de limpar o syslog!`
+          : `Arquivo ${fileName} aberto!`
       );
     }
     if (window.internetEngine) {
       window.internetEngine.render();
+    }
+    if (actionKind === 'read' && !(window.spotlightTour && window.spotlightTour.isActive)) {
+      window.openRemoteTxtReaderModal(ip, fileName);
     }
   };
 
