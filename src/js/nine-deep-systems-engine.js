@@ -2431,6 +2431,7 @@
           dirtyChip.insertAdjacentElement('afterend', tempChip);
         }
         const tel = this.getLiveThermalTelemetry();
+        tempChip.style.display = (tel.throttling || tel.tempC >= 55) ? 'inline-flex' : 'none';
         tempChip.className = 'hud-temp-chip' + (tel.throttling ? ' throttle' : (tel.tempC >= 65 ? ' hot' : ''));
         tempChip.textContent = `🌡️ ${tel.tempC}°C`;
       }
