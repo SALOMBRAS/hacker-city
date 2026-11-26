@@ -520,6 +520,7 @@ class BotAIService {
     }
 
     if (typeof window.renderLogsPage === 'function') window.renderLogsPage();
+    if (typeof window.syncExposedIpHudBadge === 'function') window.syncExposedIpHudBadge();
     return attackData;
   }
 
@@ -560,6 +561,7 @@ class BotAIService {
       window.addLocalLog('RMLOG', `Rastro apagado em ${botIp}:/var/log/syslog${hadPending ? ' (contra-ataque abortado)' : ''}`, 'success');
     }
     if (typeof window.renderLogsPage === 'function') window.renderLogsPage();
+    if (typeof window.syncExposedIpHudBadge === 'function') window.syncExposedIpHudBadge();
     return hadPending;
   }
 
