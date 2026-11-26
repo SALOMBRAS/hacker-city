@@ -4508,6 +4508,59 @@
       `;
     }
 
+    findUpgradeRouteForBlockedTool(softKey = 'cracker', requiredVer = 1.5) {
+      const myVer = softKey === 'cracker'
+        ? this.getPlayerCrackerVer()
+        : (softKey === 'exploit_ftp' ? this.getPlayerFtpExploitVer() : this.getPlayerSshExploitVer());
+      if (myVer <= 0 && softKey === 'cracker') {
+        return { mode: 'download', ip: '33.8.2.71', label: '📍 Baixar Cracker v1.0 no Download Center →' };
+      }
+      if (window.puzzleTrailEngine && typeof window.puzzleTrailEngine.getAllNodes === 'function') {
+        const myCrc = this.getPlayerCrackerVer();
+        const nodes = window.puzzleTrailEngine.getAllNodes() || [];
+        for (const p of nodes) {
+          if (window.puzzleTrailEngine.isSolved(p.index)) continue;
+          const rewards = Array.isArray(p.rewardSoftwares) && p.rewardSoftwares.length > 0
+            ? p.rewardSoftwares
+            : [{ softKey: p.rewardSoftKey, versionInt: p.rewardSoftVer }];
+          const matchRw = rewards.find((r) => r && r.softKey === softKey && (Number(r.versionInt || 0) / 10) > myVer);
+          if (!matchRw) continue;
+          const pHost = this.resolveHost(p.ip);
+          const pReq = Math.max(pHost?.firewallVer || 1.0, pHost?.hasherVer || 1.0);
+          if (myCrc >= pReq) {
+            return {
+              mode: 'enigma',
+              ip: p.ip,
+              enigmaIndex: p.index,
+              softKey,
+              label: `📍 Conseguir versão maior no Enigma #${p.index} →`
+            };
+          }
+        }
+      }
+      // Caso NÃO tenha enigma mais forte disponível -> manda direto para o LABORATÓRIO!
+      return {
+        mode: 'lab',
+        softKey,
+        requiredVer,
+        label: '🔬 Onde conseguir versão mais forte? Ir pro Laboratório →'
+      };
+    }
+
+    goToUpgradeForBlockedTool(softKey = 'cracker', requiredVer = 1.5) {
+      const route = this.findUpgradeRouteForBlockedTool(softKey, requiredVer);
+      if (route.mode === 'download' || route.mode === 'enigma') {
+        this.openIp(route.ip, 'pagina');
+        return route;
+      }
+      if (window.virusLabEngine && typeof window.virusLabEngine.openForSoftwareUpgrade === 'function') {
+        window.virusLabEngine.openForSoftwareUpgrade(softKey);
+      } else if (typeof window.navTo === 'function') {
+        window.navTo('winVirusLab');
+      }
+      return route;
+    }
+
     renderInvadirTab(host) {
       if (host.kind === 'self') {
         return `<div class="hc-card" style="padding: 18px; color: var(--hc-text-2);">Este é o seu próprio endereço IP (${esc(host.ip)}). Use o menu lateral para gerenciar seu computador.</div>`;
@@ -4564,6 +4617,10 @@
               <button type="button" id="btnInetBruteforce" class="hc-btn ${canBruteforce ? 'primary' : ''} block" onclick="window.internetEngine.startBruteforce()">
                 Quebrar senha
               </button>
+              ${!canBruteforce ? (() => {
+                const upRoute = this.findUpgradeRouteForBlockedTool('cracker', reqBfMin);
+                return `<button type="button" id="btnWhereToUpgradeCracker" class="hc-btn ghost sm block" style="margin-top:6px;border-color:rgba(56,189,248,0.45);color:#7dd3fc;font-size:11.5px;" onclick="window.internetEngine.goToUpgradeForBlockedTool('cracker', ${reqBfMin})">${esc(upRoute.label)}</button>`;
+              })() : ''}
             </div>
 
             <div class="inet-attack-card ${canAnyExp ? 'ready' : ''}" id="cardAttackExploit">
@@ -4582,6 +4639,10 @@
               <button type="button" id="btnInetExploit" class="hc-btn ${canAnyExp ? 'primary' : ''} block" onclick="window.internetEngine.startExploitAttack()">
                 Explorar brecha
               </button>
+              ${!canAnyExp ? (() => {
+                const upExp = this.findUpgradeRouteForBlockedTool('exploit_ssh', reqFwl);
+                return `<button type="button" id="btnWhereToUpgradeExploit" class="hc-btn ghost sm block" style="margin-top:6px;border-color:rgba(56,189,248,0.45);color:#7dd3fc;font-size:11.5px;" onclick="window.internetEngine.goToUpgradeForBlockedTool('exploit_ssh', ${reqFwl})">${esc(upExp.label)}</button>`;
+              })() : ''}
             </div>
           </div>
 

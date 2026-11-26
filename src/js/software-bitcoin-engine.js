@@ -4152,7 +4152,11 @@
                   data-tip-title="${esc(def.friendlyTitle)}" data-tip-meta="${esc(stateLabel)}" data-tip-desc="${esc(def.desc)}">
                   ${isRunning ? '<span class="soft-run-dot"></span>' : ''}
                   <span>${esc(def.filename)}</span>
-                  ${def.category === 'virus' ? `<span class="hc-badge info" style="font-size:10px;padding:1px 6px;margin-left:5px;">${esc(this.getVirusEffectShortLabel(k, st.versionInt))}</span>` : ''}
+                  ${def.category === 'virus'
+                    ? `<span class="hc-badge warn" style="font-size:10px;padding:1px 6px;margin-left:5px;">🦠 Enviar p/ Vítimas</span><span class="hc-badge info" style="font-size:10px;padding:1px 6px;margin-left:4px;">${esc(this.getVirusEffectShortLabel(k, st.versionInt))}</span>`
+                    : (def.onDemandTool || def.category !== 'system'
+                        ? `<span class="hc-badge" style="font-size:10px;padding:1px 6px;margin-left:5px;color:#7dd3fc;border-color:rgba(56,189,248,0.35);">⚔️ Automático ao Invadir/Usar</span>`
+                        : `<span class="hc-badge ${isRunning ? 'success' : ''}" style="font-size:10px;padding:1px 6px;margin-left:5px;">🛡️ Fica Ligado na RAM</span>`)}
                   ${st.customLabStrain ? `<span class="hc-badge success" style="font-size:10px;padding:1px 5px;margin-left:4px;" title="Cepa ${esc(st.customLabStrain.strainName)}">LAB</span>` : ''}
                   ${isHidden ? `<span style="font-size:11px;color:var(--hc-text-3);">(oculto)</span>` : ''}
                 </span>
